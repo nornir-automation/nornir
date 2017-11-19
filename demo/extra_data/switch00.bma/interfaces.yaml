@@ -1,0 +1,7 @@
+---
+Ethernet1:
+    description: "An Interface in bma"
+    enabled: true
+Ethernet2:
+    description: "Another interface in bma"
+    enabled: false

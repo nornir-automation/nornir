@@ -1,0 +1,9 @@
+interfaces {
+{% for interface, data in interfaces.items() %}
+    {{ interface }} {
+        description "{{ data.description }}";
+        {{ "disable;" if not data.enabled else "" }}
+    }
+{% endfor %}
+}
+
