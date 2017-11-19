@@ -1,3 +1,6 @@
+"""
+In this example we write a CLI tool with brigade and click to deploy configuration.
+"""
 import logging
 
 from brigade.core import Brigade
@@ -39,6 +42,10 @@ def configure_interfaces(task):
 
 
 def deploy_config(task):
+    """
+    1. Load configuration into the device
+    2. Prints diff
+    """
     r = tasks.napalm_configure(task=task,
                                replace=False,
                                configuration=task.host["config"])

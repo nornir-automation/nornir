@@ -17,7 +17,7 @@ __license__ = 'Apache License, version 2'
 
 __version__ = 0.1
 
-setup(name='sveikas',
+setup(name='brigade',
       version=__version__,
       description="Fighting fire with fire",
       author=__author__,

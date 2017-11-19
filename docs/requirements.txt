@@ -1,3 +1,9 @@
 sphinx
 sphinx-rtd-theme
 sphinxcontrib-napoleon
+-r ../requirements.txt
+future
+jtextfsm
+jinja2
+netaddr
+pyYAML

@@ -1,3 +1,7 @@
+"""
+This is a simple example where we use click and brigade to build a simple CLI tool to retrieve
+hosts information.
+"""
 from brigade.core import Brigade
 from brigade.plugins import tasks
 from brigade.plugins.inventory.simple import SimpleInventory
