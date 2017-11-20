@@ -155,7 +155,7 @@ class Inventory(object):
                 h.group = self.groups[h.group]
             self.hosts[n] = h
 
-    def filter(self, **kwargs):
+    def filter(self, filter_func=None, **kwargs):
         """
         Returns a new inventory after filtering the hosts by matching the data passed to the
         function. For instance, assume an inventory with::
@@ -173,7 +173,15 @@ class Inventory(object):
 
         * ``my_inventory.filter(site="bma")`` will result in ``host1`` and ``host3``
         * ``my_inventory.filter(site="bma", role="db")`` will result in ``host3`` only
+
+        Arguments:
+            filter_func (callable): if filter_func is passed it will be called against each
+              device. If the call returns ``True`` the device will be kept in the inventory
         """
-        filtered = {n: h for n, h in self.hosts.items()
-                    if all(h.data[k] == v for k, v in kwargs.items())}
-        return Inventory(hosts=filtered, groups=self.groups)
+        if filter_func:
+            filtered = {n: h for n, h in self.hosts.items()
+                        if filter_func(h, **kwargs)}
+        else:
+            filtered = {n: h for n, h in self.hosts.items()
+                        if all(h[k] == v for k, v in kwargs.items())}
+        return Inventory(hosts=filtered, groups=self.groups, data=self.data)
