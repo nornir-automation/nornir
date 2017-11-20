@@ -1,3 +1,8 @@
+from multiprocessing import Manager
+
+from brigade.core import helpers
+
+
 class Host(object):
     """
     Represents a host.
@@ -51,9 +56,13 @@ class Host(object):
     """
 
     def __init__(self, name, group=None, **kwargs):
+        manager = Manager()
+
         self.name = name
         self.group = group
-        self.data = kwargs
+        self.data = manager.dict(kwargs)
+        self.data["name"] = name
+        self.data["group"] = group.name if group else None
 
     def keys(self):
         """Returns the keys of the attribute ``data`` and of the parent(s) groups."""
@@ -124,7 +133,10 @@ class Inventory(object):
         groups (dict): keys are group names and the values are :obj:`Group`.
     """
 
-    def __init__(self, hosts, groups):
+    def __init__(self, hosts, groups, data=None):
+        manager = Manager()
+        self.data = data or manager.dict()
+
         self.groups = {}
         for n, g in groups.items():
             if isinstance(g, dict):
