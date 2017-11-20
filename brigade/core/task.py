@@ -15,9 +15,9 @@ class Task(object):
 
     Attributes:
         params: Parameters that will be passed to the ``task``.
-        host (:obj:`brigade.core.inventory.Host`): Host we are operating with. Populated right
+        host (:obj:`brigade.core.brigade.Host`): Host we are operating with. Populated right
           before calling the ``task``
-        inventory(:obj:`brigade.core.inventory.Inventory`): Populated right before calling
+        brigade(:obj:`brigade.core.Brigade`): Populated right before calling
           the ``task``
         dry_run(``bool``): Populated right before calling the ``task``
     """
@@ -29,8 +29,8 @@ class Task(object):
     def __repr__(self):
         return self.__class__.__name__
 
-    def _start(self, host, inventory, dry_run):
+    def _start(self, host, brigade, dry_run):
         self.host = host
-        self.inventory = inventory
+        self.brigade = brigade
         self.dry_run = dry_run
         return self.task(self, **self.params)
