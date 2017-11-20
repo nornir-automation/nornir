@@ -8,3 +8,4 @@ API
    brigade
    inventory
    task
+   exceptions
