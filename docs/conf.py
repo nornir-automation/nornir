@@ -164,6 +164,3 @@ texinfo_documents = [
      author, 'brigade', 'One line description of project.',
      'Miscellaneous'),
 ]
-
-
-
