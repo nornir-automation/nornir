@@ -1,7 +1,6 @@
 import getpass
 import shlex
 import subprocess
-from builtins import super
 
 
 from brigade.core.exceptions import CommandError

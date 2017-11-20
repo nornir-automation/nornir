@@ -62,7 +62,11 @@ class Host(object):
         self.group = group
         self.data = manager.dict(kwargs)
         self.data["name"] = name
-        self.data["group"] = group.name if group else None
+
+        if isinstance(group, str):
+            self.data["group"] = group
+        else:
+            self.data["group"] = group.name if group else None
 
     def keys(self):
         """Returns the keys of the attribute ``data`` and of the parent(s) groups."""
