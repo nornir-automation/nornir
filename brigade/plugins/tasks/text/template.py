@@ -1,4 +1,4 @@
-from brigade.core.helpers import jinja_helper
+from brigade.core.helpers import format_string, jinja_helper, merge_two_dicts
 
 
 def template_string(task, template, **kwargs):
@@ -13,9 +13,10 @@ def template_string(task, template, **kwargs):
         dictionary:
             * result (``string``): rendered string
     """
+    merged = merge_two_dicts(task.host, kwargs)
     return {
         "result": jinja_helper.render_from_string(template=template,
-                                                  host=task.host, **task.host, **kwargs)}
+                                                  host=task.host, **merged)}
 
 
 def template_file(task, template, path, **kwargs):
@@ -31,7 +32,8 @@ def template_file(task, template, path, **kwargs):
         dictionary:
             * result (``string``): rendered string
     """
-    path = path.format(task.host, **task.host, **kwargs)
+    path = format_string(path, task, **kwargs)
+    merged = merge_two_dicts(task.host, kwargs)
     return {
         "result": jinja_helper.render_from_file(template=template, path=path,
-                                                host=task.host, **task.host, **kwargs)}
+                                                host=task.host, **merged)}

@@ -66,17 +66,17 @@ class Host(object):
 
     def keys(self):
         """Returns the keys of the attribute ``data`` and of the parent(s) groups."""
-        k = self.data.keys()
+        k = list(self.data.keys())
         if self.group:
-            k = k | self.group.keys()
+            k.extend(list(self.group.keys()))
         return k
 
     def values(self):
         """Returns the values of the attribute ``data`` and of the parent(s) groups."""
-        k = self.data.values()
+        v = list(self.data.values())
         if self.group:
-            k = k | self.group.values()
-        return k
+            v.extend(list(self.group.values()))
+        return v
 
     def __getitem__(self, item):
         try:
@@ -110,7 +110,7 @@ class Host(object):
             d = self.group.expanded_data()
         else:
             d = {}
-        return {**self.data, **d}
+        return helpers.merge_two_dicts(d, self.data)
 
 
 class Group(Host):

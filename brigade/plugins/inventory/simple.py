@@ -1,3 +1,5 @@
+from builtins import super
+
 from brigade.core.inventory import Inventory
 
 import yaml
