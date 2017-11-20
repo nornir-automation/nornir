@@ -1,0 +1,18 @@
+---
+host1.group_1:
+    group: group_1
+    my_var: comes_from_host1.group_1
+    role: www
+
+host2.group_1:
+    group: group_1
+    role: db
+
+host3.group_2:
+    group: group_2
+    role: www
+
+host4.group_2:
+    group: group_2
+    my_var: comes_from_host4.group_2
+    role: db

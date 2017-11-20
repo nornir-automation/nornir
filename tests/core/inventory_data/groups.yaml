@@ -1,0 +1,12 @@
+---
+all:
+    my_var: comes_from_all
+
+group_1:
+    group: all
+    my_var: comes_from_group_1
+    site: site1
+
+group_2:
+    group: all
+    site: site2
