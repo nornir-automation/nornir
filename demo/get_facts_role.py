@@ -7,14 +7,14 @@ we wrap it in a function. It is not very useful or necessary here but illustrate
 tasks can be grouped.
 """
 from brigade.core import Brigade
-from brigade.plugins import tasks
 from brigade.plugins.inventory.simple import SimpleInventory
+from brigade.plugins.tasks import networking
 
 import click
 
 
 def get_facts(task, facts):
-    r = tasks.napalm_get_facts(task, facts)
+    r = networking.napalm_get_facts(task, facts)
     print(task.host.name)
     print("============")
     print(r["result"])

@@ -1,3 +1,5 @@
+from brigade.core.helpers import format_string
+
 import yaml
 
 
@@ -12,7 +14,7 @@ def load_yaml(task, file):
         dictionary:
           * result (``dict``): dictionary with the contents of the file
     """
-    file = file.format(host=task.host, **task.host)
+    file = format_string(file, task)
     with open(file, 'r') as f:
         data = yaml.load(f.read())
 

@@ -15,7 +15,7 @@ class Task(object):
 
     Attributes:
         params: Parameters that will be passed to the ``task``.
-        host (:obj:`brigade.core.brigade.Host`): Host we are operating with. Populated right
+        host (:obj:`brigade.core.inventory.Host`): Host we are operating with. Populated right
           before calling the ``task``
         brigade(:obj:`brigade.core.Brigade`): Populated right before calling
           the ``task``

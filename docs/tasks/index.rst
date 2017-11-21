@@ -1,6 +1,10 @@
 Tasks
 =====
 
-.. automodule:: brigade.plugins.tasks
-   :members:
-   :undoc-members:
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+
+   data
+   networking
+   text

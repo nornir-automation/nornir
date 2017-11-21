@@ -4,8 +4,8 @@ In this example we write a CLI tool with brigade and click to deploy configurati
 import logging
 
 from brigade.core import Brigade
-from brigade.plugins import tasks
 from brigade.plugins.inventory.simple import SimpleInventory
+from brigade.plugins.tasks import data, networking, text
 
 import click
 
@@ -20,9 +20,9 @@ def base_config(task):
 
     task.host["config"] = ""
 
-    r = tasks.template_file(task=task,
-                            template="base.j2",
-                            path="templates/base/{nos}")
+    r = text.template_file(task=task,
+                           template="base.j2",
+                           path="templates/base/{nos}")
     task.host["config"] += r["result"]
 
 
@@ -31,13 +31,13 @@ def configure_interfaces(task):
     1. Load interface data from an external yaml file
     2. Creates interface configuration
     """
-    r = tasks.load_yaml(task=task,
-                        file="extra_data/{host}/interfaces.yaml")
+    r = data.load_yaml(task=task,
+                       file="extra_data/{host}/interfaces.yaml")
     task.host["interfaces"] = r["result"]
 
-    r = tasks.template_file(task=task,
-                            template="interfaces.j2",
-                            path="templates/interfaces/{nos}")
+    r = text.template_file(task=task,
+                           template="interfaces.j2",
+                           path="templates/interfaces/{nos}")
     task.host["config"] += r["result"]
 
 
@@ -46,9 +46,9 @@ def deploy_config(task):
     1. Load configuration into the device
     2. Prints diff
     """
-    r = tasks.napalm_configure(task=task,
-                               replace=False,
-                               configuration=task.host["config"])
+    r = networking.napalm_configure(task=task,
+                                    replace=False,
+                                    configuration=task.host["config"])
 
     click.secho("--- {} ({})".format(task.host, r["changed"]), fg="blue", bold=True)
     click.secho(r["diff"], fg='yellow')

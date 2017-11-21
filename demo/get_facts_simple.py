@@ -3,8 +3,8 @@ This is a simple example where we use click and brigade to build a simple CLI to
 hosts information.
 """
 from brigade.core import Brigade
-from brigade.plugins import tasks
 from brigade.plugins.inventory.simple import SimpleInventory
+from brigade.plugins.tasks import networking
 
 import click
 
@@ -20,7 +20,7 @@ def main(site, role, facts):
     )
 
     filtered = brigade.filter(site=site, role=role)
-    result = filtered.run(task=tasks.napalm_get_facts,
+    result = filtered.run(task=networking.napalm_get_facts,
                           facts=facts)
 
     for host, r in result.items():
