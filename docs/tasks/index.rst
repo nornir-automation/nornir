@@ -5,6 +5,7 @@ Tasks
    :maxdepth: 2
    :caption: Contents:
 
+   commands
    data
    networking
    text
