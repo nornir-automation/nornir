@@ -1,8 +1,15 @@
-import itertools
 import logging
 from multiprocessing import Pool
 
 from brigade.core.task import Task
+
+try:
+    # Python 2
+    from itertools import izip, repeat
+except ImportError:
+    # Python 3
+    from itertools import repeat
+    izip = zip
 
 
 logger = logging.getLogger("brigade")
@@ -60,8 +67,8 @@ class Brigade(object):
         if self.num_workers > 1:
 
             pool = Pool(processes=self.num_workers)
-            result = pool.map(run_task, itertools.izip(self.inventory.hosts.values(),
-                                                       itertools.repeat(self)))
+            result = pool.map(run_task, izip(self.inventory.hosts.values(),
+                                             repeat(self)))
             pool.close()
             pool.join()
         else:
