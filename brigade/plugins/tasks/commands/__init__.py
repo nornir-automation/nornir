@@ -1,4 +1,4 @@
-from remote_command import remote_command
+from .remote_command import remote_command
 
 
 __all__ = (
