@@ -83,5 +83,5 @@ def run_task(args):
     try:
         return host.name, brigade.last_task._start(host, brigade=brigade, dry_run=brigade.dry_run)
     except Exception as e:
-        logger.error("{}: {}".format(host, e.message))
+        logger.error("{}: {}".format(host, e))
         raise

@@ -1,9 +1,13 @@
 import getpass
+import logging
 import shlex
 import subprocess
 
 
 from brigade.core.exceptions import CommandError
+
+
+logger = logging.getLogger("brigade")
 
 
 def remote_command(task, command, ignore_keys=True):
@@ -34,6 +38,7 @@ def remote_command(task, command, ignore_keys=True):
     command = "sshpass -p '{}' ssh {} -p {} {}@{} {}".format(password, options,
                                                              port, username, ip, command)
 
+    logger.debug("{}:cmd:{}".format(task.host, command))
     ssh = subprocess.Popen(shlex.split(command),
                            stdout=subprocess.PIPE,
                            stderr=subprocess.PIPE,
