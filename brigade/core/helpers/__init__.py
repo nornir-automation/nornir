@@ -1,5 +1,8 @@
 def merge_two_dicts(x, y):
-    z = x.copy()
+    try:
+        z = x.copy()
+    except AttributeError:
+        z = x.expanded_data()
     z.update(y)
     return z
 
