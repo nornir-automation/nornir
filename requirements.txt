@@ -2,3 +2,4 @@ pyyaml
 jinja2
 napalm
 future
+futures

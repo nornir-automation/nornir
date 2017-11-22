@@ -1,15 +1,8 @@
+import concurrent.futures
 import logging
-from multiprocessing import Pool
 
+from brigade.core.exceptions import BrigadeExecutionException
 from brigade.core.task import Task
-
-try:
-    # Python 2
-    from itertools import izip, repeat
-except ImportError:
-    # Python 3
-    from itertools import repeat
-    izip = zip
 
 
 logger = logging.getLogger("brigade")
@@ -51,6 +44,39 @@ class Brigade(object):
         return Brigade(inventory=self.inventory.filter(**kwargs),
                        dry_run=self.dry_run, num_workers=self.num_workers)
 
+    def _run_single_thread(self, task, **kwargs):
+        exception = False
+        result = {}
+        for host in self.inventory.hosts.values():
+            try:
+                r = task._start(host=host, brigade=self, dry_run=self.dry_run)
+            except Exception as e:
+                exception = True
+                r = e
+            result[host.name] = r
+        if exception:
+            raise BrigadeExecutionException(result)
+        return result
+
+    def _run_multithread(self, task, **kwargs):
+        exception = False
+        with concurrent.futures.ProcessPoolExecutor(max_workers=self.num_workers) as executor:
+            tasks = {executor.submit(task._start,
+                                     host=host, brigade=self, dry_run=self.dry_run): host
+                     for host in self.inventory.hosts.values()}
+            result = {}
+            for t in concurrent.futures.as_completed(tasks):
+                host = tasks[t]
+                try:
+                    r = t.result()
+                except Exception as e:
+                    exception = True
+                    r = e
+                result[host.name] = r
+        if exception:
+            raise BrigadeExecutionException(result)
+        return result
+
     def run(self, task, **kwargs):
         """
         Run task over all the hosts in the inventory.
@@ -62,26 +88,13 @@ class Brigade(object):
 
         Returns:
             dict: dict where keys are hostnames and values are each individual result
+
+        Raises:
+            :obj:`brigade.core.exceptions.BrigadeExecutionException`: If any task raises an
+              Exception
         """
-        self.last_task = Task(task, **kwargs)
-        if self.num_workers > 1:
-
-            pool = Pool(processes=self.num_workers)
-            result = pool.map(run_task, izip(self.inventory.hosts.values(),
-                                             repeat(self)))
-            pool.close()
-            pool.join()
+        t = Task(task, **kwargs)
+        if self.num_workers == 1:
+            return self._run_single_thread(t, **kwargs)
         else:
-            result = [run_task((h, self)) for h in self.inventory.hosts.values()]
-        return {r[0]: r[1] for r in result}
-
-
-def run_task(args):
-    host = args[0]
-    brigade = args[1]
-    logger.debug("{}: running task {}".format(host.name, brigade.last_task.task))
-    try:
-        return host.name, brigade.last_task._start(host, brigade=brigade, dry_run=brigade.dry_run)
-    except Exception as e:
-        logger.error("{}: {}".format(host, e))
-        raise
+            return self._run_multithread(t, **kwargs)
