@@ -38,5 +38,5 @@ def command(task, command):
     if cmd.poll():
         raise CommandError(command, cmd.returncode, stdout, stderr)
 
-    result = stderr if stderr else stdout,
+    result = stderr if stderr else stdout
     return Result(result=result, host=task.host, stderr=stderr, stdout=stdout)

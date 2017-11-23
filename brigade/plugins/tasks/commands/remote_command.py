@@ -52,5 +52,5 @@ def remote_command(task, command, ignore_keys=True):
     if ssh.poll():
         raise CommandError(command, ssh.returncode, stdout, stderr)
 
-    result = stderr if stderr else stdout,
+    result = stderr if stderr else stdout
     return Result(result=result, host=task.host, stderr=stderr, stdout=stdout)
