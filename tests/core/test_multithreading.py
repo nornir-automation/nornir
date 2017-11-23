@@ -3,8 +3,9 @@ import os
 import time
 
 from brigade.core import Brigade
-from brigade.core.exceptions import BrigadeExecutionError
+from brigade.core.exceptions import BrigadeExecutionError, CommandError
 from brigade.plugins.inventory.simple import SimpleInventory
+from brigade.plugins.tasks import commands
 
 import pytest
 
@@ -23,8 +24,12 @@ def blocking_task(task, wait):
     time.sleep(wait)
 
 
-def failing_task(task):
+def failing_task_simple(task):
     raise Exception(task.host.name)
+
+
+def failing_task_complex(task):
+    commands.command(task, command="ls /folderdoesntexist")
 
 
 class Test(object):
@@ -45,18 +50,34 @@ class Test(object):
         delta = t2 - t1
         assert delta.seconds == 2, delta
 
-    def test_failing_task_singlethread(self):
+    def test_failing_task_simple_singlethread(self):
         brigade.num_workers = 1
         with pytest.raises(BrigadeExecutionError) as e:
-            brigade.run(failing_task)
-            for k, v in e.items():
-                assert isinstance(k, str), k
-                assert isinstance(v, Exception), v
+            brigade.run(failing_task_simple)
+        for k, v in e.value.result.items():
+            assert isinstance(k, str), k
+            assert isinstance(v, Exception), v
 
-    def test_failing_task_multithread(self):
+    def test_failing_task_simple_multithread(self):
         brigade.num_workers = 20
         with pytest.raises(BrigadeExecutionError) as e:
-            brigade.run(failing_task)
-            for k, v in e.items():
-                assert isinstance(k, str), k
-                assert isinstance(v, Exception), v
+            brigade.run(failing_task_simple)
+        for k, v in e.value.result.items():
+            assert isinstance(k, str), k
+            assert isinstance(v, Exception), v
+
+    def test_failing_task_complex_singlethread(self):
+        brigade.num_workers = 1
+        with pytest.raises(BrigadeExecutionError) as e:
+            brigade.run(failing_task_complex)
+        for k, v in e.value.result.items():
+            assert isinstance(k, str), k
+            assert isinstance(v, CommandError), v
+
+    def test_failing_task_complex_multithread(self):
+        brigade.num_workers = 20
+        with pytest.raises(BrigadeExecutionError) as e:
+            brigade.run(failing_task_complex)
+        for k, v in e.value.result.items():
+            assert isinstance(k, str), k
+            assert isinstance(v, CommandError), v

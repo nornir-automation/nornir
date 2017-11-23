@@ -1,3 +1,6 @@
+from builtins import super
+
+
 class CommandError(Exception):
     """
     Raised when there is a command error.
@@ -9,11 +12,12 @@ class CommandError(Exception):
         command (str): command that triggered the error
     """
 
-    def __init__(self, message, command, status_code, stdout, stderr):
+    def __init__(self, command, status_code, stdout, stderr):
         self.status_code = status_code
         self.stdout = stdout
         self.stderr = stderr
         self.command = command
+        super().__init__(command, status_code, stdout, stderr)
 
 
 class BrigadeExecutionError(Exception):

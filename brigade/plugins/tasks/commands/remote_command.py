@@ -49,7 +49,7 @@ def remote_command(task, command, ignore_keys=True):
     stderr = stderr.decode()
 
     if ssh.poll():
-        raise CommandError(stderr, command, ssh.returncode, stdout, stderr)
+        raise CommandError(command, ssh.returncode, stdout, stderr)
 
     return {
          "result": stderr if stderr else stdout,
