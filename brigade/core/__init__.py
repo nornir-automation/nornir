@@ -1,8 +1,34 @@
 import concurrent.futures
 import logging
+import sys
 
 from brigade.core.exceptions import BrigadeExecutionError
 from brigade.core.task import Task
+
+
+if sys.version_info.major == 2:
+    import copy_reg
+    import types
+
+    # multithreading requires objects passed around to be pickable
+    # following methods allow py2 to know how to pickle methods
+    def _pickle_method(method):
+        func_name = method.im_func.__name__
+        obj = method.im_self
+        cls = method.im_class
+        return _unpickle_method, (func_name, obj, cls)
+
+    def _unpickle_method(func_name, obj, cls):
+        for cls in cls.mro():
+            try:
+                func = cls.__dict__[func_name]
+            except KeyError:
+                pass
+            else:
+                break
+        return func.__get__(obj, cls)
+
+    copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
 
 
 logger = logging.getLogger("brigade")
@@ -33,6 +59,11 @@ class Brigade(object):
         self.inventory = inventory
         self.dry_run = dry_run
         self.num_workers = num_workers
+
+        logging.basicConfig(
+            level=logging.ERROR,
+            format='\033[31m%(asctime)s - %(name)s - %(levelname)s - %(message)s\033[0m',
+        )
 
     def filter(self, **kwargs):
         """
