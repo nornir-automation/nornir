@@ -55,12 +55,10 @@ class Host(object):
         * ``my_host.group.group.data["domain"]`` will return ``acme.com``
     """
 
-    def __init__(self, name, group=None, **kwargs):
-        manager = Manager()
-
+    def __init__(self, name, data, group=None, **kwargs):
         self.name = name
         self.group = group
-        self.data = manager.dict(kwargs)
+        self.data = data
         self.data["name"] = name
 
         if isinstance(group, str):
@@ -137,14 +135,18 @@ class Inventory(object):
         groups (dict): keys are group names and the values are :obj:`Group`.
     """
 
-    def __init__(self, hosts, groups, data=None):
-        manager = Manager()
-        self.data = data or manager.dict()
+    def __init__(self, hosts, groups=None, data=None, host_data=None):
+        if data is None or host_data is None:
+            manager = Manager()
+        self.data = data if data is not None else manager.dict()
+        self.host_data = host_data if host_data is not None else manager.dict()
 
+        groups = groups or {}
         self.groups = {}
         for n, g in groups.items():
             if isinstance(g, dict):
-                g = Group(name=n, **g)
+                self.host_data[n] = {}
+                g = Group(name=n, data=self.host_data[n], **g)
             self.groups[n] = g
 
         for g in self.groups.values():
@@ -154,7 +156,8 @@ class Inventory(object):
         self.hosts = {}
         for n, h in hosts.items():
             if isinstance(h, dict):
-                h = Host(name=n, **h)
+                self.host_data[n] = {}
+                h = Host(name=n, data=self.host_data, **h)
             if h.group is not None and not isinstance(h.group, Group):
                 h.group = self.groups[h.group]
             self.hosts[n] = h
@@ -188,4 +191,5 @@ class Inventory(object):
         else:
             filtered = {n: h for n, h in self.hosts.items()
                         if all(h[k] == v for k, v in kwargs.items())}
-        return Inventory(hosts=filtered, groups=self.groups, data=self.data)
+        return Inventory(hosts=filtered, groups=self.groups, data=self.data,
+                         host_data=self.host_data)

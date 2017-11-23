@@ -32,6 +32,10 @@ def failing_task_complex(task):
     commands.command(task, command="ls /folderdoesntexist")
 
 
+def change_data(task):
+    task.host["my_changed_var"] = "yes!"
+
+
 class Test(object):
 
     def test_blocking_task_single_thread(self):
@@ -81,3 +85,9 @@ class Test(object):
         for k, v in e.value.result.items():
             assert isinstance(k, str), k
             assert isinstance(v, CommandError), v
+
+    def test_change_data_in_thread(self):
+        brigade.num_workers = 20
+        brigade.run(change_data)
+        for h in brigade.inventory.hosts.values():
+            assert h["my_changed_var"] == "yes!"

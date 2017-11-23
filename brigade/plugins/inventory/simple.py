@@ -103,11 +103,14 @@ class SimpleInventory(Inventory):
             group: all
     """
 
-    def __init__(self, host_file, group_file):
+    def __init__(self, host_file, group_file=None):
         with open(host_file, "r") as f:
             hosts = yaml.load(f.read())
 
-        with open(group_file, "r") as f:
-            groups = yaml.load(f.read())
+        if group_file:
+            with open(group_file, "r") as f:
+                groups = yaml.load(f.read())
+        else:
+            groups = {}
 
         super().__init__(hosts, groups)
