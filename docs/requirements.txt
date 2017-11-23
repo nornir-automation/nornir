@@ -1,5 +1,5 @@
 sphinx
-sphinx-rtd-theme
+sphinx_bootstrap_theme
 sphinxcontrib-napoleon
 -r ../requirements.txt
 future
