@@ -12,7 +12,7 @@ def load_yaml(task, file):
         file (str): path to the file containing the yaml file to load
 
     Returns:
-        dictionary:
+        :obj:`brigade.core.task.Result`:
           * result (``dict``): dictionary with the contents of the file
     """
     file = format_string(file, task)

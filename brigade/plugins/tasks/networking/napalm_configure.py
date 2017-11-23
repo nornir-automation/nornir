@@ -20,7 +20,7 @@ def napalm_configure(task, configuration, replace=False, hostname=None, username
 
 
     Returns:
-        dictionary:
+        :obj:`brigade.core.task.Result`:
           * changed (``bool``): whether if the task is changing the system or not
           * diff (``string``): change in the system
     """

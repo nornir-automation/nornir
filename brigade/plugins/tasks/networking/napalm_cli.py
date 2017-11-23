@@ -19,8 +19,8 @@ def napalm_cli(task, commands, hostname=None, username=None, password=None,
 
 
     Returns:
-        dictionary:
-          * result (``dict``): dictionary with the result of the getter
+        :obj:`brigade.core.task.Result`:
+          * result (``dict``): dictionary with the result of the commands
     """
     parameters = {
         "hostname": hostname or task.host["brigade_ip"],

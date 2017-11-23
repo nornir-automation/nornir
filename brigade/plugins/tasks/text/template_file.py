@@ -12,7 +12,7 @@ def template_file(task, template, path, **kwargs):
         **kwargs: additional data to pass to the template
 
     Returns:
-        dictionary:
+        :obj:`brigade.core.task.Result`:
             * result (``string``): rendered string
     """
     merged = merge_two_dicts(task.host, kwargs)

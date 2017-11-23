@@ -19,7 +19,7 @@ def napalm_get_facts(task, facts, hostname=None, username=None, password=None,
 
 
     Returns:
-        dictionary:
+        :obj:`brigade.core.task.Result`:
           * result (``dict``): dictionary with the result of the getter
     """
     parameters = {

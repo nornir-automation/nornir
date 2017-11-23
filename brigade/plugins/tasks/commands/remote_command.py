@@ -5,6 +5,7 @@ import subprocess
 
 
 from brigade.core.exceptions import CommandError
+from brigade.core.task import Result
 
 
 logger = logging.getLogger("brigade")
@@ -18,7 +19,7 @@ def remote_command(task, command, ignore_keys=True):
         command (``str``): command to execute
 
     Returns:
-        dictionary:
+        :obj:`brigade.core.task.Result`:
           * result (``str``): stderr or stdout
           * stdout (``str``): stdout
           * stderr (``srr``): stderr
@@ -51,8 +52,5 @@ def remote_command(task, command, ignore_keys=True):
     if ssh.poll():
         raise CommandError(command, ssh.returncode, stdout, stderr)
 
-    return {
-         "result": stderr if stderr else stdout,
-         "stderr": stderr,
-         "stdout": stdout,
-    }
+    result = stderr if stderr else stdout,
+    return Result(result=result, host=task.host, stderr=stderr, stdout=stdout)

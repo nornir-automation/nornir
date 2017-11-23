@@ -70,6 +70,8 @@ class Result(object):
 
 class AggregatedResult(UserDict):
     """
-    Returned by :meth:`brigade.core.Brigade.run`
+    Returned by :meth:`brigade.core.Brigade.run`. It basically is a dict-like object
+    that aggregates the results for each individual device. You can access each
+    individual result by doing ``my_aggr_result["hostname_of_device"]``.
     """
     pass
