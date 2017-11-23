@@ -16,7 +16,7 @@ class CommandError(Exception):
         self.command = command
 
 
-class BrigadeExecutionException(Exception):
+class BrigadeExecutionError(Exception):
     """
     Raised by brigade when any of the tasks managed by :meth:`brigade.core.Brigade.run`
     when any of the tasks fail.

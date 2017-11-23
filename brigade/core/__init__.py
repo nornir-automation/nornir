@@ -1,7 +1,7 @@
 import concurrent.futures
 import logging
 
-from brigade.core.exceptions import BrigadeExecutionException
+from brigade.core.exceptions import BrigadeExecutionError
 from brigade.core.task import Task
 
 
@@ -55,7 +55,8 @@ class Brigade(object):
                 r = e
             result[host.name] = r
         if exception:
-            raise BrigadeExecutionException(result)
+            logger.error(result)
+            raise BrigadeExecutionError(result)
         return result
 
     def _run_multithread(self, task, **kwargs):
@@ -74,7 +75,8 @@ class Brigade(object):
                     r = e
                 result[host.name] = r
         if exception:
-            raise BrigadeExecutionException(result)
+            logger.error(result)
+            raise BrigadeExecutionError(result)
         return result
 
     def run(self, task, **kwargs):
@@ -90,7 +92,7 @@ class Brigade(object):
             dict: dict where keys are hostnames and values are each individual result
 
         Raises:
-            :obj:`brigade.core.exceptions.BrigadeExecutionException`: If any task raises an
+            :obj:`brigade.core.exceptions.BrigadeExecutionError`: If any task raises an
               Exception
         """
         t = Task(task, **kwargs)
