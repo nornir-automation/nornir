@@ -1,9 +1,7 @@
-try:
-    from collections import UserDict
-except ImportError:
-    from UserDict import UserDict
-
 import logging
+from builtins import super
+
+from brigade.core.exceptions import BrigadeExecutionError
 
 logger = logging.getLogger("brigade")
 
@@ -68,10 +66,27 @@ class Result(object):
             setattr(self, k, v)
 
 
-class AggregatedResult(UserDict):
+class AggregatedResult(dict):
     """
-    Returned by :meth:`brigade.core.Brigade.run`. It basically is a dict-like object
-    that aggregates the results for each individual device. You can access each
-    individual result by doing ``my_aggr_result["hostname_of_device"]``.
+    It basically is a dict-like object that aggregates the results for all devices.
+    You can access each individual result by doing ``my_aggr_result["hostname_of_device"]``.
+
+    Attributes:
+        failed_hosts (list): list of hosts that failed
     """
-    pass
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.failed_hosts = {}
+
+    @property
+    def failed(self):
+        """If ``True`` at least a host failed."""
+        return bool(self.failed_hosts)
+
+    def raise_on_error(self):
+        """
+        Raises:
+            :obj:`brigade.core.exceptions.BrigadeExecutionError`: When at least a task failed
+        """
+        if self.failed:
+            raise BrigadeExecutionError(self)

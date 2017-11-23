@@ -25,12 +25,10 @@ class BrigadeExecutionError(Exception):
     Raised by brigade when any of the tasks managed by :meth:`brigade.core.Brigade.run`
     when any of the tasks fail.
 
+    Arguments:
+        result (:obj:`brigade.core.task.AggregatedResult`):
     Attributes:
-        result (dict): A dictionary with the results for each individual execution.
-          The hosts that raised an exception will contain the resulting exection.
-        failed (list): List of hosts that failed.
+        result (:obj:`brigade.core.task.AggregatedResult`):
     """
-
     def __init__(self, result):
         self.result = result
-        self.failed = [h for h, r in result.items() if isinstance(r, Exception)]

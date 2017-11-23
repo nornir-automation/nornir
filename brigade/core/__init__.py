@@ -2,7 +2,6 @@ import concurrent.futures
 import logging
 import sys
 
-from brigade.core.exceptions import BrigadeExecutionError
 from brigade.core.task import AggregatedResult, Task
 
 
@@ -43,22 +42,23 @@ class Brigade(object):
         inventory (:obj:`brigade.core.inventory.Inventory`): Inventory to work with
         dry_run(``bool``): Whether if we are testing the changes or not
         num_workers(``int``): How many hosts run in parallel
+        raise_on_error (``bool``): If set to ``True``, :meth:`run` method of will
+          raise an exception if at least a host failed.
 
     Attributes:
         inventory (:obj:`brigade.core.inventory.Inventory`): Inventory to work with
         dry_run(``bool``): Whether if we are testing the changes or not
         num_workers(``int``): How many hosts run in parallel
+        raise_on_error (``bool``): If set to ``True``, :meth:`run` method of will
+          raise an exception if at least a host failed.
     """
 
-    def __init__(self, inventory, dry_run, num_workers=5):
-        """
-        Args:
-            inventory(brigade.core.inventory.Inventory): An Inventory object.
-            dry_run(bool): Whether this is a dry run or not.
-        """
+    def __init__(self, inventory, dry_run, num_workers=5, raise_on_error=True):
         self.inventory = inventory
+
         self.dry_run = dry_run
         self.num_workers = num_workers
+        self.raise_on_error = raise_on_error
 
         logging.basicConfig(
             level=logging.ERROR,
@@ -72,26 +72,22 @@ class Brigade(object):
         Returns:
             :obj:`Brigade`: A new object with same configuration as ``self`` but filtered inventory.
         """
-        return Brigade(inventory=self.inventory.filter(**kwargs),
-                       dry_run=self.dry_run, num_workers=self.num_workers)
+        b = Brigade(**self.__dict__)
+        b.inventory = self.inventory.filter(**kwargs)
+        return b
 
     def _run_single_thread(self, task, **kwargs):
-        exception = False
         result = AggregatedResult()
         for host in self.inventory.hosts.values():
             try:
                 r = task._start(host=host, brigade=self, dry_run=self.dry_run)
+                result[host.name] = r
             except Exception as e:
-                exception = True
-                r = e
-            result[host.name] = r
-        if exception:
-            logger.error(result)
-            raise BrigadeExecutionError(result)
+                logger.error(e)
+                result.failed_hosts[host.name] = e
         return result
 
     def _run_multithread(self, task, **kwargs):
-        exception = False
         with concurrent.futures.ProcessPoolExecutor(max_workers=self.num_workers) as executor:
             tasks = {executor.submit(task._start,
                                      host=host, brigade=self, dry_run=self.dry_run): host
@@ -101,13 +97,10 @@ class Brigade(object):
                 host = tasks[t]
                 try:
                     r = t.result()
+                    result[host.name] = r
                 except Exception as e:
-                    exception = True
-                    r = e
-                result[host.name] = r
-        if exception:
-            logger.error(result)
-            raise BrigadeExecutionError(result)
+                    logger.error(e)
+                    result.failed_hosts[host.name] = e
         return result
 
     def run(self, task, **kwargs):
@@ -119,15 +112,19 @@ class Brigade(object):
               the inventory
             **kwargs: additional argument to pass to ``task`` when calling it
 
-        Returns:
-            dict: dict where keys are hostnames and values are each individual result
-
         Raises:
-            :obj:`brigade.core.exceptions.BrigadeExecutionError`: If any task raises an
-              Exception
+            :obj:`brigade.core.exceptions.BrigadeExceptionError`: if at least a task fails
+              and self.raise_on_error is set to ``True``
+
+        Returns:
+            :obj:`brigade.core.task.AggregatedResult`: results of each execution
         """
         t = Task(task, **kwargs)
         if self.num_workers == 1:
-            return self._run_single_thread(t, **kwargs)
+            result = self._run_single_thread(t, **kwargs)
         else:
-            return self._run_multithread(t, **kwargs)
+            result = self._run_multithread(t, **kwargs)
+
+        if self.raise_on_error:
+            result.raise_on_error()
+        return result
