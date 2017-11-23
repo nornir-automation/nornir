@@ -32,3 +32,7 @@ class BrigadeExecutionError(Exception):
     """
     def __init__(self, result):
         self.result = result
+        self.failed_hosts = result.failed_hosts
+
+    def __str__(self):
+        return "ok: {}, failed:{}".format(self.result, self.failed_hosts)
