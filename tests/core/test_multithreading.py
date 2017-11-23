@@ -33,7 +33,10 @@ def failing_task_complex(task):
 
 
 def change_data(task):
-    task.host["my_changed_var"] = "yes!"
+    try:
+        task.host["my_changed_var"] = "yes!"
+    except Exception as e:
+        print(e)
 
 
 class Test(object):

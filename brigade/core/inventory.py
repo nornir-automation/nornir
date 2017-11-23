@@ -66,6 +66,9 @@ class Host(object):
         else:
             self.data["group"] = group.name if group else None
 
+        for k, v in kwargs.items():
+            self.data[k] = v
+
     def keys(self):
         """Returns the keys of the attribute ``data`` and of the parent(s) groups."""
         k = list(self.data.keys())
@@ -136,17 +139,15 @@ class Inventory(object):
     """
 
     def __init__(self, hosts, groups=None, data=None, host_data=None):
-        if data is None or host_data is None:
-            manager = Manager()
+        manager = Manager() if not data or not host_data else None
+
         self.data = data if data is not None else manager.dict()
-        self.host_data = host_data if host_data is not None else manager.dict()
 
         groups = groups or {}
         self.groups = {}
         for n, g in groups.items():
             if isinstance(g, dict):
-                self.host_data[n] = {}
-                g = Group(name=n, data=self.host_data[n], **g)
+                g = Group(name=n, data=manager.dict(), **g)
             self.groups[n] = g
 
         for g in self.groups.values():
@@ -156,8 +157,7 @@ class Inventory(object):
         self.hosts = {}
         for n, h in hosts.items():
             if isinstance(h, dict):
-                self.host_data[n] = {}
-                h = Host(name=n, data=self.host_data, **h)
+                h = Host(name=n, data=manager.dict(), **h)
             if h.group is not None and not isinstance(h.group, Group):
                 h.group = self.groups[h.group]
             self.hosts[n] = h
@@ -191,5 +191,4 @@ class Inventory(object):
         else:
             filtered = {n: h for n, h in self.hosts.items()
                         if all(h[k] == v for k, v in kwargs.items())}
-        return Inventory(hosts=filtered, groups=self.groups, data=self.data,
-                         host_data=self.host_data)
+        return Inventory(hosts=filtered, groups=self.groups, data=self.data)
