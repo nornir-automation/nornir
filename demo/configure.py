@@ -50,8 +50,8 @@ def deploy_config(task):
                                     replace=False,
                                     configuration=task.host["config"])
 
-    click.secho("--- {} ({})".format(task.host, r["changed"]), fg="blue", bold=True)
-    click.secho(r["diff"], fg='yellow')
+    click.secho("--- {} ({})".format(task.host, r.changed), fg="blue", bold=True)
+    click.secho(r.diff, fg='yellow')
     click.echo()
 
 

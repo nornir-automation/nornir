@@ -1,3 +1,5 @@
+from brigade.core.task import Result
+
 from napalm import get_network_driver
 
 
@@ -42,8 +44,4 @@ def napalm_configure(task, configuration, replace=False, hostname=None, username
             device.discard_config()
         else:
             device.commit_config()
-
-    return {
-        "changed": len(diff) > 0,
-        "diff": diff
-    }
+    return Result(host=task.host, diff=diff, changed=len(diff) > 0)

@@ -1,3 +1,8 @@
+try:
+    from collections import UserDict
+except ImportError:
+    from UserDict import UserDict
+
 import logging
 
 logger = logging.getLogger("brigade")
@@ -34,3 +39,37 @@ class Task(object):
         self.brigade = brigade
         self.dry_run = dry_run
         return self.task(self, **self.params)
+
+
+class Result(object):
+    """
+    Returned by tasks.
+
+    Arguments:
+        changed (bool): ``True`` if the task is changing the system
+        diff (obj): Diff between state of the system before/after running this task
+        result (obj): Result of the task execution, see task's documentation for details
+        host (:obj:`brigade.core.inventory.Host`): Reference to the host that lead ot this result
+
+    Attributes:
+        changed (bool): ``True`` if the task is changing the system
+        diff (obj): Diff between state of the system before/after running this task
+        result (obj): Result of the task execution, see task's documentation for details
+        host (:obj:`brigade.core.inventory.Host`): Reference to the host that lead ot this result
+    """
+
+    def __init__(self, result, host, changed=False, diff="", **kwargs):
+        self.result = result
+        self.host = host
+        self.changed = changed
+        self.diff = diff
+
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+
+class AggregatedResult(UserDict):
+    """
+    Returned by :meth:`brigade.core.Brigade.run`
+    """
+    pass

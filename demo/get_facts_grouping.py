@@ -14,11 +14,7 @@ import click
 
 
 def get_facts(task, facts):
-    r = networking.napalm_get_facts(task, facts)
-    print(task.host.name)
-    print("============")
-    print(r["result"])
-    print()
+    return networking.napalm_get_facts(task, facts)
 
 
 @click.command()
@@ -32,8 +28,14 @@ def main(site, role, facts):
     )
 
     filtered = brigade.filter(site=site, role=role)
-    filtered.run(task=get_facts,
-                 facts=facts)
+    result = filtered.run(task=get_facts,
+                          facts=facts)
+
+    for host, r in result.items():
+        print(host)
+        print("============")
+        print(r.result)
+        print()
 
 
 if __name__ == "__main__":

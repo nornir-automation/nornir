@@ -26,7 +26,7 @@ def main(site, role, facts):
     for host, r in result.items():
         print(host)
         print("============")
-        print(r["result"])
+        print(r.result)
         print()
 
 

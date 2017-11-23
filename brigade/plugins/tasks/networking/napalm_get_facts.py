@@ -1,3 +1,5 @@
+from brigade.core.task import Result
+
 from napalm import get_network_driver
 
 
@@ -34,7 +36,4 @@ def napalm_get_facts(task, facts, hostname=None, username=None, password=None,
             facts = "get_{}".format(facts)
         method = getattr(device, facts)
         result = method()
-
-    return {
-        "result": result
-    }
+    return Result(host=task.host, result=result)

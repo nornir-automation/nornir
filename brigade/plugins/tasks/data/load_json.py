@@ -1,6 +1,7 @@
 import json
 
 from brigade.core.helpers import format_string
+from brigade.core.task import Result
 
 
 def load_json(task, file):
@@ -17,7 +18,4 @@ def load_json(task, file):
     file = format_string(file, task)
     with open(file, 'r') as f:
         data = json.loads(f.read())
-
-    return {
-        "result": data
-    }
+    return Result(host=task.host, result=data)

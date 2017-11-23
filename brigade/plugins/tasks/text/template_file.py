@@ -1,4 +1,5 @@
 from brigade.core.helpers import format_string, jinja_helper, merge_two_dicts
+from brigade.core.task import Result
 
 
 def template_file(task, template, path, **kwargs):
@@ -16,6 +17,6 @@ def template_file(task, template, path, **kwargs):
     """
     merged = merge_two_dicts(task.host, kwargs)
     path = format_string(path, task, **kwargs)
-    return {
-        "result": jinja_helper.render_from_file(template=template, path=path,
-                                                host=task.host, **merged)}
+    text = jinja_helper.render_from_file(template=template, path=path,
+                                         host=task.host, **merged)
+    return Result(host=task.host, result=text)

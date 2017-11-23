@@ -3,7 +3,7 @@ import logging
 import sys
 
 from brigade.core.exceptions import BrigadeExecutionError
-from brigade.core.task import Task
+from brigade.core.task import AggregatedResult, Task
 
 
 if sys.version_info.major == 2:
@@ -77,7 +77,7 @@ class Brigade(object):
 
     def _run_single_thread(self, task, **kwargs):
         exception = False
-        result = {}
+        result = AggregatedResult()
         for host in self.inventory.hosts.values():
             try:
                 r = task._start(host=host, brigade=self, dry_run=self.dry_run)
@@ -96,7 +96,7 @@ class Brigade(object):
             tasks = {executor.submit(task._start,
                                      host=host, brigade=self, dry_run=self.dry_run): host
                      for host in self.inventory.hosts.values()}
-            result = {}
+            result = AggregatedResult()
             for t in concurrent.futures.as_completed(tasks):
                 host = tasks[t]
                 try:
