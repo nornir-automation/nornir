@@ -105,13 +105,13 @@ class Host(object):
     def __repr__(self):
         return "{}: {}".format(self.__class__.__name__, self.name)
 
-    def expanded_data(self):
+    def items(self):
         """
         Returns all the data accessible from a device, including
         the one inherited from parent groups
         """
         if self.group:
-            d = self.group.expanded_data()
+            d = self.group.items()
         else:
             d = {}
         return helpers.merge_two_dicts(d, self.data)

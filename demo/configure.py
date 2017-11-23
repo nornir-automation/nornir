@@ -16,7 +16,7 @@ def base_config(task):
     2. Creates a placeholder for device configuration
     3. Initializes some basic configuration
     """
-    logging.info({task.host.name: task.host.expanded_data()})
+    logging.info({task.host.name: task.host.items()})
 
     task.host["config"] = ""
 
