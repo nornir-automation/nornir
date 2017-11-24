@@ -3,3 +3,4 @@ pytest-cov
 pylama
 flake8-import-order
 tox
+-r requirements.txt
