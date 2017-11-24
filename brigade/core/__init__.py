@@ -1,6 +1,7 @@
-import concurrent.futures
 import logging
 import sys
+from multiprocessing import cpu_count
+from multiprocessing.dummy import Pool
 
 from brigade.core.task import AggregatedResult, Task
 
@@ -53,7 +54,7 @@ class Brigade(object):
           raise an exception if at least a host failed.
     """
 
-    def __init__(self, inventory, dry_run, num_workers=5, raise_on_error=True):
+    def __init__(self, inventory, dry_run, num_workers=cpu_count(), raise_on_error=True):
         self.inventory = inventory
 
         self.dry_run = dry_run
@@ -76,31 +77,34 @@ class Brigade(object):
         b.inventory = self.inventory.filter(**kwargs)
         return b
 
-    def _run_single_thread(self, task, **kwargs):
+    def _run_serial(self, task, **kwargs):
+        t = Task(task, **kwargs)
         result = AggregatedResult()
         for host in self.inventory.hosts.values():
             try:
-                r = task._start(host=host, brigade=self, dry_run=self.dry_run)
+                logger.debug("{}: running task {}".format(host.name, t))
+                r = t._start(host=host, brigade=self, dry_run=self.dry_run)
                 result[host.name] = r
             except Exception as e:
-                logger.error(e)
+                logger.error("{}: {}".format(host, e))
                 result.failed_hosts[host.name] = e
         return result
 
-    def _run_multithread(self, task, **kwargs):
-        with concurrent.futures.ProcessPoolExecutor(max_workers=self.num_workers) as executor:
-            tasks = {executor.submit(task._start,
-                                     host=host, brigade=self, dry_run=self.dry_run): host
-                     for host in self.inventory.hosts.values()}
-            result = AggregatedResult()
-            for t in concurrent.futures.as_completed(tasks):
-                host = tasks[t]
-                try:
-                    r = t.result()
-                    result[host.name] = r
-                except Exception as e:
-                    logger.error(e)
-                    result.failed_hosts[host.name] = e
+    def _run_parallel(self, task, **kwargs):
+        result = AggregatedResult()
+
+        pool = Pool(processes=self.num_workers)
+        result_pool = [pool.apply_async(run_task, args=(h, self, Task(task, **kwargs)))
+                       for h in self.inventory.hosts.values()]
+        pool.close()
+        pool.join()
+
+        for r in result_pool:
+            host, res, exc = r.get()
+            if exc:
+                result.failed_hosts[host] = exc
+            else:
+                result[host] = res
         return result
 
     def run(self, task, **kwargs):
@@ -119,12 +123,21 @@ class Brigade(object):
         Returns:
             :obj:`brigade.core.task.AggregatedResult`: results of each execution
         """
-        t = Task(task, **kwargs)
         if self.num_workers == 1:
-            result = self._run_single_thread(t, **kwargs)
+            result = self._run_serial(task, **kwargs)
         else:
-            result = self._run_multithread(t, **kwargs)
+            result = self._run_parallel(task, **kwargs)
 
         if self.raise_on_error:
             result.raise_on_error()
         return result
+
+
+def run_task(host, brigade, task):
+    try:
+        logger.debug("{}: running task {}".format(host.name, task))
+        r = task._start(host=host, brigade=brigade, dry_run=brigade.dry_run)
+        return host.name, r, None
+    except Exception as e:
+        logger.error("{}: {}".format(host, e))
+        return host.name, None, e

@@ -1,6 +1,7 @@
 import datetime
 import os
 import time
+from multiprocessing import cpu_count
 
 from brigade.core import Brigade
 from brigade.core.exceptions import BrigadeExecutionError, CommandError
@@ -9,6 +10,7 @@ from brigade.plugins.tasks import commands
 
 import pytest
 
+NUM_WORKERS = cpu_count()
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -16,7 +18,7 @@ brigade = Brigade(
     inventory=SimpleInventory("{}/inventory_data/hosts.yaml".format(dir_path),
                               "{}/inventory_data/groups.yaml".format(dir_path)),
     dry_run=True,
-    num_workers=20,
+    num_workers=NUM_WORKERS,
 )
 
 
@@ -33,10 +35,11 @@ def failing_task_complex(task):
 
 
 def change_data(task):
-    try:
-        task.host["my_changed_var"] = "yes!"
-    except Exception as e:
-        print(e)
+    task.host["my_changed_var"] = task.host.name
+
+
+def verify_data_change(task):
+    assert task.host["my_changed_var"] == task.host.name
 
 
 class Test(object):
@@ -50,7 +53,7 @@ class Test(object):
         assert delta.seconds == 2, delta
 
     def test_blocking_task_multithreading(self):
-        brigade.num_workers = 20
+        brigade.num_workers = NUM_WORKERS
         t1 = datetime.datetime.now()
         brigade.run(blocking_task, wait=2)
         t2 = datetime.datetime.now()
@@ -66,7 +69,7 @@ class Test(object):
             assert isinstance(v, Exception), v
 
     def test_failing_task_simple_multithread(self):
-        brigade.num_workers = 20
+        brigade.num_workers = NUM_WORKERS
         with pytest.raises(BrigadeExecutionError) as e:
             brigade.run(failing_task_simple)
         for k, v in e.value.result.items():
@@ -82,7 +85,7 @@ class Test(object):
             assert isinstance(v, CommandError), v
 
     def test_failing_task_complex_multithread(self):
-        brigade.num_workers = 20
+        brigade.num_workers = NUM_WORKERS
         with pytest.raises(BrigadeExecutionError) as e:
             brigade.run(failing_task_complex)
         for k, v in e.value.result.items():
@@ -90,7 +93,6 @@ class Test(object):
             assert isinstance(v, CommandError), v
 
     def test_change_data_in_thread(self):
-        brigade.num_workers = 20
+        brigade.num_workers = NUM_WORKERS
         brigade.run(change_data)
-        for h in brigade.inventory.hosts.values():
-            assert h["my_changed_var"] == "yes!"
+        brigade.run(verify_data_change)
