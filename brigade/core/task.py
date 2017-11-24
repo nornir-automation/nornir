@@ -65,6 +65,12 @@ class Result(object):
         for k, v in kwargs.items():
             setattr(self, k, v)
 
+    def __getitem__(self, item):
+        try:
+            return self.__dict__[item]
+        except KeyError:
+            raise
+
 
 class AggregatedResult(dict):
     """
