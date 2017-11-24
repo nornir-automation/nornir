@@ -47,7 +47,7 @@ def scp(task, src, dst, ignore_keys=True):
     if ignore_keys:
         options += " -o 'StrictHostKeyChecking=no' "
 
-    command = "sshpass -p '{}' scp {} -P {} {} {}".format(password, options, port, src, dst)
+    command = "sshpass -p '{}' scp -r {} -P {} {} {}".format(password, options, port, src, dst)
 
     logger.debug("{}:cmd:{}".format(task.host, command))
     ssh = subprocess.Popen(shlex.split(command),
