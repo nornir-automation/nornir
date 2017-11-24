@@ -30,7 +30,7 @@ class Task(object):
         self.params = kwargs
 
     def __repr__(self):
-        return self.__class__.__name__
+        return self.task.__name__
 
     def _start(self, host, brigade, dry_run):
         self.host = host

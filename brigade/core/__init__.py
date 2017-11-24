@@ -61,9 +61,11 @@ class Brigade(object):
         self.num_workers = num_workers
         self.raise_on_error = raise_on_error
 
+        format = "\033[31m%(asctime)s - %(name)s - %(levelname)s"
+        format += " - %(funcName)20s() - %(message)s\033[0m"
         logging.basicConfig(
             level=logging.ERROR,
-            format='\033[31m%(asctime)s - %(name)s - %(levelname)s - %(message)s\033[0m',
+            format=format,
         )
 
     def filter(self, **kwargs):
