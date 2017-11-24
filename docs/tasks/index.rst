@@ -7,5 +7,6 @@ Tasks
 
    commands
    data
+   files
    networking
    text
