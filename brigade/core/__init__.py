@@ -63,7 +63,7 @@ class Brigade(object):
 
         logging.basicConfig(
             level=logging.ERROR,
-            format='\033[31m%(asctime)s - %(name)s - %(levelname)s - %(message)s\033[0m',
+            format='\033[31m%(asctime)s - %(name)s - %(levelname)s - %(funcname)20s() - %(message)s\033[0m',
         )
 
     def filter(self, **kwargs):
