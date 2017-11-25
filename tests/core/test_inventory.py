@@ -37,6 +37,10 @@ class Test(object):
             filter_func=longer_than, length=20).hosts.keys()))
         assert long_names == ['host1.group_1', 'host4.group_2']
 
+    def test_filter_unique_keys(self):
+        filtered = sorted(list(inventory.filter(comment='web').hosts.keys()))
+        assert filtered == ['host1.group_1', 'host3.group_2']
+
     def test_var_resolution(self):
         assert inventory.hosts["host1.group_1"]["my_var"] == "comes_from_host1.group_1"
         assert inventory.hosts["host2.group_1"]["my_var"] == "comes_from_group_1"
