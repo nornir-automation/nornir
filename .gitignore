@@ -94,3 +94,5 @@ tags
 .vagrant
 .vars
 output/
+
+demo/log
