@@ -77,6 +77,7 @@ class AggregatedResult(dict):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.failed_hosts = {}
+        self.tracebacks = {}
 
     @property
     def failed(self):

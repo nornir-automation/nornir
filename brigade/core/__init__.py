@@ -1,5 +1,6 @@
 import logging
 import sys
+import traceback
 from multiprocessing import cpu_count
 from multiprocessing.dummy import Pool
 
@@ -90,6 +91,7 @@ class Brigade(object):
             except Exception as e:
                 logger.error("{}: {}".format(host, e))
                 result.failed_hosts[host.name] = e
+                result.tracebacks[host.name] = traceback.format_exc()
         return result
 
     def _run_parallel(self, task, **kwargs):
@@ -102,9 +104,10 @@ class Brigade(object):
         pool.join()
 
         for r in result_pool:
-            host, res, exc = r.get()
+            host, res, exc, traceback = r.get()
             if exc:
                 result.failed_hosts[host] = exc
+                result.tracebacks[host] = exc
             else:
                 result[host] = res
         return result
@@ -139,7 +142,7 @@ def run_task(host, brigade, task):
     try:
         logger.debug("{}: running task {}".format(host.name, task))
         r = task._start(host=host, brigade=brigade, dry_run=brigade.dry_run)
-        return host.name, r, None
+        return host.name, r, None, None
     except Exception as e:
         logger.error("{}: {}".format(host, e))
-        return host.name, None, e
+        return host.name, None, e, traceback.format_exc()
