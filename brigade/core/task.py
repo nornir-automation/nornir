@@ -56,7 +56,7 @@ class Result(object):
         host (:obj:`brigade.core.inventory.Host`): Reference to the host that lead ot this result
     """
 
-    def __init__(self, result, host, changed=False, diff="", **kwargs):
+    def __init__(self, host, result=None, changed=False, diff="", **kwargs):
         self.result = result
         self.host = host
         self.changed = changed
