@@ -92,10 +92,10 @@ class Brigade(object):
                 result.failed_hosts[host.name] = e
         return result
 
-    def _run_parallel(self, task, **kwargs):
+    def _run_parallel(self, task, num_workers, **kwargs):
         result = AggregatedResult()
 
-        pool = Pool(processes=self.num_workers)
+        pool = Pool(processes=num_workers)
         result_pool = [pool.apply_async(run_task, args=(h, self, Task(task, **kwargs)))
                        for h in self.inventory.hosts.values()]
         pool.close()
@@ -109,13 +109,14 @@ class Brigade(object):
                 result[host] = res
         return result
 
-    def run(self, task, **kwargs):
+    def run(self, task, num_workers=None, **kwargs):
         """
         Run task over all the hosts in the inventory.
 
         Arguments:
             task (``callable``): function or callable that will be run against each device in
               the inventory
+            num_workers(``int``): Override for how many hosts to run in paralell for this task
             **kwargs: additional argument to pass to ``task`` when calling it
 
         Raises:
@@ -125,10 +126,13 @@ class Brigade(object):
         Returns:
             :obj:`brigade.core.task.AggregatedResult`: results of each execution
         """
-        if self.num_workers == 1:
+        if not num_workers:
+            num_workers = self.num_workers
+
+        if num_workers == 1:
             result = self._run_serial(task, **kwargs)
         else:
-            result = self._run_parallel(task, **kwargs)
+            result = self._run_parallel(task, num_workers, **kwargs)
 
         if self.raise_on_error:
             result.raise_on_error()
