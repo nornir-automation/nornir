@@ -23,7 +23,7 @@ def base_config(task):
     r = text.template_file(task=task,
                            template="base.j2",
                            path="templates/base/{nos}")
-    task.host["config"] += r["result"]
+    task.host["config"] += r.result
 
 
 def configure_interfaces(task):
@@ -33,12 +33,12 @@ def configure_interfaces(task):
     """
     r = data.load_yaml(task=task,
                        file="extra_data/{host}/interfaces.yaml")
-    task.host["interfaces"] = r["result"]
+    task.host["interfaces"] = r.result
 
     r = text.template_file(task=task,
                            template="interfaces.j2",
                            path="templates/interfaces/{nos}")
-    task.host["config"] += r["result"]
+    task.host["config"] += r.result
 
 
 def deploy_config(task):
