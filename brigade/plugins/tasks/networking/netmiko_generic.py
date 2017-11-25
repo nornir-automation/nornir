@@ -14,17 +14,18 @@ napalm_to_netmiko_map = {
 def netmiko_generic(task, method, ip=None, host=None, username=None, password=None,
                     device_type=None, netmiko_dict=None, cmd_args=None, cmd_kwargs=None):
     """
-    Execute a generic netmiko method.
+    Execute any Netmiko method from connection class (BaseConnection class and children).
 
     Arguments:
-        method(str): method to use
-        hostname (string, optional): defaults to ``brigade_ip``
+        method(str): Netmiko method to use
+        ip (string, optional): defaults to ``brigade_ip``
+        host (string, optional): defaults to None
         username (string, optional): defaults to ``brigade_username``
         password (string, optional): defaults to ``brigade_password``
-        driver (string, optional): defaults to ``nos``
-        timeout (int, optional): defaults to 60
-        optional_args (dict, optional): defaults to ``{"port": task.host["napalm_port"]}``
-
+        device_type (string, optional): Netmiko device_type to use, defaults to ``nos`` (mapped \
+        through napalm_to_netmiko_map)
+        netmiko_dict (dict, optional): Additional arguments to pass to Netmiko ConnectHandler, \
+        defaults to None
 
     Returns:
         :obj:`brigade.core.task.Result`:
@@ -43,16 +44,13 @@ def netmiko_generic(task, method, ip=None, host=None, username=None, password=No
 
     if netmiko_dict is not None:
         parameters.update(netmiko_dict)
-
     if device_type is None:
         device_type = task.host["nos"]
-    # Convert to netmiko format (if napalm format is used)
+
+    # Convert to netmiko device_type format (if napalm format is used)
     parameters['device_type'] = napalm_to_netmiko_map.get(device_type, device_type)
 
-    net_connect = ConnectHandler(**parameters)
-#    import pdb; pdb.set_trace()
-    if True:
-#    with ConnectHandler(**parameters) as net_connect:
+    with ConnectHandler(**parameters) as net_connect:
         netmiko_method = getattr(net_connect, method)
         if cmd_args is None:
             cmd_args = ()
