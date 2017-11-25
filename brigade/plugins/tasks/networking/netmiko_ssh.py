@@ -12,7 +12,7 @@ napalm_to_netmiko_map = {
 
 
 def netmiko_ssh(task, method, ip=None, host=None, username=None, password=None,
-                    device_type=None, netmiko_dict=None, cmd_args=None, cmd_kwargs=None):
+                device_type=None, netmiko_dict=None, cmd_args=None, cmd_kwargs=None):
     """
     Execute any Netmiko method from connection class (BaseConnection class and children).
 
