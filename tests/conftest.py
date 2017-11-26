@@ -19,15 +19,19 @@ logging.basicConfig(
 @pytest.fixture(scope="session", autouse=True)
 def containers(request):
     """Start/Stop containers needed for the tests."""
-    logging.info("Starting containers")
-    subprocess.check_call(["./tests/inventory_data/containers.sh", "start"],
-                          stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-
     def fin():
         logging.info("Stopping containers")
         subprocess.check_call(["./tests/inventory_data/containers.sh", "stop"],
-                              stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                              stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     request.addfinalizer(fin)
+
+    try:
+        fin()
+    except Exception:
+        pass
+    logging.info("Starting containers")
+    subprocess.check_call(["./tests/inventory_data/containers.sh", "start"],
+                          stdout=subprocess.PIPE)
 
 
 @pytest.fixture(scope="session", autouse=True)
