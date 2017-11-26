@@ -2,7 +2,7 @@
 host1.group_1:
     group: group_1
     my_var: comes_from_host1.group_1
-    comment: web
+    www_server: nginx
     role: www
 
 host2.group_1:
@@ -11,7 +11,7 @@ host2.group_1:
 
 host3.group_2:
     group: group_2
-    comment: web
+    www_server: apache
     role: www
 
 host4.group_2:
