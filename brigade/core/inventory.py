@@ -1,4 +1,3 @@
-import uuid
 from multiprocessing import Manager
 
 from brigade.core import helpers
@@ -204,7 +203,6 @@ class Inventory(object):
             filtered = {n: h for n, h in self.hosts.items()
                         if filter_func(h, **kwargs)}
         else:
-            no_match = uuid.uuid4()
             filtered = {n: h for n, h in self.hosts.items()
-                        if all(h.get(k, no_match) == v for k, v in kwargs.items())}
+                        if all(h.get(k) == v for k, v in kwargs.items())}
         return Inventory(hosts=filtered, groups=self.groups, data=self.data)
