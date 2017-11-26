@@ -1,5 +1,4 @@
 import getpass
-from multiprocessing import Manager
 
 from brigade.core import helpers
 
@@ -56,10 +55,10 @@ class Host(object):
         * ``my_host.group.group.data["domain"]`` will return ``acme.com``
     """
 
-    def __init__(self, name, data, group=None, **kwargs):
+    def __init__(self, name, group=None, **kwargs):
         self.name = name
         self.group = group
-        self.data = data
+        self.data = {}
         self.data["name"] = name
 
         if isinstance(group, str):
@@ -181,15 +180,13 @@ class Inventory(object):
     """
 
     def __init__(self, hosts, groups=None, data=None, host_data=None):
-        manager = Manager() if not data or not host_data else None
-
-        self.data = data if data is not None else manager.dict()
+        self.data = data or {}
 
         groups = groups or {}
         self.groups = {}
         for n, g in groups.items():
             if isinstance(g, dict):
-                g = Group(name=n, data=manager.dict(), **g)
+                g = Group(name=n, **g)
             self.groups[n] = g
 
         for g in self.groups.values():
@@ -199,7 +196,7 @@ class Inventory(object):
         self.hosts = {}
         for n, h in hosts.items():
             if isinstance(h, dict):
-                h = Host(name=n, data=manager.dict(), **h)
+                h = Host(name=n, **h)
             if h.group is not None and not isinstance(h.group, Group):
                 h.group = self.groups[h.group]
             self.hosts[n] = h
