@@ -1,3 +1,4 @@
+import uuid
 from multiprocessing import Manager
 
 from brigade.core import helpers
@@ -106,6 +107,17 @@ class Host(object):
     def __repr__(self):
         return "{}: {}".format(self.__class__.__name__, self.name)
 
+    def _getitem_or_no_match(self, item, no_match):
+        try:
+            return self.data[item]
+        except KeyError:
+            try:
+                if self.group:
+                    return self.group[item]
+            except KeyError:
+                pass
+            return no_match
+
     def items(self):
         """
         Returns all the data accessible from a device, including
@@ -189,6 +201,7 @@ class Inventory(object):
             filtered = {n: h for n, h in self.hosts.items()
                         if filter_func(h, **kwargs)}
         else:
+            no_match = uuid.uuid4()
             filtered = {n: h for n, h in self.hosts.items()
-                        if all(h[k] == v for k, v in kwargs.items())}
+                        if all(h._getitem_or_no_match(k, no_match) == v for k, v in kwargs.items())}
         return Inventory(hosts=filtered, groups=self.groups, data=self.data)
