@@ -1,25 +1,13 @@
 import datetime
-import os
 import time
 from multiprocessing import cpu_count
 
-from brigade.core import Brigade
 from brigade.core.exceptions import BrigadeExecutionError, CommandError
-from brigade.plugins.inventory.simple import SimpleInventory
 from brigade.plugins.tasks import commands
 
 import pytest
 
 NUM_WORKERS = cpu_count()
-
-dir_path = os.path.dirname(os.path.realpath(__file__))
-
-brigade = Brigade(
-    inventory=SimpleInventory("{}/inventory_data/hosts.yaml".format(dir_path),
-                              "{}/inventory_data/groups.yaml".format(dir_path)),
-    dry_run=True,
-    num_workers=NUM_WORKERS,
-)
 
 
 def blocking_task(task, wait):
@@ -44,7 +32,7 @@ def verify_data_change(task):
 
 class Test(object):
 
-    def test_blocking_task_single_thread(self):
+    def test_blocking_task_single_thread(self, brigade):
         brigade.num_workers = 1
         t1 = datetime.datetime.now()
         brigade.run(blocking_task, wait=0.5)
@@ -52,7 +40,7 @@ class Test(object):
         delta = t2 - t1
         assert delta.seconds == 2, delta
 
-    def test_blocking_task_multithreading(self):
+    def test_blocking_task_multithreading(self, brigade):
         brigade.num_workers = NUM_WORKERS
         t1 = datetime.datetime.now()
         brigade.run(blocking_task, wait=2)
@@ -60,7 +48,7 @@ class Test(object):
         delta = t2 - t1
         assert delta.seconds == 2, delta
 
-    def test_failing_task_simple_singlethread(self):
+    def test_failing_task_simple_singlethread(self, brigade):
         brigade.num_workers = 1
         with pytest.raises(BrigadeExecutionError) as e:
             brigade.run(failing_task_simple)
@@ -68,7 +56,7 @@ class Test(object):
             assert isinstance(k, str), k
             assert isinstance(v, Exception), v
 
-    def test_failing_task_simple_multithread(self):
+    def test_failing_task_simple_multithread(self, brigade):
         brigade.num_workers = NUM_WORKERS
         with pytest.raises(BrigadeExecutionError) as e:
             brigade.run(failing_task_simple)
@@ -76,7 +64,7 @@ class Test(object):
             assert isinstance(k, str), k
             assert isinstance(v, Exception), v
 
-    def test_failing_task_complex_singlethread(self):
+    def test_failing_task_complex_singlethread(self, brigade):
         brigade.num_workers = 1
         with pytest.raises(BrigadeExecutionError) as e:
             brigade.run(failing_task_complex)
@@ -84,7 +72,7 @@ class Test(object):
             assert isinstance(k, str), k
             assert isinstance(v, CommandError), v
 
-    def test_failing_task_complex_multithread(self):
+    def test_failing_task_complex_multithread(self, brigade):
         brigade.num_workers = NUM_WORKERS
         with pytest.raises(BrigadeExecutionError) as e:
             brigade.run(failing_task_complex)
@@ -92,7 +80,7 @@ class Test(object):
             assert isinstance(k, str), k
             assert isinstance(v, CommandError), v
 
-    def test_change_data_in_thread(self):
+    def test_change_data_in_thread(self, brigade):
         brigade.num_workers = NUM_WORKERS
         brigade.run(change_data)
         brigade.run(verify_data_change)

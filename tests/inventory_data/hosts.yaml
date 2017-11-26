@@ -1,0 +1,28 @@
+---
+host1.group_1:
+    group: group_1
+    my_var: comes_from_host1.group_1
+    www_server: nginx
+    role: www
+    brigade_ssh_port: 65001
+    brigade_nos: eos
+
+host2.group_1:
+    group: group_1
+    role: db
+    brigade_ssh_port: 65002
+    brigade_nos: junos
+
+host3.group_2:
+    group: group_2
+    www_server: apache
+    role: www
+    brigade_ssh_port: 65003
+    brigade_nos: eos
+
+host4.group_2:
+    group: group_2
+    my_var: comes_from_host4.group_2
+    role: db
+    brigade_ssh_port: 65004
+    brigade_nos: junos

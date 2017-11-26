@@ -1,4 +1,3 @@
-import getpass
 import logging
 import shlex
 import subprocess
@@ -38,16 +37,13 @@ def scp(task, src, dst, ignore_keys=True):
     src = format_string(src, task, **task.host)
     dst = format_string(dst, task, **task.host)
 
-    username = task.host.data.get("brigade_username", getpass.getuser())
-    password = task.host.data.get("brigade_password", "")
-    port = task.host.data.get("brigade_port", 22)
-
-    options = " -o 'User={}' ".format(username)
+    options = " -o 'User={}' ".format(task.host.username)
 
     if ignore_keys:
         options += " -o 'StrictHostKeyChecking=no' "
 
-    command = "sshpass -p '{}' scp -r {} -P {} {} {}".format(password, options, port, src, dst)
+    command = "sshpass -p '{h.password}' scp -r {options} -P {h.ssh_port} \
+            {src} {dst}".format(h=task.host, options=options, src=src, dst=dst)
 
     logger.debug("{}:cmd:{}".format(task.host, command))
     ssh = subprocess.Popen(shlex.split(command),

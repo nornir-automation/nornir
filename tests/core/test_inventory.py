@@ -6,8 +6,8 @@ import pytest
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-inventory = SimpleInventory("{}/inventory_data/hosts.yaml".format(dir_path),
-                            "{}/inventory_data/groups.yaml".format(dir_path))
+inventory = SimpleInventory("{}/../inventory_data/hosts.yaml".format(dir_path),
+                            "{}/../inventory_data/groups.yaml".format(dir_path))
 
 
 class Test(object):

@@ -96,3 +96,5 @@ tags
 output/
 
 demo/log
+
+tests.log

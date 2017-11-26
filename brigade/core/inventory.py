@@ -1,3 +1,4 @@
+import getpass
 from multiprocessing import Manager
 
 from brigade.core import helpers
@@ -113,7 +114,6 @@ class Host(object):
         Arguments:
             item(``str``): The variable to get
             default(``any``): Return value if item not found
-
         """
         try:
             return self.__getitem__(item)
@@ -130,6 +130,34 @@ class Host(object):
         else:
             d = {}
         return helpers.merge_two_dicts(d, self.data)
+
+    @property
+    def host(self):
+        return self.get("brigade_host", self.name)
+
+    @property
+    def username(self):
+        return self.get("brigade_username", getpass.getuser())
+
+    @property
+    def password(self):
+        return self.get("brigade_password", "")
+
+    @property
+    def ssh_port(self):
+        return self.get("brigade_ssh_port", 22)
+
+    @property
+    def network_api_port(self):
+        return self.get("brigade_network_api_port")
+
+    @property
+    def os(self):
+        return self.get("brigade_os")
+
+    @property
+    def nos(self):
+        return self.get("brigade_nos")
 
 
 class Group(Host):
@@ -206,3 +234,6 @@ class Inventory(object):
             filtered = {n: h for n, h in self.hosts.items()
                         if all(h.get(k) == v for k, v in kwargs.items())}
         return Inventory(hosts=filtered, groups=self.groups, data=self.data)
+
+    def __len__(self):
+        return self.hosts.__len__()

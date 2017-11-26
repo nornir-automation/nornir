@@ -32,21 +32,12 @@ def netmiko_ssh(task, method, ip=None, host=None, username=None, password=None,
           * result (``dict``): dictionary with the result of the getter
     """
     parameters = {
-        "username": username or task.host["brigade_username"],
-        "password": password or task.host["brigade_password"],
+        "ip": ip or host or task.ip,
+        "username": username or task.host.username,
+        "password": password or task.host.password,
     }
-    if host is None and ip is None:
-        parameters["ip"] = task.host["brigade_ip"]
-    elif ip is not None:
-        parameters["ip"] = ip
-    elif host is not None:
-        parameters["host"] = host
-
-    if netmiko_dict is not None:
-        parameters.update(netmiko_dict)
-    if device_type is None:
-        device_type = task.host["nos"]
-
+    parameters.update(netmiko_dict or {})
+    device_type = device_type or task.host.nos
     # Convert to netmiko device_type format (if napalm format is used)
     parameters['device_type'] = napalm_to_netmiko_map.get(device_type, device_type)
 
