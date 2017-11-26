@@ -1,7 +1,6 @@
 import logging
 import sys
 import traceback
-from multiprocessing import cpu_count
 from multiprocessing.dummy import Pool
 
 from brigade.core.task import AggregatedResult, Task
@@ -55,7 +54,7 @@ class Brigade(object):
           raise an exception if at least a host failed.
     """
 
-    def __init__(self, inventory, dry_run, num_workers=cpu_count(), raise_on_error=True):
+    def __init__(self, inventory, dry_run, num_workers=20, raise_on_error=True):
         self.inventory = inventory
 
         self.dry_run = dry_run
