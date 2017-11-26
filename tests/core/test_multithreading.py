@@ -1,6 +1,5 @@
 import datetime
 import time
-from multiprocessing import cpu_count
 
 from brigade.core.exceptions import BrigadeExecutionError, CommandError
 from brigade.plugins.tasks import commands
@@ -8,7 +7,7 @@ from brigade.plugins.tasks import commands
 import pytest
 
 
-NUM_WORKERS = max(cpu_count(), 2)
+NUM_WORKERS = 20
 
 
 def blocking_task(task, wait):

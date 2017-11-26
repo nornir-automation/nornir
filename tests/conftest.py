@@ -1,7 +1,6 @@
 import logging
 import os
 import subprocess
-from multiprocessing import cpu_count
 
 from brigade.core import Brigade
 from brigade.plugins.inventory.simple import SimpleInventory
@@ -40,6 +39,5 @@ def brigade(request):
         inventory=SimpleInventory("{}/inventory_data/hosts.yaml".format(dir_path),
                                   "{}/inventory_data/groups.yaml".format(dir_path)),
         dry_run=True,
-        num_workers=max(cpu_count(), 2),
     )
     return brigade
