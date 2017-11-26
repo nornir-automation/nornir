@@ -32,9 +32,10 @@ def netmiko_run(task, method, ip=None, host=None, username=None, password=None,
           * result (``dict``): dictionary with the result of the getter
     """
     parameters = {
-        "ip": ip or host or task.ip,
+        "ip": ip or host or task.host.host,
         "username": username or task.host.username,
         "password": password or task.host.password,
+        "port": task.host.network_api_port,
     }
     parameters.update(netmiko_dict or {})
     device_type = device_type or task.host.nos
