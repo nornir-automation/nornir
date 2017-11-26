@@ -11,7 +11,7 @@ class Test(object):
                              command="hostname")
         assert result
         for h, r in result.items():
-            assert h == r.stdout
+            assert h == r.stdout.strip()
 
     def test_remote_command_error_generic(self, brigade):
         with pytest.raises(BrigadeExecutionError) as e:

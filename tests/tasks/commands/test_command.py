@@ -11,7 +11,7 @@ class Test(object):
                              command="echo {host.name}")
         assert result
         for h, r in result.items():
-            assert h == r.stdout
+            assert h == r.stdout.strip()
 
     def test_command_error(self, brigade):
         with pytest.raises(BrigadeExecutionError) as e:
