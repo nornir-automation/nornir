@@ -106,6 +106,20 @@ class Host(object):
     def __repr__(self):
         return "{}: {}".format(self.__class__.__name__, self.name)
 
+    def get(self, item, default=None):
+        """
+        Returns the value ``item`` from the host or hosts group variables.
+
+        Arguments:
+            item(``str``): The variable to get
+            default(``any``): Return value if item not found
+
+        """
+        try:
+            return self.__getitem__(item)
+        except KeyError:
+            return default
+
     def items(self):
         """
         Returns all the data accessible from a device, including
@@ -190,5 +204,5 @@ class Inventory(object):
                         if filter_func(h, **kwargs)}
         else:
             filtered = {n: h for n, h in self.hosts.items()
-                        if all(h[k] == v for k, v in kwargs.items())}
+                        if all(h.get(k) == v for k, v in kwargs.items())}
         return Inventory(hosts=filtered, groups=self.groups, data=self.data)
