@@ -37,12 +37,12 @@ class BrigadeExecutionError(Exception):
 
     def __str__(self):
         text = "\n"
-        for k, r in self.result.tracebacks.items():
+        for k, r in self.result.items():
             text += "{}\n".format("#" * 40)
             text += "# {} (succeeded) \n".format(k)
             text += "{}\n".format("#" * 40)
             text += "{}\n".format(r)
-        for k, r in self.result.tracebacks.items():
+        for k, r in self.tracebacks.items():
             text += "{}\n".format("#" * 40)
             text += "# {} (failed) \n".format(k)
             text += "{}\n".format("#" * 40)
