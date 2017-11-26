@@ -19,7 +19,7 @@ class Test(object):
                         command="ech")
         assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
         for exc in e.value.failed_hosts.values():
-            assert isinstance(exc, FileNotFoundError)
+            assert isinstance(exc, OSError)
 
     def test_command_error_generic(self, brigade):
         with pytest.raises(BrigadeExecutionError) as e:
