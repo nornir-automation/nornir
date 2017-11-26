@@ -7,7 +7,7 @@ import pytest
 
 class Test(object):
 
-    def test_remote_command(self, brigade):
+    def test_scp(self, brigade):
         brigade.run(files.scp,
                     src="README.md",
                     dst="{host.host}:/tmp")
@@ -19,7 +19,7 @@ class Test(object):
         for h, r in result.items():
             assert r.stdout == "/tmp/README.md\n"
 
-    def test_remote_command_error_generic(self, brigade):
+    def test_scp_error_generic(self, brigade):
         with pytest.raises(BrigadeExecutionError) as e:
             brigade.run(files.scp,
                         src="README.md",
