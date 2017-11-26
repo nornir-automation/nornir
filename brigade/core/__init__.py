@@ -126,8 +126,7 @@ class Brigade(object):
         Returns:
             :obj:`brigade.core.task.AggregatedResult`: results of each execution
         """
-        if not num_workers:
-            num_workers = self.num_workers
+        num_workers = num_workers or self.num_workers
 
         if num_workers == 1:
             result = self._run_serial(task, **kwargs)
