@@ -117,13 +117,8 @@ class Host(object):
 
         """
         try:
-            return self.data[item]
+            return self.__getitem__(item)
         except KeyError:
-            try:
-                if self.group:
-                    return self.group[item]
-            except KeyError:
-                pass
             return default
 
     def items(self):
