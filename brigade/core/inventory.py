@@ -107,7 +107,15 @@ class Host(object):
     def __repr__(self):
         return "{}: {}".format(self.__class__.__name__, self.name)
 
-    def _getitem_or_no_match(self, item, no_match):
+    def get(self, item, default=None):
+        """
+        Returns the value ``item`` from the host or hosts group variables.
+
+        Arguments:
+            item(``str``): The variable to get
+            default(``any``): Return value if item not found
+
+        """
         try:
             return self.data[item]
         except KeyError:
@@ -116,7 +124,7 @@ class Host(object):
                     return self.group[item]
             except KeyError:
                 pass
-            return no_match
+            return default
 
     def items(self):
         """
@@ -203,5 +211,5 @@ class Inventory(object):
         else:
             no_match = uuid.uuid4()
             filtered = {n: h for n, h in self.hosts.items()
-                        if all(h._getitem_or_no_match(k, no_match) == v for k, v in kwargs.items())}
+                        if all(h.get(k, no_match) == v for k, v in kwargs.items())}
         return Inventory(hosts=filtered, groups=self.groups, data=self.data)
