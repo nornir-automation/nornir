@@ -1,0 +1,7 @@
+---
+# Broken file for testing
+env: broken
+
+services
+  - dhcp
+  - dns
