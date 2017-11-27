@@ -25,6 +25,6 @@ def load_yaml(task, file):
         if e.errno == errno.ENOENT:
             raise FileError(file, 'Unable to load file')
     except yaml.YAMLError as e:
-        raise yaml.YAMLError()
+        raise FileError(file, 'Error parsing YAML file')
 
     return Result(host=task.host, result=data)

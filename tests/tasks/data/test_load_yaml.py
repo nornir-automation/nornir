@@ -1,6 +1,5 @@
 from brigade.core.exceptions import BrigadeExecutionError, FileError
 from brigade.plugins.tasks import data
-import yaml
 import os
 import pytest
 
@@ -27,7 +26,7 @@ class Test(object):
                         file=test_file)
         assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
         for exc in e.value.failed_hosts.values():
-            assert isinstance(exc, yaml.YAMLError)
+            assert isinstance(exc, FileError)
 
     def test_load_yaml_error_missing_file(self, brigade):
         test_file = '{}/missing.yaml'.format(data_dir)
