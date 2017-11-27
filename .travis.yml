@@ -3,6 +3,11 @@ sudo: required
 services:
   - docker
 
+addons:
+  apt:
+    packages:
+      - sshpass
+
 language: python
 
 python:
