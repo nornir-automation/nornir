@@ -25,4 +25,5 @@ host4.group_2:
     my_var: comes_from_host4.group_2
     role: db
     brigade_ssh_port: 65004
-    brigade_nos: junos
+    brigade_network_api_port: 65004
+    brigade_nos: linux
