@@ -1,5 +1,6 @@
 from brigade.core.task import Result
 from netmiko import ConnectHandler
+from napalm.base.utils import py23_compat
 
 napalm_to_netmiko_map = {
     'ios': 'cisco_ios',
@@ -71,4 +72,21 @@ def netmiko_run(task, method, ip=None, host=None, username=None, password=None,
         if cmd_kwargs is None:
             cmd_kwargs = {}
         result = netmiko_method(*cmd_args, **cmd_kwargs)
+    return Result(host=task.host, result=result)
+
+
+def netmiko_send_command(task, ip=None, host=None, username=None, password=None,
+                         device_type=None, netmiko_dict=None, cmd_args=None, cmd_kwargs=None):
+    parameters = netmiko_args(task=task, ip=ip, host=host, username=username,
+                              password=password, device_type=device_type, 
+                              netmiko_dict=netmiko_dict)
+    with ConnectHandler(**parameters) as net_connect:
+        if cmd_args is None:
+            cmd_args = ()
+        elif isinstance(cmd_args, py23_compat.string_types):
+            cmd_args = (cmd_args,)
+
+        if cmd_kwargs is None:
+            cmd_kwargs = {}
+        result = net_connect.send_command(*cmd_args, **cmd_kwargs)
     return Result(host=task.host, result=result)
