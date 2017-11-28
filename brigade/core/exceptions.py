@@ -35,6 +35,16 @@ class FileError(Exception):
         super().__init__(file, error)
 
 
+class TemplateError(Exception):
+
+    def __init__(self, message, lineno, name=None, filename=None):
+        self.message = message
+        self.lineno = lineno
+        self.name = name
+        self.filename = filename
+        super().__init__(message, lineno, name, filename)
+
+
 class BrigadeExecutionError(Exception):
     """
     Raised by brigade when any of the tasks managed by :meth:`brigade.core.Brigade.run`
