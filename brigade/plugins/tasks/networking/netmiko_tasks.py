@@ -1,6 +1,17 @@
+from __future__ import unicode_literals
+
+import os
+
 from brigade.core.task import Result
-from netmiko import ConnectHandler
+
+import clitable
+
+from clitable import CliTableError
+
 from napalm.base.utils import py23_compat
+
+from netmiko import ConnectHandler
+
 
 napalm_to_netmiko_map = {
     'ios': 'cisco_ios',
@@ -9,6 +20,54 @@ napalm_to_netmiko_map = {
     'junos': 'juniper_junos',
     'iosxr': 'cisco_iosxr'
 }
+
+
+def get_template_dir():
+    """Find and return the ntc-templates/templates dir."""
+    try:
+        template_dir = os.environ['NET_TEXTFSM']
+        index = os.path.join(template_dir, 'index')
+        if not os.path.isfile(index):
+            # Assume only base ./ntc-templates specified
+            template_dir = os.path.join(template_dir, 'templates')
+    except KeyError:
+        # Construct path ~/ntc-templates/templates
+        home_dir = os.path.expanduser("~")
+        template_dir = os.path.join(home_dir, 'ntc-templates', 'templates')
+
+    index = os.path.join(template_dir, 'index')
+    if not os.path.isdir(template_dir) or not os.path.isfile(index):
+        msg = """
+Valid ntc-templates not found, please install https://github.com/networktocode/ntc-templates
+and then set the NET_TEXTFSM environment variable to point to the ./ntc-templates/templates
+directory."""
+        raise ValueError(msg)
+    return template_dir
+
+
+def get_structured_data(raw_output, platform, command):
+    """Convert raw CLI output to structured data using TextFSM template."""
+    template_dir = get_template_dir()
+    index_file = os.path.join(template_dir, 'index')
+    textfsm_obj = clitable.CliTable(index_file, template_dir)
+    attrs = {'Command': command, 'Platform': platform}
+    try:
+        # Parse output through template
+        textfsm_obj.ParseCmd(raw_output, attrs)
+        return clitable_to_dict(textfsm_obj)
+    except CliTableError:
+        return raw_output
+
+
+def clitable_to_dict(cli_table):
+    """Converts TextFSM cli_table object to list of dictionaries."""
+    objs = []
+    for row in cli_table:
+        temp_dict = {}
+        for index, element in enumerate(row):
+            temp_dict[cli_table.header[index].lower()] = element
+        objs.append(temp_dict)
+    return objs
 
 
 def netmiko_args(task, ip=None, host=None, username=None, password=None, device_type=None,
@@ -63,7 +122,7 @@ def netmiko_run(task, method, ip=None, host=None, username=None, password=None,
           * result (``dict``): dictionary with the result of the getter
     """
     parameters = netmiko_args(task=task, ip=ip, host=host, username=username,
-                              password=password, device_type=device_type, 
+                              password=password, device_type=device_type,
                               netmiko_dict=netmiko_dict)
     with ConnectHandler(**parameters) as net_connect:
         netmiko_method = getattr(net_connect, method)
@@ -76,9 +135,10 @@ def netmiko_run(task, method, ip=None, host=None, username=None, password=None,
 
 
 def netmiko_send_command(task, ip=None, host=None, username=None, password=None,
-                         device_type=None, netmiko_dict=None, cmd_args=None, cmd_kwargs=None):
+                         device_type=None, netmiko_dict=None, use_textfsm=False,
+                         cmd_args=None, cmd_kwargs=None):
     parameters = netmiko_args(task=task, ip=ip, host=host, username=username,
-                              password=password, device_type=device_type, 
+                              password=password, device_type=device_type,
                               netmiko_dict=netmiko_dict)
     with ConnectHandler(**parameters) as net_connect:
         if cmd_args is None:
@@ -88,5 +148,14 @@ def netmiko_send_command(task, ip=None, host=None, username=None, password=None,
 
         if cmd_kwargs is None:
             cmd_kwargs = {}
+
+        if len(cmd_args) >= 1:
+            command = cmd_args[0]
+        else:
+            command = cmd_kwargs['command_string']
+
         result = net_connect.send_command(*cmd_args, **cmd_kwargs)
+        if use_textfsm:
+            result = get_structured_data(result, platform=parameters['device_type'],
+                                         command=command)
     return Result(host=task.host, result=result)
