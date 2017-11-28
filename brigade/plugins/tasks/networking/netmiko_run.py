@@ -1,17 +1,10 @@
 from brigade.core.task import Result
 
 from netmiko import ConnectHandler
-
-napalm_to_netmiko_map = {
-    'ios': 'cisco_ios',
-    'nxos': 'cisco_nxos',
-    'eos': 'arista_eos',
-    'junos': 'juniper_junos',
-    'iosxr': 'cisco_iosxr'
-}
+from ._netmiko_common import netmiko_args
 
 
-def netmiko_ssh(task, method, ip=None, host=None, username=None, password=None,
+def netmiko_run(task, method, ip=None, host=None, username=None, password=None,
                 device_type=None, netmiko_dict=None, cmd_args=None, cmd_kwargs=None):
     """
     Execute any Netmiko method from connection class (BaseConnection class and children).
@@ -31,25 +24,9 @@ def netmiko_ssh(task, method, ip=None, host=None, username=None, password=None,
         :obj:`brigade.core.task.Result`:
           * result (``dict``): dictionary with the result of the getter
     """
-    parameters = {
-        "username": username or task.host["brigade_username"],
-        "password": password or task.host["brigade_password"],
-    }
-    if host is None and ip is None:
-        parameters["ip"] = task.host["brigade_ip"]
-    elif ip is not None:
-        parameters["ip"] = ip
-    elif host is not None:
-        parameters["host"] = host
-
-    if netmiko_dict is not None:
-        parameters.update(netmiko_dict)
-    if device_type is None:
-        device_type = task.host["nos"]
-
-    # Convert to netmiko device_type format (if napalm format is used)
-    parameters['device_type'] = napalm_to_netmiko_map.get(device_type, device_type)
-
+    parameters = netmiko_args(task=task, ip=ip, host=host, username=username,
+                              password=password, device_type=device_type, 
+                              netmiko_dict=netmiko_dict)
     with ConnectHandler(**parameters) as net_connect:
         netmiko_method = getattr(net_connect, method)
         if cmd_args is None:
