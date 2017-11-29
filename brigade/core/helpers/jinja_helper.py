@@ -4,14 +4,6 @@ from brigade.core.exceptions import TemplateError
 from jinja2 import Environment, FileSystemLoader, StrictUndefined, TemplateSyntaxError
 
 
-def _load_template(template, **kwargs):
-    try:
-        data = template.render(**kwargs)
-    except TemplateSyntaxError as e:
-        raise TemplateError(e.message, e.lineno, name=e.name, filename=e.filename)
-    return data
-
-
 def render_from_file(path, template, **kwargs):
     env = Environment(loader=FileSystemLoader(path),
                       undefined=StrictUndefined,
