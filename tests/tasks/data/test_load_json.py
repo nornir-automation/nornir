@@ -1,7 +1,7 @@
 import os
+import sys
 
-
-from brigade.core.exceptions import BrigadeExecutionError, FileError
+from brigade.core.exceptions import BrigadeExecutionError
 from brigade.plugins.tasks import data
 
 
@@ -30,13 +30,18 @@ class Test(object):
                         file=test_file)
         assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
         for exc in e.value.failed_hosts.values():
-            assert isinstance(exc, FileError)
+            assert isinstance(exc, ValueError)
 
     def test_load_json_error_missing_file(self, brigade):
         test_file = '{}/missing.json'.format(data_dir)
+        if sys.version_info.major == 2:
+            not_found = IOError
+        else:
+            not_found = FileNotFoundError # noqa
+
         with pytest.raises(BrigadeExecutionError) as e:
             brigade.run(data.load_json,
                         file=test_file)
         assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
         for exc in e.value.failed_hosts.values():
-            assert isinstance(exc, FileError)
+            assert isinstance(exc, not_found)

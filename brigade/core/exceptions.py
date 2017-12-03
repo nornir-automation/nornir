@@ -20,31 +20,6 @@ class CommandError(Exception):
         super().__init__(command, status_code, stdout, stderr)
 
 
-class FileError(Exception):
-    """
-    Raised when there is a file error.
-
-    Attributes:
-        file (str): file that triggered the error
-        error (str): the error message
-    """
-
-    def __init__(self, file, error):
-        self.file = file
-        self.error = error
-        super().__init__(file, error)
-
-
-class TemplateError(Exception):
-
-    def __init__(self, message, lineno, name=None, filename=None):
-        self.message = message
-        self.lineno = lineno
-        self.name = name
-        self.filename = filename
-        super().__init__(message, lineno, name, filename)
-
-
 class BrigadeExecutionError(Exception):
     """
     Raised by brigade when any of the tasks managed by :meth:`brigade.core.Brigade.run`

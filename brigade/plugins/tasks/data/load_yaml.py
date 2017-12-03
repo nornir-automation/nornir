@@ -1,9 +1,8 @@
-import errno
-import yaml
-
-from brigade.core.exceptions import FileError
 from brigade.core.helpers import format_string
 from brigade.core.task import Result
+
+
+import yaml
 
 
 def load_yaml(task, file):
@@ -18,13 +17,7 @@ def load_yaml(task, file):
           * result (``dict``): dictionary with the contents of the file
     """
     file = format_string(file, task)
-    try:
-        with open(file, 'r') as f:
-            data = yaml.load(f.read())
-    except IOError as e:
-        if e.errno == errno.ENOENT:
-            raise FileError(file, 'Unable to load file')
-    except yaml.YAMLError as e:
-        raise FileError(file, 'Error parsing YAML file')
+    with open(file, 'r') as f:
+        data = yaml.load(f.read())
 
     return Result(host=task.host, result=data)

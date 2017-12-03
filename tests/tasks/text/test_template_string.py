@@ -1,8 +1,9 @@
 import os
 
 
-from brigade.core.exceptions import BrigadeExecutionError, TemplateError
+from brigade.core.exceptions import BrigadeExecutionError
 from brigade.plugins.tasks import text
+from jinja2 import TemplateSyntaxError
 
 
 import pytest
@@ -48,4 +49,4 @@ class Test(object):
                         template=broken_j2)
         assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
         for exc in e.value.failed_hosts.values():
-            assert isinstance(exc, TemplateError)
+            assert isinstance(exc, TemplateSyntaxError)
