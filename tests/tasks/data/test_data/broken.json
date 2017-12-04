@@ -1,0 +1,8 @@
+{
+    "env": "test",
+    "services": [
+        "dhcp",
+        "dns",
+        "Broken file
+    ]
+}
