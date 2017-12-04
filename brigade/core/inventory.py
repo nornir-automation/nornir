@@ -132,30 +132,40 @@ class Host(object):
 
     @property
     def host(self):
+        """String used to connect to the device. Either ``brigade_host`` or ``self.name``"""
         return self.get("brigade_host", self.name)
 
     @property
     def username(self):
+        """Either ``brigade_username`` or user running the script."""
         return self.get("brigade_username", getpass.getuser())
 
     @property
     def password(self):
+        """Either ``brigade_password`` or empty string."""
         return self.get("brigade_password", "")
 
     @property
     def ssh_port(self):
+        """Either ``brigade_ssh_port`` or 22."""
         return self.get("brigade_ssh_port", 22)
 
     @property
     def network_api_port(self):
+        """
+        For network equipment this is the port where the device's API is listening to.
+        Either ``brigade_network_api_port`` or ``None``.
+        """
         return self.get("brigade_network_api_port")
 
     @property
     def os(self):
+        """OS the device is running. Defaults to ``brigade_os``."""
         return self.get("brigade_os")
 
     @property
     def nos(self):
+        """Network OS the device is running. Defaults to ``brigade_nos``."""
         return self.get("brigade_nos")
 
 
