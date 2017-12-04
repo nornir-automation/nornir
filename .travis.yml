@@ -1,27 +1,32 @@
 sudo: required
 
 services:
-  - docker
+    - docker
 
 addons:
   apt:
     packages:
-      - sshpass
+    - sshpass
 
 language: python
-
 python:
-  - 2.7
-  - 3.4
-  - 3.5
-  - 3.6
+    - 2.7
+    - 3.4
+    - 3.5
+    - 3.6
 
 install:
-  - pip install tox-travis
-  - pip install coveralls
+    - pip install tox-travis
+    - pip install coveralls
 
 script:
-  - tox
+    - tox
 
-# after_success:
-#   - coveralls
+deploy:
+  provider: pypi
+  user: dbarroso
+  password:
+    secure: Zq2sLJ1yQzir4rlX9oopchnNqTNkAsbSOApWWPFYZwnLK8swvgMd95PDjLvY07Wzf4NBo1qy+cA1NwXIcAAd2HFr7hmnpj4ZMn2VxJBeznMW9h8OpGRusZs94ilK10A1CEcH77vQsRJYjycLV0hrslbXWfkJh88RJoeJYG4GLML9sDdxSf24ei5+vtA9e/eIQuP/rcoaq3g8CYiliiD6sU7fuIC6zGxzRWs2TSTP9mfvLZommOgVMqWQ9YshB06LtF+pn/UbjFjKnB8gMkSISW72jj9aL/D9Z3/68xPgFovbOmumL91XRnK6/89EwSULV7YzgbLv8PA95eevSuhiqT7Kk1UIHgKrE0v9tv2CJN39h4U74KaTvrssipJYvbGTwaYHScAOpRn4yk1H3Ipd/B6gVfj22ygw76+6yj2pj6U6QLh0JIU83oB5r92xZCZqrwn7/4rLpiLT3TF8IUi1WasTTHLfN7Je+l4InZ7myWXmxq8qqICappgyuFs+IA8d4iN8hAakAuShn2EB3KdnktPPjsd+qJajuMKwTFrogcWPNdALNCTS72W7x3+9P+d2MllEI2G2CF79O69DXSGzXqLrXuvmy0Nf9+q1ozXk1tYww13eAJO93Uzcm3WdTZFGBt8ENpSRIRBtXynkJriJ5PYEYxORzI7uR9A2Oi0UPhk=
+  on:
+    tags: true
+    branch: master
