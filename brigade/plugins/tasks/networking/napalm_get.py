@@ -3,7 +3,7 @@ from brigade.core.task import Result
 from napalm import get_network_driver
 
 
-def napalm_getters(task, getters, timeout=60, optional_args=None):
+def napalm_get(task, getters, timeout=60, optional_args=None):
     """
     Gather information from network devices using napalm
 

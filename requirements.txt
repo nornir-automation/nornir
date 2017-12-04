@@ -1,6 +1,5 @@
 pyyaml
 jinja2
 napalm
+netmiko
 future
-# Temporary adding develop branch to support Alpine Linux during tests
-git+https://github.com/ktbyers/netmiko.git@develop
