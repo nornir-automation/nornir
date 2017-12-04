@@ -3,6 +3,7 @@ import os
 
 from brigade.core.exceptions import BrigadeExecutionError
 from brigade.plugins.tasks import text
+
 from jinja2 import TemplateSyntaxError
 
 
