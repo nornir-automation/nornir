@@ -1,5 +1,4 @@
 pyyaml
 jinja2
 napalm
-netmiko
 future
