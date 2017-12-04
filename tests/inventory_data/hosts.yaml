@@ -1,28 +1,32 @@
 ---
-host1.group_1:
+dev1.group_1:
     group: group_1
-    my_var: comes_from_host1.group_1
+    my_var: comes_from_dev1.group_1
     www_server: nginx
     role: www
     brigade_ssh_port: 65001
     brigade_nos: eos
 
-host2.group_1:
+dev2.group_1:
     group: group_1
     role: db
     brigade_ssh_port: 65002
     brigade_nos: junos
 
-host3.group_2:
+dev3.group_2:
     group: group_2
     www_server: apache
     role: www
     brigade_ssh_port: 65003
-    brigade_nos: eos
+    brigade_network_api_port: 12443
+    brigade_os: linux
+    brigade_nos: mock
+    # brigade_username: vagrant
+    # brigade_password: vagrant
 
-host4.group_2:
+dev4.group_2:
     group: group_2
-    my_var: comes_from_host4.group_2
+    my_var: comes_from_dev4.group_2
     role: db
     brigade_ssh_port: 65004
     brigade_network_api_port: 65004
