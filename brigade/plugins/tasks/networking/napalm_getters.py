@@ -3,13 +3,12 @@ from brigade.core.task import Result
 from napalm import get_network_driver
 
 
-def napalm_get_facts(task, facts, hostname=None, username=None, password=None,
-                     driver=None, timeout=60, optional_args=None):
+def napalm_getters(task, getters, timeout=60, optional_args=None):
     """
-    Gather facts from a network devices using napalm
+    Gather information from network devices using napalm
 
     Arguments:
-        facts (str): getter to use
+        getters (list of str): getters to use
         hostname (string, optional): defaults to ``brigade_ip``
         username (string, optional): defaults to ``brigade_username``
         password (string, optional): defaults to ``brigade_password``
@@ -23,19 +22,24 @@ def napalm_get_facts(task, facts, hostname=None, username=None, password=None,
           * result (``dict``): dictionary with the result of the getter
     """
     parameters = {
-        "hostname": hostname or task.host,
-        "username": username or task.host.username,
-        "password": password or task.host.password,
+        "hostname": task.host.host,
+        "username": task.host.username,
+        "password": task.host.password,
         "timeout": timeout,
         "optional_args": optional_args or {},
     }
     if "port" not in parameters["optional_args"] and task.host.network_api_port:
-        parameters["optional_args"] = task.host.network_api_port
-    network_driver = get_network_driver(driver or task.host.nos)
+        parameters["optional_args"]["port"] = task.host.network_api_port
+    network_driver = get_network_driver(task.host.nos)
+
+    if not isinstance(getters, list):
+        getters = [getters]
 
     with network_driver(**parameters) as device:
-        if not facts.startswith("get_"):
-            facts = "get_{}".format(facts)
-        method = getattr(device, facts)
-        result = method()
+        result = {}
+        for g in getters:
+            if not g.startswith("get_"):
+                getter = "get_{}".format(g)
+            method = getattr(device, getter)
+            result[g] = method()
     return Result(host=task.host, result=result)
