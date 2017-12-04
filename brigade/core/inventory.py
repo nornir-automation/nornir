@@ -1,4 +1,4 @@
-from multiprocessing import Manager
+import getpass
 
 from brigade.core import helpers
 
@@ -55,10 +55,10 @@ class Host(object):
         * ``my_host.group.group.data["domain"]`` will return ``acme.com``
     """
 
-    def __init__(self, name, data, group=None, **kwargs):
+    def __init__(self, name, group=None, **kwargs):
         self.name = name
         self.group = group
-        self.data = data
+        self.data = {}
         self.data["name"] = name
 
         if isinstance(group, str):
@@ -113,7 +113,6 @@ class Host(object):
         Arguments:
             item(``str``): The variable to get
             default(``any``): Return value if item not found
-
         """
         try:
             return self.__getitem__(item)
@@ -130,6 +129,44 @@ class Host(object):
         else:
             d = {}
         return helpers.merge_two_dicts(d, self.data)
+
+    @property
+    def host(self):
+        """String used to connect to the device. Either ``brigade_host`` or ``self.name``"""
+        return self.get("brigade_host", self.name)
+
+    @property
+    def username(self):
+        """Either ``brigade_username`` or user running the script."""
+        return self.get("brigade_username", getpass.getuser())
+
+    @property
+    def password(self):
+        """Either ``brigade_password`` or empty string."""
+        return self.get("brigade_password", "")
+
+    @property
+    def ssh_port(self):
+        """Either ``brigade_ssh_port`` or 22."""
+        return self.get("brigade_ssh_port", 22)
+
+    @property
+    def network_api_port(self):
+        """
+        For network equipment this is the port where the device's API is listening to.
+        Either ``brigade_network_api_port`` or ``None``.
+        """
+        return self.get("brigade_network_api_port")
+
+    @property
+    def os(self):
+        """OS the device is running. Defaults to ``brigade_os``."""
+        return self.get("brigade_os")
+
+    @property
+    def nos(self):
+        """Network OS the device is running. Defaults to ``brigade_nos``."""
+        return self.get("brigade_nos")
 
 
 class Group(Host):
@@ -153,15 +190,13 @@ class Inventory(object):
     """
 
     def __init__(self, hosts, groups=None, data=None, host_data=None):
-        manager = Manager() if not data or not host_data else None
-
-        self.data = data if data is not None else manager.dict()
+        self.data = data or {}
 
         groups = groups or {}
         self.groups = {}
         for n, g in groups.items():
             if isinstance(g, dict):
-                g = Group(name=n, data=manager.dict(), **g)
+                g = Group(name=n, **g)
             self.groups[n] = g
 
         for g in self.groups.values():
@@ -171,7 +206,7 @@ class Inventory(object):
         self.hosts = {}
         for n, h in hosts.items():
             if isinstance(h, dict):
-                h = Host(name=n, data=manager.dict(), **h)
+                h = Host(name=n, **h)
             if h.group is not None and not isinstance(h.group, Group):
                 h.group = self.groups[h.group]
             self.hosts[n] = h
@@ -206,3 +241,6 @@ class Inventory(object):
             filtered = {n: h for n, h in self.hosts.items()
                         if all(h.get(k) == v for k, v in kwargs.items())}
         return Inventory(hosts=filtered, groups=self.groups, data=self.data)
+
+    def __len__(self):
+        return self.hosts.__len__()

@@ -1,4 +1,3 @@
-import getpass
 import logging
 import shlex
 import subprocess
@@ -26,18 +25,13 @@ def remote_command(task, command, ignore_keys=True):
     Raises:
         :obj:`brigade.core.exceptions.CommandError`: when there is a command error
     """
-    ip = task.host.data.get("brigade_ip", task.host.name)
-    username = task.host.data.get("brigade_username", getpass.getuser())
-    password = task.host.data.get("brigade_password", "")
-    port = task.host.data.get("brigade_port", 22)
-
     options = ""
 
     if ignore_keys:
         options += " -o 'StrictHostKeyChecking=no' "
 
-    command = "sshpass -p '{}' ssh {} -p {} {}@{} {}".format(password, options,
-                                                             port, username, ip, command)
+    command = "sshpass -p '{h.password}' ssh {options} -p {h.ssh_port} {h.username}@{h.host}\
+            {command}".format(h=task.host, options=options, command=command)
 
     logger.debug("{}:cmd:{}".format(task.host, command))
     ssh = subprocess.Popen(shlex.split(command),

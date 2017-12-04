@@ -1,0 +1,16 @@
+---
+all:
+    my_var: comes_from_all
+    brigade_host: 127.0.0.1
+    brigade_username: root
+    brigade_password: docker
+    brigade_os: linux
+
+group_1:
+    group: all
+    my_var: comes_from_group_1
+    site: site1
+
+group_2:
+    group: all
+    site: site2

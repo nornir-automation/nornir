@@ -1,0 +1,6 @@
+---
+www.github.com:
+    brigade_ip: www.github.com
+
+dummy:
+    brigade_ip: 1.1.1.1
