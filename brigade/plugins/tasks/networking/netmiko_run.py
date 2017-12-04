@@ -28,7 +28,7 @@ def netmiko_run(task, method, netmiko_dict=None, **kwargs):
         "ip": task.host.host,
         "username": task.host.username,
         "password": task.host.password,
-        "port": task.host.network_api_port,
+        "port": task.host.ssh_port,
     }
     parameters.update(netmiko_dict or {})
     device_type = task.host.nos
