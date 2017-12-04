@@ -16,7 +16,7 @@ ext_inv_file = '{}/../../inventory_data/external_hosts.yaml'.format(cur_dir)
 class Test(object):
 
     def test_tcp_ping_port(self, brigade):
-        filter = brigade.filter(name="host4.group_2")
+        filter = brigade.filter(name="dev4.group_2")
         result = filter.run(networking.tcp_ping, ports=65004)
 
         assert result
@@ -24,7 +24,7 @@ class Test(object):
             assert r.tcp_port[65004]
 
     def test_tcp_ping_ports(self, brigade):
-        filter = brigade.filter(name="host4.group_2")
+        filter = brigade.filter(name="dev4.group_2")
         result = filter.run(networking.tcp_ping, ports=[35004, 65004])
 
         assert result

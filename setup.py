@@ -15,7 +15,7 @@ reqs = [str(ir.req) for ir in install_reqs]
 __author__ = 'dbarrosop@dravetech.com'
 __license__ = 'Apache License, version 2'
 
-__version__ = 0.1
+__version__ = '0.0.1'
 
 setup(name='brigade',
       version=__version__,
