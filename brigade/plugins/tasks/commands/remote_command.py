@@ -1,7 +1,4 @@
 import logging
-import shlex
-import subprocess
-
 
 from brigade.core.exceptions import CommandError
 from brigade.core.task import Result
@@ -10,9 +7,9 @@ from brigade.core.task import Result
 logger = logging.getLogger("brigade")
 
 
-def remote_command(task, command, ignore_keys=True):
+def remote_command(task, command, ssh_config_file=None, ssh_key_file=None):
     """
-    Executes a command on remote host via ssh.
+    Executes a command locally
 
     Arguments:
         command (``str``): command to execute
@@ -25,26 +22,19 @@ def remote_command(task, command, ignore_keys=True):
     Raises:
         :obj:`brigade.core.exceptions.CommandError`: when there is a command error
     """
-    options = ""
+    client = task.host.ssh_connection(ssh_config_file, ssh_key_file)
 
-    if ignore_keys:
-        options += " -o 'StrictHostKeyChecking=no' "
+    chan = client.get_transport().open_session()
+    chan.exec_command(command)
 
-    command = "sshpass -p '{h.password}' ssh {options} -p {h.ssh_port} {h.username}@{h.host}\
-            {command}".format(h=task.host, options=options, command=command)
+    exit_status_code = chan.recv_exit_status()
 
-    logger.debug("{}:cmd:{}".format(task.host, command))
-    ssh = subprocess.Popen(shlex.split(command),
-                           stdout=subprocess.PIPE,
-                           stderr=subprocess.PIPE,
-                           shell=False)
+    with chan.makefile() as f:
+        stdout = f.read().decode()
+    with chan.makefile_stderr() as f:
+        stderr = f.read().decode()
 
-    stdout, stderr = ssh.communicate()
-    stdout = stdout.decode()
-    stderr = stderr.decode()
+    if exit_status_code:
+        raise CommandError(command, exit_status_code, stdout, stderr)
 
-    if ssh.poll():
-        raise CommandError(command, ssh.returncode, stdout, stderr)
-
-    result = stderr if stderr else stdout
-    return Result(result=result, host=task.host, stderr=stderr, stdout=stdout)
+    return Result(host=task.host, stderr=stderr, stdout=stdout)

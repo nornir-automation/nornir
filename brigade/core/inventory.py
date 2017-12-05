@@ -1,6 +1,9 @@
 import getpass
+import os
 
 from brigade.core import helpers
+
+import paramiko
 
 
 class Host(object):
@@ -167,6 +170,46 @@ class Host(object):
     def nos(self):
         """Network OS the device is running. Defaults to ``brigade_nos``."""
         return self.get("brigade_nos")
+
+    def ssh_connection(self, ssh_config_file=None, ssh_key_file=None):
+        if hasattr(self, "_ssh_connection"):
+            return self._ssh_connection
+
+        if ssh_config_file is None:
+            ssh_config_file = os.path.join(os.path.expanduser("~"), ".ssh", "config")
+
+        client = paramiko.SSHClient()
+        client._policy = paramiko.WarningPolicy()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        ssh_config = paramiko.SSHConfig()
+        if os.path.exists(ssh_config_file):
+            with open(ssh_config_file) as f:
+                ssh_config.parse(f)
+
+        parameters = {
+            "hostname": self.host,
+            "username": self.username,
+            "password": self.password,
+            "port": self.ssh_port,
+        }
+
+        user_config = ssh_config.lookup(self.host)
+        for k in ('selfname', 'username', 'port'):
+            if k in user_config:
+                parameters[k] = user_config[k]
+
+        if 'proxycommand' in user_config:
+            parameters['sock'] = paramiko.ProxyCommand(user_config['proxycommand'])
+
+        if ssh_key_file:
+            parameters['key_filename'] = ssh_key_file
+        elif 'identityfile' in user_config:
+            parameters['key_filename'] = user_config['identityfile']
+
+        client.connect(**parameters)
+        self._ssh_connection = client
+        return client
 
 
 class Group(Host):
