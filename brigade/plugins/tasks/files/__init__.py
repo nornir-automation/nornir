@@ -1,6 +1,6 @@
-from .scp import scp
+from .sftp import sftp
 
 
 __all__ = (
-    "scp",
+    "sftp",
 )
