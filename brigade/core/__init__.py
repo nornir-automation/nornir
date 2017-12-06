@@ -4,6 +4,7 @@ import traceback
 from multiprocessing.dummy import Pool
 
 from brigade.core.task import AggregatedResult, Task
+from brigade.core.configuration import Config
 
 
 if sys.version_info.major == 2:
@@ -54,12 +55,14 @@ class Brigade(object):
           raise an exception if at least a host failed.
     """
 
-    def __init__(self, inventory, dry_run, num_workers=20, raise_on_error=True):
+    def __init__(self, inventory, dry_run, num_workers=20, raise_on_error=True,
+                 config=None):
         self.inventory = inventory
 
         self.dry_run = dry_run
         self.num_workers = num_workers
         self.raise_on_error = raise_on_error
+        self.config = config or Config()
 
         format = "\033[31m%(asctime)s - %(name)s - %(levelname)s"
         format += " - %(funcName)20s() - %(message)s\033[0m"
