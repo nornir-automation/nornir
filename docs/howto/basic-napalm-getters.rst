@@ -1,5 +1,5 @@
-Getting Started
-###############
+Gathering information with NAPALM
+#################################
 
 Inventory
 =========
@@ -8,17 +8,15 @@ Let's start by seeing how to work with the inventory. Let's assume the following
 
 * Hosts file:
 
-.. literalinclude:: ../demo/hosts.yaml
+.. literalinclude:: ../../demo/hosts.yaml
    :name: hosts.yaml
    :language: yaml
-   :linenos:
 
 * Groups file:
 
-.. literalinclude:: ../demo/groups.yaml
+.. literalinclude:: ../../demo/groups.yaml
    :name: groups.yaml
    :language: yaml
-   :linenos:
 
 We can instantiate Brigade as follows::
 

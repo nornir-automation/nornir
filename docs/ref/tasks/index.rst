@@ -3,7 +3,7 @@ Tasks
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Categories:
 
    commands
    data

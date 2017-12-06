@@ -3,7 +3,7 @@ sphinx_rtd_theme
 sphinxcontrib-napoleon
 -r ../requirements.txt
 future
-jtextfsm
+# jtextfsm
 jinja2
-netaddr
+# netaddr
 pyYAML

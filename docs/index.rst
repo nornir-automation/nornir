@@ -18,6 +18,18 @@ as the Flask of automation. Brigade will take care of dealing with the inventory
 have your host information, it will take care of dispatching the tasks to your devices and
 will provide a common framework to write "plugins".
 
+How the documentation is structured
+===================================
+
+- The :doc:`Tutorial </tutorials/intro/index>` is a great place to start for new users.
+- :doc:`How-to guides </howto/index>` aim to solve a specific use case or answer key problems. These guides can be more advanced than the tutorial and can assume some knowledge about how Brigade and related technologies work.
+- :doc:`Reference guides </ref/index>` contains the API reference for Brigade and describe the core functions and plugins.
+
+Is something missing from the documentation? Please open an issue and `tell us what you are missing <https://github.com/napalm-automation/brigade/issues>`_ or `open a pull request <https://github.com/napalm-automation/brigade/pulls>`_ and suggest an improvement.
+
+A first glance
+==============
+
 Here is an example on how to quickly build a cli tool leveraging on Brigade and click::
 
     from brigade.core import Brigade
@@ -77,18 +89,19 @@ That you can use like:
     ============
     {'ge-0/0/0': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': 80603.0, 'mac_address': '08:00:27:AA:8C:76', 'speed': 1000}, 'gr-0/0/0': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': -1.0, 'mac_address': 'None', 'speed': 800}, 'ip-0/0/0': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': -1.0, 'mac_address': 'None', 'speed': 800}, 'lsq-0/0/0': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': 80604.0, 'mac_address': 'None', 'speed': -1}, 'lt-0/0/0': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': -1.0, 'mac_address': '02:96:14:8C:76:B3', 'speed': 800}, 'mt-0/0/0': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': -1.0, 'mac_address': 'None', 'speed': 800}, 'sp-0/0/0': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': 80604.0, 'mac_address': 'Unspecified', 'speed': 800}, 'ge-0/0/1': {'is_up': True, 'is_enabled': True, 'description': 'An Interface in bma', 'last_flapped': 80604.0, 'mac_address': '08:00:27:FB:F0:FC', 'speed': 1000}, 'ge-0/0/2': {'is_up': False, 'is_enabled': False, 'description': 'Another interface in bma', 'last_flapped': 79892.0, 'mac_address': '08:00:27:32:60:54', 'speed': 1000}, '.local.': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': -1.0, 'mac_address': 'Unspecified', 'speed': -1}, 'dsc': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': -1.0, 'mac_address': 'Unspecified', 'speed': -1}, 'gre': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': -1.0, 'mac_address': 'None', 'speed': -1}, 'ipip': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': -1.0, 'mac_address': 'None', 'speed': -1}, 'irb': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': -1.0, 'mac_address': '4C:96:14:8C:76:B0', 'speed': -1}, 'lo0': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': -1.0, 'mac_address': 'Unspecified', 'speed': -1}, 'lsi': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': -1.0, 'mac_address': 'Unspecified', 'speed': -1}, 'mtun': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': -1.0, 'mac_address': 'None', 'speed': -1}, 'pimd': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': -1.0, 'mac_address': 'None', 'speed': -1}, 'pime': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': -1.0, 'mac_address': 'None', 'speed': -1}, 'pp0': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': -1.0, 'mac_address': 'Unspecified', 'speed': -1}, 'ppd0': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': -1.0, 'mac_address': 'None', 'speed': 800}, 'ppe0': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': -1.0, 'mac_address': 'None', 'speed': 800}, 'st0': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': -1.0, 'mac_address': 'None', 'speed': -1}, 'tap': {'is_up': True, 'is_enabled': True, 'description': '', 'last_flapped': -1.0, 'mac_address': 'Unspecified', 'speed': -1}, 'vlan': {'is_up': False, 'is_enabled': True, 'description': '', 'last_flapped': 80614.0, 'mac_address': '00:00:00:00:00:00', 'speed': 1000}}
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+Contents
+========
 
-   getting_started
-   tasks/index
-   inventory/index
-   api/index
+.. toctree::
+   :maxdepth: 1
+
+   Home <self>
+   Tutorials <tutorials/intro/index>
+   Howto <howto/index>
+   ref/index
 
 
 Indices and tables
-==================
 
 * :ref:`genindex`
 * :ref:`modindex`

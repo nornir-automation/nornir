@@ -98,3 +98,5 @@ output/
 demo/log
 
 tests.log
+
+.DS_Store
