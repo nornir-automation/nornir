@@ -1,6 +1,8 @@
 import hashlib
 import logging
+import os
 
+from brigade.core.exceptions import CommandError
 from brigade.core.helpers import format_string
 from brigade.core.task import Result
 from brigade.plugins.tasks import commands
@@ -29,11 +31,20 @@ def get_remote_hash(task, filename):
 
 
 def get(task, sftp_client, src, dst, *args, **kwargs):
-    remote_hash = get_remote_hash(task, src)
     try:
-        local_hash = get_local_hash(dst)
-        same = remote_hash == local_hash
-    except IOError:
+        commands.remote_command(task, "test -f {}".format(src))
+        is_file = True
+    except CommandError:
+        is_file = False
+
+    if is_file:
+        remote_hash = get_remote_hash(task, src)
+        try:
+            local_hash = get_local_hash(dst)
+            same = remote_hash == local_hash
+        except IOError:
+            same = False
+    else:
         same = False
 
     if not same and not task.dry_run:
@@ -43,19 +54,22 @@ def get(task, sftp_client, src, dst, *args, **kwargs):
 
 
 def put(task, sftp_client, src, dst, *args, **kwargs):
-    try:
-        f = sftp_client.file(dst)
-        found = True
-    except IOError:
-        found = False
-
-    if found:
-        remote_hash = get_remote_hash(task, dst)
-        f.close()
-        local_hash = get_local_hash(src)
-        same = remote_hash == local_hash
-    else:
+    if os.path.isdir(src):
         same = False
+    else:
+        try:
+            f = sftp_client.file(dst)
+            found = True
+        except IOError:
+            found = False
+
+        if found:
+            remote_hash = get_remote_hash(task, dst)
+            f.close()
+            local_hash = get_local_hash(src)
+            same = remote_hash == local_hash
+        else:
+            same = False
 
     if not same and not task.dry_run:
         sftp_client.put(src, dst)
