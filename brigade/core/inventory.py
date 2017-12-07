@@ -197,7 +197,7 @@ class Host(object):
         }
 
         user_config = ssh_config.lookup(self.host)
-        for k in ('selfname', 'username', 'port'):
+        for k in ('hostname', 'username', 'port'):
             if k in user_config:
                 parameters[k] = user_config[k]
 
