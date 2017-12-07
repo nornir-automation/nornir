@@ -171,12 +171,14 @@ class Host(object):
         """Network OS the device is running. Defaults to ``brigade_nos``."""
         return self.get("brigade_nos")
 
-    def ssh_connection(self, ssh_config_file=None, ssh_key_file=None):
+    @property
+    def ssh_connection(self):
+        """Reusable :obj:`paramiko.client.SSHClient`."""
         if hasattr(self, "_ssh_connection"):
             return self._ssh_connection
 
-        if ssh_config_file is None:
-            ssh_config_file = os.path.join(os.path.expanduser("~"), ".ssh", "config")
+        # TODO configurable
+        ssh_config_file = os.path.join(os.path.expanduser("~"), ".ssh", "config")
 
         client = paramiko.SSHClient()
         client._policy = paramiko.WarningPolicy()
@@ -202,9 +204,10 @@ class Host(object):
         if 'proxycommand' in user_config:
             parameters['sock'] = paramiko.ProxyCommand(user_config['proxycommand'])
 
-        if ssh_key_file:
-            parameters['key_filename'] = ssh_key_file
-        elif 'identityfile' in user_config:
+        # TODO configurable
+        #  if ssh_key_file:
+        #      parameters['key_filename'] = ssh_key_file
+        if 'identityfile' in user_config:
             parameters['key_filename'] = user_config['identityfile']
 
         client.connect(**parameters)

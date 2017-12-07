@@ -70,21 +70,18 @@ def sftp(task, src, dst, action):
     Example::
 
         brigade.run(files.sftp,
-                    ignore_keys=True,
-                    src=local_path,
-                    dst="{brigade_ip}:" + remote_path)
+                    action="put",
+                    src="README.md",
+                    dst="/tmp/README.md")
 
     Arguments:
-        src (``str``): source for sftp command
-        dst (``str``): destination for sftp command
+        src (``str``): source file
+        dst (``str``): destination
+        action (``str``): ``put``, ``get``.
 
     Returns:
         :obj:`brigade.core.task.Result`:
-          * result (``str``): stderr or stdout
-          * stdout (``str``): stdout
-          * stderr (``srr``): stderr
-    Raises:
-        :obj:`brigade.core.exceptions.CommandError`: when there is a command error
+          * changed (``bool``):
     """
     src = format_string(src, task, **task.host)
     dst = format_string(dst, task, **task.host)
@@ -92,7 +89,7 @@ def sftp(task, src, dst, action):
         "put": put,
         "get": get,
     }
-    client = task.host.ssh_connection()
+    client = task.host.ssh_connection
     sftp_client = paramiko.SFTPClient.from_transport(client.get_transport())
 
     return actions[action](task, sftp_client, src, dst)
