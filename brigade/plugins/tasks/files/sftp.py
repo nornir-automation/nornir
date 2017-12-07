@@ -65,7 +65,7 @@ def put(task, sftp_client, src, dst, *args, **kwargs):
 
 def sftp(task, src, dst, action):
     """
-    Runs sftp on the local machine. You can use variables in the path.
+    Transfer files from/to the device using sftp protocol
 
     Example::
 
