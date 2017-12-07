@@ -17,7 +17,7 @@ class Test(object):
 
         assert result
         for h, r in result.items():
-            assert r.changed
+            assert r.changed, r.files_changed
 
         brigade.dry_run = False
         result = brigade.run(files.sftp,
@@ -27,7 +27,7 @@ class Test(object):
 
         assert result
         for h, r in result.items():
-            assert r.changed
+            assert r.changed, r.files_changed
 
         brigade.dry_run = True
         result = brigade.run(files.sftp,
@@ -49,7 +49,7 @@ class Test(object):
 
         assert result
         for h, r in result.items():
-            assert r.changed
+            assert r.changed, r.files_changed
 
         brigade.dry_run = False
         result = brigade.run(files.sftp,
@@ -59,12 +59,75 @@ class Test(object):
 
         assert result
         for h, r in result.items():
-            assert r.changed
+            assert r.changed, r.files_changed
 
         brigade.dry_run = True
         result = brigade.run(files.sftp,
                              action="get",
                              src="/etc/hostname",
+                             dst=filename)
+
+        assert result
+        for h, r in result.items():
+            assert not r.changed
+
+    def test_sftp_put_directory(self, brigade):
+        brigade.dry_run = True
+        result = brigade.run(files.sftp,
+                             action="put",
+                             src="./brigade",
+                             dst="/tmp/asd")
+
+        assert result
+        for h, r in result.items():
+            assert r.changed, r.files_changed
+
+        brigade.dry_run = False
+        result = brigade.run(files.sftp,
+                             action="put",
+                             src="./brigade",
+                             dst="/tmp/asd")
+
+        assert result
+        for h, r in result.items():
+            assert r.changed, r.files_changed
+
+        brigade.dry_run = True
+        result = brigade.run(files.sftp,
+                             action="put",
+                             src="./brigade",
+                             dst="/tmp/asd")
+
+        assert result
+        for h, r in result.items():
+            assert not r.changed
+
+    def test_sftp_get_directory(self, brigade):
+        filename = "/tmp/{host}/" + str(uuid.uuid4())
+        brigade.dry_run = True
+        result = brigade.run(files.sftp,
+                             action="get",
+                             src="/etc/",
+                             dst=filename)
+
+        assert result
+        for h, r in result.items():
+            assert r.changed, r.files_changed
+
+        brigade.dry_run = False
+        result = brigade.run(files.sftp,
+                             action="get",
+                             src="/etc/",
+                             dst=filename)
+
+        assert result
+        for h, r in result.items():
+            assert r.changed, r.files_changed
+
+        brigade.dry_run = True
+        result = brigade.run(files.sftp,
+                             action="get",
+                             src="/etc/",
                              dst=filename)
 
         assert result
