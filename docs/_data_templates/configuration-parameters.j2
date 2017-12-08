@@ -14,7 +14,7 @@ Configuration Parameters
 		<th>Type</th>
 		<th>Default</th>
 			<tr>
-				<td>{{ v['env'] }}</td>
+				<td>{{ v['env'] or 'BRIGADE_' + k|upper }}</td>
 				<td>{{ v['type'] }}</td>
 				<td>{{ v['default_doc'] or v['default'] }}</td>
 			</tr>
