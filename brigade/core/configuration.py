@@ -9,22 +9,28 @@ CONF = {
     'num_workers': {
         'description': 'Number of Brigade worker processes',
         'env': 'BRIGADE_NUM_WORKERS',
-        'type': int,
+        'type': 'int',
         'default': 20,
     },
     'raise_on_error': {
-        'description': "If set to ``True``, :meth:`run` method of will raise an exception if at "
-                       "least a host failed.",
+        'description': "If set to ``True``, (:obj:`brigade.core.Brigade.run`) method of will raise "
+                       "an exception if at least a host failed.",
         'env': 'BRIGADE_RAISE_ON_ERROR',
-        'type': bool,
+        'type': 'bool',
         'default': True,
     },
     'ssh_config_file': {
         'description': 'User ssh_config_file',
         'env': 'BRIGADE_SSH_CONFIG_FILE',
-        'type': str,
+        'type': 'str',
         'default': os.path.join(os.path.expanduser("~"), ".ssh", "config"),
+        'default_doc': '~/.ssh/config'
     },
+}
+
+types = {
+    'int': int,
+    'str': str
 }
 
 
@@ -47,7 +53,7 @@ class Config:
     def _assign_properties(self, c):
 
         for p in CONF:
-            if CONF[p]['type'] == bool:
+            if CONF[p]['type'] == 'bool':
                 if os.environ.get(CONF[p]['env']) is not None:
                     v = os.environ.get(CONF[p]['env'])
                 elif c.get(p) is not None:
@@ -57,5 +63,5 @@ class Config:
                 v = ast.literal_eval(str(v).title())
             else:
                 v = os.environ.get(CONF[p]['env']) or c.get(p) or CONF[p]['default']
-                v = CONF[p]['type'](v)
+                v = types[CONF[p]['type']](v)
             setattr(self, p, v)
