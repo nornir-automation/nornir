@@ -1,6 +1,7 @@
 import hashlib
 import logging
 import os
+import stat
 
 from brigade.core.exceptions import CommandError
 from brigade.core.helpers import format_string
@@ -9,11 +10,13 @@ from brigade.plugins.tasks import commands
 
 import paramiko
 
+from scp import SCPClient
+
 
 logger = logging.getLogger("brigade")
 
 
-def get_local_hash(filename):
+def get_src_hash(filename):
     sha1sum = hashlib.sha1()
 
     with open(filename, 'rb') as f:
@@ -24,111 +27,80 @@ def get_local_hash(filename):
     return sha1sum.hexdigest()
 
 
-def get_remote_hash(task, filename):
+def get_dst_hash(task, filename):
     command = "sha1sum {}".format(filename)
-    result = commands.remote_command(task, command)
-    return result.stdout.split()[0]
-
-
-def _get(task, sftp_client, src, dst, path=None):
-    remote_hash = get_remote_hash(task, src)
     try:
-        local_hash = get_local_hash(dst)
-        same = remote_hash == local_hash
+        result = commands.remote_command(task, command)
+        return result.stdout.split()[0]
+    except CommandError as e:
+        if "No such file or directory" in e.stderr:
+            return ''
+        raise
+
+
+def remote_exists(sftp_client, f):
+    try:
+        sftp_client.stat(f)
+        return True
     except IOError:
-        same = False
-
-    if not same and not task.dry_run:
-        sftp_client.get(src, dst)
-
-    return not same
+        return False
 
 
-def get(task, sftp_client, src, dst, *args, **kwargs):
-    try:
-        commands.remote_command(task, "test -f {}".format(src))
-        is_file = True
-    except CommandError:
-        is_file = False
-
-    if is_file:
-        changed = _get(task, sftp_client, src, dst)
-        files_changed = [dst] if changed else []
+def compare_put_files(task, sftp_client, src, dst):
+    changed = []
+    if os.path.isfile(src):
+        src_hash = get_src_hash(src)
+        try:
+            dst_hash = get_dst_hash(task, dst)
+        except IOError:
+            dst_hash = ''
+        if src_hash != dst_hash:
+            changed.append(dst)
     else:
-        create_local_dir(dst)
-        changed = False
-        files_changed = []
-        for f in sftp_client.listdir_attr(src):
-            s = os.path.join(src, f.filename)
-            d = os.path.join(dst, f.filename)
-            if f.longname[0] == 'd':
-                # it's a directory
-                files_changed.extend(get(task, sftp_client, s, d, *args, **kwargs))
-            else:
-                rc = _get(task, sftp_client, s, d)
-                changed = changed or rc
-                if rc:
-                    files_changed.append(d)
-
-    return files_changed
+        if remote_exists(sftp_client, dst):
+            for f in os.listdir(src):
+                s = os.path.join(src, f)
+                d = os.path.join(dst, f)
+                changed.extend(compare_put_files(task, sftp_client, s, d))
+        else:
+            changed.append(dst)
+    return changed
 
 
-def _put(task, sftp_client, src, dst, path=None):
-    if path and not task.dry_run:
-        create_remote_dir(sftp_client, path)
-
-    if path:
-        dst = os.path.join(path, dst)
-
-    try:
-        f = sftp_client.file(dst)
-        found = True
-    except IOError:
-        found = False
-
-    if found:
-        remote_hash = get_remote_hash(task, dst)
-        f.close()
-        local_hash = get_local_hash(src)
-        same = remote_hash == local_hash
+def compare_get_files(task, sftp_client, src, dst):
+    changed = []
+    if stat.S_ISREG(sftp_client.stat(src).st_mode):
+        # is a file
+        src_hash = get_dst_hash(task, src)
+        try:
+            dst_hash = get_src_hash(dst)
+        except IOError:
+            dst_hash = ''
+        if src_hash != dst_hash:
+            changed.append(dst)
     else:
-        same = False
-
-    if not same and not task.dry_run:
-        sftp_client.put(src, dst)
-
-    return not same
-
-
-def create_local_dir(directory):
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+        if os.path.exists(dst):
+            for f in sftp_client.listdir(src):
+                s = os.path.join(src, f)
+                d = os.path.join(dst, f)
+                changed.extend(compare_get_files(task, sftp_client, s, d))
+        else:
+            changed.append(dst)
+    return changed
 
 
-def create_remote_dir(sftp_client, directory):
-    try:
-        sftp_client.listdir(directory)
-    except IOError:
-        sftp_client.mkdir(directory)
+def get(task, scp_client, sftp_client, src, dst, *args, **kwargs):
+    changed = compare_get_files(task, sftp_client, src, dst)
+    if changed and not task.dry_run:
+        scp_client.get(src, dst, recursive=True)
+    return changed
 
 
-def put(task, sftp_client, src, dst, *args, **kwargs):
-    if os.path.isdir(src):
-        dst = sftp_client.normalize(dst)
-        create_remote_dir(sftp_client, dst)
-        files_changed = []
-        for path, _, files in os.walk(src):
-            for f in files:
-                s = os.path.join(path, f)
-                p = os.path.join(dst, path)
-                rc = _put(task, sftp_client, s, f, p)
-                if rc:
-                    files_changed.append(dst)
-    else:
-        changed = _put(task, sftp_client, src, dst)
-        files_changed = [dst] if changed else []
-
-    return files_changed
+def put(task, scp_client, sftp_client, src, dst, *args, **kwargs):
+    changed = compare_put_files(task, sftp_client, src, dst)
+    if changed and not task.dry_run:
+        scp_client.put(src, dst, recursive=True)
+    return changed
 
 
 def sftp(task, src, dst, action):
@@ -159,6 +131,7 @@ def sftp(task, src, dst, action):
         "get": get,
     }
     client = task.host.ssh_connection
+    scp_client = SCPClient(client.get_transport())
     sftp_client = paramiko.SFTPClient.from_transport(client.get_transport())
-    files_changed = actions[action](task, sftp_client, src, dst)
+    files_changed = actions[action](task, scp_client, sftp_client, src, dst)
     return Result(host=task.host, changed=bool(files_changed), files_changed=files_changed)

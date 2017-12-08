@@ -40,7 +40,7 @@ class Test(object):
             assert not r.changed
 
     def test_sftp_get(self, brigade):
-        filename = "/tmp/{host}-" + str(uuid.uuid4())
+        filename = "/tmp/" + str(uuid.uuid4()) + "-{host}"
         brigade.dry_run = True
         result = brigade.run(files.sftp,
                              action="get",
@@ -103,11 +103,11 @@ class Test(object):
             assert not r.changed
 
     def test_sftp_get_directory(self, brigade):
-        filename = "/tmp/{host}/" + str(uuid.uuid4())
+        filename = "/tmp/" + str(uuid.uuid4()) + "-{host}"
         brigade.dry_run = True
         result = brigade.run(files.sftp,
                              action="get",
-                             src="/etc/",
+                             src="/etc/terminfo/",
                              dst=filename)
 
         assert result
@@ -117,7 +117,7 @@ class Test(object):
         brigade.dry_run = False
         result = brigade.run(files.sftp,
                              action="get",
-                             src="/etc/",
+                             src="/etc/terminfo/",
                              dst=filename)
 
         assert result
@@ -127,7 +127,7 @@ class Test(object):
         brigade.dry_run = True
         result = brigade.run(files.sftp,
                              action="get",
-                             src="/etc/",
+                             src="/etc/terminfo/",
                              dst=filename)
 
         assert result
