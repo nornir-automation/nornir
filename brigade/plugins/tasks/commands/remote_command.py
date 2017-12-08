@@ -22,6 +22,7 @@ def remote_command(task, command):
     Raises:
         :obj:`brigade.core.exceptions.CommandError`: when there is a command error
     """
+    task.host.ssh_connection = None
     client = task.host.ssh_connection
 
     chan = client.get_transport().open_session()
