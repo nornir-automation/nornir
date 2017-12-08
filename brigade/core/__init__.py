@@ -106,7 +106,7 @@ class Brigade(object):
             host, res, exc, traceback = r.get()
             if exc:
                 result.failed_hosts[host] = exc
-                result.tracebacks[host] = exc
+                result.tracebacks[host] = traceback
             else:
                 result[host] = res
         return result
