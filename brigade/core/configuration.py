@@ -7,7 +7,9 @@ import yaml
 
 CONF = {
     'num_workers': {
-        'description': 'Number of Brigade worker processes',
+        'description': 'Number of Brigade worker processes that are run at the same time, '
+                       'configuration can be overridden on individual tasks by using the '
+                       '`num_workers` argument to (:obj:`brigade.core.Brigade.run`)',
         'type': 'int',
         'default': 20,
     },
@@ -27,14 +29,16 @@ CONF = {
 
 types = {
     'int': int,
-    'str': str
+    'str': str,
 }
 
 
 class Config:
     """
-    Documentation
+    This object handles the configuration of Brigade.
 
+    Arguments:
+        config_file(``str``): Yaml configuration file.
     """
 
     def __init__(self, config_file=None):
@@ -51,7 +55,6 @@ class Config:
 
         for p in CONF:
             env = CONF[p].get('env') or 'BRIGADE_' + p.upper()
-            print(env)
             if CONF[p]['type'] == 'bool':
                 if os.environ.get(env) is not None:
                     v = os.environ.get(env)
