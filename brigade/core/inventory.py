@@ -177,42 +177,51 @@ class Host(object):
         if hasattr(self, "_ssh_connection"):
             return self._ssh_connection
 
-        # TODO configurable
-        ssh_config_file = os.path.join(os.path.expanduser("~"), ".ssh", "config")
+    @ssh_connection.setter
+    def ssh_connection(self, connection=None):
+        """Set the ssh connection. Defaults to creating a new Paramiko SSH connection.
 
-        client = paramiko.SSHClient()
-        client._policy = paramiko.WarningPolicy()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        Arguments:
+            connection(``Connection Object``): Connection object to be used in future tasks.
+        """
+        if connection is not None:
+            self._ssh_connection = connection
+        else:
+            # TODO configurable
+            ssh_config_file = os.path.join(os.path.expanduser("~"), ".ssh", "config")
 
-        ssh_config = paramiko.SSHConfig()
-        if os.path.exists(ssh_config_file):
-            with open(ssh_config_file) as f:
-                ssh_config.parse(f)
+            client = paramiko.SSHClient()
+            client._policy = paramiko.WarningPolicy()
+            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        parameters = {
-            "hostname": self.host,
-            "username": self.username,
-            "password": self.password,
-            "port": self.ssh_port,
-        }
+            ssh_config = paramiko.SSHConfig()
+            if os.path.exists(ssh_config_file):
+                with open(ssh_config_file) as f:
+                    ssh_config.parse(f)
 
-        user_config = ssh_config.lookup(self.host)
-        for k in ('hostname', 'username', 'port'):
-            if k in user_config:
-                parameters[k] = user_config[k]
+            parameters = {
+                "hostname": self.host,
+                "username": self.username,
+                "password": self.password,
+                "port": self.ssh_port,
+            }
 
-        if 'proxycommand' in user_config:
-            parameters['sock'] = paramiko.ProxyCommand(user_config['proxycommand'])
+            user_config = ssh_config.lookup(self.host)
+            for k in ('hostname', 'username', 'port'):
+                if k in user_config:
+                    parameters[k] = user_config[k]
 
-        # TODO configurable
-        #  if ssh_key_file:
-        #      parameters['key_filename'] = ssh_key_file
-        if 'identityfile' in user_config:
-            parameters['key_filename'] = user_config['identityfile']
+            if 'proxycommand' in user_config:
+                parameters['sock'] = paramiko.ProxyCommand(user_config['proxycommand'])
 
-        client.connect(**parameters)
-        self._ssh_connection = client
-        return client
+            # TODO configurable
+            #  if ssh_key_file:
+            #      parameters['key_filename'] = ssh_key_file
+            if 'identityfile' in user_config:
+                parameters['key_filename'] = user_config['identityfile']
+
+            client.connect(**parameters)
+            self._ssh_connection = client
 
 
 class Group(Host):
