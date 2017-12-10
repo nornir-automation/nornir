@@ -1,7 +1,7 @@
 import os
 
 from brigade.core.exceptions import BrigadeExecutionError
-from brigade.plugins.tasks import networking
+from brigade.plugins.tasks import connections, networking
 
 import pytest
 
@@ -13,10 +13,11 @@ class Test(object):
 
     def test_napalm_getters(self, brigade):
         opt = {"path": THIS_DIR + "/test_napalm_getters"}
-        result = brigade.filter(name="dev3.group_2").run(networking.napalm_get,
-                                                         getters=["facts",
-                                                                  "interfaces"],
-                                                         optional_args=opt)
+        d = brigade.filter(name="dev3.group_2")
+        d.run(connections.napalm_connection, optional_args=opt)
+        result = d.run(networking.napalm_get,
+                       getters=["facts",
+                                "interfaces"])
         assert result
         for h, r in result.items():
             assert r.result["facts"]
@@ -24,12 +25,13 @@ class Test(object):
 
     def test_napalm_getters_error(self, brigade):
         opt = {"path": THIS_DIR + "/test_napalm_getters_error"}
+        d = brigade.filter(name="dev3.group_2")
+        d.run(connections.napalm_connection, optional_args=opt)
 
         with pytest.raises(BrigadeExecutionError) as e:
-            brigade.filter(name="dev3.group_2").run(networking.napalm_get,
-                                                    getters=["facts",
-                                                             "interfaces"],
-                                                    optional_args=opt)
+            d.run(networking.napalm_get,
+                  getters=["facts",
+                           "interfaces"])
         assert len(e.value.failed_hosts)
         for exc in e.value.failed_hosts.values():
             assert isinstance(exc, KeyError)

@@ -1,7 +1,7 @@
 import os
 
 #  from brigade.core.exceptions import BrigadeExecutionError
-from brigade.plugins.tasks import networking
+from brigade.plugins.tasks import connections, networking
 
 #  from napalm.base import exceptions
 
@@ -15,10 +15,11 @@ class Test(object):
 
     def test_napalm_cli(self, brigade):
         opt = {"path": THIS_DIR + "/test_napalm_cli"}
-        result = brigade.filter(name="dev3.group_2").run(networking.napalm_cli,
-                                                         commands=["show version",
-                                                                   "show interfaces"],
-                                                         optional_args=opt)
+        d = brigade.filter(name="dev3.group_2")
+        d.run(connections.napalm_connection, optional_args=opt)
+        result = d.run(networking.napalm_cli,
+                       commands=["show version",
+                                 "show interfaces"])
         assert result
         for h, r in result.items():
             assert r.result["show version"]

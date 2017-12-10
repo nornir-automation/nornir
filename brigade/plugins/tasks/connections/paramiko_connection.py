@@ -5,8 +5,8 @@ import paramiko
 
 def paramiko_connection(task=None, host=None):
     """
-    This tasks connects with paramiko to the device and sets the
-    attribute ``paramiko_connection``.
+    This tasks connects to the device with paramiko to the device and sets the
+    relevant connection.
     """
     if host is None:
         host = task.host
