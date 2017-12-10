@@ -61,6 +61,7 @@ class Host(object):
         self.group = group
         self.data = {}
         self.data["name"] = name
+        self.connections = {}
 
         if isinstance(group, str):
             self.data["group"] = group
@@ -169,7 +170,7 @@ class Host(object):
         """Network OS the device is running. Defaults to ``brigade_nos``."""
         return self.get("brigade_nos")
 
-    def get_connection(self, connection_name):
+    def get_connection(self, connection):
         """
         This function will try to find an already established connection
         or call the task that establishes the connection if none is found.
@@ -178,10 +179,10 @@ class Host(object):
             connection_name (str): Name of the connection, for instance, netmiko, paramiko,
                 napalm...
         """
-        attr_name = "{}_connection".format(connection_name)
-        if not hasattr(self, attr_name):
-            getattr(connections, attr_name)(host=self)
-        return getattr(self, attr_name)
+        if connection not in self.connections:
+            task_name = "{}_connection".format(connection)
+            getattr(connections, task_name)(host=self)
+        return self.connections[connection]
 
 
 class Group(Host):

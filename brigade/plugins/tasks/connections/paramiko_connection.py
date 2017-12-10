@@ -45,4 +45,4 @@ def paramiko_connection(task=None, host=None):
         parameters['key_filename'] = user_config['identityfile']
 
     client.connect(**parameters)
-    host.paramiko_connection = client
+    host.connections["paramiko"] = client
