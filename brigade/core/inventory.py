@@ -1,9 +1,7 @@
 import getpass
-import os
 
 from brigade.core import helpers
-
-import paramiko
+from brigade.plugins.tasks import connections
 
 
 class Host(object):
@@ -171,48 +169,19 @@ class Host(object):
         """Network OS the device is running. Defaults to ``brigade_nos``."""
         return self.get("brigade_nos")
 
-    @property
-    def ssh_connection(self):
-        """Reusable :obj:`paramiko.client.SSHClient`."""
-        if hasattr(self, "_ssh_connection"):
-            return self._ssh_connection
+    def get_connection(self, connection_name):
+        """
+        This function will try to find an already established connection
+        or call the task that establishes the connection if none is found.
 
-        # TODO configurable
-        ssh_config_file = os.path.join(os.path.expanduser("~"), ".ssh", "config")
-
-        client = paramiko.SSHClient()
-        client._policy = paramiko.WarningPolicy()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-        ssh_config = paramiko.SSHConfig()
-        if os.path.exists(ssh_config_file):
-            with open(ssh_config_file) as f:
-                ssh_config.parse(f)
-
-        parameters = {
-            "hostname": self.host,
-            "username": self.username,
-            "password": self.password,
-            "port": self.ssh_port,
-        }
-
-        user_config = ssh_config.lookup(self.host)
-        for k in ('hostname', 'username', 'port'):
-            if k in user_config:
-                parameters[k] = user_config[k]
-
-        if 'proxycommand' in user_config:
-            parameters['sock'] = paramiko.ProxyCommand(user_config['proxycommand'])
-
-        # TODO configurable
-        #  if ssh_key_file:
-        #      parameters['key_filename'] = ssh_key_file
-        if 'identityfile' in user_config:
-            parameters['key_filename'] = user_config['identityfile']
-
-        client.connect(**parameters)
-        self._ssh_connection = client
-        return client
+        Arguments:
+            connection_name (str): Name of the connection, for instance, netmiko, paramiko,
+                napalm...
+        """
+        attr_name = "{}_connection".format(connection_name)
+        if not hasattr(self, attr_name):
+            getattr(connections, attr_name)(host=self)
+        return getattr(self, attr_name)
 
 
 class Group(Host):
