@@ -107,9 +107,6 @@ def sftp(task, src, dst, action):
     """
     Transfer files from/to the device using sftp protocol
 
-    Requires:
-        paramiko_connection
-
     Example::
 
         brigade.run(files.sftp,

@@ -11,9 +11,6 @@ def remote_command(task, command):
     """
     Executes a command locally
 
-    Requires:
-        paramiko_connection
-
     Arguments:
         command (``str``): command to execute
 
