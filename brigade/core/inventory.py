@@ -181,10 +181,10 @@ class Host(object):
         """
         if connection not in self.connections:
             task_name = "{}_connection".format(connection)
-            if not kwargs.get("host"):
+            if kwargs.get("host") is None:
                 kwargs['host'] = self
             else:
-                raise ValueError("Brigade host argument should not be set on get_connection call.")
+                raise ValueError("Brigade host argument should not be set on get_connection calls.")
             getattr(connections, task_name)(**kwargs)
         return self.connections[connection]
 
