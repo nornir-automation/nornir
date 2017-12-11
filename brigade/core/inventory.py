@@ -1,9 +1,11 @@
 import getpass
-import os
+import logging
 
 from brigade.core import helpers
+from brigade.plugins.tasks import connections
 
-import paramiko
+
+logger = logging.getLogger("brigade")
 
 
 class Host(object):
@@ -63,6 +65,7 @@ class Host(object):
         self.group = group
         self.data = {}
         self.data["name"] = name
+        self.connections = {}
 
         if isinstance(group, str):
             self.data["group"] = group
@@ -171,48 +174,31 @@ class Host(object):
         """Network OS the device is running. Defaults to ``brigade_nos``."""
         return self.get("brigade_nos")
 
-    @property
-    def ssh_connection(self):
-        """Reusable :obj:`paramiko.client.SSHClient`."""
-        if hasattr(self, "_ssh_connection"):
-            return self._ssh_connection
+    def get_connection(self, connection):
+        """
+        This function will try to find an already established connection
+        or call the task that establishes the connection if none is found.
+        In any case, it should always return an established connection or
+        an error if the connection is not already established and we don't
+        know of any task that could provide that type of connection.
 
-        # TODO configurable
-        ssh_config_file = os.path.join(os.path.expanduser("~"), ".ssh", "config")
+        Raises:
+            AttributeError: if it's unknown how to establish a connection for the given
+                type
 
-        client = paramiko.SSHClient()
-        client._policy = paramiko.WarningPolicy()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
-        ssh_config = paramiko.SSHConfig()
-        if os.path.exists(ssh_config_file):
-            with open(ssh_config_file) as f:
-                ssh_config.parse(f)
-
-        parameters = {
-            "hostname": self.host,
-            "username": self.username,
-            "password": self.password,
-            "port": self.ssh_port,
-        }
-
-        user_config = ssh_config.lookup(self.host)
-        for k in ('hostname', 'username', 'port'):
-            if k in user_config:
-                parameters[k] = user_config[k]
-
-        if 'proxycommand' in user_config:
-            parameters['sock'] = paramiko.ProxyCommand(user_config['proxycommand'])
-
-        # TODO configurable
-        #  if ssh_key_file:
-        #      parameters['key_filename'] = ssh_key_file
-        if 'identityfile' in user_config:
-            parameters['key_filename'] = user_config['identityfile']
-
-        client.connect(**parameters)
-        self._ssh_connection = client
-        return client
+        Arguments:
+            connection_name (str): Name of the connection, for instance, netmiko, paramiko,
+                napalm...
+        """
+        if connection not in self.connections:
+            task_name = "{}_connection".format(connection)
+            try:
+                task = getattr(connections, task_name)
+            except AttributeError:
+                raise AttributeError("not sure how to establish a connection for {}".format(
+                    connection))
+            task(host=self)
+        return self.connections[connection]
 
 
 class Group(Host):

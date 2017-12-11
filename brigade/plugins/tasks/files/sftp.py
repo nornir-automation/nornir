@@ -130,7 +130,7 @@ def sftp(task, src, dst, action):
         "put": put,
         "get": get,
     }
-    client = task.host.ssh_connection
+    client = task.host.get_connection("paramiko")
     scp_client = SCPClient(client.get_transport())
     sftp_client = paramiko.SFTPClient.from_transport(client.get_transport())
     files_changed = actions[action](task, scp_client, sftp_client, src, dst)

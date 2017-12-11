@@ -1,7 +1,7 @@
 import os
 
 from brigade.core.exceptions import BrigadeExecutionError
-from brigade.plugins.tasks import networking
+from brigade.plugins.tasks import connections, networking
 
 from napalm.base import exceptions
 
@@ -16,9 +16,9 @@ class Test(object):
     def test_napalm_configure_change_dry_run(self, brigade):
         opt = {"path": THIS_DIR + "/test_napalm_configure_change_dry_run"}
         configuration = "hostname changed-hostname"
-        result = brigade.filter(name="dev3.group_2").run(networking.napalm_configure,
-                                                         configuration=configuration,
-                                                         optional_args=opt)
+        d = brigade.filter(name="dev3.group_2")
+        d.run(connections.napalm_connection, optional_args=opt)
+        result = d.run(networking.napalm_configure, configuration=configuration)
         assert result
         for h, r in result.items():
             assert "+hostname changed-hostname" in r.diff
@@ -28,19 +28,17 @@ class Test(object):
         opt = {"path": THIS_DIR + "/test_napalm_configure_change_commit/step1"}
         configuration = "hostname changed-hostname"
         brigade.dry_run = False
-        result = brigade.filter(name="dev3.group_2").run(networking.napalm_configure,
-                                                         num_workers=1,
-                                                         configuration=configuration,
-                                                         optional_args=opt)
-        brigade.dry_run = True
+        d = brigade.filter(name="dev3.group_2")
+        d.run(connections.napalm_connection, optional_args=opt)
+        result = d.run(networking.napalm_configure, configuration=configuration)
+        d.dry_run = True
         assert result
         for h, r in result.items():
             assert "+hostname changed-hostname" in r.diff
             assert r.changed
         opt = {"path": THIS_DIR + "/test_napalm_configure_change_commit/step2"}
-        result = brigade.filter(name="dev3.group_2").run(networking.napalm_configure,
-                                                         configuration=configuration,
-                                                         optional_args=opt)
+        d.run(connections.napalm_connection, optional_args=opt)
+        result = d.run(networking.napalm_configure, configuration=configuration)
         assert result
         for h, r in result.items():
             assert "+hostname changed-hostname" not in r.diff
@@ -50,10 +48,10 @@ class Test(object):
         opt = {"path": THIS_DIR + "/test_napalm_configure_change_error"}
         configuration = "hostname changed_hostname"
 
+        d = brigade.filter(name="dev3.group_2")
+        d.run(connections.napalm_connection, optional_args=opt)
         with pytest.raises(BrigadeExecutionError) as e:
-            brigade.filter(name="dev3.group_2").run(networking.napalm_configure,
-                                                    configuration=configuration,
-                                                    optional_args=opt)
+            d.run(networking.napalm_configure, configuration=configuration)
         assert len(e.value.failed_hosts)
         for exc in e.value.failed_hosts.values():
             assert isinstance(exc, exceptions.MergeConfigException)
