@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
-from netmiko import ConnectHandler
 from brigade.plugins.tasks.networking.netmiko_tasks import netmiko_args
+
+from netmiko import ConnectHandler
 
 
 def netmiko_connection(host=None, task=None, ip=None, netmiko_host=None, username=None,
