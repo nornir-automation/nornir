@@ -174,7 +174,7 @@ class Host(object):
         """Network OS the device is running. Defaults to ``brigade_nos``."""
         return self.get("brigade_nos")
 
-    def get_connection(self, connection):
+    def get_connection(self, connection, **kwargs):
         """
         This function will try to find an already established connection
         or call the task that establishes the connection if none is found.
@@ -192,12 +192,11 @@ class Host(object):
         """
         if connection not in self.connections:
             task_name = "{}_connection".format(connection)
-            try:
-                task = getattr(connections, task_name)
-            except AttributeError:
-                raise AttributeError("not sure how to establish a connection for {}".format(
-                    connection))
-            task(host=self)
+            if kwargs.get("host") is None:
+                kwargs['host'] = self
+            else:
+                raise ValueError("Brigade host argument should not be set on get_connection calls.")
+            getattr(connections, task_name)(**kwargs)
         return self.connections[connection]
 
 
