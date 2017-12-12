@@ -157,6 +157,8 @@ def netmiko_send_command(task, ip=None, host=None, username=None, password=None,
                          cmd_args=None, cmd_kwargs=None, netmiko_conn=None):
 
     brigade_host = task.host
+    parameters = netmiko_args(host=brigade_host, ip=ip, netmiko_host=host, username=username,
+                              password=password, device_type=device_type, netmiko_dict=netmiko_dict)
     if cmd_args is None:
         cmd_args = ()
     elif isinstance(cmd_args, py23_compat.string_types):
@@ -170,15 +172,9 @@ def netmiko_send_command(task, ip=None, host=None, username=None, password=None,
     else:
         command = cmd_kwargs['command_string']
 
-    if device_type is None:
-        if netmiko_dict.get("device_type") is None:
-            device_type = brigade_host["nos"]
-        else:
-            device_type = netmiko_dict.get("device_type")
-
     # Netmiko connection automatically created by 'netmiko_get_connection' decorator (if needed)
     result = netmiko_conn.send_command(*cmd_args, **cmd_kwargs)
     if use_textfsm:
-        result = get_structured_data(result, platform=device_type,
+        result = get_structured_data(result, platform=parameters['device_type'],
                                      command=command)
     return Result(host=task.host, result=result)
