@@ -92,12 +92,11 @@ def netmiko_args(host, ip=None, netmiko_host=None, username=None, password=None,
     # Both Netmiko and brigade have a host argument
     brigade_host = host
     parameters = {
-        "username": username or brigade_host["brigade_username"],
-        "password": password or brigade_host["brigade_password"],
+        "username": username or brigade_host.username,
+        "password": password or brigade_host.password,
     }
-
     if netmiko_host is None and ip is None:
-        parameters["ip"] = brigade_host["brigade_ip"]
+        parameters["host"] = brigade_host.host
     elif ip is not None:
         parameters["ip"] = ip
     elif netmiko_host is not None:
@@ -110,7 +109,7 @@ def netmiko_args(host, ip=None, netmiko_host=None, username=None, password=None,
 
     if device_type is None:
         if netmiko_dict.get("device_type") is None:
-            device_type = brigade_host["nos"]
+            device_type = brigade_host.nos
         else:
             device_type = netmiko_dict.get("device_type")
 
