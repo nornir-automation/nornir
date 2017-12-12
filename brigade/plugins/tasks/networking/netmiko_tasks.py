@@ -106,6 +106,7 @@ def netmiko_args(host, ip=None, netmiko_host=None, username=None, password=None,
         parameters.update(netmiko_dict)
     else:
         netmiko_dict = {}
+    parameters['port'] = netmiko_dict.get('port', brigade_host.ssh_port)
 
     if device_type is None:
         if netmiko_dict.get("device_type") is None:
