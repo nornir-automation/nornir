@@ -174,32 +174,24 @@ class Host(object):
         """Network OS the device is running. Defaults to ``brigade_nos``."""
         return self.get("brigade_nos")
 
-    def get_connection(self, connection, **kwargs):
+    def get_connection(self, connection):
         """
-        This function will try to find an already established connection
-        or call the task that establishes the connection if none is found.
-        In any case, it should always return an established connection or
-        an error if the connection is not already established and we don't
-        know of any task that could provide that type of connection.
-
+        This function will return an already established connection
         Raises:
             AttributeError: if it's unknown how to establish a connection for the given
                 type
-
         Arguments:
             connection_name (str): Name of the connection, for instance, netmiko, paramiko,
                 napalm...
-            **kwargs: Additional arguments that will be passed directly for connection creation.
+        Returns:
+            An already established connection of type ``connection``
         """
         if connection not in self.connections:
-            task_name = "{}_connection".format(connection)
-            try:
-                task = getattr(connections, task_name)
-            except AttributeError:
-                raise AttributeError("not sure how to establish a connection for {}".format(
-                    connection))
-            kwargs['host'] = self
-            task(**kwargs)
+            msg = (
+                "Couldn't find an established connection for '{c}'. "
+                "Did you call '{c}_connection'?"
+            ).format(c=connection)
+            raise AttributeError(msg)
         return self.connections[connection]
 
 
