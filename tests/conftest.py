@@ -4,6 +4,7 @@ import subprocess
 
 from brigade.core import Brigade
 from brigade.plugins.inventory.simple import SimpleInventory
+from brigade.plugins.tasks.connections import paramiko_connection
 
 import pytest
 
@@ -17,7 +18,7 @@ logging.basicConfig(
 
 
 @pytest.fixture(scope="session", autouse=True)
-def containers(request):
+def a_containers(request):
     """Start/Stop containers needed for the tests."""
     def fin():
         logging.info("Stopping containers")
@@ -44,4 +45,5 @@ def brigade(request):
                                   "{}/inventory_data/groups.yaml".format(dir_path)),
         dry_run=True,
     )
+    brigade.run(paramiko_connection)
     return brigade
