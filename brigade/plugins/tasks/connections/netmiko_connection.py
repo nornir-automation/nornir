@@ -15,9 +15,6 @@ def netmiko_connection(task=None, host=None, **netmiko_args):
     Arguments:
         **netmiko_args: All supported Netmiko ConnectHandler arguments
     """
-    if netmiko_args is None:
-        netmiko_args = {}
-
     if host is None:
         host = task.host
 
@@ -27,12 +24,15 @@ def netmiko_connection(task=None, host=None, **netmiko_args):
         "password": host.password,
         "port": host.ssh_port
     }
-    if timeout is not None:
-        parameters['timeout'] = timeout
     if host.nos is not None:
-        # Try to look it up in map, if it fails just return the host.nos
+        # Look device_type up in corresponding map, if no entry return the host.nos unmodified
         device_type = napalm_to_netmiko_map.get(host.nos, host.nos)
         parameters['device_type'] = device_type
+
+    # Both netmiko and brigade use host, allow passing of an alternately named host argument
+    if netmiko_args.get("netmiko_host"):
+        netmiko_host = netmiko_args.pop("netmiko_host")
+        netmiko_args['host'] = netmiko_host
 
     parameters.update(**netmiko_args)
     host.connections["netmiko"] = ConnectHandler(**parameters)
