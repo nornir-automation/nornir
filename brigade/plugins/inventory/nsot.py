@@ -15,7 +15,7 @@ class NSOTInventory(Inventory):
         devices = requests.get('{}/devices'.format(NSOT_URL), headers=headers).json()
         sites = requests.get('{}/sites'.format(NSOT_URL), headers=headers).json()
 
-        # We resolve site_id and assign "site" variable with the name of the sitee
+        # We resolve site_id and assign "site" variable with the name of the site
         for d in devices:
             d['site'] = sites[d['site_id'] - 1]['name']
 

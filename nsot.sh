@@ -1,4 +1,3 @@
--x
 nsot sites add --name site1
 
 nsot attributes add --site-id 1 --resource-name device --name os
