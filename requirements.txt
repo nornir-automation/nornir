@@ -3,3 +3,4 @@ jinja2
 napalm
 paramiko
 future
+requests
