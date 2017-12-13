@@ -174,7 +174,7 @@ class Host(object):
         """Network OS the device is running. Defaults to ``brigade_nos``."""
         return self.get("brigade_nos")
 
-    def get_connection(self, connection):
+    def get_connection(self, connection, **kwargs):
         """
         This function will try to find an already established connection
         or call the task that establishes the connection if none is found.
@@ -189,6 +189,7 @@ class Host(object):
         Arguments:
             connection_name (str): Name of the connection, for instance, netmiko, paramiko,
                 napalm...
+            **kwargs: Additional arguments that will be passed directly for connection creation.
         """
         if connection not in self.connections:
             task_name = "{}_connection".format(connection)
@@ -197,7 +198,8 @@ class Host(object):
             except AttributeError:
                 raise AttributeError("not sure how to establish a connection for {}".format(
                     connection))
-            task(host=self)
+            kwargs['host'] = self
+            task(**kwargs)
         return self.connections[connection]
 
 
