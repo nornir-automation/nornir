@@ -176,12 +176,15 @@ class Host(object):
     def get_connection(self, connection):
         """
         This function will return an already established connection
+
         Raises:
             AttributeError: if it's unknown how to establish a connection for the given
                 type
+
         Arguments:
             connection_name (str): Name of the connection, for instance, netmiko, paramiko,
                 napalm...
+
         Returns:
             An already established connection of type ``connection``
         """
