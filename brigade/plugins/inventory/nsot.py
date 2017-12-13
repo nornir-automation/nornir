@@ -22,6 +22,10 @@ class NSOTInventory(Inventory):
             d['site'] = sites[d['site_id'] - 1]['name']
             d['interfaces'] = {}
 
+            # We assign attributes to the root
+            for k, v in d.pop('attributes').items():
+                d[k] = v
+
         # We assign the interfaces to the hosts
         for i in interfaces:
             devices[i['device'] - 1]['interfaces'][i['name']] = i
