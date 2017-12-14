@@ -7,8 +7,23 @@ import requests
 
 
 class NSOTInventory(Inventory):
+    """
+    Inventory plugin that uses `nsot <https://github.com/dropbox/nsot>`_ as backend.
 
-    def __init__(self, **kwargs):
+    Note:
+        An extra attribute ``site`` will be assigned to the host. The value will be
+        the name of the site the host belongs to.
+
+    Environment Variables:
+        * ``NSOT_URL``: URL to nsot's API (defaults to ``http://localhost:8990/api``)
+        * ``NSOT_EMAIL``: email for authentication (defaults to admin@acme.com)
+
+    Arguments:
+        flatten_attributes (bool): Assign host attributes to the root object. Useful
+            for filtering hosts.
+    """
+
+    def __init__(self, flatten_attributes=True, **kwargs):
         NSOT_URL = os.environ.get('NSOT_URL', 'http://localhost:8990/api')
         NSOT_EMAIL = os.environ.get('NSOT_EMAIL', 'admin@acme.com')
 
@@ -22,9 +37,10 @@ class NSOTInventory(Inventory):
             d['site'] = sites[d['site_id'] - 1]['name']
             d['interfaces'] = {}
 
-            # We assign attributes to the root
-            for k, v in d.pop('attributes').items():
-                d[k] = v
+            if flatten_attributes:
+                # We assign attributes to the root
+                for k, v in d.pop('attributes').items():
+                    d[k] = v
 
         # We assign the interfaces to the hosts
         for i in interfaces:
