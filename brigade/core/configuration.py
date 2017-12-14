@@ -55,15 +55,10 @@ class Config:
 
         for p in CONF:
             env = CONF[p].get('env') or 'BRIGADE_' + p.upper()
+            v = os.environ.get(env) or c.get(p)
+            v = v if v is not None else CONF[p]['default']
             if CONF[p]['type'] == 'bool':
-                if os.environ.get(env) is not None:
-                    v = os.environ.get(env)
-                elif c.get(p) is not None:
-                    v = c.get(p)
-                else:
-                    v = CONF[p]['default']
                 v = ast.literal_eval(str(v).title())
             else:
-                v = os.environ.get(env) or c.get(p) or CONF[p]['default']
                 v = types[CONF[p]['type']](v)
             setattr(self, p, v)
