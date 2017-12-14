@@ -1,3 +1,4 @@
+import os
 import subprocess
 import time
 
@@ -19,11 +20,17 @@ def inv(request):
     def fin():
         subprocess.check_call(["make", "stop_nsot"],
                               stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
     request.addfinalizer(fin)
 
     subprocess.check_call(["make", "start_nsot"],
                           stdout=subprocess.PIPE)
-    time.sleep(3)  # nsot takes a while to start
+
+    if os.getenv("TRAVIS"):
+        time.sleep(10)
+    else:
+        time.sleep(3)
+
     return nsot.NSOTInventory(transform_function=transform_function)
 
 
