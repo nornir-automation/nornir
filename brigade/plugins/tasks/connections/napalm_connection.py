@@ -3,7 +3,7 @@ from napalm import get_network_driver
 
 def napalm_connection(task=None, host=None, timeout=60, optional_args=None):
     """
-    This tasks connects to the device with paramiko to the device and sets the
+    This tasks connects to the device using the NAPALM driver and sets the
     relevant connection.
 
     Arguments:

@@ -2,7 +2,6 @@ import getpass
 import logging
 
 from brigade.core import helpers
-from brigade.plugins.tasks import connections
 
 
 logger = logging.getLogger("brigade")
@@ -176,11 +175,7 @@ class Host(object):
 
     def get_connection(self, connection):
         """
-        This function will try to find an already established connection
-        or call the task that establishes the connection if none is found.
-        In any case, it should always return an established connection or
-        an error if the connection is not already established and we don't
-        know of any task that could provide that type of connection.
+        This function will return an already established connection
 
         Raises:
             AttributeError: if it's unknown how to establish a connection for the given
@@ -189,15 +184,16 @@ class Host(object):
         Arguments:
             connection_name (str): Name of the connection, for instance, netmiko, paramiko,
                 napalm...
+
+        Returns:
+            An already established connection of type ``connection``
         """
         if connection not in self.connections:
-            task_name = "{}_connection".format(connection)
-            try:
-                task = getattr(connections, task_name)
-            except AttributeError:
-                raise AttributeError("not sure how to establish a connection for {}".format(
-                    connection))
-            task(host=self)
+            msg = (
+                "Couldn't find an established connection for '{c}'. "
+                "Did you call '{c}_connection'?"
+            ).format(c=connection)
+            raise AttributeError(msg)
         return self.connections[connection]
 
 

@@ -3,6 +3,7 @@ import sys
 import traceback
 from multiprocessing.dummy import Pool
 
+from brigade.core.configuration import Config
 from brigade.core.task import AggregatedResult, Task
 
 
@@ -42,24 +43,24 @@ class Brigade(object):
     Arguments:
         inventory (:obj:`brigade.core.inventory.Inventory`): Inventory to work with
         dry_run(``bool``): Whether if we are testing the changes or not
-        num_workers(``int``): How many hosts run in parallel
-        raise_on_error (``bool``): If set to ``True``, :meth:`run` method of will
-          raise an exception if at least a host failed.
+        config (:obj:`brigade.core.configuration.Config`): Configuration object
+        config_file (``str``): Path to Yaml configuration file
 
     Attributes:
         inventory (:obj:`brigade.core.inventory.Inventory`): Inventory to work with
         dry_run(``bool``): Whether if we are testing the changes or not
-        num_workers(``int``): How many hosts run in parallel
-        raise_on_error (``bool``): If set to ``True``, :meth:`run` method of will
-          raise an exception if at least a host failed.
+        config (:obj:`brigade.core.configuration.Config`): Configuration parameters
     """
 
-    def __init__(self, inventory, dry_run, num_workers=20, raise_on_error=True):
+    def __init__(self, inventory, dry_run,
+                 config=None, config_file=None):
         self.inventory = inventory
 
         self.dry_run = dry_run
-        self.num_workers = num_workers
-        self.raise_on_error = raise_on_error
+        if config_file:
+            self.config = Config(config_file=config_file)
+        else:
+            self.config = config or Config()
 
         format = "\033[31m%(asctime)s - %(name)s - %(levelname)s"
         format += " - %(funcName)20s() - %(message)s\033[0m"
@@ -128,14 +129,14 @@ class Brigade(object):
         Returns:
             :obj:`brigade.core.task.AggregatedResult`: results of each execution
         """
-        num_workers = num_workers or self.num_workers
+        num_workers = num_workers or self.config.num_workers
 
         if num_workers == 1:
             result = self._run_serial(task, **kwargs)
         else:
             result = self._run_parallel(task, num_workers, **kwargs)
 
-        if self.raise_on_error:
+        if self.config.raise_on_error:
             result.raise_on_error()
         return result
 
