@@ -19,11 +19,15 @@
 #
 import os
 import sys
+from jinja2 import Environment, FileSystemLoader
 
 sys.path.insert(0, os.path.abspath('../'))
 
 
+from brigade.core.configuration import CONF # noqa
+
 # -- General configuration ------------------------------------------------
+BASEPATH = os.path.dirname(__file__)
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
@@ -166,3 +170,24 @@ texinfo_documents = [
      author, 'brigade', 'One line description of project.',
      'Miscellaneous'),
 ]
+
+
+def build_configuration_parameters(app):
+    """Create documentation for configuration parameters."""
+
+    env = Environment(loader=FileSystemLoader("{0}/_data_templates".format(BASEPATH)))
+    template_file = env.get_template("configuration-parameters.j2")
+    data = {}
+    data['params'] = CONF
+    rendered_template = template_file.render(**data)
+    output_dir = '{0}/ref/configuration/generated'.format(BASEPATH)
+    with open('{}/parameters.rst'.format(output_dir), 'w') as f:
+        f.write(rendered_template)
+
+
+def setup(app):
+    """Map methods to states of the documentation build."""
+    app.connect('builder-inited', build_configuration_parameters)
+
+
+build_configuration_parameters(None)

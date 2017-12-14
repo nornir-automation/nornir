@@ -6,6 +6,7 @@ Brigade API Reference
    :caption: Brigade API
 
    brigade
+   configuration
    inventory
    task
    exceptions
