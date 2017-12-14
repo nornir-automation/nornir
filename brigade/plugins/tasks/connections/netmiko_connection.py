@@ -14,6 +14,9 @@ def netmiko_connection(task=None, host=None, **netmiko_args):
 
     Arguments:
         **netmiko_args: All supported Netmiko ConnectHandler arguments
+
+    Note, both Netmiko and Brigade have a host argument. Use the ``netmiko_host`` argument to
+    pass in a host (if bypassing Brigade inventory).
     """
     if host is None:
         host = task.host
