@@ -27,6 +27,7 @@ sys.path.insert(0, os.path.abspath('../'))
 from brigade.core.configuration import CONF # noqa
 
 # -- General configuration ------------------------------------------------
+BASEPATH = os.path.dirname(__file__)
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
@@ -174,12 +175,12 @@ texinfo_documents = [
 def build_configuration_parameters(app):
     """Create documentation for configuration parameters."""
 
-    env = Environment(loader=FileSystemLoader("./_data_templates"))
+    env = Environment(loader=FileSystemLoader("{0}/_data_templates".format(BASEPATH)))
     template_file = env.get_template("configuration-parameters.j2")
     data = {}
     data['params'] = CONF
     rendered_template = template_file.render(**data)
-    output_dir = './ref/configuration/generated'
+    output_dir = '{0}/ref/configuration/generated'.format(BASEPATH)
     with open('{}/parameters.rst'.format(output_dir), 'w') as f:
         f.write(rendered_template)
 
