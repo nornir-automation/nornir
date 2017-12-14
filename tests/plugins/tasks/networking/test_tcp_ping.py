@@ -10,7 +10,7 @@ from brigade.plugins.tasks import networking
 import pytest
 
 cur_dir = os.path.dirname(os.path.realpath(__file__))
-ext_inv_file = '{}/../../inventory_data/external_hosts.yaml'.format(cur_dir)
+ext_inv_file = '{}/../../../inventory_data/external_hosts.yaml'.format(cur_dir)
 
 
 class Test(object):
