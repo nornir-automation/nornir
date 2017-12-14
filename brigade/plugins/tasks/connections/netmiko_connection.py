@@ -27,10 +27,5 @@ def netmiko_connection(task=None, **netmiko_args):
         device_type = napalm_to_netmiko_map.get(host.nos, host.nos)
         parameters['device_type'] = device_type
 
-    # Both netmiko and brigade use host, allow passing of an alternately named host argument
-    if netmiko_args.get("netmiko_host"):
-        netmiko_host = netmiko_args.pop("netmiko_host")
-        netmiko_args['host'] = netmiko_host
-
     parameters.update(**netmiko_args)
     host.connections["netmiko"] = ConnectHandler(**parameters)
