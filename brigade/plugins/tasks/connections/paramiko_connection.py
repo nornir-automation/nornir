@@ -11,14 +11,12 @@ def paramiko_connection(task=None, host=None):
     if host is None:
         host = task.host
 
-    # TODO configurable
-    ssh_config_file = os.path.join(os.path.expanduser("~"), ".ssh", "config")
-
     client = paramiko.SSHClient()
     client._policy = paramiko.WarningPolicy()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
     ssh_config = paramiko.SSHConfig()
+    ssh_config_file = task.brigade.config.ssh_config_file
     if os.path.exists(ssh_config_file):
         with open(ssh_config_file) as f:
             ssh_config.parse(f)
