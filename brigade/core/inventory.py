@@ -211,13 +211,16 @@ class Inventory(object):
             representing the host data.
         groups (dict): keys are group names and values are either :obj:`Group` or a dict
             representing the group data.
+        transform_function (callable): we will call this function for each host. This is useful
+            to manipulate host data and make it more consumable. For instance, if your inventory
+            has a "user" attribute you could use this function to map it to "brigade_user"
 
     Attributes:
         hosts (dict): keys are hostnames and values are :obj:`Host`.
         groups (dict): keys are group names and the values are :obj:`Group`.
     """
 
-    def __init__(self, hosts, groups=None, data=None, host_data=None):
+    def __init__(self, hosts, groups=None, data=None, host_data=None, transform_function=None):
         self.data = data or {}
 
         groups = groups or {}
@@ -235,6 +238,10 @@ class Inventory(object):
         for n, h in hosts.items():
             if isinstance(h, dict):
                 h = Host(name=n, **h)
+
+            if transform_function:
+                transform_function(h)
+
             if h.group is not None and not isinstance(h.group, Group):
                 h.group = self.groups[h.group]
             self.hosts[n] = h

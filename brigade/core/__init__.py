@@ -123,7 +123,7 @@ class Brigade(object):
             **kwargs: additional argument to pass to ``task`` when calling it
 
         Raises:
-            :obj:`brigade.core.exceptions.BrigadeExceptionError`: if at least a task fails
+            :obj:`brigade.core.exceptions.BrigadeExecutionError`: if at least a task fails
               and self.config.raise_on_error is set to ``True``
 
         Returns:
