@@ -229,9 +229,7 @@ class Inventory(object):
         groups (dict): keys are group names and the values are :obj:`Group`.
     """
 
-    def __init__(self, hosts, groups=None, data=None, host_data=None):
-        self.data = data or {}
-
+    def __init__(self, hosts, groups=None):
         groups = groups or {}
         self.groups = {}
         for n, g in groups.items():
@@ -280,7 +278,7 @@ class Inventory(object):
         else:
             filtered = {n: h for n, h in self.hosts.items()
                         if all(h.get(k) == v for k, v in kwargs.items())}
-        return Inventory(hosts=filtered, groups=self.groups, data=self.data)
+        return Inventory(hosts=filtered, groups=self.groups)
 
     def __len__(self):
         return self.hosts.__len__()
