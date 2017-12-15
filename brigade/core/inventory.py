@@ -2,7 +2,6 @@ import getpass
 import logging
 
 from brigade.core import helpers
-from brigade.plugins.tasks import connections
 
 
 logger = logging.getLogger("brigade")
@@ -199,10 +198,9 @@ class Host(object):
             An already established connection of type ``connection``
         """
         if connection not in self.connections:
-            name = "{}_connection".format(connection)
             try:
-                conn_task = getattr(connections, name)
-            except AttributeError:
+                conn_task = self.brigade.available_connections[connection]
+            except KeyError:
                 raise AttributeError("not sure how to establish a connection for {}".format(
                     connection))
             self.brigade.filter(name=self.name).run(conn_task, num_workers=1)

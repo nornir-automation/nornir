@@ -5,6 +5,7 @@ from multiprocessing.dummy import Pool
 
 from brigade.core.configuration import Config
 from brigade.core.task import AggregatedResult, Task
+from brigade.plugins.tasks import connections
 
 
 if sys.version_info.major == 2:
@@ -52,8 +53,8 @@ class Brigade(object):
         config (:obj:`brigade.core.configuration.Config`): Configuration parameters
     """
 
-    def __init__(self, inventory, dry_run,
-                 config=None, config_file=None):
+    def __init__(self, inventory, dry_run, config=None, config_file=None,
+                 available_connections=None):
         self.inventory = inventory
         self.inventory.brigade = self
 
@@ -69,6 +70,10 @@ class Brigade(object):
             level=logging.ERROR,
             format=format,
         )
+        if available_connections is not None:
+            self.available_connections = available_connections
+        else:
+            self.available_connections = connections.available_connections
 
     def filter(self, **kwargs):
         """
