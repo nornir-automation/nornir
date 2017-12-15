@@ -1,5 +1,6 @@
 pyyaml
 jinja2
 napalm
+netmiko
 paramiko
 future
