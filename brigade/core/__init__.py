@@ -55,6 +55,7 @@ class Brigade(object):
     def __init__(self, inventory, dry_run,
                  config=None, config_file=None):
         self.inventory = inventory
+        self.inventory.brigade = self
 
         self.dry_run = dry_run
         if config_file:

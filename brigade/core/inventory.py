@@ -272,3 +272,20 @@ class Inventory(object):
 
     def __len__(self):
         return self.hosts.__len__()
+
+    @property
+    def brigade(self):
+        return self._brigade
+
+    @brigade.setter
+    def brigade(self, value):
+        if not hasattr(self, "brigade"):
+            self._brigade = value
+
+        for h in self.hosts.values():
+            if not hasattr(h, "brigade"):
+                h.brigade = value
+
+        for g in self.groups.values():
+            if not hasattr(g, "brigade"):
+                g.brigade = value
