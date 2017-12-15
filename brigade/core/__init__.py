@@ -124,7 +124,7 @@ class Brigade(object):
 
         Raises:
             :obj:`brigade.core.exceptions.BrigadeExecutionError`: if at least a task fails
-              and self.raise_on_error is set to ``True``
+              and self.config.raise_on_error is set to ``True``
 
         Returns:
             :obj:`brigade.core.task.AggregatedResult`: results of each execution
