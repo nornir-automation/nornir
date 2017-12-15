@@ -137,6 +137,15 @@ class Host(object):
         return helpers.merge_two_dicts(d, self.data)
 
     @property
+    def brigade(self):
+        return self._brigade
+
+    @brigade.setter
+    def brigade(self, value):
+        if not hasattr(self, "brigade"):
+            self._brigade = value
+
+    @property
     def host(self):
         """String used to connect to the device. Either ``brigade_host`` or ``self.name``"""
         return self.get("brigade_host", self.name)
@@ -286,9 +295,7 @@ class Inventory(object):
             self._brigade = value
 
         for h in self.hosts.values():
-            if not hasattr(h, "brigade"):
-                h.brigade = value
+            h.brigade = value
 
         for g in self.groups.values():
-            if not hasattr(g, "brigade"):
-                g.brigade = value
+            g.brigade = value
