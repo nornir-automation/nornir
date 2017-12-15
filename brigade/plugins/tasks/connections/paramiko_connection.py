@@ -3,13 +3,12 @@ import os
 import paramiko
 
 
-def paramiko_connection(task=None, host=None):
+def paramiko_connection(task=None):
     """
     This tasks connects to the device with paramiko to the device and sets the
     relevant connection.
     """
-    if host is None:
-        host = task.host
+    host = task.host
 
     client = paramiko.SSHClient()
     client._policy = paramiko.WarningPolicy()
