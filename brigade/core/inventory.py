@@ -14,12 +14,14 @@ class Host(object):
     Arguments:
         name (str): Name of the host
         group (:obj:`Group`, optional): Group the host belongs to
+        brigade (:obj:`brigade.core.Brigade`): Reference to the parent brigade object
         **kwargs: Host data
 
     Attributes:
         name (str): Name of the host
         group (:obj:`Group`): Group the host belongs to
         data (dict): data about the device
+        connections (``dict``): Already established connections
 
     Note:
 
@@ -138,11 +140,11 @@ class Host(object):
 
     @property
     def brigade(self):
+        """Reference to the parent :obj:`brigade.core.Brigade` object"""
         return self._brigade
 
     @brigade.setter
     def brigade(self, value):
-        """Reference to the parent brigade object"""
         # If it's already set we don't want to set it again
         # because we may lose valuable information
         if not getattr(self, "_brigade", None):
@@ -188,7 +190,11 @@ class Host(object):
 
     def get_connection(self, connection):
         """
-        This function will return an already established connection
+        The function of this method is twofold:
+
+            1. If an existing connection is already established for the given type return it
+            2. If non exists, establish a new connection of that type with default parameters
+                and return it
 
         Raises:
             AttributeError: if it's unknown how to establish a connection for the given
@@ -207,6 +213,10 @@ class Host(object):
             except KeyError:
                 raise AttributeError("not sure how to establish a connection for {}".format(
                     connection))
+            # We use `filter(name=self.name)` to call the connection task for only
+            # the given host. We also have to set `num_workers=1` because chances are
+            # we are already inside a thread
+            # Task should establish a connection and populate self.connection[connection]
             self.brigade.filter(name=self.name).run(conn_task, num_workers=1)
         return self.connections[connection]
 
@@ -296,6 +306,7 @@ class Inventory(object):
 
     @property
     def brigade(self):
+        """Reference to the parent :obj:`brigade.core.Brigade` object"""
         return self._brigade
 
     @brigade.setter

@@ -46,11 +46,14 @@ class Brigade(object):
         dry_run(``bool``): Whether if we are testing the changes or not
         config (:obj:`brigade.core.configuration.Config`): Configuration object
         config_file (``str``): Path to Yaml configuration file
+        available_connections (``dict``): dict of connection types that will be made available.
+            Defaults to :obj:`brigade.plugins.tasks.connections.available_connections`
 
     Attributes:
         inventory (:obj:`brigade.core.inventory.Inventory`): Inventory to work with
         dry_run(``bool``): Whether if we are testing the changes or not
         config (:obj:`brigade.core.configuration.Config`): Configuration parameters
+        available_connections (``dict``): dict of connection types are available
     """
 
     def __init__(self, inventory, dry_run, config=None, config_file=None,
