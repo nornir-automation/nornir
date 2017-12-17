@@ -19,7 +19,9 @@
 #
 import os
 import sys
-from jinja2 import Environment, FileSystemLoader
+
+from jinja2 import Environment
+from jinja2 import FileSystemLoader
 
 sys.path.insert(0, os.path.abspath('../'))
 
