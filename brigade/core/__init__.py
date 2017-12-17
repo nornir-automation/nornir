@@ -5,6 +5,7 @@ from multiprocessing.dummy import Pool
 
 from brigade.core.configuration import Config
 from brigade.core.task import AggregatedResult, Task
+from brigade.plugins.tasks import connections
 
 
 if sys.version_info.major == 2:
@@ -45,16 +46,20 @@ class Brigade(object):
         dry_run(``bool``): Whether if we are testing the changes or not
         config (:obj:`brigade.core.configuration.Config`): Configuration object
         config_file (``str``): Path to Yaml configuration file
+        available_connections (``dict``): dict of connection types that will be made available.
+            Defaults to :obj:`brigade.plugins.tasks.connections.available_connections`
 
     Attributes:
         inventory (:obj:`brigade.core.inventory.Inventory`): Inventory to work with
         dry_run(``bool``): Whether if we are testing the changes or not
         config (:obj:`brigade.core.configuration.Config`): Configuration parameters
+        available_connections (``dict``): dict of connection types are available
     """
 
-    def __init__(self, inventory, dry_run,
-                 config=None, config_file=None):
+    def __init__(self, inventory, dry_run, config=None, config_file=None,
+                 available_connections=None):
         self.inventory = inventory
+        self.inventory.brigade = self
 
         self.dry_run = dry_run
         if config_file:
@@ -68,6 +73,10 @@ class Brigade(object):
             level=logging.ERROR,
             format=format,
         )
+        if available_connections is not None:
+            self.available_connections = available_connections
+        else:
+            self.available_connections = connections.available_connections
 
     def filter(self, **kwargs):
         """
