@@ -11,22 +11,41 @@ You will need the boxes:
 Vagrant.configure(2) do |config|
   config.vbguest.auto_update = false
 
-  config.vm.define "eos" do |eos|
-    eos.vm.box = "vEOS-lab-4.17.5M"
+  config.vm.define "spine00" do |spine00|
+    spine00.vm.box = "vEOS-lab-4.17.5M"
 
-    eos.vm.network :forwarded_port, guest: 443, host: 12443, id: 'https'
+    spine00.vm.network :forwarded_port, guest: 443, host: 12444, id: 'https'
 
-    eos.vm.network "private_network", virtualbox__intnet: "link_1", ip: "169.254.1.11", auto_config: false
-    eos.vm.network "private_network", virtualbox__intnet: "link_2", ip: "169.254.1.11", auto_config: false
+    spine00.vm.network "private_network", virtualbox__intnet: "link_1", ip: "169.254.1.11", auto_config: false
+    spine00.vm.network "private_network", virtualbox__intnet: "link_2", ip: "169.254.1.11", auto_config: false
   end
 
-  config.vm.define "junos" do |junos|
-    junos.vm.box = "juniper/ffp-12.1X47-D20.7-packetmode"
+  config.vm.define "spine01" do |spine01|
+    spine01.vm.box = "juniper/ffp-12.1X47-D20.7-packetmode"
 
-    junos.vm.network :forwarded_port, guest: 22, host: 12203, id: 'ssh'
+    spine01.vm.network :forwarded_port, guest: 22, host: 12204, id: 'ssh'
 
-    junos.vm.network "private_network", virtualbox__intnet: "link_1", ip: "169.254.1.11", auto_config: false
-    junos.vm.network "private_network", virtualbox__intnet: "link_2", ip: "169.254.1.11", auto_config: false
+    spine01.vm.network "private_network", virtualbox__intnet: "link_3", ip: "169.254.1.11", auto_config: false
+    spine01.vm.network "private_network", virtualbox__intnet: "link_4", ip: "169.254.1.11", auto_config: false
+  end
+
+
+  config.vm.define "leaf00" do |leaf00|
+    leaf00.vm.box = "vEOS-lab-4.17.5M"
+
+    leaf00.vm.network :forwarded_port, guest: 443, host: 12443, id: 'https'
+
+    leaf00.vm.network "private_network", virtualbox__intnet: "link_1", ip: "169.254.1.11", auto_config: false
+    leaf00.vm.network "private_network", virtualbox__intnet: "link_3", ip: "169.254.1.11", auto_config: false
+  end
+
+  config.vm.define "leaf01" do |leaf01|
+    leaf01.vm.box = "juniper/ffp-12.1X47-D20.7-packetmode"
+
+    leaf01.vm.network :forwarded_port, guest: 22, host: 12203, id: 'ssh'
+
+    leaf01.vm.network "private_network", virtualbox__intnet: "link_2", ip: "169.254.1.11", auto_config: false
+    leaf01.vm.network "private_network", virtualbox__intnet: "link_4", ip: "169.254.1.11", auto_config: false
   end
 
 end

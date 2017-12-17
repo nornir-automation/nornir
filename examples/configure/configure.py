@@ -20,9 +20,9 @@ def base_config(task):
 
     task.host["config"] = ""
 
-    r = text.template_file(task=task,
-                           template="base.j2",
-                           path="templates/base/{nos}")
+    r = task.run(text.template_file,
+                 template="base.j2",
+                 path="templates/base/{brigade_nos}")
     task.host["config"] += r.result
 
 
@@ -31,13 +31,13 @@ def configure_interfaces(task):
     1. Load interface data from an external yaml file
     2. Creates interface configuration
     """
-    r = data.load_yaml(task=task,
-                       file="extra_data/{host}/interfaces.yaml")
+    r = task.run(data.load_yaml,
+                 file="extra_data/{host}/interfaces.yaml")
     task.host["interfaces"] = r.result
 
-    r = text.template_file(task=task,
-                           template="interfaces.j2",
-                           path="templates/interfaces/{nos}")
+    r = task.run(text.template_file,
+                 template="interfaces.j2",
+                 path="templates/interfaces/{brigade_nos}")
     task.host["config"] += r.result
 
 
@@ -46,9 +46,9 @@ def deploy_config(task):
     1. Load configuration into the device
     2. Prints diff
     """
-    r = networking.napalm_configure(task=task,
-                                    replace=False,
-                                    configuration=task.host["config"])
+    r = task.run(networking.napalm_configure,
+                 replace=False,
+                 configuration=task.host["config"])
 
     click.secho("--- {} ({})".format(task.host, r.changed), fg="blue", bold=True)
     click.secho(r.diff, fg='yellow')
@@ -68,7 +68,7 @@ def deploy(commit, debug, site, role):
     )
 
     brigade = Brigade(
-        inventory=SimpleInventory("hosts.yaml", "groups.yaml"),
+        inventory=SimpleInventory("../hosts.yaml", "../groups.yaml"),
         dry_run=not commit,
     )
 
