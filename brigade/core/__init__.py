@@ -36,6 +36,12 @@ if sys.version_info.major == 2:
 logger = logging.getLogger("brigade")
 
 
+class Data(object):
+
+    def __init__(self):
+        self.failed_hosts = set()
+
+
 class Brigade(object):
     """
     This is the main object to work with. It contains the inventory and it serves
@@ -56,8 +62,9 @@ class Brigade(object):
         available_connections (``dict``): dict of connection types are available
     """
 
-    def __init__(self, inventory, dry_run, config=None, config_file=None,
+    def __init__(self, inventory, dry_run, data=None, config=None, config_file=None,
                  available_connections=None):
+        self.data = data or Data()
         self.inventory = inventory
         self.inventory.brigade = self
 
@@ -147,6 +154,8 @@ class Brigade(object):
 
         if self.config.raise_on_error:
             result.raise_on_error()
+        else:
+            self.data.failed_hosts.update(result.failed_hosts.keys())
         return result
 
 

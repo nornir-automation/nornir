@@ -1,0 +1,10 @@
+---
+all:
+    group: null
+    domain: acme.com
+
+bma:
+    group: all
+
+cmh:
+    group: all

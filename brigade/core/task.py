@@ -33,10 +33,31 @@ class Task(object):
         return self.task.__name__
 
     def _start(self, host, brigade, dry_run):
+        if host.name in brigade.data.failed_hosts:
+            return Result(host, skipped=True)
         self.host = host
         self.brigade = brigade
         self.dry_run = dry_run
         return self.task(self, **self.params)
+
+    def run(self, task, **kwargs):
+        """
+        This is a utility method to call a task from within a task. For instance:
+
+            def grouped_tasks(task):
+                task.run(my_first_task)
+                task.run(my_second_task)
+
+            brigade.run(grouped_tasks)
+
+        This method will ensure the subtask is run only for the host in the current thread.
+        """
+        if not self.host or not self.brigade:
+            msg = ("You have to call this after setting host and brigade attributes. ",
+                   "You probably called this from outside a nested task")
+            raise Exception(msg)
+        aggr = self.brigade.filter(name=self.host.name).run(task, num_workers=1, **kwargs)
+        return aggr[self.host.name]
 
 
 class Result(object):
@@ -48,6 +69,7 @@ class Result(object):
         diff (obj): Diff between state of the system before/after running this task
         result (obj): Result of the task execution, see task's documentation for details
         host (:obj:`brigade.core.inventory.Host`): Reference to the host that lead ot this result
+        skipped (bool): ``True`` if the host was skipped because there was a previous error
 
     Attributes:
         changed (bool): ``True`` if the task is changing the system
@@ -56,11 +78,12 @@ class Result(object):
         host (:obj:`brigade.core.inventory.Host`): Reference to the host that lead ot this result
     """
 
-    def __init__(self, host, result=None, changed=False, diff="", **kwargs):
+    def __init__(self, host, result=None, changed=False, diff="", skipped=False, **kwargs):
         self.result = result
         self.host = host
         self.changed = changed
         self.diff = diff
+        self.skipped = skipped
 
         for k, v in kwargs.items():
             setattr(self, k, v)
