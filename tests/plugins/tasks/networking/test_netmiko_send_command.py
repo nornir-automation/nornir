@@ -1,10 +1,10 @@
-from brigade.plugins.tasks import networking
+from brigade.plugins.tasks import connections, networking
 
 
 class Test(object):
 
     def test_netmiko_send_command(self, brigade):
-        brigade.filter(name="dev4.group_2").run(task=netmiko_connection)
+        brigade.filter(name="dev4.group_2").run(task=connections.netmiko_connection)
         result = brigade.filter(name="dev4.group_2").run(networking.netmiko_send_command,
                                                          command_string="hostname")
         assert result
