@@ -3,8 +3,8 @@ Execution Model
 
 One of the many advantages of using brigade is that it will be parallelize the execution of tasks for you. The way it works is as follows:
 
-1. You trigger the parallelization by running a task via :obj:`brigade.core.Brigade.run` with ``num_workers > 1`` (defaults to ``200``).
-2. If ``num_workers == 1`` we run the task over all hosts one after the other in a simple loop. This is useful for troubleshooting/debugging.
+1. You trigger the parallelization by running a task via :obj:`brigade.core.Brigade.run` with ``num_workers > 1`` (defaults to ``20``).
+2. If ``num_workers == 1`` we run the task over all hosts one after the other in a simple loop. This is useful for troubleshooting/debugging, for writing to disk/database or just for printing on screen.
 3. When parallelizing tasks brigade will use a different thread for each host.
 
 Below you can see a simple diagram illustrating how this works:
