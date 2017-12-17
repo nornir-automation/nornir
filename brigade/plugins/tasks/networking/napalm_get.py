@@ -15,13 +15,13 @@ def napalm_get(task, getters):
     """
     device = task.host.get_connection("napalm")
 
-    if not isinstance(getters, list):
+    if isinstance(getters, str):
         getters = [getters]
 
     result = {}
     for g in getters:
         if not g.startswith("get_"):
-            getter = "get_{}".format(g)
-        method = getattr(device, getter)
+            g = "get_{}".format(g)
+        method = getattr(device, g)
         result[g] = method()
     return Result(host=task.host, result=result)
