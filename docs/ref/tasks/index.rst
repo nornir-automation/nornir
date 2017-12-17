@@ -5,6 +5,7 @@ Tasks
    :maxdepth: 2
    :caption: Categories:
 
+   connections
    commands
    data
    files

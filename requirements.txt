@@ -4,3 +4,4 @@ napalm
 netmiko
 paramiko
 future
+requests
