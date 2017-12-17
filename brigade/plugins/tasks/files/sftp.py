@@ -4,7 +4,6 @@ import os
 import stat
 
 from brigade.core.exceptions import CommandError
-from brigade.core.helpers import format_string
 from brigade.core.task import Result
 from brigade.plugins.tasks import commands
 
@@ -124,8 +123,6 @@ def sftp(task, src, dst, action):
           * changed (``bool``):
           * files_changed (``list``): list of files that changed
     """
-    src = format_string(src, task, **task.host)
-    dst = format_string(dst, task, **task.host)
     actions = {
         "put": put,
         "get": get,
