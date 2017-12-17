@@ -59,7 +59,8 @@ class Host(object):
         * ``my_host.group.group.data["domain"]`` will return ``acme.com``
     """
 
-    def __init__(self, name, group=None, **kwargs):
+    def __init__(self, name, group=None, brigade=None, **kwargs):
+        self.brigade = brigade
         self.name = name
         self.group = group
         self.data = {}
@@ -141,7 +142,10 @@ class Host(object):
 
     @brigade.setter
     def brigade(self, value):
-        if not hasattr(self, "brigade"):
+        """Reference to the parent brigade object"""
+        # If it's already set we don't want to set it again
+        # because we may lose valuable information
+        if not getattr(self, "_brigade", None):
             self._brigade = value
 
     @property
@@ -230,12 +234,14 @@ class Inventory(object):
         groups (dict): keys are group names and the values are :obj:`Group`.
     """
 
-    def __init__(self, hosts, groups=None, transform_function=None):
+    def __init__(self, hosts, groups=None, transform_function=None, brigade=None):
+        self._brigade = brigade
+
         groups = groups or {}
         self.groups = {}
         for n, g in groups.items():
             if isinstance(g, dict):
-                g = Group(name=n, **g)
+                g = Group(name=n, brigade=brigade, **g)
             self.groups[n] = g
 
         for g in self.groups.values():
@@ -245,7 +251,7 @@ class Inventory(object):
         self.hosts = {}
         for n, h in hosts.items():
             if isinstance(h, dict):
-                h = Host(name=n, **h)
+                h = Host(name=n, brigade=brigade, **h)
 
             if transform_function:
                 transform_function(h)
@@ -283,7 +289,7 @@ class Inventory(object):
         else:
             filtered = {n: h for n, h in self.hosts.items()
                         if all(h.get(k) == v for k, v in kwargs.items())}
-        return Inventory(hosts=filtered, groups=self.groups)
+        return Inventory(hosts=filtered, groups=self.groups, brigade=self.brigade)
 
     def __len__(self):
         return self.hosts.__len__()
@@ -294,7 +300,7 @@ class Inventory(object):
 
     @brigade.setter
     def brigade(self, value):
-        if not hasattr(self, "brigade"):
+        if not getattr(self, "_brigade", None):
             self._brigade = value
 
         for h in self.hosts.values():
