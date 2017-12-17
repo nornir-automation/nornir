@@ -41,8 +41,7 @@ class Config:
         config_file(``str``): Yaml configuration file.
     """
 
-    def __init__(self, config_file=None):
-
+    def __init__(self, config_file=None, **kwargs):
         if config_file:
             with open(config_file, 'r') as f:
                 c = yaml.load(f.read())
@@ -50,6 +49,9 @@ class Config:
             c = {}
 
         self._assign_properties(c)
+
+        for k, v in kwargs.items():
+            setattr(self, k, v)
 
     def _assign_properties(self, c):
 
