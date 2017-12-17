@@ -20,8 +20,7 @@ def napalm_get(task, getters):
 
     result = {}
     for g in getters:
-        if not g.startswith("get_"):
-            g = "get_{}".format(g)
-        method = getattr(device, g)
+        getter = g if g.startswith("get_") else "get_{}".format(g)
+        method = getattr(device, getter)
         result[g] = method()
     return Result(host=task.host, result=result)

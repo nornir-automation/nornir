@@ -1,0 +1,34 @@
+! Command: show running-config
+! device: localhost (vEOS, EOS-4.17.5M)
+!
+! boot system flash:/vEOS-lab.swi
+!
+event-handler dhclient
+   trigger on-boot
+   action bash sudo /mnt/flash/initialize_ma1.sh
+!
+transceiver qsfp default-mode 4x10G
+!
+spanning-tree mode mstp
+!
+aaa authorization exec default local
+!
+aaa root secret sha512 $6$IC90tjUllB1mnZ0y$LnpMQB.6ovoW9pmUj0W.yKkeX1u/ozCG4zVy.F2p1nYoTx3dh1vCAqhZaBbeW5EHwTWU/9K.ulFxZzyB2uBOq1
+!
+username admin privilege 15 role network-admin secret sha512 $6$YOn9tHoBpGp.UhVK$G/Al6c2Hc0YV3C.fJ8lIuJ2AdTBp01pHvXiicpzEo43TIae8GnQAd3E9XUZC3tPkHMRJ/W064iLeWUejOpihL1
+username vagrant privilege 15 role network-admin secret sha512 $6$D0x/HojKzta4qDBQ$6z7CfyEDAGMF5fiXdBPiYuPSf.5KoHGKD0uZGXluROnqoSKCZ9gZ6W9jg4A2JsCbDvYWKcHgIRtMcF0UlMb1u1
+!
+interface Ethernet1
+!
+interface Ethernet2
+!
+interface Management1
+   ip address 10.0.2.15/24
+!
+no ip routing
+!
+management api http-commands
+   no shutdown
+!
+!
+end
