@@ -97,11 +97,14 @@ class AggregatedResult(dict):
 
     Attributes:
         failed_hosts (list): list of hosts that failed
+        tracebacks (dict): tracebacks we got for each failed host
+        skipped (dict): hosts we skipped and their result
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.failed_hosts = {}
         self.tracebacks = {}
+        self.skipped = {}
 
     @property
     def failed(self):

@@ -43,10 +43,9 @@ class Test(object):
 
         result = brigade.run(task_fails_for_some)
         for h, r in result.items():
-            if h == "dev3.group_2":
-                assert r.skipped
-            else:
-                assert h == r.stdout.strip()
+            assert h == r.stdout.strip()
+
+        assert "dev3.group_2" in result.skipped
 
         # let's reset it
         brigade.data.failed_hosts = set()

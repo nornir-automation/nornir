@@ -112,7 +112,11 @@ class Brigade(object):
             try:
                 logger.debug("{}: running task {}".format(host.name, t))
                 r = t._start(host=host, brigade=self, dry_run=self.dry_run)
-                result[host.name] = r
+
+                if r.skipped:
+                    result["skipped"][host] = r
+                else:
+                    result[host.name] = r
             except Exception as e:
                 logger.error("{}: {}".format(host, e))
                 result.failed_hosts[host.name] = e
@@ -134,7 +138,10 @@ class Brigade(object):
                 result.failed_hosts[host] = exc
                 result.tracebacks[host] = traceback
             else:
-                result[host] = res
+                if res.skipped:
+                    result.skipped[host] = res
+                else:
+                    result[host] = res
         return result
 
     def run(self, task, num_workers=None, **kwargs):
