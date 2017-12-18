@@ -38,6 +38,25 @@ class Task(object):
         self.dry_run = dry_run
         return self.task(self, **self.params)
 
+    def run(self, task, **kwargs):
+        """
+        This is a utility method to call a task from within a task. For instance:
+
+            def grouped_tasks(task):
+                task.run(my_first_task)
+                task.run(my_second_task)
+
+            brigade.run(grouped_tasks)
+
+        This method will ensure the subtask is run only for the host in the current thread.
+        """
+        if not self.host or not self.brigade:
+            msg = ("You have to call this after setting host and brigade attributes. ",
+                   "You probably called this from outside a nested task")
+            raise Exception(msg)
+        aggr = self.brigade.filter(name=self.host.name).run(task, num_workers=1, **kwargs)
+        return aggr[self.host.name]
+
 
 class Result(object):
     """
