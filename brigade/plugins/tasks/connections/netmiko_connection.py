@@ -34,4 +34,4 @@ def netmiko_connection(task, **netmiko_args):
     netmiko_connection_args = host.get("netmiko_options", {})
     netmiko_connection_args.update(parameters)
     netmiko_connection_args.update(netmiko_args)
-    host.connections["netmiko"] = ConnectHandler(**parameters)
+    host.connections["netmiko"] = ConnectHandler(**netmiko_connection_args)
