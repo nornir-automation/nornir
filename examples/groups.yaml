@@ -3,20 +3,8 @@ all:
     group: null
     domain: acme.com
 
-bma-leaf:
-    group: bma
-
-bma-host:
-    group: bma
-
 bma:
     group: all
-
-cmh-leaf:
-    group: cmh
-
-cmh-host:
-    group: cmh
 
 cmh:
     group: all
