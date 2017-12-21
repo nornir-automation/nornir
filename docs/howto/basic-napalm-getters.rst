@@ -8,13 +8,13 @@ Let's start by seeing how to work with the inventory. Let's assume the following
 
 * Hosts file:
 
-.. literalinclude:: ../../demo/hosts.yaml
+.. literalinclude:: ../../examples/hosts.yaml
    :name: hosts.yaml
    :language: yaml
 
 * Groups file:
 
-.. literalinclude:: ../../demo/groups.yaml
+.. literalinclude:: ../../examples/groups.yaml
    :name: groups.yaml
    :language: yaml
 
