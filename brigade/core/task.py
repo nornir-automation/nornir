@@ -2,6 +2,7 @@ import logging
 from builtins import super
 
 from brigade.core.exceptions import BrigadeExecutionError
+from brigade.core.helpers import format_string
 
 logger = logging.getLogger("brigade")
 
@@ -36,7 +37,19 @@ class Task(object):
         self.host = host
         self.brigade = brigade
         self.dry_run = dry_run
-        return self.task(self, **self.params)
+
+        params = {}
+        for k, v in self.params.items():
+            if isinstance(v, str):
+                try:
+                    params[k] = format_string(v, self, **self.host)
+                except ValueError:
+                    # This happens if the string can't be formatted
+                    params[k] = v
+            else:
+                params[k] = v
+
+        return self.task(self, **params)
 
     def run(self, task, **kwargs):
         """
