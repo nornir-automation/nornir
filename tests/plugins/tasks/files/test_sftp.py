@@ -9,8 +9,8 @@ from brigade.plugins.tasks import files
 class Test(object):
 
     def test_sftp_put(self, brigade):
-        brigade.dry_run = True
         result = brigade.run(files.sftp,
+                             dry_run=True,
                              action="put",
                              src="README.md",
                              dst="/tmp/README.md")
@@ -19,8 +19,8 @@ class Test(object):
         for h, r in result.items():
             assert r.changed, r.files_changed
 
-        brigade.dry_run = False
         result = brigade.run(files.sftp,
+                             dry_run=False,
                              action="put",
                              src="README.md",
                              dst="/tmp/README.md")
@@ -29,8 +29,8 @@ class Test(object):
         for h, r in result.items():
             assert r.changed, r.files_changed
 
-        brigade.dry_run = True
         result = brigade.run(files.sftp,
+                             dry_run=True,
                              action="put",
                              src="README.md",
                              dst="/tmp/README.md")
@@ -41,8 +41,8 @@ class Test(object):
 
     def test_sftp_get(self, brigade):
         filename = "/tmp/" + str(uuid.uuid4()) + "-{host}"
-        brigade.dry_run = True
         result = brigade.run(files.sftp,
+                             dry_run=True,
                              action="get",
                              src="/etc/hostname",
                              dst=filename)
@@ -51,8 +51,8 @@ class Test(object):
         for h, r in result.items():
             assert r.changed, r.files_changed
 
-        brigade.dry_run = False
         result = brigade.run(files.sftp,
+                             dry_run=False,
                              action="get",
                              src="/etc/hostname",
                              dst=filename)
@@ -61,8 +61,8 @@ class Test(object):
         for h, r in result.items():
             assert r.changed, r.files_changed
 
-        brigade.dry_run = True
         result = brigade.run(files.sftp,
+                             dry_run=False,
                              action="get",
                              src="/etc/hostname",
                              dst=filename)
@@ -72,8 +72,8 @@ class Test(object):
             assert not r.changed
 
     def test_sftp_put_directory(self, brigade):
-        brigade.dry_run = True
         result = brigade.run(files.sftp,
+                             dry_run=True,
                              action="put",
                              src="./brigade",
                              dst="/tmp/asd")
@@ -82,8 +82,8 @@ class Test(object):
         for h, r in result.items():
             assert r.changed, r.files_changed
 
-        brigade.dry_run = False
         result = brigade.run(files.sftp,
+                             dry_run=False,
                              action="put",
                              src="./brigade",
                              dst="/tmp/asd")
@@ -92,8 +92,8 @@ class Test(object):
         for h, r in result.items():
             assert r.changed, r.files_changed
 
-        brigade.dry_run = True
         result = brigade.run(files.sftp,
+                             dry_run=True,
                              action="put",
                              src="./brigade",
                              dst="/tmp/asd")
@@ -104,8 +104,8 @@ class Test(object):
 
     def test_sftp_get_directory(self, brigade):
         filename = "/tmp/" + str(uuid.uuid4()) + "-{host}"
-        brigade.dry_run = True
         result = brigade.run(files.sftp,
+                             dry_run=True,
                              action="get",
                              src="/etc/terminfo/",
                              dst=filename)
@@ -114,8 +114,8 @@ class Test(object):
         for h, r in result.items():
             assert r.changed, r.files_changed
 
-        brigade.dry_run = False
         result = brigade.run(files.sftp,
+                             dry_run=False,
                              action="get",
                              src="/etc/terminfo/",
                              dst=filename)
@@ -124,8 +124,8 @@ class Test(object):
         for h, r in result.items():
             assert r.changed, r.files_changed
 
-        brigade.dry_run = True
         result = brigade.run(files.sftp,
+                             dry_run=True,
                              action="get",
                              src="/etc/terminfo/",
                              dst=filename)

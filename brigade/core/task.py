@@ -35,7 +35,7 @@ class Task(object):
     def _start(self, host, brigade, dry_run):
         self.host = host
         self.brigade = brigade
-        self.dry_run = dry_run
+        self.dry_run = dry_run if dry_run is not None else brigade.dry_run
         return self.task(self, **self.params)
 
     def run(self, task, **kwargs):

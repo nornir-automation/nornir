@@ -89,13 +89,13 @@ class Brigade(object):
         b.inventory = self.inventory.filter(**kwargs)
         return b
 
-    def _run_serial(self, task, **kwargs):
+    def _run_serial(self, task, dry_run, **kwargs):
         t = Task(task, **kwargs)
         result = AggregatedResult()
         for host in self.inventory.hosts.values():
             try:
                 logger.debug("{}: running task {}".format(host.name, t))
-                r = t._start(host=host, brigade=self, dry_run=self.dry_run)
+                r = t._start(host=host, brigade=self, dry_run=dry_run)
                 result[host.name] = r
             except Exception as e:
                 logger.error("{}: {}".format(host, e))
@@ -103,11 +103,11 @@ class Brigade(object):
                 result.tracebacks[host.name] = traceback.format_exc()
         return result
 
-    def _run_parallel(self, task, num_workers, **kwargs):
+    def _run_parallel(self, task, num_workers, dry_run, **kwargs):
         result = AggregatedResult()
 
         pool = Pool(processes=num_workers)
-        result_pool = [pool.apply_async(run_task, args=(h, self, Task(task, **kwargs)))
+        result_pool = [pool.apply_async(run_task, args=(h, self, dry_run, Task(task, **kwargs)))
                        for h in self.inventory.hosts.values()]
         pool.close()
         pool.join()
@@ -121,7 +121,7 @@ class Brigade(object):
                 result[host] = res
         return result
 
-    def run(self, task, num_workers=None, **kwargs):
+    def run(self, task, num_workers=None, dry_run=None, **kwargs):
         """
         Run task over all the hosts in the inventory.
 
@@ -129,6 +129,7 @@ class Brigade(object):
             task (``callable``): function or callable that will be run against each device in
               the inventory
             num_workers(``int``): Override for how many hosts to run in paralell for this task
+            dry_run(``bool``): Whether if we are testing the changes or not
             **kwargs: additional argument to pass to ``task`` when calling it
 
         Raises:
@@ -141,19 +142,19 @@ class Brigade(object):
         num_workers = num_workers or self.config.num_workers
 
         if num_workers == 1:
-            result = self._run_serial(task, **kwargs)
+            result = self._run_serial(task, dry_run, **kwargs)
         else:
-            result = self._run_parallel(task, num_workers, **kwargs)
+            result = self._run_parallel(task, num_workers, dry_run, **kwargs)
 
         if self.config.raise_on_error:
             result.raise_on_error()
         return result
 
 
-def run_task(host, brigade, task):
+def run_task(host, brigade, dry_run, task):
     try:
         logger.debug("{}: running task {}".format(host.name, task))
-        r = task._start(host=host, brigade=brigade, dry_run=brigade.dry_run)
+        r = task._start(host=host, brigade=brigade, dry_run=dry_run)
         return host.name, r, None, None
     except Exception as e:
         logger.error("{}: {}".format(host, e))
