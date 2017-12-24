@@ -2,63 +2,115 @@
 host1.cmh:
     site: cmh
     role: host
-    group: cmh-host
-    nos: linux
+    group: cmh
+    brigade_nos: linux
+    type: host
 
 host2.cmh:
     site: cmh
     role: host
-    group: cmh-host
-    nos: linux
+    group: cmh
+    brigade_nos: linux
+    type: host
 
-switch00.cmh:
-    brigade_ip: 127.0.0.1
+spine00.cmh:
+    brigade_host: 127.0.0.1
     brigade_username: vagrant
     brigade_password: vagrant
-    napalm_port: 12443
+    brigade_network_api_port: 12444
     site: cmh
-    role: leaf
-    group: cmh-leaf
-    nos: eos
+    role: spine
+    group: cmh
+    brigade_nos: eos
+    type: network_device
 
-switch01.cmh:
-    brigade_ip: 127.0.0.1
+spine01.cmh:
+    brigade_host: 127.0.0.1
     brigade_username: vagrant
     brigade_password: ""
-    napalm_port: 12203
+    brigade_network_api_port: 12204
+    site: cmh
+    role: spine
+    group: cmh
+    brigade_nos: junos
+    type: network_device
+
+leaf00.cmh:
+    brigade_host: 127.0.0.1
+    brigade_username: vagrant
+    brigade_password: vagrant
+    brigade_network_api_port: 12443
     site: cmh
     role: leaf
-    group: cmh-leaf
-    nos: junos
+    group: cmh
+    brigade_nos: eos
+    type: network_device
+
+leaf01.cmh:
+    brigade_host: 127.0.0.1
+    brigade_username: vagrant
+    brigade_password: ""
+    brigade_network_api_port: 12203
+    site: cmh
+    role: leaf
+    group: cmh
+    brigade_nos: junos
+    type: network_device
 
 host1.bma:
     site: bma
     role: host
-    group: bma-host
-    nos: linux
+    group: bma
+    brigade_nos: linux
+    type: host
 
 host2.bma:
     site: bma
     role: host
-    group: bma-host
-    nos: linux
+    group: bma
+    brigade_nos: linux
+    type: host
 
-switch00.bma:
-    brigade_ip: 127.0.0.1
+spine00.bma:
+    brigade_host: 127.0.0.1
     brigade_username: vagrant
     brigade_password: vagrant
-    napalm_port: 12443
+    brigade_network_api_port: 12444
     site: bma
-    role: leaf
-    group: bma-leaf
-    nos: eos
+    role: spine
+    group: bma
+    brigade_nos: eos
+    type: network_device
 
-switch01.bma:
-    brigade_ip: 127.0.0.1
+spine01.bma:
+    brigade_host: 127.0.0.1
     brigade_username: vagrant
     brigade_password: ""
-    napalm_port: 12203
+    brigade_network_api_port: 12204
+    site: bma
+    role: spine
+    group: bma
+    brigade_nos: junos
+    type: network_device
+
+leaf00.bma:
+    brigade_host: 127.0.0.1
+    brigade_username: vagrant
+    brigade_password: vagrant
+    brigade_network_api_port: 12443
     site: bma
     role: leaf
-    group: bma-leaf
-    nos: junos
+    group: bma
+    brigade_nos: eos
+    type: network_device
+
+leaf01.bma:
+    brigade_host: 127.0.0.1
+    brigade_username: vagrant
+    brigade_password: wrong_password
+    brigade_network_api_port: 12203
+    site: bma
+    role: leaf
+    group: bma
+    brigade_nos: junos
+    type: network_device
