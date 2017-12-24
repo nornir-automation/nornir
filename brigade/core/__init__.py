@@ -72,6 +72,7 @@ class Brigade(object):
         logging.basicConfig(
             level=logging.ERROR,
             format=format,
+            filename="brigade.log",
         )
         if available_connections is not None:
             self.available_connections = available_connections
