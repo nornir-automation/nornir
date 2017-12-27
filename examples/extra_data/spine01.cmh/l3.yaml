@@ -1,0 +1,16 @@
+---
+interfaces:
+  ge-0/0/1:
+    connects_to: leaf00.cmh
+    ipv4: 10.0.1.0/31
+    enabled: true
+  ge-0/0/2:
+    connects_to: leaf01.cmh
+    ipv4: 10.0.1.2/31
+    enabled: true
+
+sessions:
+  - ipv4: 10.0.1.1
+    peer_as: 65100
+  - ipv4: 10.0.1.3
+    peer_as: 65101

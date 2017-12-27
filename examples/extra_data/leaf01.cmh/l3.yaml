@@ -1,0 +1,16 @@
+---
+interfaces:
+  ge-0/0/1:
+    connects_to: spine00.cmh
+    ipv4: 10.0.0.3/31
+    enabled: true
+  ge-0/0/2:
+    connects_to: spine01.cmh
+    ipv4: 10.0.1.3/31
+    enabled: true
+
+sessions:
+  - ipv4: 10.0.0.2
+    peer_as: 65000
+  - ipv4: 10.0.1.2
+    peer_as: 65000

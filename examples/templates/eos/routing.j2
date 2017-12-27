@@ -1,0 +1,12 @@
+ip routing
+
+default router bgp
+router bgp {{ asn }}
+    {% for session in l3.sessions %}
+    neighbor {{ session.ipv4 }} remote-as {{ session.peer_as }}
+
+    address-family ipv4
+       neighbor {{ session.ipv4 }} activate
+    {% endfor %}
+exit
+

@@ -1,7 +1,0 @@
----
-Ethernet1:
-    description: "An Interface in cmh"
-    enabled: true
-Ethernet2:
-    description: "Another interface in cmh"
-    enabled: false

@@ -45,6 +45,7 @@ leaf00.cmh:
     group: cmh
     brigade_nos: eos
     type: network_device
+    asn: 65100
 
 leaf01.cmh:
     brigade_host: 127.0.0.1
@@ -56,6 +57,7 @@ leaf01.cmh:
     group: cmh
     brigade_nos: junos
     type: network_device
+    asn: 65101
 
 host1.bma:
     site: bma

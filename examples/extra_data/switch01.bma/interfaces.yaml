@@ -1,7 +1,0 @@
----
-ge-0/0/1:
-    description: "An Interface in bma"
-    enabled: true
-ge-0/0/2:
-    description: "Another interface in bma"
-    enabled: false
