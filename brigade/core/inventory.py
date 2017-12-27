@@ -214,8 +214,8 @@ class Host(object):
             # we are already inside a thread
             # Task should establish a connection and populate self.connection[connection]
             r = self.brigade.filter(name=self.name).run(conn_task, num_workers=1)
-            if self.name in r.failed_hosts:
-                raise r.failed_hosts[self.name]
+            if r[self.name].exception:
+                raise r[self.name].exception
         return self.connections[connection]
 
 

@@ -22,20 +22,21 @@ class Task(object):
         dry_run(``bool``): Populated right before calling the ``task``
     """
 
-    def __init__(self, task, **kwargs):
+    def __init__(self, task, name=None, **kwargs):
+        self.name = name or task.__name__
         self.task = task
         self.params = kwargs
 
     def __repr__(self):
-        return self.task.__name__
+        return self.name
 
     def _start(self, host, brigade, dry_run):
         self.host = host
         self.brigade = brigade
         self.dry_run = dry_run if dry_run is not None else brigade.dry_run
-        return self.task(self, **self.params)
+        return self.task(self, **self.params) or Result(host)
 
-    def run(self, task, **kwargs):
+    def run(self, task, dry_run=None, **kwargs):
         """
         This is a utility method to call a task from within a task. For instance:
 
@@ -51,8 +52,7 @@ class Task(object):
             msg = ("You have to call this after setting host and brigade attributes. ",
                    "You probably called this from outside a nested task")
             raise Exception(msg)
-        aggr = self.brigade.filter(name=self.host.name).run(task, num_workers=1, **kwargs)
-        return aggr[self.host.name]
+        return Task(task, **kwargs)._start(self.host, self.brigade, dry_run)
 
 
 class Result(object):
@@ -72,11 +72,14 @@ class Result(object):
         host (:obj:`brigade.core.inventory.Host`): Reference to the host that lead ot this result
     """
 
-    def __init__(self, host, result=None, changed=False, diff="", **kwargs):
+    def __init__(self, host, result=None, changed=False, diff="", failed=False, exception=None,
+                 **kwargs):
         self.result = result
         self.host = host
         self.changed = changed
         self.diff = diff
+        self.failed = failed
+        self.exception = exception
 
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -90,15 +93,17 @@ class AggregatedResult(dict):
     Attributes:
         failed_hosts (list): list of hosts that failed
     """
-    def __init__(self, **kwargs):
+    def __init__(self, name, **kwargs):
+        self.name = name
         super().__init__(**kwargs)
-        self.failed_hosts = {}
-        self.tracebacks = {}
+
+    def __repr__(self):
+        return '{}: {}'.format(self.__class__.__name__, self.name)
 
     @property
     def failed(self):
         """If ``True`` at least a host failed."""
-        return bool(self.failed_hosts)
+        return any([h.failed for h in self.values()])
 
     def raise_on_error(self):
         """

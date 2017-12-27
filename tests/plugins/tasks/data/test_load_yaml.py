@@ -33,8 +33,8 @@ class Test(object):
             brigade.run(data.load_yaml,
                         file=test_file)
         assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
-        for exc in e.value.failed_hosts.values():
-            assert isinstance(exc, ScannerError)
+        for result in e.value.failed_hosts.values():
+            assert isinstance(result.exception, ScannerError)
 
     def test_load_yaml_error_missing_file(self, brigade):
         test_file = '{}/missing.yaml'.format(data_dir)
@@ -48,5 +48,5 @@ class Test(object):
             brigade.run(data.load_yaml,
                         file=test_file)
         assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
-        for exc in e.value.failed_hosts.values():
-            assert isinstance(exc, not_found)
+        for result in e.value.failed_hosts.values():
+            assert isinstance(result.exception, not_found)

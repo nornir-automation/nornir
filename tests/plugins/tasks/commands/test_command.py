@@ -18,13 +18,13 @@ class Test(object):
             brigade.run(commands.command,
                         command="ech")
         assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
-        for exc in e.value.failed_hosts.values():
-            assert isinstance(exc, OSError)
+        for result in e.value.failed_hosts.values():
+            assert isinstance(result.exception, OSError)
 
     def test_command_error_generic(self, brigade):
         with pytest.raises(BrigadeExecutionError) as e:
             brigade.run(commands.command,
                         command="ls /asdadsd")
         assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
-        for exc in e.value.failed_hosts.values():
-            assert isinstance(exc, CommandError)
+        for result in e.value.failed_hosts.values():
+            assert isinstance(result.exception, CommandError)

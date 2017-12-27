@@ -34,6 +34,6 @@ class Test(object):
     #                                                            "show interfacesa"],
     #                                                  optional_args=opt)
     #      assert len(e.value.failed_hosts)
-    #      for exc in e.value.failed_hosts.values():
-    #          assert isinstance(exc, exceptions.CommandErrorException)
+    #      for result in e.value.failed_hosts.values():
+    #          assert isinstance(result.exception, exceptions.CommandErrorException)
     #          print(exc)

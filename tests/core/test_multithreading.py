@@ -51,28 +51,28 @@ class Test(object):
             brigade.run(failing_task_simple, num_workers=1)
         for k, v in e.value.result.items():
             assert isinstance(k, str), k
-            assert isinstance(v, Exception), v
+            assert isinstance(v.exception, Exception), v
 
     def test_failing_task_simple_multithread(self, brigade):
         with pytest.raises(BrigadeExecutionError) as e:
             brigade.run(failing_task_simple, num_workers=NUM_WORKERS)
         for k, v in e.value.result.items():
             assert isinstance(k, str), k
-            assert isinstance(v, Exception), v
+            assert isinstance(v.exception, Exception), v
 
     def test_failing_task_complex_singlethread(self, brigade):
         with pytest.raises(BrigadeExecutionError) as e:
             brigade.run(failing_task_complex, num_workers=1)
         for k, v in e.value.result.items():
             assert isinstance(k, str), k
-            assert isinstance(v, CommandError), v
+            assert isinstance(v.exception, CommandError), v
 
     def test_failing_task_complex_multithread(self, brigade):
         with pytest.raises(BrigadeExecutionError) as e:
             brigade.run(failing_task_complex, num_workers=NUM_WORKERS)
         for k, v in e.value.result.items():
             assert isinstance(k, str), k
-            assert isinstance(v, CommandError), v
+            assert isinstance(v.exception, CommandError), v
 
     def test_change_data_in_thread(self, brigade):
         brigade.run(change_data, num_workers=NUM_WORKERS)

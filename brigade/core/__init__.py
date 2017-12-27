@@ -5,7 +5,7 @@ import traceback
 from multiprocessing.dummy import Pool
 
 from brigade.core.configuration import Config
-from brigade.core.task import AggregatedResult, Task
+from brigade.core.task import AggregatedResult, Result, Task
 from brigade.plugins.tasks import connections
 
 
@@ -119,36 +119,24 @@ class Brigade(object):
         return b
 
     def _run_serial(self, task, dry_run, **kwargs):
-        t = Task(task, **kwargs)
-        result = AggregatedResult()
+        result = AggregatedResult(kwargs.get("name") or task.__name__)
         for host in self.inventory.hosts.values():
-            try:
-                self.logger.info("{}: {}: running task".format(host.name, t.name))
-                r = t._start(host=host, brigade=self, dry_run=dry_run)
-                result[host.name] = r
-            except Exception as e:
-                tb = traceback.format_exc()
-                r = Result(host, exception=e, result=tb, failed=True)
-                result[host.name] = r
-                self.logger.error("{}: {}".format(host, tb))
+            result[host.name] = run_task(host, self, dry_run, Task(task, **kwargs))
         return result
 
     def _run_parallel(self, task, num_workers, dry_run, **kwargs):
-        result = AggregatedResult()
+        result = AggregatedResult(kwargs.get("name") or task.__name__)
 
         pool = Pool(processes=num_workers)
-        result_pool = [pool.apply_async(run_task, args=(h, self, dry_run, Task(task, **kwargs)))
+        result_pool = [pool.apply_async(run_task,
+                                        args=(h, self, dry_run, Task(task, **kwargs)))
                        for h in self.inventory.hosts.values()]
         pool.close()
         pool.join()
 
-        for r in result_pool:
-            host, res, exc, traceback = r.get()
-            if exc:
-                result.failed_hosts[host] = exc
-                result.tracebacks[host] = traceback
-            else:
-                result[host] = res
+        for rp in result_pool:
+            r = rp.get()
+            result[r.host.name] = r
         return result
 
     def run(self, task, num_workers=None, dry_run=None, **kwargs):
@@ -174,6 +162,7 @@ class Brigade(object):
         self.logger.info("Running task '{}' with num_workers: {}, dry_run: {}".format(
             kwargs.get("name") or task.__name__, num_workers, dry_run))
         self.logger.debug(kwargs)
+
         if num_workers == 1:
             result = self._run_serial(task, dry_run, **kwargs)
         else:
@@ -189,7 +178,8 @@ def run_task(host, brigade, dry_run, task):
     try:
         logger.info("{}: {}: running task".format(host.name, task.name))
         r = task._start(host=host, brigade=brigade, dry_run=dry_run)
-        return host.name, r, None, None
     except Exception as e:
-        logger.error("{}: {}".format(host, traceback.format_exc()))
-        return host.name, None, e, traceback.format_exc()
+        tb = traceback.format_exc()
+        logger.error("{}: {}".format(host, tb))
+        r = Result(host, exception=e, result=tb, failed=True)
+    return r

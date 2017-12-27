@@ -33,5 +33,5 @@ class Test(object):
                   getters=["facts",
                            "interfaces"])
         assert len(e.value.failed_hosts)
-        for exc in e.value.failed_hosts.values():
-            assert isinstance(exc, KeyError)
+        for result in e.value.failed_hosts.values():
+            assert isinstance(result.exception, KeyError)

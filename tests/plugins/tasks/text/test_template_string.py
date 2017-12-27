@@ -49,5 +49,5 @@ class Test(object):
             brigade.run(text.template_string,
                         template=broken_j2)
         assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
-        for exc in e.value.failed_hosts.values():
-            assert isinstance(exc, TemplateSyntaxError)
+        for result in e.value.failed_hosts.values():
+            assert isinstance(result.exception, TemplateSyntaxError)
