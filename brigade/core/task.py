@@ -64,12 +64,16 @@ class Result(object):
         diff (obj): Diff between state of the system before/after running this task
         result (obj): Result of the task execution, see task's documentation for details
         host (:obj:`brigade.core.inventory.Host`): Reference to the host that lead ot this result
+        failed (bool): Whether the execution failed or not
+        exception (Exception): uncaught exception thrown during the exection of the task (if any)
 
     Attributes:
         changed (bool): ``True`` if the task is changing the system
         diff (obj): Diff between state of the system before/after running this task
         result (obj): Result of the task execution, see task's documentation for details
         host (:obj:`brigade.core.inventory.Host`): Reference to the host that lead ot this result
+        failed (bool): Whether the execution failed or not
+        exception (Exception): uncaught exception thrown during the exection of the task (if any)
     """
 
     def __init__(self, host, result=None, changed=False, diff="", failed=False, exception=None,
