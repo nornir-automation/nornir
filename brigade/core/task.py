@@ -1,9 +1,6 @@
-import logging
 from builtins import super
 
 from brigade.core.exceptions import BrigadeExecutionError
-
-logger = logging.getLogger("brigade")
 
 
 class Task(object):

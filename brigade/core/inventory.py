@@ -1,10 +1,6 @@
 import getpass
-import logging
 
 from brigade.core import helpers
-
-
-logger = logging.getLogger("brigade")
 
 
 class Host(object):
