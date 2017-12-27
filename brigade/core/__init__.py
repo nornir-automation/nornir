@@ -1,4 +1,5 @@
 import logging
+import logging.config
 import sys
 import traceback
 from multiprocessing.dummy import Pool
@@ -33,9 +34,6 @@ if sys.version_info.major == 2:
     copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
 
 
-logger = logging.getLogger("brigade")
-
-
 class Brigade(object):
     """
     This is the main object to work with. It contains the inventory and it serves
@@ -57,7 +55,9 @@ class Brigade(object):
     """
 
     def __init__(self, inventory, dry_run, config=None, config_file=None,
-                 available_connections=None):
+                 available_connections=None, logger=None):
+        self.logger = logger or logging.getLogger("brigade")
+
         self.inventory = inventory
         self.inventory.brigade = self
 
@@ -67,17 +67,45 @@ class Brigade(object):
         else:
             self.config = config or Config()
 
-        format = "\033[31m%(asctime)s - %(name)s - %(levelname)s"
-        format += " - %(funcName)20s() - %(message)s\033[0m"
-        logging.basicConfig(
-            level=logging.ERROR,
-            format=format,
-            filename="brigade.log",
-        )
+        self.configure_logging()
+
         if available_connections is not None:
             self.available_connections = available_connections
         else:
             self.available_connections = connections.available_connections
+
+    def configure_logging(self):
+        format = "%(asctime)s - %(name)s - %(levelname)s"
+        format += " - %(funcName)10s() - %(message)s"
+        logging.config.dictConfig({
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": {
+                "simple": {"format": format}
+            },
+            "handlers": {
+                "info_file_handler": {
+                    "class": "logging.handlers.RotatingFileHandler",
+                    "level": "INFO",
+                    "formatter": "simple",
+                    "filename": "brigade.log",
+                    "maxBytes": 10485760,
+                    "backupCount": 20,
+                    "encoding": "utf8"
+                },
+            },
+            "loggers": {
+                "brigade": {
+                    "level": "INFO",
+                    "handlers": ["info_file_handler"],
+                    "propagate": "no"
+                },
+            },
+            "root": {
+                "level": "ERROR",
+                "handlers": ["info_file_handler"]
+            }
+        })
 
     def filter(self, **kwargs):
         """
@@ -95,13 +123,14 @@ class Brigade(object):
         result = AggregatedResult()
         for host in self.inventory.hosts.values():
             try:
-                logger.debug("{}: running task {}".format(host.name, t))
+                self.logger.info("{}: {}: running task".format(host.name, t.name))
                 r = t._start(host=host, brigade=self, dry_run=dry_run)
                 result[host.name] = r
             except Exception as e:
-                logger.error("{}: {}".format(host, e))
-                result.failed_hosts[host.name] = e
-                result.tracebacks[host.name] = traceback.format_exc()
+                tb = traceback.format_exc()
+                r = Result(host, exception=e, result=tb, failed=True)
+                result[host.name] = r
+                self.logger.error("{}: {}".format(host, tb))
         return result
 
     def _run_parallel(self, task, num_workers, dry_run, **kwargs):
@@ -142,6 +171,9 @@ class Brigade(object):
         """
         num_workers = num_workers or self.config.num_workers
 
+        self.logger.info("Running task '{}' with num_workers: {}, dry_run: {}".format(
+            kwargs.get("name") or task.__name__, num_workers, dry_run))
+        self.logger.debug(kwargs)
         if num_workers == 1:
             result = self._run_serial(task, dry_run, **kwargs)
         else:
@@ -153,10 +185,11 @@ class Brigade(object):
 
 
 def run_task(host, brigade, dry_run, task):
+    logger = logging.getLogger("brigade")
     try:
-        logger.debug("{}: running task {}".format(host.name, task))
+        logger.info("{}: {}: running task".format(host.name, task.name))
         r = task._start(host=host, brigade=brigade, dry_run=dry_run)
         return host.name, r, None, None
     except Exception as e:
-        logger.error("{}: {}".format(host, e))
+        logger.error("{}: {}".format(host, traceback.format_exc()))
         return host.name, None, e, traceback.format_exc()
