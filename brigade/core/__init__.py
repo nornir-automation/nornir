@@ -139,7 +139,7 @@ class Brigade(object):
             result[r.host.name] = r
         return result
 
-    def run(self, task, num_workers=None, dry_run=None, **kwargs):
+    def run(self, task, num_workers=None, dry_run=None, raise_on_error=None, **kwargs):
         """
         Run task over all the hosts in the inventory.
 
@@ -148,6 +148,7 @@ class Brigade(object):
               the inventory
             num_workers(``int``): Override for how many hosts to run in paralell for this task
             dry_run(``bool``): Whether if we are testing the changes or not
+            raise_on_error (``bool``): Override raise_on_error behavior
             **kwargs: additional argument to pass to ``task`` when calling it
 
         Raises:
@@ -168,7 +169,9 @@ class Brigade(object):
         else:
             result = self._run_parallel(task, num_workers, dry_run, **kwargs)
 
-        if self.config.raise_on_error:
+        raise_on_error = raise_on_error if raise_on_error is not None else \
+            self.config.raise_on_error
+        if raise_on_error:
             result.raise_on_error()
         return result
 
