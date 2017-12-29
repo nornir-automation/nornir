@@ -17,6 +17,7 @@ def template_file(task, template, path, **kwargs):
     """
     merged = merge_two_dicts(task.host, kwargs)
     path = format_string(path, task, **kwargs)
+    template = format_string(template, task, **kwargs)
     text = jinja_helper.render_from_file(template=template, path=path,
                                          host=task.host, **merged)
     return Result(host=task.host, result=text)
