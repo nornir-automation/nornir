@@ -25,6 +25,7 @@ class Test(object):
         d = brigade.filter(name="dev3.group_2")
         d.run(connections.napalm_connection, optional_args=opt)
         result = d.run(networking.napalm_validate,
+                       raise_on_error=False,
                        src=THIS_DIR + "/data/validate_error.yaml")
         assert result
         for h, r in result.items():
