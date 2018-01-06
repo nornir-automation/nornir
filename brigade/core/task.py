@@ -32,10 +32,13 @@ class Task(object):
         return self.name
 
     def _start(self, host, brigade, dry_run, sub_task=False):
-        self.host = host
-        self.brigade = brigade
-        self.dry_run = dry_run if dry_run is not None else brigade.dry_run
-        r = self.task(self, **self.params) or Result(host)
+        if host.name in brigade.data.failed_hosts:
+            r = Result(host, skipped=True)
+        else:
+            self.host = host
+            self.brigade = brigade
+            self.dry_run = dry_run if dry_run is not None else brigade.dry_run
+            r = self.task(self, **self.params) or Result(host)
         r.name = self.name
 
         if sub_task:
@@ -80,6 +83,7 @@ class Result(object):
         host (:obj:`brigade.core.inventory.Host`): Reference to the host that lead ot this result
         failed (bool): Whether the execution failed or not
         exception (Exception): uncaught exception thrown during the exection of the task (if any)
+        skipped (bool): ``True`` if the host was skipped
 
     Attributes:
         changed (bool): ``True`` if the task is changing the system
@@ -88,16 +92,18 @@ class Result(object):
         host (:obj:`brigade.core.inventory.Host`): Reference to the host that lead ot this result
         failed (bool): Whether the execution failed or not
         exception (Exception): uncaught exception thrown during the exection of the task (if any)
+        skipped (bool): ``True`` if the host was skipped
     """
 
     def __init__(self, host, result=None, changed=False, diff="", failed=False, exception=None,
-                 **kwargs):
+                 skipped=False, **kwargs):
         self.result = result
         self.host = host
         self.changed = changed
         self.diff = diff
         self.failed = failed
         self.exception = exception
+        self.skipped = skipped
 
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -119,6 +125,16 @@ class AggregatedResult(dict):
     def failed(self):
         """If ``True`` at least a host failed."""
         return any([h.failed for h in self.values()])
+
+    @property
+    def failed_hosts(self):
+        """Hosts that failed during the execution of the task."""
+        return {h: r for h, r in self.items() if r.failed}
+
+    @property
+    def skipped(self):
+        """If ``True`` at least a host was skipped."""
+        return any([h.skipped for h in self.values()])
 
     def raise_on_error(self):
         """
@@ -144,6 +160,11 @@ class MultiResult(list):
     def failed(self):
         """If ``True`` at least a task failed."""
         return any([h.failed for h in self])
+
+    @property
+    def skipped(self):
+        """If ``True`` at least a host was skipped."""
+        return any([h.skipped for h in self])
 
     @property
     def changed(self):

@@ -24,12 +24,12 @@ class Test(object):
         print(opt["path"])
         d = brigade.filter(name="dev3.group_2")
         d.run(connections.napalm_connection, optional_args=opt)
+
         result = d.run(networking.napalm_validate,
-                       raise_on_error=False,
                        src=THIS_DIR + "/data/validate_error.yaml")
         assert result
         for h, r in result.items():
-            assert r.failed
+            assert not r.failed
             assert not r.result["complies"]
 
     def test_napalm_validate_src_validate_source(self, brigade):
@@ -48,3 +48,4 @@ class Test(object):
         assert result
         for h, r in result.items():
             assert not r.failed
+            assert r.result["complies"]

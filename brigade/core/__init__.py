@@ -34,6 +34,19 @@ if sys.version_info.major == 2:
     copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
 
 
+class Data(object):
+    """
+    This class is just a placeholder to share data amongsts different
+    versions of Brigade  after running ``filter`` multiple times.
+
+    Attributes:
+        failed_hosts (list): Hosts that have failed to run a task properly
+    """
+
+    def __init__(self):
+        self.failed_hosts = set()
+
+
 class Brigade(object):
     """
     This is the main object to work with. It contains the inventory and it serves
@@ -41,6 +54,7 @@ class Brigade(object):
 
     Arguments:
         inventory (:obj:`brigade.core.inventory.Inventory`): Inventory to work with
+        data(:obj:`brigade.core.Data`): shared data amongst different iterations of brigade
         dry_run(``bool``): Whether if we are testing the changes or not
         config (:obj:`brigade.core.configuration.Config`): Configuration object
         config_file (``str``): Path to Yaml configuration file
@@ -49,15 +63,17 @@ class Brigade(object):
 
     Attributes:
         inventory (:obj:`brigade.core.inventory.Inventory`): Inventory to work with
+        data(:obj:`brigade.core.Data`): shared data amongst different iterations of brigade
         dry_run(``bool``): Whether if we are testing the changes or not
         config (:obj:`brigade.core.configuration.Config`): Configuration parameters
         available_connections (``dict``): dict of connection types are available
     """
 
     def __init__(self, inventory, dry_run, config=None, config_file=None,
-                 available_connections=None, logger=None):
+                 available_connections=None, logger=None, data=None):
         self.logger = logger or logging.getLogger("brigade")
 
+        self.data = data or Data()
         self.inventory = inventory
         self.inventory.brigade = self
 
@@ -173,6 +189,8 @@ class Brigade(object):
             self.config.raise_on_error
         if raise_on_error:
             result.raise_on_error()
+        else:
+            self.data.failed_hosts.update(result.failed_hosts.keys())
         return result
 
 

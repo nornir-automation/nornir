@@ -14,9 +14,8 @@ def napalm_validate(task, src=None, validation_source=None):
     Returns:
       :obj:`brigade.core.task.Result`:
         * result (``dict``): dictionary with the result of the validation
-        * failed (``bool``): Whether the device complies or not (note this will trigger a
-          :obj:`brigade.core.exceptions.BrigadeExecutionError` if raise_on_error is set to ``True``)
+        * complies (``bool``): Whether the device complies or not
     """
     device = task.host.get_connection("napalm")
     r = device.compliance_report(validation_file=src, validation_source=validation_source)
-    return Result(host=task.host, result=r, failed=not r["complies"])
+    return Result(host=task.host, result=r)
