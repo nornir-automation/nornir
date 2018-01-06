@@ -2,8 +2,8 @@ from brigade.plugins.tasks import commands
 
 
 def sub_task(task):
-    return task.run(commands.command,
-                    command="echo {}".format(task.host))
+    task.run(commands.command,
+             command="echo {}".format(task.host))
 
 
 class Test(object):
@@ -19,4 +19,6 @@ class Test(object):
         result = brigade.run(sub_task)
         assert result
         for h, r in result.items():
-            assert h == r.stdout.strip()
+            assert r[0].name == "sub_task"
+            assert r[1].name == "command"
+            assert h == r[1].stdout.strip()

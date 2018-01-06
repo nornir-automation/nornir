@@ -185,4 +185,6 @@ def run_task(host, brigade, dry_run, task):
         tb = traceback.format_exc()
         logger.error("{}: {}".format(host, tb))
         r = Result(host, exception=e, result=tb, failed=True)
-    return r
+        task.results.append(r)
+
+    return task.results

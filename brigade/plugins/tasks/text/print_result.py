@@ -32,14 +32,18 @@ def print_result(task, data, vars=None):
         color = Fore.YELLOW
     else:
         color = Fore.BLUE
-    changed = "" if data.changed is None else " ** changed : {} ".format(data.changed)
-    msg = "* {}{}".format(task.host.name, changed)
+    title = "" if data.changed is None else " ** changed : {} ".format(data.changed)
+    msg = "* {}{}".format(task.host.name, title)
     print("{}{}{}{}".format(Style.BRIGHT, color, msg, "*" * (80 - len(msg))))
-    for v in vars:
-        r = getattr(data, v, "")
-        if r and not isinstance(r, str):
-            pprint.pprint(r)
-        elif r:
-            print(r)
+    for r in data:
+        subtitle = "" if r.changed is None else " ** changed : {} ".format(r.changed)
+        msg = "---- {}{} ".format(r.name, subtitle)
+        print("{}{}{}{}".format(Style.BRIGHT, Fore.CYAN, msg, "-" * (80 - len(msg))))
+        for v in vars:
+            x = getattr(r, v, "")
+            if r and not isinstance(x, str):
+                pprint.pprint(x)
+            elif r:
+                print(x)
 
     return Result(task.host)

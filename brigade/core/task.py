@@ -26,15 +26,23 @@ class Task(object):
         self.name = name or task.__name__
         self.task = task
         self.params = kwargs
+        self.results = MultiResult(self.name)
 
     def __repr__(self):
         return self.name
 
-    def _start(self, host, brigade, dry_run):
+    def _start(self, host, brigade, dry_run, sub_task=False):
         self.host = host
         self.brigade = brigade
         self.dry_run = dry_run if dry_run is not None else brigade.dry_run
-        return self.task(self, **self.params) or Result(host)
+        r = self.task(self, **self.params) or Result(host)
+        r.name = self.name
+
+        if sub_task:
+            return r
+        else:
+            self.results.insert(0, r)
+            return self.results
 
     def run(self, task, dry_run=None, **kwargs):
         """
@@ -52,12 +60,18 @@ class Task(object):
             msg = ("You have to call this after setting host and brigade attributes. ",
                    "You probably called this from outside a nested task")
             raise Exception(msg)
-        return Task(task, **kwargs)._start(self.host, self.brigade, dry_run)
+        r = Task(task, **kwargs)._start(self.host, self.brigade, dry_run, sub_task=True)
+
+        if isinstance(r, MultiResult):
+            self.results.extend(r)
+        else:
+            self.results.append(r)
+        return r
 
 
 class Result(object):
     """
-    Returned by tasks.
+    Result of running individual tasks.
 
     Arguments:
         changed (bool): ``True`` if the task is changing the system
@@ -93,9 +107,6 @@ class AggregatedResult(dict):
     """
     It basically is a dict-like object that aggregates the results for all devices.
     You can access each individual result by doing ``my_aggr_result["hostname_of_device"]``.
-
-    Attributes:
-        failed_hosts (list): list of hosts that failed
     """
     def __init__(self, name, **kwargs):
         self.name = name
@@ -108,6 +119,36 @@ class AggregatedResult(dict):
     def failed(self):
         """If ``True`` at least a host failed."""
         return any([h.failed for h in self.values()])
+
+    def raise_on_error(self):
+        """
+        Raises:
+            :obj:`brigade.core.exceptions.BrigadeExecutionError`: When at least a task failed
+        """
+        if self.failed:
+            raise BrigadeExecutionError(self)
+
+
+class MultiResult(list):
+    """
+    It is basically is a list-like object that gives you access to the results of all subtasks for
+    a particular device/task.
+    """
+    def __init__(self, name):
+        self.name = name
+
+    def __getattr__(self, name):
+        return getattr(self[0], name)
+
+    @property
+    def failed(self):
+        """If ``True`` at least a task failed."""
+        return any([h.failed for h in self])
+
+    @property
+    def changed(self):
+        """If ``True`` at least a task changed the system."""
+        return any([h.changed for h in self])
 
     def raise_on_error(self):
         """
