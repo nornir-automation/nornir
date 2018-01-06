@@ -27,18 +27,20 @@ class Test(object):
     def test_napalm_configure_change_commit(self, brigade):
         opt = {"path": THIS_DIR + "/test_napalm_configure_change_commit/step1"}
         configuration = "hostname changed-hostname"
-        brigade.dry_run = False
         d = brigade.filter(name="dev3.group_2")
         d.run(connections.napalm_connection, optional_args=opt)
-        result = d.run(networking.napalm_configure, configuration=configuration)
-        d.dry_run = True
+        result = d.run(networking.napalm_configure,
+                       dry_run=False,
+                       configuration=configuration)
         assert result
         for h, r in result.items():
             assert "+hostname changed-hostname" in r.diff
             assert r.changed
         opt = {"path": THIS_DIR + "/test_napalm_configure_change_commit/step2"}
         d.run(connections.napalm_connection, optional_args=opt)
-        result = d.run(networking.napalm_configure, configuration=configuration)
+        result = d.run(networking.napalm_configure,
+                       dry_run=True,
+                       configuration=configuration)
         assert result
         for h, r in result.items():
             assert "+hostname changed-hostname" not in r.diff
