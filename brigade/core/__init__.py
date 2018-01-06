@@ -36,6 +36,19 @@ if sys.version_info.major == 2:
 logger = logging.getLogger("brigade")
 
 
+class Data(object):
+    """
+    This class is just a placeholder to share data amongsts different
+    versions of Brigade  after running ``filter`` multiple times.
+
+    Attributes:
+        failed_hosts (list): Hosts that have failed to run a task properly
+    """
+
+    def __init__(self):
+        self.failed_hosts = set()
+
+
 class Brigade(object):
     """
     This is the main object to work with. It contains the inventory and it serves
@@ -43,6 +56,7 @@ class Brigade(object):
 
     Arguments:
         inventory (:obj:`brigade.core.inventory.Inventory`): Inventory to work with
+        data(:obj:`brigade.core.Data`): shared data amongst different iterations of brigade
         dry_run(``bool``): Whether if we are testing the changes or not
         config (:obj:`brigade.core.configuration.Config`): Configuration object
         config_file (``str``): Path to Yaml configuration file
@@ -51,13 +65,15 @@ class Brigade(object):
 
     Attributes:
         inventory (:obj:`brigade.core.inventory.Inventory`): Inventory to work with
+        data(:obj:`brigade.core.Data`): shared data amongst different iterations of brigade
         dry_run(``bool``): Whether if we are testing the changes or not
         config (:obj:`brigade.core.configuration.Config`): Configuration parameters
         available_connections (``dict``): dict of connection types are available
     """
 
-    def __init__(self, inventory, dry_run, config=None, config_file=None,
+    def __init__(self, inventory, dry_run, data=None, config=None, config_file=None,
                  available_connections=None):
+        self.data = data or Data()
         self.inventory = inventory
         self.inventory.brigade = self
 
@@ -96,7 +112,11 @@ class Brigade(object):
             try:
                 logger.debug("{}: running task {}".format(host.name, t))
                 r = t._start(host=host, brigade=self, dry_run=self.dry_run)
-                result[host.name] = r
+
+                if r.skipped:
+                    result["skipped"][host] = r
+                else:
+                    result[host.name] = r
             except Exception as e:
                 logger.error("{}: {}".format(host, e))
                 result.failed_hosts[host.name] = e
@@ -118,7 +138,10 @@ class Brigade(object):
                 result.failed_hosts[host] = exc
                 result.tracebacks[host] = traceback
             else:
-                result[host] = res
+                if res.skipped:
+                    result.skipped[host] = res
+                else:
+                    result[host] = res
         return result
 
     def run(self, task, num_workers=None, **kwargs):
@@ -147,6 +170,8 @@ class Brigade(object):
 
         if self.config.raise_on_error:
             result.raise_on_error()
+        else:
+            self.data.failed_hosts.update(result.failed_hosts.keys())
         return result
 
 

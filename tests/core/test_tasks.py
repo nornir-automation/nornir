@@ -1,6 +1,16 @@
 from brigade.plugins.tasks import commands
 
 
+def task_fails_for_some(task):
+    if task.host.name == "dev3.group_2":
+        # let's hardcode a failure
+        return task.run(commands.command,
+                        command="sasdasdasd")
+    else:
+        return task.run(commands.command,
+                        command="echo {}".format(task.host))
+
+
 def sub_task(task):
     return task.run(commands.command,
                     command="echo {}".format(task.host))
@@ -20,3 +30,22 @@ class Test(object):
         assert result
         for h, r in result.items():
             assert h == r.stdout.strip()
+
+    def test_skip_failed_host(self, brigade):
+        brigade.config.raise_on_error = False
+        result = brigade.run(task_fails_for_some)
+        for h, r in result.items():
+            assert h == r.stdout.strip()
+
+        # We can set it to True already because the task
+        # shouldn't be run on the host that fails
+        brigade.config.raise_on_error = True
+
+        result = brigade.run(task_fails_for_some)
+        for h, r in result.items():
+            assert h == r.stdout.strip()
+
+        assert "dev3.group_2" in result.skipped
+
+        # let's reset it
+        brigade.data.failed_hosts = set()
