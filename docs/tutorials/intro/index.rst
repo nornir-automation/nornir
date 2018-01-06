@@ -13,6 +13,9 @@ We're glad you made it here! This is a great place to learn the basics of Brigad
    Brigade at a glance <overview>
    100% Python <python>
    Installation guide <install>
-   Creating an inventory <inventory>
-   Exploring the inventory <explore>
-   Running tasks <run>
+   inventory
+   brigade
+   running_tasks
+   running_tasks_different_hosts
+   running_tasks_grouping
+   running_tasks_errors

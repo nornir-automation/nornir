@@ -8,5 +8,6 @@ Brigade API Reference
    brigade
    configuration
    inventory
+   easy
    task
    exceptions

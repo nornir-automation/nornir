@@ -1,3 +1,5 @@
+.. _ref-inventory:
+
 Inventory
 =========
 
