@@ -54,7 +54,12 @@ class Task(object):
             msg = ("You have to call this after setting host and brigade attributes. ",
                    "You probably called this from outside a nested task")
             raise Exception(msg)
+
+        # We propagate dry_run from this task and then restore it
+        orig_dry_run = self.brigade.dry_run
+        self.brigade.dry_run = self.dry_run
         aggr = self.brigade.filter(name=self.host.name).run(task, num_workers=1, **kwargs)
+        self.brigade.dry_run = orig_dry_run
         return aggr[self.host.name]
 
 

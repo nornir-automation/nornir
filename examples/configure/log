@@ -1,0 +1,102 @@
+2017-12-17 16:06:16,336 - root - INFO - {'switch00.cmh': {'name': 'switch00.cmh', 'group': 'cmh-leaf', 'domain': 'acme.com', 'brigade_host': '127.0.0.1', 'brigade_username': 'vagrant', 'brigade_password': 'vagrant', 'brigade_network_api_port': 12443, 'site': 'cmh', 'role': 'leaf', 'brigade_nos': 'eos'}}
+2017-12-17 16:06:16,336 - root - INFO - {'switch01.cmh': {'name': 'switch01.cmh', 'group': 'cmh-leaf', 'domain': 'acme.com', 'brigade_host': '127.0.0.1', 'brigade_username': 'vagrant', 'brigade_password': '', 'brigade_network_api_port': 12203, 'site': 'cmh', 'role': 'leaf', 'brigade_nos': 'junos'}}
+2017-12-17 16:06:16,337 - brigade - ERROR - switch00.cmh: 'nos'
+2017-12-17 16:06:16,337 - brigade - ERROR - switch01.cmh: 'nos'
+2017-12-17 16:06:16,342 - brigade - ERROR - switch00.cmh: 
+########################################
+# switch00.cmh (failed) 
+########################################
+Traceback (most recent call last):
+  File "/Users/dbarroso/workspace/brigade/brigade/core/__init__.py", line 98, in _run_serial
+    r = t._start(host=host, brigade=self, dry_run=self.dry_run)
+  File "/Users/dbarroso/workspace/brigade/brigade/core/task.py", line 39, in _start
+    return self.task(self, **self.params)
+  File "/Users/dbarroso/workspace/brigade/brigade/plugins/tasks/text/template_file.py", line 19, in template_file
+    path = format_string(path, task, **kwargs)
+  File "/Users/dbarroso/workspace/brigade/brigade/core/helpers/__init__.py", line 12, in format_string
+    **merge_two_dicts(task.host.items(), kwargs))
+KeyError: 'nos'
+
+
+2017-12-17 16:06:16,343 - brigade - ERROR - switch01.cmh: 
+########################################
+# switch01.cmh (failed) 
+########################################
+Traceback (most recent call last):
+  File "/Users/dbarroso/workspace/brigade/brigade/core/__init__.py", line 98, in _run_serial
+    r = t._start(host=host, brigade=self, dry_run=self.dry_run)
+  File "/Users/dbarroso/workspace/brigade/brigade/core/task.py", line 39, in _start
+    return self.task(self, **self.params)
+  File "/Users/dbarroso/workspace/brigade/brigade/plugins/tasks/text/template_file.py", line 19, in template_file
+    path = format_string(path, task, **kwargs)
+  File "/Users/dbarroso/workspace/brigade/brigade/core/helpers/__init__.py", line 12, in format_string
+    **merge_two_dicts(task.host.items(), kwargs))
+KeyError: 'nos'
+
+
+2017-12-17 16:06:31,943 - root - INFO - {'switch00.cmh': {'name': 'switch00.cmh', 'group': 'cmh-leaf', 'domain': 'acme.com', 'brigade_host': '127.0.0.1', 'brigade_username': 'vagrant', 'brigade_password': 'vagrant', 'brigade_network_api_port': 12443, 'site': 'cmh', 'role': 'leaf', 'brigade_nos': 'eos'}}
+2017-12-17 16:06:31,943 - root - INFO - {'switch01.cmh': {'name': 'switch01.cmh', 'group': 'cmh-leaf', 'domain': 'acme.com', 'brigade_host': '127.0.0.1', 'brigade_username': 'vagrant', 'brigade_password': '', 'brigade_network_api_port': 12203, 'site': 'cmh', 'role': 'leaf', 'brigade_nos': 'junos'}}
+2017-12-17 16:06:31,943 - brigade - ERROR - switch00.cmh: 'nos'
+2017-12-17 16:06:31,943 - brigade - ERROR - switch01.cmh: 'nos'
+2017-12-17 16:06:31,945 - brigade - ERROR - switch00.cmh: 
+########################################
+# switch00.cmh (failed) 
+########################################
+Traceback (most recent call last):
+  File "/Users/dbarroso/workspace/brigade/brigade/core/__init__.py", line 98, in _run_serial
+    r = t._start(host=host, brigade=self, dry_run=self.dry_run)
+  File "/Users/dbarroso/workspace/brigade/brigade/core/task.py", line 39, in _start
+    return self.task(self, **self.params)
+  File "/Users/dbarroso/workspace/brigade/brigade/plugins/tasks/text/template_file.py", line 19, in template_file
+    path = format_string(path, task, **kwargs)
+  File "/Users/dbarroso/workspace/brigade/brigade/core/helpers/__init__.py", line 12, in format_string
+    **merge_two_dicts(task.host.items(), kwargs))
+KeyError: 'nos'
+
+
+2017-12-17 16:06:31,945 - brigade - ERROR - switch01.cmh: 
+########################################
+# switch01.cmh (failed) 
+########################################
+Traceback (most recent call last):
+  File "/Users/dbarroso/workspace/brigade/brigade/core/__init__.py", line 98, in _run_serial
+    r = t._start(host=host, brigade=self, dry_run=self.dry_run)
+  File "/Users/dbarroso/workspace/brigade/brigade/core/task.py", line 39, in _start
+    return self.task(self, **self.params)
+  File "/Users/dbarroso/workspace/brigade/brigade/plugins/tasks/text/template_file.py", line 19, in template_file
+    path = format_string(path, task, **kwargs)
+  File "/Users/dbarroso/workspace/brigade/brigade/core/helpers/__init__.py", line 12, in format_string
+    **merge_two_dicts(task.host.items(), kwargs))
+KeyError: 'nos'
+
+
+2017-12-17 16:06:47,780 - root - INFO - {'switch00.cmh': {'name': 'switch00.cmh', 'group': 'cmh-leaf', 'domain': 'acme.com', 'brigade_host': '127.0.0.1', 'brigade_username': 'vagrant', 'brigade_password': 'vagrant', 'brigade_network_api_port': 12443, 'site': 'cmh', 'role': 'leaf', 'brigade_nos': 'eos'}}
+2017-12-17 16:06:47,780 - root - INFO - {'switch01.cmh': {'name': 'switch01.cmh', 'group': 'cmh-leaf', 'domain': 'acme.com', 'brigade_host': '127.0.0.1', 'brigade_username': 'vagrant', 'brigade_password': '', 'brigade_network_api_port': 12203, 'site': 'cmh', 'role': 'leaf', 'brigade_nos': 'junos'}}
+2017-12-17 16:06:48,287 - ncclient.transport.ssh - INFO - Connected (version 2.0, client OpenSSH_6.6)
+2017-12-17 16:06:48,408 - ncclient.transport.ssh - INFO - Authentication (publickey) successful!
+2017-12-17 16:06:48,899 - ncclient.transport.session - INFO - initialized: session-id=2000 | server_capabilities=<dict_keyiterator object at 0x1077abe08>
+2017-12-17 16:06:48,900 - ncclient.operations.rpc - INFO - Requesting 'ExecuteRpc'
+2017-12-17 16:06:49,030 - ncclient.operations.rpc - INFO - Requesting 'ExecuteRpc'
+2017-12-17 16:06:49,349 - ncclient.operations.rpc - INFO - Requesting 'ExecuteRpc'
+2017-12-17 16:06:49,609 - ncclient.operations.rpc - INFO - Requesting 'ExecuteRpc'
+2017-12-17 16:06:49,870 - ncclient.operations.rpc - INFO - Requesting 'ExecuteRpc'
+2017-12-17 16:07:09,473 - root - INFO - {'switch00.cmh': {'name': 'switch00.cmh', 'group': 'cmh-leaf', 'domain': 'acme.com', 'brigade_host': '127.0.0.1', 'brigade_username': 'vagrant', 'brigade_password': 'vagrant', 'brigade_network_api_port': 12443, 'site': 'cmh', 'role': 'leaf', 'brigade_nos': 'eos'}}
+2017-12-17 16:07:09,473 - root - INFO - {'switch01.cmh': {'name': 'switch01.cmh', 'group': 'cmh-leaf', 'domain': 'acme.com', 'brigade_host': '127.0.0.1', 'brigade_username': 'vagrant', 'brigade_password': '', 'brigade_network_api_port': 12203, 'site': 'cmh', 'role': 'leaf', 'brigade_nos': 'junos'}}
+2017-12-17 16:07:09,977 - ncclient.transport.ssh - INFO - Connected (version 2.0, client OpenSSH_6.6)
+2017-12-17 16:07:10,097 - ncclient.transport.ssh - INFO - Authentication (publickey) successful!
+2017-12-17 16:07:10,528 - ncclient.transport.session - INFO - initialized: session-id=2009 | server_capabilities=<dict_keyiterator object at 0x107d03e08>
+2017-12-17 16:07:10,529 - ncclient.operations.rpc - INFO - Requesting 'ExecuteRpc'
+2017-12-17 16:07:10,659 - ncclient.operations.rpc - INFO - Requesting 'ExecuteRpc'
+2017-12-17 16:07:10,914 - ncclient.operations.rpc - INFO - Requesting 'ExecuteRpc'
+2017-12-17 16:07:11,149 - ncclient.operations.rpc - INFO - Requesting 'ExecuteRpc'
+2017-12-17 16:07:18,189 - ncclient.operations.rpc - INFO - Requesting 'ExecuteRpc'
+2017-12-17 16:07:21,680 - root - INFO - {'switch00.cmh': {'name': 'switch00.cmh', 'group': 'cmh-leaf', 'domain': 'acme.com', 'brigade_host': '127.0.0.1', 'brigade_username': 'vagrant', 'brigade_password': 'vagrant', 'brigade_network_api_port': 12443, 'site': 'cmh', 'role': 'leaf', 'brigade_nos': 'eos'}}
+2017-12-17 16:07:21,680 - root - INFO - {'switch01.cmh': {'name': 'switch01.cmh', 'group': 'cmh-leaf', 'domain': 'acme.com', 'brigade_host': '127.0.0.1', 'brigade_username': 'vagrant', 'brigade_password': '', 'brigade_network_api_port': 12203, 'site': 'cmh', 'role': 'leaf', 'brigade_nos': 'junos'}}
+2017-12-17 16:07:22,187 - ncclient.transport.ssh - INFO - Connected (version 2.0, client OpenSSH_6.6)
+2017-12-17 16:07:22,297 - ncclient.transport.ssh - INFO - Authentication (publickey) successful!
+2017-12-17 16:07:22,779 - ncclient.transport.session - INFO - initialized: session-id=2324 | server_capabilities=<dict_keyiterator object at 0x106d9dea8>
+2017-12-17 16:07:22,779 - ncclient.operations.rpc - INFO - Requesting 'ExecuteRpc'
+2017-12-17 16:07:22,909 - ncclient.operations.rpc - INFO - Requesting 'ExecuteRpc'
+2017-12-17 16:07:23,189 - ncclient.operations.rpc - INFO - Requesting 'ExecuteRpc'
+2017-12-17 16:07:23,468 - ncclient.operations.rpc - INFO - Requesting 'ExecuteRpc'
+2017-12-17 16:07:23,729 - ncclient.operations.rpc - INFO - Requesting 'ExecuteRpc'
