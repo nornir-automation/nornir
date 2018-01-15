@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 """
-In this example we write a CLI tool with brigade and click to deploy configuration.
+Runbook that verifies that BGP sessions are configured and up.
 """
-from brigade.core import Brigade
-from brigade.plugins.inventory.simple import SimpleInventory
+from brigade.easy import easy_brigade
 from brigade.plugins.tasks import data, networking, text
 
 
@@ -27,25 +26,33 @@ def validate(task):
     for session in r.result['sessions']:
         peers[session['ipv4']] = {'is_up': True}
 
-    return task.run(name="validating data",
-                    task=networking.napalm_validate,
-                    validation_source=validation_rules)
+    task.run(name="validating data",
+             task=networking.napalm_validate,
+             validation_source=validation_rules)
 
 
 def print_compliance(task, results):
-    task.run(name="print result",
-             task=text.print_result,
+    """
+    We use this task so we can access directly the result
+    for each specific host and see if the task complies or not
+    and pass it to print_result.
+    """
+    task.run(text.print_result,
+             name="print result",
              data=results[task.host.name],
-             failed=not results[task.host.name].result['complies'],
+             failed=not results[task.host.name][2].result['complies'],
              )
 
 
-brigade = Brigade(
-    inventory=SimpleInventory("../hosts.yaml", "../groups.yaml"),
-    dry_run=False,
+brg = easy_brigade(
+        host_file="../inventory/hosts.yaml",
+        group_file="../inventory/groups.yaml",
+        dry_run=False,
+        raise_on_error=True,
 )
 
-filtered = brigade.filter(type="network_device", site="cmh")
+
+filtered = brg.filter(type="network_device", site="cmh")
 
 results = filtered.run(task=validate)
 

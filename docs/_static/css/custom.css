@@ -1,0 +1,12 @@
+div.pygments pre {
+  font-size: 0.8em;
+  padding: 0.5em 0.5em 0.5em 0.5em;
+}
+
+span.lineno {
+  color: gray;
+}
+
+span.lineno::after {
+    content: "|"
+}

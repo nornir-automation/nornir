@@ -1,40 +1,44 @@
 #!/usr/bin/env python
 """
-This is a simple example where we use click and brigade to build a simple CLI tool to retrieve
-hosts information.
-
-The main difference with get_facts_simple.py is that instead of calling a plugin directly
-we wrap it in a function. It is not very useful or necessary here but illustrates how
-tasks can be grouped.
+Tool that downloads the configuration from the devices and
+stores them on disk.
 """
-from brigade.core import Brigade
-from brigade.core.configuration import Config
-from brigade.plugins.inventory.simple import SimpleInventory
+from brigade.easy import easy_brigade
 from brigade.plugins.tasks import files, networking, text
 
 import click
 
 
 def backup(task, path):
+    """
+    This function groups two tasks:
+        1. Download configuration from the device
+        2. Store to disk
+    """
     result = task.run(networking.napalm_get,
+                      name="Gathering configuration from the device",
                       getters="config")
 
-    return task.run(files.write,
-                    content=result.result["config"]["running"],
-                    filename="{}/{}".format(path, task.host))
+    task.run(files.write,
+             name="Saving Configuration to disk",
+             content=result.result["config"]["running"],
+             filename="{}/{}".format(path, task.host))
 
 
 @click.command()
-@click.option('--filter', '-f', multiple=True)
-@click.option('--path', '-p', default=".")
+@click.option('--filter', '-f', multiple=True,
+              help="filters to apply. For instance site=cmh")
+@click.option('--path', '-p', default=".",
+              help="Where to save the backup files")
 def main(filter, path):
     """
     Backups running configuration of devices into a file
     """
-    brigade = Brigade(
-        inventory=SimpleInventory("../hosts.yaml", "../groups.yaml"),
-        dry_run=False,
-        config=Config(raise_on_error=False),
+    brg = easy_brigade(
+            host_file="../inventory/hosts.yaml",
+            group_file="../inventory/groups.yaml",
+            dry_run=False,
+            raise_on_error=False,
     )
 
     # filter is going to be a list of key=value so we clean that first
@@ -43,13 +47,22 @@ def main(filter, path):
         k, v = f.split("=")
         filter_dict[k] = v
 
-    filtered = brigade.filter(**filter_dict)            # let's filter the devices
-    results = filtered.run(backup, num_workers=20, path=path)
+    # let's filter the devices
+    filtered = brg.filter(**filter_dict)
+
+    # Run the ``backup`` function that groups the tasks to
+    # download/store devices' configuration
+    results = filtered.run(backup,
+                           name="Backing up configurations",
+                           path=path)
 
     # Let's print the result on screen
     filtered.run(text.print_result,
-                 num_workers=1,  # we are printing on screen so we want to do this synchronously
-                 data=results)
+                 num_workers=1,  # task should be done synchronously
+                 data=results,
+                 task_id=-1,  # we only want to print the last task
+                 skipped=True,
+                 )
 
 
 if __name__ == "__main__":

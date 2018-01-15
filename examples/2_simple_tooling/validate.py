@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 """
-In this example we write a CLI tool with brigade and click to deploy configuration.
+Runbook that verifies that BGP sessions are configured and up.
 """
-from brigade.core import Brigade
-from brigade.plugins.inventory.simple import SimpleInventory
+from brigade.easy import easy_brigade
 from brigade.plugins.tasks import data, networking, text
 
 import click
@@ -29,26 +28,33 @@ def validate(task):
     for session in r.result['sessions']:
         peers[session['ipv4']] = {'is_up': True}
 
-    return task.run(name="validating data",
-                    task=networking.napalm_validate,
-                    validation_source=validation_rules)
+    task.run(name="validating data",
+             task=networking.napalm_validate,
+             validation_source=validation_rules)
 
 
 def print_compliance(task, results):
+    """
+    We use this task so we can access directly the result
+    for each specific host and see if the task complies or not
+    and pass it to print_result.
+    """
     task.run(name="print result",
              task=text.print_result,
              data=results[task.host.name],
-             failed=not results[task.host.name].result['complies'],
+             failed=not results[task.host.name][2].result['complies'],
              )
 
 
 @click.command()
-@click.option('--filter', '-f', multiple=True)
-@click.option('--commit/--no-commit', '-c', default=False)
-def main(filter, commit):
-    brigade = Brigade(
-        inventory=SimpleInventory("../hosts.yaml", "../groups.yaml"),
-        dry_run=False,
+@click.option('--filter', '-f', multiple=True,
+              help="k=v pairs to filter the devices")
+def main(filter):
+    brg = easy_brigade(
+            host_file="../inventory/hosts.yaml",
+            group_file="../inventory/groups.yaml",
+            dry_run=False,
+            raise_on_error=True,
     )
 
     # filter is going to be a list of key=value so we clean that first
@@ -57,7 +63,8 @@ def main(filter, commit):
         k, v = f.split("=")
         filter_dict[k] = v
 
-    filtered = brigade.filter(**filter_dict)            # let's filter the devices
+    # select which devices we want to work with
+    filtered = brg.filter(**filter_dict)
 
     results = filtered.run(task=validate)
 
