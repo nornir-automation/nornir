@@ -22,17 +22,18 @@ class Task(object):
         dry_run(``bool``): Populated right before calling the ``task``
     """
 
-    def __init__(self, task, name=None, **kwargs):
+    def __init__(self, task, name=None, skipped=False, **kwargs):
         self.name = name or task.__name__
         self.task = task
         self.params = kwargs
+        self.skipped = skipped
         self.results = MultiResult(self.name)
 
     def __repr__(self):
         return self.name
 
     def _start(self, host, brigade, dry_run, sub_task=False):
-        if host.name in brigade.data.failed_hosts:
+        if host.name in brigade.data.failed_hosts and not self.skipped:
             r = Result(host, skipped=True)
         else:
             self.host = host
