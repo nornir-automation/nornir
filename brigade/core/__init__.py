@@ -204,5 +204,5 @@ def run_task(host, brigade, dry_run, task):
         logger.error("{}: {}".format(host, tb))
         r = Result(host, exception=e, result=tb, failed=True)
         task.results.append(r)
-
+        r.name = task.name
     return task.results
