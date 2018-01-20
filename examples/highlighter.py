@@ -5,7 +5,7 @@ from IPython.display import HTML
 
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
-from pygments.lexers import get_lexer_for_filename, get_lexer_by_name
+from pygments.lexers import get_lexer_by_name
 
 
 HTML_TEMPLATE = """<style>

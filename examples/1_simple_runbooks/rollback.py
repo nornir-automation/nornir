@@ -32,7 +32,6 @@ def main(filter, get):
             raise_on_error=True,
     )
 
-
     # select which devices we want to work with
     filtered = brg.filter(type="network_device", site="cmh")
 
@@ -43,5 +42,7 @@ def main(filter, get):
                  data=results,
                  task_id=-1,  # we only want to print the last task
                  )
+
+
 if __name__ == "__main__":
     main()

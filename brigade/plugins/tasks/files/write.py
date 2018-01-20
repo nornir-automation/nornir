@@ -4,15 +4,15 @@ import os
 from brigade.core.task import Result
 
 
-def read_file(file):
+def _read_file(file):
     if not os.path.exists(file):
         return []
     with open(file, "r") as f:
         return f.read().splitlines()
 
 
-def generate_diff(filename, content, append):
-    original = read_file(filename)
+def _generate_diff(filename, content, append):
+    original = _read_file(filename)
     if append:
         c = list(original)
         c.extend(content.splitlines())
@@ -38,7 +38,7 @@ def write(task, filename, content, append=False):
         * changed (``bool``):
         * diff (``str``): unified diff
     """
-    diff = generate_diff(filename, content, append)
+    diff = _generate_diff(filename, content, append)
 
     if not task.dry_run:
         mode = "a+" if append else "w+"

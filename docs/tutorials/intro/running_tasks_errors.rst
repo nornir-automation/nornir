@@ -1,10 +1,10 @@
 Dealing with task errors
 ========================
 
-Tasks can fail due to many reasons. A continuation we will see how to deal with errors effectively with brigade.
+Tasks can fail due to many reasons. As we continue we will see how to deal with errors effectively with brigade.
 
-Failing by default
-------------------
+Failing on error by default
+---------------------------
 
 Brigade can raise a :obj:`brigade.core.exceptions.BrigadeExecutionError` exception automatically as soon as an error occurs. For instance::
 
@@ -367,7 +367,7 @@ Regardless of the default behavior you can force ``raise_on_error`` on a per tas
 	...           raise_on_error=False)
 	>>>
 
-As you can see, regardless of what ``brigade`` had configured to do, the task failed on the first case but didn't on the second one.
+As you can see, regardless of what ``brigade`` had been configured to do, the task failed on the first case but didn't on the second one.
 
 Which one to use
 ----------------

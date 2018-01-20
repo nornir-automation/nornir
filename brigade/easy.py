@@ -3,7 +3,7 @@ from brigade.core.configuration import Config
 from brigade.plugins.inventory.simple import SimpleInventory
 
 
-def easy_brigade(host_file="host.yaml", group_file="groups.yaml", dry_run=True, **kwargs):
+def easy_brigade(host_file="host.yaml", group_file="groups.yaml", dry_run=False, **kwargs):
     """
     Helper function to create easily a :obj:`brigade.core.Brigade` object.
 

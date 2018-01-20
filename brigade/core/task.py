@@ -20,7 +20,7 @@ class Task(object):
         name (``string``): name of task, defaults to ``task.__name__``
         skipped (``bool``): whether to run hosts that should be skipped otherwise or not
         params: Parameters that will be passed to the ``task``.
-        self.results (:obj:`brigade.core.tasks.MultiResult`): Intermediate results
+        self.results (:obj:`brigade.core.task.MultiResult`): Intermediate results
         host (:obj:`brigade.core.inventory.Host`): Host we are operating with. Populated right
           before calling the ``task``
         brigade(:obj:`brigade.core.Brigade`): Populated right before calling

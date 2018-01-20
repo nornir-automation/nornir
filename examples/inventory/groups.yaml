@@ -1,6 +1,5 @@
 ---
 all:
-    group: null
     domain: acme.com
 
 bma:

@@ -11,8 +11,8 @@ Using the "raw" API
 
 If you want to use the "raw" API you need two things:
 
-1. A configuration object.
-2. An inventory object.
+1. A :obj:`brigade.core.configuration.Config` object.
+2. An :doc:`inventory </ref/inventory/index>` object.
 
 Once you have them, you can create the brigade object yourself. For example::
 

@@ -3,11 +3,28 @@ The Inventory
 
 The inventory is arguably the most important piece of Brigade. The inventory organizes hosts and makes sure tasks have the correct data for each host.
 
+
+Inventory data
+--------------
+
+Before we start let's take a look at the inventory data:
+
+* ``hosts.yaml``
+
+.. literalinclude:: ../../../examples/inventory/hosts.yaml
+
+* ``groups.yaml``
+
+.. literalinclude:: ../../../examples/inventory/groups.yaml
+
+Loading the inventory
+---------------------
+
 You can create the inventory in different ways, depending on your data source. To see the available plugins you can use go to the :ref:`ref-inventory` reference guide.
 
-.. note:: For this and the subsequent sections of this tutorial we are going to use the :obj:`SimpleInventory <brigade.plugins.inventory.simple.SimpleInventory>` with the data located in ``/examples/inventory/``. We will also use the ``Vagrantfile`` located there so you should be able to reproduce everything. You can head to `Hosts/Groups contents`_ to see the contents of the file just for reference.
+.. note:: For this and the subsequent sections of this tutorial we are going to use the :obj:`SimpleInventory <brigade.plugins.inventory.simple.SimpleInventory>` with the data located in ``/examples/inventory/``. We will also use the ``Vagrantfile`` located there so you should be able to reproduce everything.
 
-First, let's create the inventory::
+First, let's load the inventory::
 
 	>>> from brigade.plugins.inventory.simple import SimpleInventory
 	>>> inventory = SimpleInventory(host_file="hosts.yaml", group_file="groups.yaml")
@@ -116,16 +133,3 @@ You can also do more complex filtering by using functions or lambdas::
 	dict_keys(['host1.cmh', 'host2.cmh', 'host1.bma', 'host2.bma'])
 
 Not the most useful example but it should be enough to illustrate how it works.
-
-
-Hosts/Groups contents
----------------------
-
-
-* ``hosts.yaml``
-
-.. literalinclude:: ../../../examples/inventory/hosts.yaml
-
-* ``groups.yaml``
-
-.. literalinclude:: ../../../examples/inventory/groups.yaml
