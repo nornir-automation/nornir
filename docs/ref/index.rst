@@ -24,4 +24,5 @@ Reference Guides
    :caption: Plugins
 
    tasks/index
+   functions/index
    inventory/index

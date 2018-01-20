@@ -1,3 +1,4 @@
+colorama
 pyyaml
 jinja2
 napalm>=2.2.0

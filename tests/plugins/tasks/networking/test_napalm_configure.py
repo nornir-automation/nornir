@@ -55,5 +55,5 @@ class Test(object):
         with pytest.raises(BrigadeExecutionError) as e:
             d.run(networking.napalm_configure, configuration=configuration)
         assert len(e.value.failed_hosts)
-        for exc in e.value.failed_hosts.values():
-            assert isinstance(exc, exceptions.MergeConfigException)
+        for result in e.value.failed_hosts.values():
+            assert isinstance(result.exception, exceptions.MergeConfigException)

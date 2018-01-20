@@ -1,7 +1,8 @@
+from brigade.core.helpers import format_string
 from brigade.core.task import Result
 
 
-def napalm_configure(task, configuration, replace=False):
+def napalm_configure(task, filename=None, configuration=None, replace=False):
     """
     Loads configuration into a network devices using napalm
 
@@ -15,15 +16,16 @@ def napalm_configure(task, configuration, replace=False):
           * diff (``string``): change in the system
     """
     device = task.host.get_connection("napalm")
+    filename = format_string(filename, task, **task.host) if filename is not None else None
 
     if replace:
-        device.load_replace_candidate(config=configuration)
+        device.load_replace_candidate(filename=filename, config=configuration)
     else:
-        device.load_merge_candidate(config=configuration)
+        device.load_merge_candidate(filename=filename, config=configuration)
     diff = device.compare_config()
 
-    if task.dry_run:
-        device.discard_config()
-    else:
+    if not task.dry_run and diff:
         device.commit_config()
+    else:
+        device.discard_config()
     return Result(host=task.host, diff=diff, changed=len(diff) > 0)

@@ -1,6 +1,0 @@
-{% for interface, data in interfaces.items() %}
-interface {{ interface }}
-   description {{ data.description }}
-   {{ "no" if data.enabled else "" }} shutdown
-{% endfor %}
-

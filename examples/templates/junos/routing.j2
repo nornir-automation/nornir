@@ -1,0 +1,30 @@
+routing-options {
+    autonomous-system {{ asn }};
+}
+
+policy-options {
+    policy-statement PERMIT_ALL {
+        from protocol bgp;
+        then accept;
+    }
+}
+
+protocols {
+    replace:
+    bgp {
+        import PERMIT_ALL;
+        export PERMIT_ALL;
+  }
+}
+
+{% for session in l3.sessions %}
+protocols {
+    bgp {
+        group peers {
+            neighbor {{ session.ipv4 }} {
+                peer-as {{ session.peer_as }};
+            }
+        }
+    }
+}
+{% endfor %}

@@ -1,5 +1,4 @@
 import hashlib
-import logging
 import os
 import stat
 
@@ -11,9 +10,6 @@ from brigade.plugins.tasks import commands
 import paramiko
 
 from scp import SCPClient
-
-
-logger = logging.getLogger("brigade")
 
 
 def get_src_hash(filename):

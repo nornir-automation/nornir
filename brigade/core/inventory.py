@@ -1,10 +1,6 @@
 import getpass
-import logging
 
 from brigade.core import helpers
-
-
-logger = logging.getLogger("brigade")
 
 
 class Host(object):
@@ -77,19 +73,17 @@ class Host(object):
         for k, v in kwargs.items():
             self.data[k] = v
 
+    def _resolve_data(self):
+        d = self.group if self.group else {}
+        return helpers.merge_two_dicts(d, self.data)
+
     def keys(self):
         """Returns the keys of the attribute ``data`` and of the parent(s) groups."""
-        k = list(self.data.keys())
-        if self.group:
-            k.extend(list(self.group.keys()))
-        return k
+        return self._resolve_data().keys()
 
     def values(self):
         """Returns the values of the attribute ``data`` and of the parent(s) groups."""
-        v = list(self.data.values())
-        if self.group:
-            v.extend(list(self.group.values()))
-        return v
+        return self._resolve_data().values()
 
     def __getitem__(self, item):
         try:
@@ -132,11 +126,7 @@ class Host(object):
         Returns all the data accessible from a device, including
         the one inherited from parent groups
         """
-        if self.group:
-            d = self.group.items()
-        else:
-            d = {}
-        return helpers.merge_two_dicts(d, self.data)
+        return self._resolve_data().items()
 
     @property
     def brigade(self):
@@ -217,7 +207,9 @@ class Host(object):
             # the given host. We also have to set `num_workers=1` because chances are
             # we are already inside a thread
             # Task should establish a connection and populate self.connection[connection]
-            self.brigade.filter(name=self.name).run(conn_task, num_workers=1)
+            r = self.brigade.filter(name=self.name).run(conn_task, num_workers=1)
+            if r[self.name].exception:
+                raise r[self.name].exception
         return self.connections[connection]
 
 

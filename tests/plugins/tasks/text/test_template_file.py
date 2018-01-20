@@ -33,5 +33,5 @@ class Test(object):
                         template='broken.j2',
                         path=data_dir)
         assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
-        for exc in e.value.failed_hosts.values():
-            assert isinstance(exc, TemplateSyntaxError)
+        for result in e.value.failed_hosts.values():
+            assert isinstance(result.exception, TemplateSyntaxError)

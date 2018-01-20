@@ -1,0 +1,8 @@
+{% for interface, data in l3.interfaces.items() %}
+interface {{ interface }}
+   no switchport
+   ip address {{ data.ipv4 }}
+   description link to {{ data.connects_to }}
+   {{ "no" if data.enabled else "" }} shutdown
+{% endfor %}
+

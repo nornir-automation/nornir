@@ -37,16 +37,16 @@ class Test(object):
             brigade.run(networking.tcp_ping,
                         ports='web')
         assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
-        for exc in e.value.failed_hosts.values():
-            assert isinstance(exc, ValueError)
+        for result in e.value.failed_hosts.values():
+            assert isinstance(result.exception, ValueError)
 
     def test_tcp_ping_invalid_ports(self, brigade):
         with pytest.raises(BrigadeExecutionError) as e:
             brigade.run(networking.tcp_ping,
                         ports=[22, 'web', 443])
         assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
-        for exc in e.value.failed_hosts.values():
-            assert isinstance(exc, ValueError)
+        for result in e.value.failed_hosts.values():
+            assert isinstance(result.exception, ValueError)
 
 
 def test_tcp_ping_external_hosts():

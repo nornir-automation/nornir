@@ -1,10 +1,5 @@
-import logging
-
 from brigade.core.exceptions import CommandError
 from brigade.core.task import Result
-
-
-logger = logging.getLogger("brigade")
 
 
 def remote_command(task, command):

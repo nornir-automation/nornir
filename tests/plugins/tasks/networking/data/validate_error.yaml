@@ -1,0 +1,6 @@
+---
+- get_facts:
+    os_version: 4.15.5M-3054042.4155M
+- get_interfaces:
+    Ethernet1:
+      description: "unset"

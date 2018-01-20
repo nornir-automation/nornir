@@ -18,3 +18,10 @@ AggregatedResult
 .. autoclass:: brigade.core.task.AggregatedResult
    :members:
    :undoc-members:
+
+MultiResult
+################
+
+.. autoclass:: brigade.core.task.MultiResult
+   :members:
+   :undoc-members:

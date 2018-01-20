@@ -18,5 +18,5 @@ class Test(object):
             brigade.run(commands.remote_command,
                         command="ls /asdadsd")
         assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
-        for exc in e.value.failed_hosts.values():
-            assert isinstance(exc, CommandError)
+        for result in e.value.failed_hosts.values():
+            assert isinstance(result.exception, CommandError)
