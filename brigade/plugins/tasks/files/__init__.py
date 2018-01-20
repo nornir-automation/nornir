@@ -1,8 +1,8 @@
 from .sftp import sftp
-from .write import write
+from .write_file import write_file
 
 
 __all__ = (
     "sftp",
-    "write",
+    "write_file",
 )

@@ -20,7 +20,7 @@ BLIH
 """
 
 
-diff_new = """--- /tmp/brigade-write/dev3.group_2-f66d9331-3eeb-4912-98b9-37f55ac48deb
+diff_new = """--- /tmp/brigade-write_file/dev3.group_2-f66d9331-3eeb-4912-98b9-37f55ac48deb
 
 +++ new
 
@@ -33,7 +33,7 @@ diff_new = """--- /tmp/brigade-write/dev3.group_2-f66d9331-3eeb-4912-98b9-37f55a
 +BLOH
 +BLUH"""
 
-diff_overwrite = """--- /tmp/brigade-write/dev4.group_2-e63969eb-2261-4200-8913-196a12f4d791
+diff_overwrite_file = """--- /tmp/brigade-write_file/dev4.group_2-e63969eb-2261-4200-8913-196a12f4d791
 
 +++ new
 
@@ -49,7 +49,7 @@ diff_overwrite = """--- /tmp/brigade-write/dev4.group_2-e63969eb-2261-4200-8913-
 -BLUH"""  # noqa
 
 
-diff_append = """--- /tmp/brigade-write/dev4.group_2-36ea350d-6623-4098-a961-fc143504eb42
+diff_append = """--- /tmp/brigade-write_file/dev4.group_2-36ea350d-6623-4098-a961-fc143504eb42
 
 +++ new
 
@@ -65,14 +65,14 @@ diff_append = """--- /tmp/brigade-write/dev4.group_2-36ea350d-6623-4098-a961-fc1
 +BLIH"""  # noqa
 
 
-BASEPATH = "/tmp/brigade-write"
+BASEPATH = "/tmp/brigade-write_file"
 if not os.path.exists(BASEPATH):
     os.makedirs(BASEPATH)
 
 
-def _test_write(task):
+def _test_write_file(task):
     filename = "{}/{}-{}".format(BASEPATH, task.host, str(uuid.uuid4()))
-    r = task.run(files.write,
+    r = task.run(files.write_file,
                  dry_run=True,
                  filename=filename,
                  content=content_a)
@@ -80,7 +80,7 @@ def _test_write(task):
     assert r.diff.splitlines()[1:] == diff_new.splitlines()[1:]
     assert r.changed
 
-    r = task.run(files.write,
+    r = task.run(files.write_file,
                  dry_run=False,
                  filename=filename,
                  content=content_a)
@@ -88,7 +88,7 @@ def _test_write(task):
     assert r.diff.splitlines()[1:] == diff_new.splitlines()[1:]
     assert r.changed
 
-    r = task.run(files.write,
+    r = task.run(files.write_file,
                  dry_run=False,
                  filename=filename,
                  content=content_a)
@@ -97,10 +97,10 @@ def _test_write(task):
     assert not r.changed
 
 
-def _test_overwrite(task):
+def _test_overwrite_file(task):
     filename = "{}/{}-{}".format(BASEPATH, task.host, str(uuid.uuid4()))
 
-    r = task.run(files.write,
+    r = task.run(files.write_file,
                  dry_run=False,
                  filename=filename,
                  content=content_a)
@@ -108,15 +108,15 @@ def _test_overwrite(task):
     assert r.diff.splitlines()[1:] == diff_new.splitlines()[1:]
     assert r.changed
 
-    r = task.run(files.write,
+    r = task.run(files.write_file,
                  dry_run=False,
                  filename=filename,
                  content=content_b)
 
-    assert r.diff.splitlines()[1:] == diff_overwrite.splitlines()[1:]
+    assert r.diff.splitlines()[1:] == diff_overwrite_file.splitlines()[1:]
     assert r.changed
 
-    r = task.run(files.write,
+    r = task.run(files.write_file,
                  dry_run=False,
                  filename=filename,
                  content=content_b)
@@ -128,7 +128,7 @@ def _test_overwrite(task):
 def _test_append(task):
     filename = "{}/{}-{}".format(BASEPATH, task.host, str(uuid.uuid4()))
 
-    r = task.run(files.write,
+    r = task.run(files.write_file,
                  dry_run=False,
                  filename=filename,
                  content=content_a)
@@ -136,7 +136,7 @@ def _test_append(task):
     assert r.diff.splitlines()[1:] == diff_new.splitlines()[1:]
     assert r.changed
 
-    r = task.run(files.write,
+    r = task.run(files.write_file,
                  dry_run=False,
                  filename=filename,
                  content=content_b,
@@ -148,11 +148,11 @@ def _test_append(task):
 
 class Test(object):
 
-    def test_write(self, brigade):
-        brigade.run(_test_write)
+    def test_write_file(self, brigade):
+        brigade.run(_test_write_file)
 
-    def test_overwrite(self, brigade):
-        brigade.run(_test_overwrite)
+    def test_overwrite_file(self, brigade):
+        brigade.run(_test_overwrite_file)
 
     def test_append(self, brigade):
         brigade.run(_test_append)
