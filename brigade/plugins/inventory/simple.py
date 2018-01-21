@@ -102,8 +102,7 @@ class SimpleInventory(Inventory):
         cmh:
             group: all
     """
-
-    def __init__(self, host_file, group_file=None, **kwargs):
+    def __init__(self, host_file="hosts.yaml", group_file=None, **kwargs):
         with open(host_file, "r") as f:
             hosts = yaml.load(f.read())
 

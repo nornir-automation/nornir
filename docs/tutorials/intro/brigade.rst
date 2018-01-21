@@ -4,7 +4,6 @@ Brigade
 Now that we know how the inventory works let's create a brigade object we can start working with. There are two ways we can use:
 
 1. Using the :obj:`brigade.core.Brigade` directly, which is quite simple and the most flexible and versatile option.
-2. Using :obj:`brigade.easy.easy_brigade`, which is simpler and good enough for most cases.
 
 Using the "raw" API
 -------------------
@@ -29,8 +28,6 @@ Once you have them, you can create the brigade object yourself. For example::
 
 Using ``easy_brigade``
 ----------------------
-
-With :obj:`brigade.easy.easy_brigade` you only need to do::
 
 	>>> from brigade.easy import easy_brigade
 	>>> brigade = easy_brigade(
