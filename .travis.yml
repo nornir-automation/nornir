@@ -4,9 +4,8 @@ services:
     - docker
 
 addons:
-  apt:
-    packages:
-    - sshpass
+  apt_packages:
+    - pandoc
 
 language: python
 python:

@@ -32,19 +32,19 @@ class BrigadeExecutionError(Exception):
     """
     def __init__(self, result):
         self.result = result
-        self.failed_hosts = result.failed_hosts
-        self.tracebacks = result.tracebacks
+
+    @property
+    def failed_hosts(self):
+        return {k: v for k, v in self.result.items() if v.failed}
 
     def __str__(self):
         text = "\n"
         for k, r in self.result.items():
             text += "{}\n".format("#" * 40)
-            text += "# {} (succeeded) \n".format(k)
+            if r.failed:
+                text += "# {} (failed)\n".format(k)
+            else:
+                text += "# {} (succeeded)\n".format(k)
             text += "{}\n".format("#" * 40)
-            text += "{}\n".format(r)
-        for k, r in self.tracebacks.items():
-            text += "{}\n".format("#" * 40)
-            text += "# {} (failed) \n".format(k)
-            text += "{}\n".format("#" * 40)
-            text += "{}\n".format(r)
+            text += "{}\n".format(r.result)
         return text

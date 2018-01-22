@@ -62,6 +62,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/ref/configuration/generated/*.rst
 
 # PyBuilder
 target/
@@ -94,9 +95,5 @@ tags
 .vagrant
 .vars
 output/
-
-demo/log
-
-tests.log
 
 .DS_Store

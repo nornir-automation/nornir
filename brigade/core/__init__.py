@@ -1,9 +1,12 @@
 import logging
+import logging.config
 import sys
 import traceback
 from multiprocessing.dummy import Pool
 
-from brigade.core.task import AggregatedResult, Task
+from brigade.core.configuration import Config
+from brigade.core.task import AggregatedResult, Result, Task
+from brigade.plugins.tasks import connections
 
 
 if sys.version_info.major == 2:
@@ -31,7 +34,17 @@ if sys.version_info.major == 2:
     copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
 
 
-logger = logging.getLogger("brigade")
+class Data(object):
+    """
+    This class is just a placeholder to share data amongsts different
+    versions of Brigade  after running ``filter`` multiple times.
+
+    Attributes:
+        failed_hosts (list): Hosts that have failed to run a task properly
+    """
+
+    def __init__(self):
+        self.failed_hosts = set()
 
 
 class Brigade(object):
@@ -41,32 +54,74 @@ class Brigade(object):
 
     Arguments:
         inventory (:obj:`brigade.core.inventory.Inventory`): Inventory to work with
+        data(:obj:`brigade.core.Data`): shared data amongst different iterations of brigade
         dry_run(``bool``): Whether if we are testing the changes or not
-        num_workers(``int``): How many hosts run in parallel
-        raise_on_error (``bool``): If set to ``True``, :meth:`run` method of will
-          raise an exception if at least a host failed.
+        config (:obj:`brigade.core.configuration.Config`): Configuration object
+        config_file (``str``): Path to Yaml configuration file
+        available_connections (``dict``): dict of connection types that will be made available.
+            Defaults to :obj:`brigade.plugins.tasks.connections.available_connections`
 
     Attributes:
         inventory (:obj:`brigade.core.inventory.Inventory`): Inventory to work with
+        data(:obj:`brigade.core.Data`): shared data amongst different iterations of brigade
         dry_run(``bool``): Whether if we are testing the changes or not
-        num_workers(``int``): How many hosts run in parallel
-        raise_on_error (``bool``): If set to ``True``, :meth:`run` method of will
-          raise an exception if at least a host failed.
+        config (:obj:`brigade.core.configuration.Config`): Configuration parameters
+        available_connections (``dict``): dict of connection types are available
     """
 
-    def __init__(self, inventory, dry_run, num_workers=20, raise_on_error=True):
+    def __init__(self, inventory, dry_run, config=None, config_file=None,
+                 available_connections=None, logger=None, data=None):
+        self.logger = logger or logging.getLogger("brigade")
+
+        self.data = data or Data()
         self.inventory = inventory
+        self.inventory.brigade = self
 
         self.dry_run = dry_run
-        self.num_workers = num_workers
-        self.raise_on_error = raise_on_error
+        if config_file:
+            self.config = Config(config_file=config_file)
+        else:
+            self.config = config or Config()
 
-        format = "\033[31m%(asctime)s - %(name)s - %(levelname)s"
-        format += " - %(funcName)20s() - %(message)s\033[0m"
-        logging.basicConfig(
-            level=logging.ERROR,
-            format=format,
-        )
+        self.configure_logging()
+
+        if available_connections is not None:
+            self.available_connections = available_connections
+        else:
+            self.available_connections = connections.available_connections
+
+    def configure_logging(self):
+        format = "%(asctime)s - %(name)s - %(levelname)s"
+        format += " - %(funcName)10s() - %(message)s"
+        logging.config.dictConfig({
+            "version": 1,
+            "disable_existing_loggers": False,
+            "formatters": {
+                "simple": {"format": format}
+            },
+            "handlers": {
+                "info_file_handler": {
+                    "class": "logging.handlers.RotatingFileHandler",
+                    "level": "INFO",
+                    "formatter": "simple",
+                    "filename": "brigade.log",
+                    "maxBytes": 10485760,
+                    "backupCount": 20,
+                    "encoding": "utf8"
+                },
+            },
+            "loggers": {
+                "brigade": {
+                    "level": "INFO",
+                    "handlers": ["info_file_handler"],
+                    "propagate": "no"
+                },
+            },
+            "root": {
+                "level": "ERROR",
+                "handlers": ["info_file_handler"]
+            }
+        })
 
     def filter(self, **kwargs):
         """
@@ -79,39 +134,28 @@ class Brigade(object):
         b.inventory = self.inventory.filter(**kwargs)
         return b
 
-    def _run_serial(self, task, **kwargs):
-        t = Task(task, **kwargs)
-        result = AggregatedResult()
+    def _run_serial(self, task, dry_run, **kwargs):
+        result = AggregatedResult(kwargs.get("name") or task.__name__)
         for host in self.inventory.hosts.values():
-            try:
-                logger.debug("{}: running task {}".format(host.name, t))
-                r = t._start(host=host, brigade=self, dry_run=self.dry_run)
-                result[host.name] = r
-            except Exception as e:
-                logger.error("{}: {}".format(host, e))
-                result.failed_hosts[host.name] = e
-                result.tracebacks[host.name] = traceback.format_exc()
+            result[host.name] = run_task(host, self, dry_run, Task(task, **kwargs))
         return result
 
-    def _run_parallel(self, task, num_workers, **kwargs):
-        result = AggregatedResult()
+    def _run_parallel(self, task, num_workers, dry_run, **kwargs):
+        result = AggregatedResult(kwargs.get("name") or task.__name__)
 
         pool = Pool(processes=num_workers)
-        result_pool = [pool.apply_async(run_task, args=(h, self, Task(task, **kwargs)))
+        result_pool = [pool.apply_async(run_task,
+                                        args=(h, self, dry_run, Task(task, **kwargs)))
                        for h in self.inventory.hosts.values()]
         pool.close()
         pool.join()
 
-        for r in result_pool:
-            host, res, exc, traceback = r.get()
-            if exc:
-                result.failed_hosts[host] = exc
-                result.tracebacks[host] = exc
-            else:
-                result[host] = res
+        for rp in result_pool:
+            r = rp.get()
+            result[r.host.name] = r
         return result
 
-    def run(self, task, num_workers=None, **kwargs):
+    def run(self, task, num_workers=None, dry_run=None, raise_on_error=None, **kwargs):
         """
         Run task over all the hosts in the inventory.
 
@@ -119,32 +163,46 @@ class Brigade(object):
             task (``callable``): function or callable that will be run against each device in
               the inventory
             num_workers(``int``): Override for how many hosts to run in paralell for this task
+            dry_run(``bool``): Whether if we are testing the changes or not
+            raise_on_error (``bool``): Override raise_on_error behavior
             **kwargs: additional argument to pass to ``task`` when calling it
 
         Raises:
-            :obj:`brigade.core.exceptions.BrigadeExceptionError`: if at least a task fails
-              and self.raise_on_error is set to ``True``
+            :obj:`brigade.core.exceptions.BrigadeExecutionError`: if at least a task fails
+              and self.config.raise_on_error is set to ``True``
 
         Returns:
             :obj:`brigade.core.task.AggregatedResult`: results of each execution
         """
-        num_workers = num_workers or self.num_workers
+        num_workers = num_workers or self.config.num_workers
+
+        self.logger.info("Running task '{}' with num_workers: {}, dry_run: {}".format(
+            kwargs.get("name") or task.__name__, num_workers, dry_run))
+        self.logger.debug(kwargs)
 
         if num_workers == 1:
-            result = self._run_serial(task, **kwargs)
+            result = self._run_serial(task, dry_run, **kwargs)
         else:
-            result = self._run_parallel(task, num_workers, **kwargs)
+            result = self._run_parallel(task, num_workers, dry_run, **kwargs)
 
-        if self.raise_on_error:
+        raise_on_error = raise_on_error if raise_on_error is not None else \
+            self.config.raise_on_error
+        if raise_on_error:
             result.raise_on_error()
+        else:
+            self.data.failed_hosts.update(result.failed_hosts.keys())
         return result
 
 
-def run_task(host, brigade, task):
+def run_task(host, brigade, dry_run, task):
+    logger = logging.getLogger("brigade")
     try:
-        logger.debug("{}: running task {}".format(host.name, task))
-        r = task._start(host=host, brigade=brigade, dry_run=brigade.dry_run)
-        return host.name, r, None, None
+        logger.info("{}: {}: running task".format(host.name, task.name))
+        r = task._start(host=host, brigade=brigade, dry_run=dry_run)
     except Exception as e:
-        logger.error("{}: {}".format(host, e))
-        return host.name, None, e, traceback.format_exc()
+        tb = traceback.format_exc()
+        logger.error("{}: {}".format(host, tb))
+        r = Result(host, exception=e, result=tb, failed=True)
+        task.results.append(r)
+        r.name = task.name
+    return task.results

@@ -1,6 +1,11 @@
+.. _ref-inventory:
+
 Inventory
 =========
 
-.. automodule:: brigade.plugins.inventory.simple
-   :members:
-   :undoc-members:
+.. toctree::
+   :maxdepth: 2
+   :caption: Categories:
+
+   simple
+   nsot

@@ -1,4 +1,3 @@
-import logging
 import shlex
 import subprocess
 
@@ -6,9 +5,6 @@ import subprocess
 from brigade.core.exceptions import CommandError
 from brigade.core.helpers import format_string
 from brigade.core.task import Result
-
-
-logger = logging.getLogger("brigade")
 
 
 def command(task, command):
@@ -27,7 +23,6 @@ def command(task, command):
         :obj:`brigade.core.exceptions.CommandError`: when there is a command error
     """
     command = format_string(command, task, **task.host)
-    logger.debug("{}:local_cmd:{}".format(task.host, command))
     cmd = subprocess.Popen(shlex.split(command),
                            stdout=subprocess.PIPE,
                            stderr=subprocess.PIPE,

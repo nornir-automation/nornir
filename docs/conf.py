@@ -20,10 +20,16 @@
 import os
 import sys
 
+from jinja2 import Environment
+from jinja2 import FileSystemLoader
+
 sys.path.insert(0, os.path.abspath('../'))
 
 
+from brigade.core.configuration import CONF # noqa
+
 # -- General configuration ------------------------------------------------
+BASEPATH = os.path.dirname(__file__)
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
@@ -32,7 +38,7 @@ sys.path.insert(0, os.path.abspath('../'))
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.napoleon', 'nbsphinx']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -95,7 +101,7 @@ html_theme = 'sphinx_rtd_theme'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-# html_static_path = ['_static']
+html_static_path = ['_static']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -166,3 +172,25 @@ texinfo_documents = [
      author, 'brigade', 'One line description of project.',
      'Miscellaneous'),
 ]
+
+
+def build_configuration_parameters(app):
+    """Create documentation for configuration parameters."""
+
+    env = Environment(loader=FileSystemLoader("{0}/_data_templates".format(BASEPATH)))
+    template_file = env.get_template("configuration-parameters.j2")
+    data = {}
+    data['params'] = CONF
+    rendered_template = template_file.render(**data)
+    output_dir = '{0}/ref/configuration/generated'.format(BASEPATH)
+    with open('{}/parameters.rst'.format(output_dir), 'w') as f:
+        f.write(rendered_template)
+
+
+def setup(app):
+    """Map methods to states of the documentation build."""
+    app.connect('builder-inited', build_configuration_parameters)
+    app.add_stylesheet('css/custom.css')
+
+
+build_configuration_parameters(None)

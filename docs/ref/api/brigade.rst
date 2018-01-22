@@ -1,3 +1,10 @@
+Data
+####
+
+.. autoclass:: brigade.core.Data
+   :members:
+   :undoc-members:
+
 Brigade
 #######
 

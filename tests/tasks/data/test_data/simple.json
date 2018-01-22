@@ -1,7 +1,0 @@
-{
-    "env": "test",
-    "services": [
-        "dhcp",
-        "dns"
-    ]
-}

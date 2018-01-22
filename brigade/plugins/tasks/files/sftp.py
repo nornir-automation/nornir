@@ -1,5 +1,4 @@
 import hashlib
-import logging
 import os
 import stat
 
@@ -11,9 +10,6 @@ from brigade.plugins.tasks import commands
 import paramiko
 
 from scp import SCPClient
-
-
-logger = logging.getLogger("brigade")
 
 
 def get_src_hash(filename):
@@ -130,7 +126,7 @@ def sftp(task, src, dst, action):
         "put": put,
         "get": get,
     }
-    client = task.host.ssh_connection
+    client = task.host.get_connection("paramiko")
     scp_client = SCPClient(client.get_transport())
     sftp_client = paramiko.SFTPClient.from_transport(client.get_transport())
     files_changed = actions[action](task, scp_client, sftp_client, src, dst)
