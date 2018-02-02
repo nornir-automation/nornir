@@ -12,7 +12,7 @@ napalm_to_netmiko_map = {
 def netmiko_connection(task, **netmiko_args):
     """Connect to the host using Netmiko and set the relevant connection in the connection map.
 
-    Precedence order: **netmiko_args > discrete inventory attributes > inventory netmiko_options
+    Precedence: ``**netmiko_args`` > discrete inventory attributes > inventory netmiko_options
 
     Arguments:
         ``**netmiko_args``: All supported Netmiko ConnectHandler arguments
