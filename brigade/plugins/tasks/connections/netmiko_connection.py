@@ -9,8 +9,10 @@ napalm_to_netmiko_map = {
 }
 
 
-def netmiko_connection(task=None, **netmiko_args):
+def netmiko_connection(task, **netmiko_args):
     """Connect to the host using Netmiko and set the relevant connection in the connection map.
+
+    Precedence order: **netmiko_args > discrete inventory attributes > inventory netmiko_options
 
     Arguments:
         **netmiko_args: All supported Netmiko ConnectHandler arguments
@@ -22,10 +24,14 @@ def netmiko_connection(task=None, **netmiko_args):
         "password": host.password,
         "port": host.ssh_port
     }
+
     if host.nos is not None:
         # Look device_type up in corresponding map, if no entry return the host.nos unmodified
         device_type = napalm_to_netmiko_map.get(host.nos, host.nos)
         parameters['device_type'] = device_type
 
-    parameters.update(**netmiko_args)
-    host.connections["netmiko"] = ConnectHandler(**parameters)
+    # Precedence order: **netmiko_args > discrete inventory attributes > inventory netmiko_options
+    netmiko_connection_args = host.get("netmiko_options", {})
+    netmiko_connection_args.update(parameters)
+    netmiko_connection_args.update(netmiko_args)
+    host.connections["netmiko"] = ConnectHandler(**netmiko_connection_args)
