@@ -15,7 +15,7 @@ def netmiko_connection(task, **netmiko_args):
     Precedence order: **netmiko_args > discrete inventory attributes > inventory netmiko_options
 
     Arguments:
-        **netmiko_args: All supported Netmiko ConnectHandler arguments
+        ``**netmiko_args``: All supported Netmiko ConnectHandler arguments
     """
     host = task.host
     parameters = {
