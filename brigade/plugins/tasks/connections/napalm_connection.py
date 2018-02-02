@@ -13,6 +13,7 @@ def napalm_connection(task=None, timeout=60, optional_args=None):
     Inventory:
         napalm_options: maps directly to ``optional_args`` when establishing the connection
         network_api_port: maps to ``optional_args["port"]``
+
     """
     host = task.host
 
