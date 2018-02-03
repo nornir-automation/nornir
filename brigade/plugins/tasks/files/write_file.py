@@ -25,7 +25,7 @@ def _generate_diff(filename, content, append):
     return "\n".join(diff)
 
 
-def write(task, filename, content, append=False):
+def write_file(task, filename, content, append=False):
     """
     Write contents to a file (locally)
 
