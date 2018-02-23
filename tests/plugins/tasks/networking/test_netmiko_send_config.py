@@ -9,11 +9,11 @@ class Test(object):
                                                          config_commands="hostname")
         assert result
         for h, r in result.items():
-            assert h == r.result.strip()
+            assert h in r.result.strip()
 
     def test_netmiko_send_command(self, brigade):
         result = brigade.filter(name="dev4.group_2").run(networking.netmiko_send_config,
                                                          config_commands="hostname")
         assert result
         for h, r in result.items():
-            assert h == r.result.strip()
+            assert h in r.result.strip()
