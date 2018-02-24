@@ -9,11 +9,11 @@ def netmiko_send_config(task, config_commands=None, config_file=None, **kwargs):
     Arguments:
         config_commands(list, optional): Commands to configure on the remote network device.
         config_file(str, optional): File to read configuration commands from.
-
         kwargs (dict, optional): Additional arguments to pass to method.
+
     Returns:
         :obj:`brigade.core.task.Result`:
-          * result (``dict``): dictionary with the result of the getter
+          * result (``dict``): dictionary with the result of the show command.
     """
     net_connect = task.host.get_connection("netmiko")
     if config_commands:
