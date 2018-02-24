@@ -13,7 +13,7 @@ def netmiko_send_config(task, config_commands=None, config_file=None, **kwargs):
 
     Returns:
         :obj:`brigade.core.task.Result`:
-          * result (``dict``): dictionary with the result of the show command.
+          * result (``dict``): dictionary showing the CLI from the configuration changes.
     """
     net_connect = task.host.get_connection("netmiko")
     if config_commands:
