@@ -1,7 +1,7 @@
 Data
 ####
 
-.. autoclass:: brigade.core.brigade.Data
+.. autoclass:: brigade.core.Data
    :members:
    :undoc-members:
 
