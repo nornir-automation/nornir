@@ -4,7 +4,7 @@ from brigade.core.brigade import Brigade
 from brigade.core.configuration import Config
 
 
-def from_conf(config_file="", dry_run=False, **kwargs):
+def InitBrigade(config_file="", dry_run=False, **kwargs):
     """
     Arguments:
         config_file(str): Path to the configuration file (optional)
