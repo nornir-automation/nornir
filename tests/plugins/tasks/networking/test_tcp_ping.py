@@ -50,7 +50,7 @@ class Test(object):
 
 
 def test_tcp_ping_external_hosts():
-    external = Brigade(inventory=SimpleInventory(ext_inv_file), dry_run=True)
+    external = Brigade(inventory=SimpleInventory(ext_inv_file, ""), dry_run=True)
     result = external.run(networking.tcp_ping, ports=[23, 443])
 
     assert result

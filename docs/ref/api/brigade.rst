@@ -1,7 +1,7 @@
 Data
 ####
 
-.. autoclass:: brigade.core.Data
+.. autoclass:: brigade.core.brigade.Data
    :members:
    :undoc-members:
 
@@ -12,7 +12,7 @@ Brigade
    :members:
    :undoc-members:
 
-from_conf
-#########
+InitBrigade
+###########
 
-.. automethod:: brigade.core.from_conf
+.. automethod:: brigade.core.InitBrigade
