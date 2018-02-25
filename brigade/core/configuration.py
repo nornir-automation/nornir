@@ -5,6 +5,11 @@ import yaml
 
 
 CONF = {
+    'inventory': {
+        'description': 'Path to inventory modules.',
+        'type': 'string',
+        'default': 'brigade.plugins.inventory.simple.SimpleInventory',
+    },
     'num_workers': {
         'description': 'Number of Brigade worker processes that are run at the same time, '
                        'configuration can be overridden on individual tasks by using the '
