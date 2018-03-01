@@ -5,7 +5,7 @@ napalm_to_netmiko_map = {
     'nxos': 'cisco_nxos',
     'eos': 'arista_eos',
     'junos': 'juniper_junos',
-    'iosxr': 'cisco_iosxr'
+    'iosxr': 'cisco_xr'
 }
 
 
