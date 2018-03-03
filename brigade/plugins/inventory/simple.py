@@ -1,3 +1,5 @@
+import logging
+import os
 from builtins import super
 
 from brigade.core.inventory import Inventory
@@ -107,8 +109,12 @@ class SimpleInventory(Inventory):
             hosts = yaml.load(f.read())
 
         if group_file:
-            with open(group_file, "r") as f:
-                groups = yaml.load(f.read())
+            if os.path.exists(group_file):
+                with open(group_file, "r") as f:
+                    groups = yaml.load(f.read())
+            else:
+                logging.warning("{}: doesn't exist".format(group_file))
+                groups = {}
         else:
             groups = {}
 
