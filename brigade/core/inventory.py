@@ -1,7 +1,5 @@
 import getpass
 
-from brigade.core import helpers
-
 
 class Host(object):
     """
@@ -57,25 +55,40 @@ class Host(object):
         * ``my_host.group.group.data["domain"]`` will return ``acme.com``
     """
 
-    def __init__(self, name, group=None, brigade=None, **kwargs):
+    def __init__(self, name, groups=None, brigade=None, defaults=None, **kwargs):
         self.brigade = brigade
         self.name = name
-        self.group = group
+        self.groups = groups or []
         self.data = {}
         self.data["name"] = name
         self.connections = {}
+        self.defaults = defaults or {}
 
-        if isinstance(group, str):
-            self.data["group"] = group
-        else:
-            self.data["group"] = group.name if group else None
+        if len(self.groups):
+            if isinstance(groups[0], str):
+                self.data["groups"] = groups
+            else:
+                self.data["groups"] = [g.name for g in groups]
 
         for k, v in kwargs.items():
             self.data[k] = v
 
     def _resolve_data(self):
-        d = self.group if self.group else {}
-        return helpers.merge_two_dicts(d, self.data)
+        processed = []
+        result = {}
+        for k, v in self.data.items():
+            processed.append(k)
+            result[k] = v
+        for g in self.groups:
+            for k, v in g.items():
+                if k not in processed:
+                    processed.append(k)
+                    result[k] = v
+        for k, v in self.defaults.items():
+            if k not in processed:
+                processed.append(k)
+                result[k] = v
+        return result
 
     def keys(self):
         """Returns the keys of the attribute ``data`` and of the parent(s) groups."""
@@ -85,12 +98,24 @@ class Host(object):
         """Returns the values of the attribute ``data`` and of the parent(s) groups."""
         return self._resolve_data().values()
 
+    def items(self):
+        """
+        Returns all the data accessible from a device, including
+        the one inherited from parent groups
+        """
+        return self._resolve_data().items()
+
     def __getitem__(self, item):
         try:
             return self.data[item]
         except KeyError:
-            if self.group:
-                return self.group[item]
+            for g in self.groups:
+                r = g.get(item)
+                if r:
+                    return r
+            r = self.defaults.get(item)
+            if r:
+                return r
             raise
 
     def __setitem__(self, item, value):
@@ -120,13 +145,6 @@ class Host(object):
             return self.__getitem__(item)
         except KeyError:
             return default
-
-    def items(self):
-        """
-        Returns all the data accessible from a device, including
-        the one inherited from parent groups
-        """
-        return self._resolve_data().items()
 
     @property
     def brigade(self):
@@ -236,31 +254,39 @@ class Inventory(object):
         groups (dict): keys are group names and the values are :obj:`Group`.
     """
 
-    def __init__(self, hosts, groups=None, transform_function=None, brigade=None):
+    def __init__(self, hosts, groups=None, defaults=None, transform_function=None, brigade=None):
         self._brigade = brigade
 
-        groups = groups or {}
-        self.groups = {}
-        for n, g in groups.items():
+        self.defaults = defaults or {}
+
+        self.groups = groups or {}
+        for n, g in self.groups.items():
             if isinstance(g, dict):
                 g = Group(name=n, brigade=brigade, **g)
             self.groups[n] = g
 
-        for g in self.groups.values():
-            if g.group is not None and not isinstance(g.group, Group):
-                g.group = self.groups[g.group]
+        for group in self.groups.values():
+            group.groups = self._resolve_groups(group.groups)
 
         self.hosts = {}
         for n, h in hosts.items():
             if isinstance(h, dict):
-                h = Host(name=n, brigade=brigade, **h)
+                h = Host(name=n, brigade=brigade, defaults=self.defaults, **h)
 
             if transform_function:
                 transform_function(h)
 
-            if h.group is not None and not isinstance(h.group, Group):
-                h.group = self.groups[h.group]
+            h.groups = self._resolve_groups(h.groups)
             self.hosts[n] = h
+
+    def _resolve_groups(self, groups):
+        r = []
+        if len(groups):
+            if not isinstance(groups[0], Group):
+                r = [self.groups[g] for g in groups]
+            else:
+                r = groups
+        return r
 
     def filter(self, filter_func=None, **kwargs):
         """

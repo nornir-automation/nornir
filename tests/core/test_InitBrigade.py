@@ -9,11 +9,11 @@ dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_InitB
 class Test(object):
 
     def test_InitBrigade_defaults(self):
-        os.chdir("tests/core/inventory_data/")
+        os.chdir("tests/inventory_data/")
         try:
             brg = InitBrigade()
         finally:
-            os.chdir("../../../")
+            os.chdir("../../")
         assert not brg.dry_run
         assert brg.config.num_workers == 20
         assert len(brg.inventory.hosts)
@@ -30,8 +30,8 @@ class Test(object):
         brg = InitBrigade(num_workers=100,
                           inventory="brigade.plugins.inventory.simple.SimpleInventory",
                           SimpleInventory={
-                              "host_file": "tests/core/inventory_data/hosts.yaml",
-                              "group_file": "tests/core/inventory_data/groups.yaml",
+                              "host_file": "tests/inventory_data/hosts.yaml",
+                              "group_file": "tests/inventory_data/groups.yaml",
                               },
                           )
         assert not brg.dry_run
