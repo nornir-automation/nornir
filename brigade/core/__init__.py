@@ -1,3 +1,4 @@
+import importlib
 import logging
 import logging.config
 import sys
@@ -91,37 +92,52 @@ class Brigade(object):
             self.available_connections = connections.available_connections
 
     def configure_logging(self):
-        format = "%(asctime)s - %(name)s - %(levelname)s"
-        format += " - %(funcName)10s() - %(message)s"
-        logging.config.dictConfig({
+        dictConfig = self.config.logging_dictConfig or {
             "version": 1,
             "disable_existing_loggers": False,
             "formatters": {
-                "simple": {"format": format}
+                "simple": {"format": self.config.logging_format}
             },
-            "handlers": {
-                "info_file_handler": {
+            "handlers": {},
+            "loggers": {},
+            "root": {
+                "level": "CRITICAL" if self.config.logging_loggers else
+                         self.config.logging_level.upper(),
+                "handlers": [],
+                "formatter": "simple",
+            }
+        }
+        handlers_list = []
+        if self.config.logging_file:
+            dictConfig["root"]["handlers"].append('info_file_handler')
+            handlers_list.append('info_file_handler')
+            dictConfig["handlers"]["info_file_handler"] = {
                     "class": "logging.handlers.RotatingFileHandler",
-                    "level": "INFO",
+                    "level": "NOTSET",
                     "formatter": "simple",
-                    "filename": "brigade.log",
+                    "filename": self.config.logging_file,
                     "maxBytes": 10485760,
                     "backupCount": 20,
                     "encoding": "utf8"
-                },
-            },
-            "loggers": {
-                "brigade": {
-                    "level": "INFO",
-                    "handlers": ["info_file_handler"],
-                    "propagate": "no"
-                },
-            },
-            "root": {
-                "level": "ERROR",
-                "handlers": ["info_file_handler"]
             }
-        })
+        if self.config.logging_to_console:
+            dictConfig["root"]["handlers"].append('info_console')
+            handlers_list.append('info_console')
+            dictConfig["handlers"]["info_console"] = {
+                    "class": "logging.StreamHandler",
+                    "level": "NOTSET",
+                    "formatter": "simple",
+                    "stream": "ext://sys.stdout",
+            }
+
+        for logger in self.config.logging_loggers:
+            dictConfig["loggers"][logger] = {
+                "level": self.config.logging_level.upper(),
+                "handlers": handlers_list,
+            }
+
+        if dictConfig["root"]["handlers"]:
+            logging.config.dictConfig(dictConfig)
 
     def filter(self, **kwargs):
         """
@@ -206,3 +222,30 @@ def run_task(host, brigade, dry_run, task):
         task.results.append(r)
         r.name = task.name
     return task.results
+
+
+def InitBrigade(config_file="", dry_run=False, **kwargs):
+    """
+    Arguments:
+        config_file(str): Path to the configuration file (optional)
+        dry_run(bool): Whether to simulate changes or not
+        **kwargs: Extra information to pass to the
+            :obj:`brigade.core.configuration.Config` object
+
+    Returns:
+        :obj:`brigade.core.Brigade`: fully instantiated and configured
+    """
+    conf = Config(config_file=config_file, **kwargs)
+
+    module_path = ".".join(conf.inventory.split(".")[:-1])
+    inv_class_name = conf.inventory.split(".")[-1]
+    module = importlib.import_module(module_path)
+    inv_class = getattr(module, inv_class_name)
+
+    inv = inv_class(**getattr(conf, inv_class_name, {}))
+
+    return Brigade(
+        inventory=inv,
+        dry_run=dry_run,
+        config=conf,
+    )
