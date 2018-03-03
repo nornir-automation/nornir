@@ -12,7 +12,7 @@ def netmiko_send_command(task, command_string, use_timing=False, **kwargs):
 
     Returns:
         :obj:`brigade.core.task.Result`:
-          * result (``dict``): dictionary with the result of the getter
+          * result (``dict``): dictionary with the result of the show command.
     """
     net_connect = task.host.get_connection("netmiko")
     if use_timing:
