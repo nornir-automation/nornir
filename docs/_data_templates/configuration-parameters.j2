@@ -14,7 +14,11 @@ The configuration parameters will be set by the :doc:`Brigade.core.configuration
 		<th>Type</th>
 		<th>Default</th>
 			<tr>
+			{% if v['type'] in ('str', 'int', 'bool') %}
 				<td>{{ v['env'] or 'BRIGADE_' + k|upper }}</td>
+			{% else %}
+				<td>N/A</td>
+			{% endif %}
 				<td>{{ v['type'] }}</td>
 				<td>{{ v['default_doc'] or v['default'] }}</td>
 			</tr>
