@@ -14,8 +14,8 @@ def netmiko_file_transfer(task, source_file, dest_file, **kwargs):
 
     Returns:
         :obj:`brigade.core.task.Result`:
-          * result (``bool``): file exists and is valid MD5
-          * changed (``bool``): whether if the task is changing the system or not
+          * result (``bool``): file exists and MD5 is valid
+          * changed (``bool``): the destination file was changed
 
     """
     net_connect = task.host.get_connection("netmiko")

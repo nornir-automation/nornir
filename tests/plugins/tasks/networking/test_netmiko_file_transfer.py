@@ -2,7 +2,7 @@ from brigade.plugins.tasks import networking
 
 
 class Test(object):
-    def test_netmiko_send_command(self, brigade):
+    def test_netmiko_file_transfer(self, brigade):
         source_file = 'test_file.txt'
         dest_file = 'test_file.txt'
         result = brigade.filter(name="dev4.group_2").run(networking.netmiko_fle_transfer,
