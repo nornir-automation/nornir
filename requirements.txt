@@ -2,7 +2,6 @@ colorama
 pyyaml
 jinja2
 napalm>=2.3.0
-netmiko>=2.1.0
 paramiko
 future
 requests
