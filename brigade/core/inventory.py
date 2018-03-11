@@ -13,7 +13,8 @@ class Host(object):
 
     Attributes:
         name (str): Name of the host
-        group (:obj:`Group`): Group the host belongs to
+        groups (list of :obj:`Group`): Groups the host belongs to
+        defaults (``dict``): Default values for host/group data
         data (dict): data about the device
         connections (``dict``): Already established connections
 
@@ -34,13 +35,13 @@ class Host(object):
             # hosts
             my_host:
                 ip: 1.2.3.4
-                group: bma
+                groups: [bma]
 
             ---
             # groups
             bma:
                 site: bma
-                group: all
+                group: [all]
             all:
                 domain: acme.com
 
