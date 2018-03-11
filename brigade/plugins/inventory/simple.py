@@ -82,7 +82,7 @@ class SimpleInventory(Inventory):
     * group file::
 
         ---
-        all:
+        defaults:
             group: null
             domain: acme.com
 
@@ -93,7 +93,6 @@ class SimpleInventory(Inventory):
             group: bma
 
         bma:
-            group: all
 
         cmh-leaf:
             group: cmh
@@ -102,7 +101,6 @@ class SimpleInventory(Inventory):
             group: cmh
 
         cmh:
-            group: all
     """
     def __init__(self, host_file="hosts.yaml", group_file="groups.yaml", **kwargs):
         with open(host_file, "r") as f:
@@ -118,4 +116,5 @@ class SimpleInventory(Inventory):
         else:
             groups = {}
 
-        super().__init__(hosts, groups, **kwargs)
+        defaults = groups.pop("defaults", {})
+        super().__init__(hosts, groups, defaults, **kwargs)
