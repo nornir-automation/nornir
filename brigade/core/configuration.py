@@ -7,7 +7,7 @@ import yaml
 CONF = {
     'inventory': {
         'description': 'Path to inventory modules.',
-        'type': 'string',
+        'type': 'str',
         'default': 'brigade.plugins.inventory.simple.SimpleInventory',
     },
     'num_workers': {
@@ -103,8 +103,10 @@ class Config:
             return True
 
     def _assign_property(self, parameter, param_conf, data):
-        env = param_conf.get('env') or 'BRIGADE_' + parameter.upper()
-        v = os.environ.get(env)
+        v = None
+        if param_conf['type'] in ('bool', 'int', 'str'):
+            env = param_conf.get('env') or 'BRIGADE_' + parameter.upper()
+            v = os.environ.get(env)
         if v is None:
             v = data.get(parameter, param_conf["default"])
         else:
