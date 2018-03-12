@@ -106,6 +106,13 @@ class Host(object):
         """
         return self._resolve_data().items()
 
+    def has_parent_group(self, group):
+        """Retuns whether the object is a child of the :obj:`Group` ``group``"""
+        for g in self.groups:
+            if g is group or g.has_parent_group(group):
+                return True
+        return False
+
     def __getitem__(self, item):
         try:
             return self.data[item]
@@ -234,7 +241,9 @@ class Host(object):
 
 class Group(Host):
     """Same as :obj:`Host`"""
-    pass
+
+    def children(self):
+        return {n: h for n, h in self.brigade.inventory.hosts.items() if h.has_parent_group(self)}
 
 
 class Inventory(object):
