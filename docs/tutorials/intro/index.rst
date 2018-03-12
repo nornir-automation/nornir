@@ -13,8 +13,9 @@ We're glad you made it here! This is a great place to learn the basics of Brigad
    Brigade at a glance <overview>
    100% Python <python>
    Installation guide <install>
-   inventory
-   brigade
+   initializing_brigade.ipynb
+   inventory.ipynb
+   executing_tasks.ipynb
    running_tasks
    running_tasks_different_hosts
    running_tasks_grouping

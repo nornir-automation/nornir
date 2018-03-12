@@ -1,0 +1,7 @@
+---
+num_workers: 100
+inventory: brigade.plugins.inventory.simple.SimpleInventory
+SimpleInventory:
+    host_file: "../../../examples/inventory/hosts.yaml"
+    group_file: "../../../examples/inventory/groups.yaml"
+
