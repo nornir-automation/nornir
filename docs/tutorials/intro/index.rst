@@ -16,7 +16,4 @@ We're glad you made it here! This is a great place to learn the basics of Brigad
    initializing_brigade.ipynb
    inventory.ipynb
    executing_tasks.ipynb
-   running_tasks
-   running_tasks_different_hosts
-   running_tasks_grouping
-   running_tasks_errors
+   advanced_tasks.ipynb
