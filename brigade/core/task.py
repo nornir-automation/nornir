@@ -34,6 +34,7 @@ class Task(object):
         self.params = kwargs
         self.skipped = skipped
         self.results = MultiResult(self.name)
+        self.dry_run = None
 
     def __repr__(self):
         return self.name
@@ -70,6 +71,10 @@ class Task(object):
             msg = ("You have to call this after setting host and brigade attributes. ",
                    "You probably called this from outside a nested task")
             raise Exception(msg)
+
+        # we want the subtask to receive self.dry_run in the case it was overriden in the parent
+        dry_run = dry_run if dry_run is not None else self.dry_run
+
         r = Task(task, **kwargs)._start(self.host, self.brigade, dry_run, sub_task=True)
 
         if isinstance(r, MultiResult):
