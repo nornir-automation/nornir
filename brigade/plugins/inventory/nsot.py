@@ -15,25 +15,28 @@ class NSOTInventory(Inventory):
         the name of the site the host belongs to.
 
     Environment Variables:
-        * ``nsot_url``: URL to nsot's API (defaults to ``http://localhost:8990/api``)
-        * ``nsot_email``: email for authentication (defaults to admin@acme.com)
-        * ``nsot_auth_method``: auth_header or auth_token
-        * ``nsot_auth_header``: used for auth_header authentication method
-        * ``nsot_secret_key``: needed for auth_method = auth_token
+        * ``NSOT_URL``: Corresponds to nsot_url argument
+        * ``NSOT_EMAIL``: Corresponds to nsot_email argument
+        * ``NSOT_AUTH_HEADER``: Corresponds to nsot_auth_header argument
+        * ``NSOT_SECRET_KEY``: Corresponds to nsot_secret_key argument
 
     Arguments:
         flatten_attributes (bool): Assign host attributes to the root object. Useful
             for filtering hosts.
+        nsot_url (string): URL to nsot's API (defaults to ``http://localhost:8990/api``)
+        nsot_email (string): email for authtication (defaults to admin@acme.com)
+        nsot_auth_header (string): String for auth_header authentication
+        nsot_secret_key (string): Secret Key for auth_token method. If given auth_token
+            will be used as auth_metod.
     """
 
     def __init__(self, nsot_url="", nsot_email="", nsot_auth_method="",
                  nsot_secret_key="", nsot_auth_header="", flatten_attributes=True, **kwargs):
         nsot_url = nsot_url or os.environ.get('NSOT_URL', 'http://localhost:8990/api')
         nsot_email = nsot_email or os.environ.get('NSOT_EMAIL', 'admin@acme.com')
-        nsot_auth_method = nsot_auth_method or os.environ.get('NSOT_AUTH_METHOD', 'auth_header')
+        nsot_secret_key = nsot_secret_key or os.environ.get('NSOT_SECRET_KEY')
 
-        if nsot_auth_method == "auth_token":
-            nsot_secret_key = nsot_secret_key or os.environ.get('NSOT_SECRET_KEY', 'empty')
+        if nsot_secret_key:
             data = {'email': nsot_email, 'secret_key': nsot_secret_key}
             res = requests.post('{}/authenticate/'.format(nsot_url), data=data)
             auth_token = res.json().get('auth_token')
