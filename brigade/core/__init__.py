@@ -242,8 +242,7 @@ def InitBrigade(config_file="", dry_run=False, **kwargs):
     module = importlib.import_module(module_path)
     inv_class = getattr(module, inv_class_name)
 
-    inv_class_args = getattr(conf, inv_class_name, {}).update({'transform_function': conf.transform_function})
-    inv = inv_class(**inv_class_args)
+    inv = inv_class(**getattr(conf, inv_class_name, {}).update({'transform_function': conf.transform_function}))
 
     return Brigade(
         inventory=inv,
