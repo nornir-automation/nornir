@@ -46,5 +46,7 @@ class BrigadeExecutionError(Exception):
             else:
                 text += "# {} (succeeded)\n".format(k)
             text += "{}\n".format("#" * 40)
-            text += "{}\n".format(r.result)
+            for sub_r in r:
+                text += "**** {}\n".format(sub_r.name)
+                text += "{}\n".format(sub_r)
         return text

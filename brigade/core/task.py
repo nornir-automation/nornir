@@ -116,9 +116,19 @@ class Result(object):
         self.failed = failed
         self.exception = exception
         self.skipped = skipped
+        self.name = None
 
         for k, v in kwargs.items():
             setattr(self, k, v)
+
+    def __repr__(self):
+        return '{}: "{}"'.format(self.__class__.__name__, self.name)
+
+    def __str__(self):
+        if self.exception:
+            return str(self.exception)
+        else:
+            return str(self.result)
 
 
 class AggregatedResult(dict):
@@ -131,7 +141,7 @@ class AggregatedResult(dict):
         super().__init__(**kwargs)
 
     def __repr__(self):
-        return '{}: {}'.format(self.__class__.__name__, self.name)
+        return '{} ({}): {}'.format(self.__class__.__name__, self.name, super().__repr__())
 
     @property
     def failed(self):
@@ -167,6 +177,9 @@ class MultiResult(list):
 
     def __getattr__(self, name):
         return getattr(self[0], name)
+
+    def __repr__(self):
+        return "{}: {}".format(self.__class__.__name__, super().__repr__())
 
     @property
     def failed(self):
