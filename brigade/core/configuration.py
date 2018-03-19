@@ -10,6 +10,11 @@ CONF = {
         'type': 'str',
         'default': 'brigade.plugins.inventory.simple.SimpleInventory',
     },
+    'transform_function': {
+        'description': 'Path to transform function.',
+        'type': 'str',
+        'default': {}
+    },
     'num_workers': {
         'description': 'Number of Brigade worker processes that are run at the same time, '
                        'configuration can be overridden on individual tasks by using the '

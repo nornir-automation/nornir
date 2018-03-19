@@ -112,22 +112,22 @@ class Brigade(object):
             dictConfig["root"]["handlers"].append('info_file_handler')
             handlers_list.append('info_file_handler')
             dictConfig["handlers"]["info_file_handler"] = {
-                    "class": "logging.handlers.RotatingFileHandler",
-                    "level": "NOTSET",
-                    "formatter": "simple",
-                    "filename": self.config.logging_file,
-                    "maxBytes": 10485760,
-                    "backupCount": 20,
-                    "encoding": "utf8"
+                "class": "logging.handlers.RotatingFileHandler",
+                "level": "NOTSET",
+                "formatter": "simple",
+                "filename": self.config.logging_file,
+                "maxBytes": 10485760,
+                "backupCount": 20,
+                "encoding": "utf8"
             }
         if self.config.logging_to_console:
             dictConfig["root"]["handlers"].append('info_console')
             handlers_list.append('info_console')
             dictConfig["handlers"]["info_console"] = {
-                    "class": "logging.StreamHandler",
-                    "level": "NOTSET",
-                    "formatter": "simple",
-                    "stream": "ext://sys.stdout",
+                "class": "logging.StreamHandler",
+                "level": "NOTSET",
+                "formatter": "simple",
+                "stream": "ext://sys.stdout",
             }
 
         for logger in self.config.logging_loggers:
@@ -242,7 +242,7 @@ def InitBrigade(config_file="", dry_run=False, **kwargs):
     module = importlib.import_module(module_path)
     inv_class = getattr(module, inv_class_name)
 
-    inv = inv_class(**getattr(conf, inv_class_name, {}))
+    inv = inv_class(**getattr(conf, inv_class_name, {}), **getattr(conf, 'transform_function', {}))
 
     return Brigade(
         inventory=inv,
