@@ -27,7 +27,7 @@ class NSOTInventory(Inventory):
         nsot_email (string): email for authtication (defaults to admin@acme.com)
         nsot_auth_header (string): String for auth_header authentication (defaults to X-NSoT-Email)
         nsot_secret_key (string): Secret Key for auth_token method. If given auth_token
-            will be used as auth_metod.
+            will be used as auth_method.
     """
 
     def __init__(self, nsot_url="", nsot_email="", nsot_auth_method="",
