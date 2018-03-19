@@ -17,3 +17,4 @@ We're glad you made it here! This is a great place to learn the basics of Brigad
    inventory.ipynb
    executing_tasks.ipynb
    advanced_tasks.ipynb
+   task_results.ipynb
