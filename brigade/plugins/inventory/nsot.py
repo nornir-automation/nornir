@@ -25,7 +25,7 @@ class NSOTInventory(Inventory):
             for filtering hosts.
         nsot_url (string): URL to nsot's API (defaults to ``http://localhost:8990/api``)
         nsot_email (string): email for authtication (defaults to admin@acme.com)
-        nsot_auth_header (string): String for auth_header authentication
+        nsot_auth_header (string): String for auth_header authentication (defaults to X-NSoT-Email)
         nsot_secret_key (string): Secret Key for auth_token method. If given auth_token
             will be used as auth_metod.
     """
