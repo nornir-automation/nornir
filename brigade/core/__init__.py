@@ -243,6 +243,8 @@ def InitBrigade(config_file="", dry_run=False, **kwargs):
     inv_class = getattr(module, inv_class_name)
     inv_class_args = getattr(conf, inv_class_name, {})
 
+    transform_function = kwargs.get("transform_function")
+
     if callable(transform_function):
         inv_class_args['transform_function'] = transform_function
     else:
