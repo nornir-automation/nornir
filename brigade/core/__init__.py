@@ -244,7 +244,7 @@ def InitBrigade(config_file="", dry_run=False, **kwargs):
 
     module_path = ".".join(conf.transform_function.split("."))[:-1]
     tf_function_name = conf.transform_function.split(".")[-1]
-    module = importlibe.import_module(module_path)
+    module = importlib.import_module(module_path)
     tf_function = getattr(module, tf_function_name)
 
     inv_class_args = getattr(conf, inv_class_name, {})
