@@ -237,24 +237,10 @@ def InitBrigade(config_file="", dry_run=False, **kwargs):
     """
     conf = Config(config_file=config_file, **kwargs)
 
-    module_path = ".".join(conf.inventory.split(".")[:-1])
-    inv_class_name = conf.inventory.split(".")[-1]
-    module = importlib.import_module(module_path)
-    inv_class = getattr(module, inv_class_name)
-    inv_class_args = getattr(conf, inv_class_name, {})
-
-    transform_function = kwargs.get("transform_function")
-
-    if callable(transform_function):
-        inv_class_args['transform_function'] = transform_function
-    else:
-        module_path = ".".join(conf.transform_function.split(".")[:-1])
-        transform_function_name = conf.transform_function.split(".")[-1]
-        module = importlib.import_module(module_path)
-        transform_function = getattr(module, transform_function_name)
-        inv_class_args['transform_function'] = transform_function
-
-    inv = inv_class(**inv_class_args)
+    inv_class = conf.inventory
+    inv_args = getattr(conf, inv_class.__name__, {})
+    transform_function = conf.transform_function
+    inv = inv_class(transform_function=transform_function, **inv_args)
 
     return Brigade(
         inventory=inv,
