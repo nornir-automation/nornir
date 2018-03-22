@@ -1,3 +1,4 @@
+import importlib
 import os
 
 
@@ -101,11 +102,13 @@ class Config:
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-        inventory = self.resolve_import_from_string(kwargs.get("inventory"))
-        kwargs["inventory"] = inventory
+        inventory = (self._resolve_import_from_string(kwargs.get("inventory")) or
+                     self._resolve_import_from_string(self.inventory))
+        self.inventory = inventory
 
-        transform_function = self.resolve_import_from_string(kwargs.get("transform_function"))
-        kwargs["transform_function"] = transform_function
+        transform_function = (self._resolve_import_from_string(kwargs.get("transform_function")) or
+                              self._resolve_import_from_string(self.transform_function))
+        self.transform_function = transform_function
 
     def string_to_bool(self, v):
         if v.lower() in ["false", "no", "n", "off", "0"]:
@@ -152,7 +155,7 @@ class Config:
             value = types[str(parameter_type)](value)
         return value
 
-    def resolve_import_from_string(self, import_path):
+    def _resolve_import_from_string(self, import_path):
         """
         Resolves import from a string. Checks if callable or path is given.
 
