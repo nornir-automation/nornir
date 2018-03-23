@@ -61,7 +61,7 @@ class Test(object):
 
     def test_InitBrigade_different_inventory_by_string(self):
         brg = InitBrigade(config_file=os.path.join(dir_path, "a_config.yaml"),
-                          inventory="brigade.tests.core.test_InitBrigade.TestInventory",
+                          inventory="tests.core.test_InitBrigade.TestInventory",
                           )
         assert isinstance(brg.inventory, TestInventory)
 
@@ -73,7 +73,7 @@ class Test(object):
 
     def test_InitBrigade_different_transform_function_by_string(self):
         brg = InitBrigade(config_file=os.path.join(dir_path, "a_config.yaml"),
-                          transform_function="brigade.tests.core.test_InitBrigade.transform_func",
+                          transform_function="tests.core.test_InitBrigade.transform_func",
                           )
         for host in brg.inventory.hosts:
             assert host.data["transform_func"] == "executed"
