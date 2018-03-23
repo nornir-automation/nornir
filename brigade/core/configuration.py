@@ -105,7 +105,9 @@ class Config:
         inventory = self._resolve_import_from_string(kwargs.get("inventory", self.inventory))
         self.inventory = inventory
 
-        transform_function = self._resolve_import_from_string(kwargs.get("transform_function", self.transform_function))
+        transform_function = self._resolve_import_from_string(kwargs.get("transform_function",
+                                                                         self.transform_function,
+                                                                         ))
         self.transform_function = transform_function
 
     def string_to_bool(self, v):
