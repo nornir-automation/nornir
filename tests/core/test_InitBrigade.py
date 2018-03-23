@@ -9,7 +9,7 @@ dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_InitB
 
 
 def transform_func(host):
-    host.data["transform_func"] = "executed"
+    host.processed_by_transform_function = True
 
 
 class TestInventory(Inventory):
@@ -77,11 +77,11 @@ class Test(object):
                           transform_function="tests.core.test_InitBrigade.transform_func",
                           )
         for host in brg.inventory.hosts:
-            assert brg.inventory.hosts.get(host).get("transform_func") == "executed"
+            assert host.processed_by_transform_function
 
     def test_InitBrigade_different_transform_function_imported(self):
         brg = InitBrigade(config_file=os.path.join(dir_path, "a_config.yaml"),
                           transform_function=transform_func,
                           )
         for host in brg.inventory.hosts:
-            assert brg.inventory.hosts.get(host).get("transform_func") == "executed"
+            assert host.processed_by_transform_function
