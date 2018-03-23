@@ -12,7 +12,7 @@ def transform_func(host):
     host.data["transform_func"] = "executed"
 
 
-class NSOTInventory(Inventory):
+class TestInventory(Inventory):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -61,15 +61,15 @@ class Test(object):
 
     def test_InitBrigade_different_inventory_by_string(self):
         brg = InitBrigade(config_file=os.path.join(dir_path, "a_config.yaml"),
-                          inventory="brigade.plugins.inventory.nsot.NSOTInventory",
+                          inventory="brigade.tests.core.test_InitBrigade.TestInventory",
                           )
-        assert isinstance(brg.inventory, NSOTInventory)
+        assert isinstance(brg.inventory, TestInventory)
 
     def test_InitBrigade_different_inventory_imported(self):
         brg = InitBrigade(config_file=os.path.join(dir_path, "a_config.yaml"),
-                          inventory=NSOTInventory,
+                          inventory=TestInventory,
                           )
-        assert isinstance(brg.inventory, NSOTInventory)
+        assert isinstance(brg.inventory, TestInventory)
 
     def test_InitBrigade_different_transform_function_by_string(self):
         brg = InitBrigade(config_file=os.path.join(dir_path, "a_config.yaml"),
