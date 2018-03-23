@@ -2,6 +2,7 @@ import os
 
 from builtins import super
 from brigade.core import InitBrigade
+from brigade.core.inventory import Inventory
 
 
 dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_InitBrigade")
@@ -11,7 +12,7 @@ def transform_func(host):
     host.data["transform_func"] = "executed"
 
 
-class NSOTInventory:
+class NSOTInventory(Inventory):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
