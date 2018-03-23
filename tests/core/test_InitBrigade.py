@@ -76,11 +76,11 @@ class Test(object):
                           transform_function="tests.core.test_InitBrigade.transform_func",
                           )
         for host in brg.inventory.hosts:
-            assert host.data["transform_func"] == "executed"
+            assert brg.inventory.hosts.get(host).get("transform_func") == "executed"
 
     def test_InitBrigade_different_transform_function_imported(self):
         brg = InitBrigade(config_file=os.path.join(dir_path, "a_config.yaml"),
                           transform_function=transform_func,
                           )
         for host in brg.inventory.hosts:
-            assert host.data["transform_func"] == "executed"
+            assert brg.inventory.hosts.get(host).get("transform_func") == "executed"
