@@ -15,7 +15,8 @@ def transform_func(host):
 class TestInventory(Inventory):
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        devices = {}
+        super().__init__(d, *args, **kwargs)
 
 
 class Test(object):
