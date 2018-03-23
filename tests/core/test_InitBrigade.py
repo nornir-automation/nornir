@@ -7,8 +7,8 @@ from brigade.plugins.inventory.nsot import NSOTInventory
 dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_InitBrigade")
 
 
-def test_transform_function(host):
-    host.data["transform_function_test"] = "executed"
+def transform_func(host):
+    host.data["transform_func"] = "executed"
 
 
 class Test(object):
@@ -66,14 +66,14 @@ class Test(object):
 
     def test_InitBrigade_different_transform_function_by_string(self):
         brg = InitBrigade(config_file=os.path.join(dir_path, "a_config.yaml"),
-                          transform_function="brigade.tests.core.test_InitBrigade.test_transform_function",
+                          transform_function="brigade.tests.core.test_InitBrigade.transform_func",
                           )
         for host in brg.inventory.hosts:
-            assert host.data["transform_function_test"] == "executed"
+            assert host.data["transform_func"] == "executed"
 
     def test_InitBrigade_different_transform_function_imported(self):
         brg = InitBrigade(config_file=os.path.join(dir_path, "a_config.yaml"),
-                          transform_function=test_transform_function,
+                          transform_function=transform_func,
                           )
         for host in brg.inventory.hosts:
-            assert host.data["transform_function_test"] == "executed"
+            assert host.data["transform_func"] == "executed"
