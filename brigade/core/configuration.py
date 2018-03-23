@@ -102,12 +102,10 @@ class Config:
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-        inventory = (self._resolve_import_from_string(kwargs.get("inventory")) or
-                     self._resolve_import_from_string(self.inventory))
+        inventory = self._resolve_import_from_string(kwargs.get("inventory", self.inventory))
         self.inventory = inventory
 
-        transform_function = (self._resolve_import_from_string(kwargs.get("transform_function")) or
-                              self._resolve_import_from_string(self.transform_function))
+        transform_function = self._resolve_import_from_string(kwargs.get("transform_function", self.transform_function))
         self.transform_function = transform_function
 
     def string_to_bool(self, v):
