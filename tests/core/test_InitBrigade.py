@@ -76,12 +76,12 @@ class Test(object):
         brg = InitBrigade(config_file=os.path.join(dir_path, "a_config.yaml"),
                           transform_function="tests.core.test_InitBrigade.transform_func",
                           )
-        for host in brg.inventory.hosts:
-            assert host.processed_by_transform_function
+        for value in brg.inventory.hosts.values():
+            assert value.processed_by_transform_function
 
     def test_InitBrigade_different_transform_function_imported(self):
         brg = InitBrigade(config_file=os.path.join(dir_path, "a_config.yaml"),
                           transform_function=transform_func,
                           )
-        for host in brg.inventory.hosts:
-            assert host.processed_by_transform_function
+        for value in brg.inventory.hosts.values():
+            assert value.processed_by_transform_function
