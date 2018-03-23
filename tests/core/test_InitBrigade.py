@@ -1,7 +1,7 @@
 import os
 
+from builtins import super
 from brigade.core import InitBrigade
-from brigade.plugins.inventory.nsot import NSOTInventory
 
 
 dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_InitBrigade")
@@ -9,6 +9,12 @@ dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_InitB
 
 def transform_func(host):
     host.data["transform_func"] = "executed"
+
+
+class NSOTInventory:
+
+    def __init__(self, *args, *kwargs):
+        super().__init__(*args, **kwargs)
 
 
 class Test(object):
