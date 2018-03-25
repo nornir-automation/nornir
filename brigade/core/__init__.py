@@ -1,4 +1,3 @@
-import importlib
 import logging
 import logging.config
 import sys
@@ -120,22 +119,22 @@ class Brigade(object):
             dictConfig["root"]["handlers"].append('info_file_handler')
             handlers_list.append('info_file_handler')
             dictConfig["handlers"]["info_file_handler"] = {
-                    "class": "logging.handlers.RotatingFileHandler",
-                    "level": "NOTSET",
-                    "formatter": "simple",
-                    "filename": self.config.logging_file,
-                    "maxBytes": 10485760,
-                    "backupCount": 20,
-                    "encoding": "utf8"
+                "class": "logging.handlers.RotatingFileHandler",
+                "level": "NOTSET",
+                "formatter": "simple",
+                "filename": self.config.logging_file,
+                "maxBytes": 10485760,
+                "backupCount": 20,
+                "encoding": "utf8"
             }
         if self.config.logging_to_console:
             dictConfig["root"]["handlers"].append('info_console')
             handlers_list.append('info_console')
             dictConfig["handlers"]["info_console"] = {
-                    "class": "logging.StreamHandler",
-                    "level": "NOTSET",
-                    "formatter": "simple",
-                    "stream": "ext://sys.stdout",
+                "class": "logging.StreamHandler",
+                "level": "NOTSET",
+                "formatter": "simple",
+                "stream": "ext://sys.stdout",
             }
 
         for logger in self.config.logging_loggers:
@@ -258,12 +257,10 @@ def InitBrigade(config_file="", dry_run=False, **kwargs):
     """
     conf = Config(config_file=config_file, **kwargs)
 
-    module_path = ".".join(conf.inventory.split(".")[:-1])
-    inv_class_name = conf.inventory.split(".")[-1]
-    module = importlib.import_module(module_path)
-    inv_class = getattr(module, inv_class_name)
-
-    inv = inv_class(**getattr(conf, inv_class_name, {}))
+    inv_class = conf.inventory
+    inv_args = getattr(conf, inv_class.__name__, {})
+    transform_function = conf.transform_function
+    inv = inv_class(transform_function=transform_function, **inv_args)
 
     return Brigade(
         inventory=inv,

@@ -103,3 +103,6 @@ output/
 .pytest_cache/
 
 .vscode
+
+# Generated when testing
+nsot-docker.sqlite3
