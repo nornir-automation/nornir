@@ -21,7 +21,7 @@ CONF = {
         'description': "If set to ``True``, (:obj:`brigade.core.Brigade.run`) method of will raise "
                        "an exception if at least a host failed.",
         'type': 'bool',
-        'default': True,
+        'default': False,
     },
     'ssh_config_file': {
         'description': 'User ssh_config_file',

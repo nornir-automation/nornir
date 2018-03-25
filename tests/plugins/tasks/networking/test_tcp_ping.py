@@ -2,12 +2,9 @@ import os
 
 
 from brigade.core import Brigade
-from brigade.core.exceptions import BrigadeExecutionError
 from brigade.plugins.inventory.simple import SimpleInventory
 from brigade.plugins.tasks import networking
 
-
-import pytest
 
 cur_dir = os.path.dirname(os.path.realpath(__file__))
 ext_inv_file = '{}/../../../inventory_data/external_hosts.yaml'.format(cur_dir)
@@ -33,20 +30,24 @@ class Test(object):
             assert r.tcp_port[65004]
 
     def test_tcp_ping_invalid_port(self, brigade):
-        with pytest.raises(BrigadeExecutionError) as e:
-            brigade.run(networking.tcp_ping,
-                        ports='web')
-        assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
-        for result in e.value.failed_hosts.values():
+        results = brigade.run(networking.tcp_ping,
+                              ports='web')
+        processed = False
+        for result in results.values():
+            processed = True
             assert isinstance(result.exception, ValueError)
+        assert processed
+        brigade.data.reset_failed_hosts()
 
     def test_tcp_ping_invalid_ports(self, brigade):
-        with pytest.raises(BrigadeExecutionError) as e:
-            brigade.run(networking.tcp_ping,
-                        ports=[22, 'web', 443])
-        assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
-        for result in e.value.failed_hosts.values():
+        results = brigade.run(networking.tcp_ping,
+                              ports=[22, 'web', 443])
+        processed = False
+        for result in results.values():
+            processed = True
             assert isinstance(result.exception, ValueError)
+        assert processed
+        brigade.data.reset_failed_hosts()
 
 
 def test_tcp_ping_external_hosts():

@@ -14,7 +14,7 @@ class Test(object):
         config = Config(config_file=os.path.join(dir_path, "empty.yaml"),
                         arg1=1, arg2=False, arg3=None, arg4="asd")
         assert config.num_workers == 20
-        assert config.raise_on_error
+        assert not config.raise_on_error
         assert config.arg1 == 1
         assert config.arg2 is False
         assert config.arg3 is None

@@ -1,11 +1,7 @@
 import os
 import sys
 
-from brigade.core.exceptions import BrigadeExecutionError
 from brigade.plugins.tasks import data
-
-
-import pytest
 
 
 data_dir = '{}/test_data'.format(os.path.dirname(os.path.realpath(__file__)))
@@ -25,12 +21,14 @@ class Test(object):
 
     def test_load_json_error_broken_file(self, brigade):
         test_file = '{}/broken.json'.format(data_dir)
-        with pytest.raises(BrigadeExecutionError) as e:
-            brigade.run(data.load_json,
-                        file=test_file)
-        assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
-        for result in e.value.failed_hosts.values():
+        results = brigade.run(data.load_json,
+                              file=test_file)
+        processed = False
+        for result in results.values():
+            processed = True
             assert isinstance(result.exception, ValueError)
+        assert processed
+        brigade.data.reset_failed_hosts()
 
     def test_load_json_error_missing_file(self, brigade):
         test_file = '{}/missing.json'.format(data_dir)
@@ -39,9 +37,11 @@ class Test(object):
         else:
             not_found = FileNotFoundError # noqa
 
-        with pytest.raises(BrigadeExecutionError) as e:
-            brigade.run(data.load_json,
-                        file=test_file)
-        assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
-        for result in e.value.failed_hosts.values():
+        results = brigade.run(data.load_json,
+                              file=test_file)
+        processed = False
+        for result in results.values():
+            processed = True
             assert isinstance(result.exception, not_found)
+        assert processed
+        brigade.data.reset_failed_hosts()

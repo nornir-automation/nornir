@@ -1,9 +1,6 @@
 import os
 
-from brigade.core.exceptions import BrigadeExecutionError
 from brigade.plugins.tasks import connections, networking
-
-import pytest
 
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__)) + "/mocked/napalm_get"
@@ -28,10 +25,12 @@ class Test(object):
         d = brigade.filter(name="dev3.group_2")
         d.run(connections.napalm_connection, optional_args=opt)
 
-        with pytest.raises(BrigadeExecutionError) as e:
-            d.run(networking.napalm_get,
-                  getters=["facts",
-                           "interfaces"])
-        assert len(e.value.failed_hosts)
-        for result in e.value.failed_hosts.values():
+        results = d.run(networking.napalm_get,
+                        getters=["facts",
+                                 "interfaces"])
+        processed = False
+        for result in results.values():
+            processed = True
             assert isinstance(result.exception, KeyError)
+        assert processed
+        brigade.data.reset_failed_hosts()
