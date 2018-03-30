@@ -56,3 +56,18 @@ class Test(object):
 
         result = http_method(method="post", url=url, raise_for_status=False)
         assert result.response.status_code
+
+    def test_with_brigade(self, brigade):
+        url = "http://httpbin.org/get"
+        params = {"my_param": "my_value"}
+
+        r = brigade.run(http_method,
+                        method="get",
+                        url=url,
+                        params=params)
+
+        processed = False
+        for host, result in r.items():
+            processed = True
+            assert result[0].result["args"]["my_param"] == "my_value"
+        assert processed

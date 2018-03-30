@@ -30,9 +30,11 @@ def http_method(task=None, method="get", url="", raise_for_status=True, **kwargs
     if raise_for_status:
         r.raise_for_status()
 
-    if r.headers["Content-type"] == "application/json":
-        result = r.json()
-    else:
-        result = r.text
+    try:
+        content_type = r.headers["Content-type"]
+    except KeyError:
+        content_type = "text"
+
+    result = r.json() if "application/json" == content_type else r.text
 
     return Result(host=task.host if task else None, response=r, result=result)
