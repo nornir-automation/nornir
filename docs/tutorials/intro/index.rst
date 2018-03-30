@@ -13,6 +13,6 @@ We're glad you made it here! This is a great place to learn the basics of Brigad
    initializing_brigade.ipynb
    inventory.ipynb
    executing_tasks.ipynb
-   advanced_tasks.ipynb
+   grouping_tasks.ipynb
    task_results.ipynb
    failed_tasks.ipynb
