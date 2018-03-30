@@ -37,6 +37,7 @@ Vagrant.configure(2) do |config|
 
     leaf00.vm.network "private_network", virtualbox__intnet: "link_1", ip: "169.254.1.11", auto_config: false
     leaf00.vm.network "private_network", virtualbox__intnet: "link_3", ip: "169.254.1.11", auto_config: false
+    leaf00.vm.network "private_network", virtualbox__intnet: "link_5", ip: "169.254.1.11", auto_config: false
   end
 
   config.vm.define "leaf01" do |leaf01|
@@ -46,6 +47,17 @@ Vagrant.configure(2) do |config|
 
     leaf01.vm.network "private_network", virtualbox__intnet: "link_2", ip: "169.254.1.11", auto_config: false
     leaf01.vm.network "private_network", virtualbox__intnet: "link_4", ip: "169.254.1.11", auto_config: false
+    leaf01.vm.network "private_network", virtualbox__intnet: "link_5", ip: "169.254.1.11", auto_config: false
+  end
+
+  config.vm.define "host00" do |host00|
+    host00.vm.box = "hashicorp/precise64"
+    host00.vm.network "private_network", virtualbox__intnet: "link_5", ip: "10.123.231.100", auto_config: false
+  end
+
+  config.vm.define "host01" do |host01|
+    host01.vm.box = "hashicorp/precise64"
+    host01.vm.network "private_network", virtualbox__intnet: "link_5", ip: "10.123.231.101", auto_config: false
   end
 
 end

@@ -1,12 +1,20 @@
 ---
-all:
-    domain: acme.com
+defaults:
+    domain: acme.local
+
+global:
+    domain: global.local
+    asn: 1
+
+eu:
+    asn: 65100
 
 bma:
-    group: all
+    groups:
+        - eu
+        - global
 
 cmh:
-    group: all
     asn: 65000
     vlans:
       100: frontend

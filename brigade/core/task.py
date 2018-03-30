@@ -12,13 +12,11 @@ class Task(object):
     Arguments:
         task (callable): function or callable we will be calling
         name (``string``): name of task, defaults to ``task.__name__``
-        skipped (``bool``): whether to run hosts that should be skipped otherwise or not
         **kwargs: Parameters that will be passed to the ``task``
 
     Attributes:
         task (callable): function or callable we will be calling
         name (``string``): name of task, defaults to ``task.__name__``
-        skipped (``bool``): whether to run hosts that should be skipped otherwise or not
         params: Parameters that will be passed to the ``task``.
         self.results (:obj:`brigade.core.task.MultiResult`): Intermediate results
         host (:obj:`brigade.core.inventory.Host`): Host we are operating with. Populated right
@@ -28,24 +26,21 @@ class Task(object):
         dry_run(``bool``): Populated right before calling the ``task``
     """
 
-    def __init__(self, task, name=None, skipped=False, **kwargs):
+    def __init__(self, task, name=None, **kwargs):
         self.name = name or task.__name__
         self.task = task
         self.params = kwargs
-        self.skipped = skipped
         self.results = MultiResult(self.name)
+        self.dry_run = None
 
     def __repr__(self):
         return self.name
 
     def _start(self, host, brigade, dry_run, sub_task=False):
-        if host.name in brigade.data.failed_hosts and not self.skipped:
-            r = Result(host, skipped=True)
-        else:
-            self.host = host
-            self.brigade = brigade
-            self.dry_run = dry_run if dry_run is not None else brigade.dry_run
-            r = self.task(self, **self.params) or Result(host)
+        self.host = host
+        self.brigade = brigade
+        self.dry_run = dry_run if dry_run is not None else brigade.dry_run
+        r = self.task(self, **self.params) or Result(host)
         r.name = self.name
 
         if sub_task:
@@ -70,6 +65,10 @@ class Task(object):
             msg = ("You have to call this after setting host and brigade attributes. ",
                    "You probably called this from outside a nested task")
             raise Exception(msg)
+
+        # we want the subtask to receive self.dry_run in the case it was overriden in the parent
+        dry_run = dry_run if dry_run is not None else self.dry_run
+
         r = Task(task, **kwargs)._start(self.host, self.brigade, dry_run, sub_task=True)
 
         if isinstance(r, MultiResult):
@@ -90,7 +89,6 @@ class Result(object):
         host (:obj:`brigade.core.inventory.Host`): Reference to the host that lead ot this result
         failed (bool): Whether the execution failed or not
         exception (Exception): uncaught exception thrown during the exection of the task (if any)
-        skipped (bool): ``True`` if the host was skipped
 
     Attributes:
         changed (bool): ``True`` if the task is changing the system
@@ -99,21 +97,29 @@ class Result(object):
         host (:obj:`brigade.core.inventory.Host`): Reference to the host that lead ot this result
         failed (bool): Whether the execution failed or not
         exception (Exception): uncaught exception thrown during the exection of the task (if any)
-        skipped (bool): ``True`` if the host was skipped
     """
 
     def __init__(self, host, result=None, changed=False, diff="", failed=False, exception=None,
-                 skipped=False, **kwargs):
+                 **kwargs):
         self.result = result
         self.host = host
         self.changed = changed
         self.diff = diff
         self.failed = failed
         self.exception = exception
-        self.skipped = skipped
+        self.name = None
 
         for k, v in kwargs.items():
             setattr(self, k, v)
+
+    def __repr__(self):
+        return '{}: "{}"'.format(self.__class__.__name__, self.name)
+
+    def __str__(self):
+        if self.exception:
+            return str(self.exception)
+        else:
+            return str(self.result)
 
 
 class AggregatedResult(dict):
@@ -126,7 +132,7 @@ class AggregatedResult(dict):
         super().__init__(**kwargs)
 
     def __repr__(self):
-        return '{}: {}'.format(self.__class__.__name__, self.name)
+        return '{} ({}): {}'.format(self.__class__.__name__, self.name, super().__repr__())
 
     @property
     def failed(self):
@@ -137,11 +143,6 @@ class AggregatedResult(dict):
     def failed_hosts(self):
         """Hosts that failed during the execution of the task."""
         return {h: r for h, r in self.items() if r.failed}
-
-    @property
-    def skipped(self):
-        """If ``True`` at least a host was skipped."""
-        return any([h.skipped for h in self.values()])
 
     def raise_on_error(self):
         """
@@ -163,15 +164,13 @@ class MultiResult(list):
     def __getattr__(self, name):
         return getattr(self[0], name)
 
+    def __repr__(self):
+        return "{}: {}".format(self.__class__.__name__, super().__repr__())
+
     @property
     def failed(self):
         """If ``True`` at least a task failed."""
         return any([h.failed for h in self])
-
-    @property
-    def skipped(self):
-        """If ``True`` at least a host was skipped."""
-        return any([h.skipped for h in self])
 
     @property
     def changed(self):

@@ -1,13 +1,8 @@
 import os
 
-
-from brigade.core.exceptions import BrigadeExecutionError
 from brigade.plugins.tasks import text
 
 from jinja2 import TemplateSyntaxError
-
-
-import pytest
 
 
 data_dir = '{}/test_data'.format(os.path.dirname(os.path.realpath(__file__)))
@@ -45,9 +40,11 @@ class Test(object):
                 assert 'my_var: comes_from_group_1' in r.result
 
     def test_template_string_error_broken_string(self, brigade):
-        with pytest.raises(BrigadeExecutionError) as e:
-            brigade.run(text.template_string,
-                        template=broken_j2)
-        assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
-        for result in e.value.failed_hosts.values():
+        results = brigade.run(text.template_string,
+                              template=broken_j2)
+        processed = False
+        for result in results.values():
+            processed = True
             assert isinstance(result.exception, TemplateSyntaxError)
+        assert processed
+        brigade.data.reset_failed_hosts()

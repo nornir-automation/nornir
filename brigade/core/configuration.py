@@ -1,3 +1,4 @@
+import importlib
 import os
 
 
@@ -10,6 +11,11 @@ CONF = {
         'type': 'str',
         'default': 'brigade.plugins.inventory.simple.SimpleInventory',
     },
+    'transform_function': {
+        'description': 'Path to transform function.',
+        'type': 'str',
+        'default': {}
+    },
     'num_workers': {
         'description': 'Number of Brigade worker processes that are run at the same time, '
                        'configuration can be overridden on individual tasks by using the '
@@ -21,7 +27,7 @@ CONF = {
         'description': "If set to ``True``, (:obj:`brigade.core.Brigade.run`) method of will raise "
                        "an exception if at least a host failed.",
         'type': 'bool',
-        'default': True,
+        'default': False,
     },
     'ssh_config_file': {
         'description': 'User ssh_config_file',
@@ -96,6 +102,14 @@ class Config:
         for k, v in kwargs.items():
             setattr(self, k, v)
 
+        inventory = self._resolve_import_from_string(kwargs.get("inventory", self.inventory))
+        self.inventory = inventory
+
+        transform_function = self._resolve_import_from_string(kwargs.get("transform_function",
+                                                                         self.transform_function,
+                                                                         ))
+        self.transform_function = transform_function
+
     def string_to_bool(self, v):
         if v.lower() in ["false", "no", "n", "off", "0"]:
             return False
@@ -140,3 +154,17 @@ class Config:
         else:
             value = types[str(parameter_type)](value)
         return value
+
+    def _resolve_import_from_string(self, import_path):
+        """
+        Resolves import from a string. Checks if callable or path is given.
+
+        Arguments:
+            import_path(str): path of the import
+        """
+        if not import_path or callable(import_path):
+            return import_path
+        module_name = ".".join(import_path.split(".")[:-1])
+        obj_name = import_path.split(".")[-1]
+        module = importlib.import_module(module_name)
+        return getattr(module, obj_name)

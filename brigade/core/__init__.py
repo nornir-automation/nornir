@@ -1,4 +1,3 @@
-import importlib
 import logging
 import logging.config
 import sys
@@ -45,6 +44,14 @@ class Data(object):
     """
 
     def __init__(self):
+        self.failed_hosts = set()
+
+    def recover_host(self, host):
+        """Remove ``host`` from list of failed hosts."""
+        self.failed_hosts.discard(host)
+
+    def reset_failed_hosts(self):
+        """Reset failed hosts and make all hosts available for future tasks."""
         self.failed_hosts = set()
 
 
@@ -112,22 +119,22 @@ class Brigade(object):
             dictConfig["root"]["handlers"].append('info_file_handler')
             handlers_list.append('info_file_handler')
             dictConfig["handlers"]["info_file_handler"] = {
-                    "class": "logging.handlers.RotatingFileHandler",
-                    "level": "NOTSET",
-                    "formatter": "simple",
-                    "filename": self.config.logging_file,
-                    "maxBytes": 10485760,
-                    "backupCount": 20,
-                    "encoding": "utf8"
+                "class": "logging.handlers.RotatingFileHandler",
+                "level": "NOTSET",
+                "formatter": "simple",
+                "filename": self.config.logging_file,
+                "maxBytes": 10485760,
+                "backupCount": 20,
+                "encoding": "utf8"
             }
         if self.config.logging_to_console:
             dictConfig["root"]["handlers"].append('info_console')
             handlers_list.append('info_console')
             dictConfig["handlers"]["info_console"] = {
-                    "class": "logging.StreamHandler",
-                    "level": "NOTSET",
-                    "formatter": "simple",
-                    "stream": "ext://sys.stdout",
+                "class": "logging.StreamHandler",
+                "level": "NOTSET",
+                "formatter": "simple",
+                "stream": "ext://sys.stdout",
             }
 
         for logger in self.config.logging_loggers:
@@ -150,19 +157,19 @@ class Brigade(object):
         b.inventory = self.inventory.filter(**kwargs)
         return b
 
-    def _run_serial(self, task, dry_run, **kwargs):
+    def _run_serial(self, task, hosts, dry_run, **kwargs):
         result = AggregatedResult(kwargs.get("name") or task.__name__)
-        for host in self.inventory.hosts.values():
+        for host in hosts:
             result[host.name] = run_task(host, self, dry_run, Task(task, **kwargs))
         return result
 
-    def _run_parallel(self, task, num_workers, dry_run, **kwargs):
+    def _run_parallel(self, task, hosts, num_workers, dry_run, **kwargs):
         result = AggregatedResult(kwargs.get("name") or task.__name__)
 
         pool = Pool(processes=num_workers)
         result_pool = [pool.apply_async(run_task,
                                         args=(h, self, dry_run, Task(task, **kwargs)))
-                       for h in self.inventory.hosts.values()]
+                       for h in hosts]
         pool.close()
         pool.join()
 
@@ -171,7 +178,8 @@ class Brigade(object):
             result[r.host.name] = r
         return result
 
-    def run(self, task, num_workers=None, dry_run=None, raise_on_error=None, **kwargs):
+    def run(self, task, num_workers=None, dry_run=None, raise_on_error=None, on_good=True,
+            on_failed=False, **kwargs):
         """
         Run task over all the hosts in the inventory.
 
@@ -181,6 +189,8 @@ class Brigade(object):
             num_workers(``int``): Override for how many hosts to run in paralell for this task
             dry_run(``bool``): Whether if we are testing the changes or not
             raise_on_error (``bool``): Override raise_on_error behavior
+            on_good(``bool``): Whether to run or not this task on hosts marked as good
+            on_failed(``bool``): Whether to run or not this task on hosts marked as failed
             **kwargs: additional argument to pass to ``task`` when calling it
 
         Raises:
@@ -192,14 +202,24 @@ class Brigade(object):
         """
         num_workers = num_workers or self.config.num_workers
 
+        run_on = []
+        if on_good:
+            for name, host in self.inventory.hosts.items():
+                if name not in self.data.failed_hosts:
+                    run_on.append(host)
+        if on_failed:
+            for name, host in self.inventory.hosts.items():
+                if name in self.data.failed_hosts:
+                    run_on.append(host)
+
         self.logger.info("Running task '{}' with num_workers: {}, dry_run: {}".format(
             kwargs.get("name") or task.__name__, num_workers, dry_run))
         self.logger.debug(kwargs)
 
         if num_workers == 1:
-            result = self._run_serial(task, dry_run, **kwargs)
+            result = self._run_serial(task, run_on, dry_run, **kwargs)
         else:
-            result = self._run_parallel(task, num_workers, dry_run, **kwargs)
+            result = self._run_parallel(task, run_on, num_workers, dry_run, **kwargs)
 
         raise_on_error = raise_on_error if raise_on_error is not None else \
             self.config.raise_on_error
@@ -237,12 +257,10 @@ def InitBrigade(config_file="", dry_run=False, **kwargs):
     """
     conf = Config(config_file=config_file, **kwargs)
 
-    module_path = ".".join(conf.inventory.split(".")[:-1])
-    inv_class_name = conf.inventory.split(".")[-1]
-    module = importlib.import_module(module_path)
-    inv_class = getattr(module, inv_class_name)
-
-    inv = inv_class(**getattr(conf, inv_class_name, {}))
+    inv_class = conf.inventory
+    inv_args = getattr(conf, inv_class.__name__, {})
+    transform_function = conf.transform_function
+    inv = inv_class(transform_function=transform_function, **inv_args)
 
     return Brigade(
         inventory=inv,

@@ -1,15 +1,25 @@
 ---
 host1.cmh:
+    brigade_host: 127.0.0.1
+    brigade_ssh_port: 2201
+    brigade_username: vagrant
+    brigade_password: vagrant
     site: cmh
     role: host
-    group: cmh
+    groups:
+        - cmh
     brigade_nos: linux
     type: host
 
 host2.cmh:
+    brigade_host: 127.0.0.1
+    brigade_ssh_port: 2202
+    brigade_username: vagrant
+    brigade_password: vagrant
     site: cmh
     role: host
-    group: cmh
+    groups:
+        - cmh
     brigade_nos: linux
     type: host
 
@@ -20,7 +30,8 @@ spine00.cmh:
     brigade_network_api_port: 12444
     site: cmh
     role: spine
-    group: cmh
+    groups:
+        - cmh
     brigade_nos: eos
     type: network_device
 
@@ -31,7 +42,8 @@ spine01.cmh:
     brigade_network_api_port: 12204
     site: cmh
     role: spine
-    group: cmh
+    groups:
+        - cmh
     brigade_nos: junos
     type: network_device
 
@@ -42,7 +54,8 @@ leaf00.cmh:
     brigade_network_api_port: 12443
     site: cmh
     role: leaf
-    group: cmh
+    groups:
+        - cmh
     brigade_nos: eos
     type: network_device
     asn: 65100
@@ -54,7 +67,8 @@ leaf01.cmh:
     brigade_network_api_port: 12203
     site: cmh
     role: leaf
-    group: cmh
+    groups:
+        - cmh
     brigade_nos: junos
     type: network_device
     asn: 65101
@@ -62,14 +76,16 @@ leaf01.cmh:
 host1.bma:
     site: bma
     role: host
-    group: bma
+    groups:
+        - bma
     brigade_nos: linux
     type: host
 
 host2.bma:
     site: bma
     role: host
-    group: bma
+    groups:
+        - bma
     brigade_nos: linux
     type: host
 
@@ -80,7 +96,8 @@ spine00.bma:
     brigade_network_api_port: 12444
     site: bma
     role: spine
-    group: bma
+    groups:
+        - bma
     brigade_nos: eos
     type: network_device
 
@@ -91,7 +108,8 @@ spine01.bma:
     brigade_network_api_port: 12204
     site: bma
     role: spine
-    group: bma
+    groups:
+        - bma
     brigade_nos: junos
     type: network_device
 
@@ -102,7 +120,8 @@ leaf00.bma:
     brigade_network_api_port: 12443
     site: bma
     role: leaf
-    group: bma
+    groups:
+        - bma
     brigade_nos: eos
     type: network_device
 
@@ -113,6 +132,7 @@ leaf01.bma:
     brigade_network_api_port: 12203
     site: bma
     role: leaf
-    group: bma
+    groups:
+        - bma
     brigade_nos: junos
     type: network_device

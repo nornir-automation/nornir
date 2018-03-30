@@ -34,9 +34,10 @@ class Test(object):
             assert h == r[1].stdout.strip()
 
     def test_skip_failed_host(self, brigade):
-        result = brigade.run(task_fails_for_some, raise_on_error=False)
+        result = brigade.run(task_fails_for_some)
         assert result.failed
-        assert not result.skipped
+        assert "dev3.group_2" in result
+
         for h, r in result.items():
             if h == "dev3.group_2":
                 assert r.failed
@@ -46,13 +47,29 @@ class Test(object):
 
         result = brigade.run(task_fails_for_some)
         assert not result.failed
-        assert result.skipped
-        for h, r in result.items():
-            if h == "dev3.group_2":
-                assert r.skipped
-            else:
-                assert not r.skipped
-                assert h == r[1].stdout.strip()
+        assert "dev3.group_2" not in result
 
-        # let's reset it
-        brigade.data.failed_hosts = set()
+        brigade.data.reset_failed_hosts()
+
+    def test_run_on(self, brigade):
+        result = brigade.run(task_fails_for_some)
+        assert result.failed
+        assert "dev3.group_2" in result
+        assert "dev1.group_1" in result
+
+        result = brigade.run(task_fails_for_some, on_failed=True)
+        assert result.failed
+        assert "dev3.group_2" in result
+        assert "dev1.group_1" in result
+
+        result = brigade.run(task_fails_for_some, on_failed=True, on_good=False)
+        assert result.failed
+        assert "dev3.group_2" in result
+        assert "dev1.group_1" not in result
+
+        result = brigade.run(task_fails_for_some, on_failed=False, on_good=True)
+        assert not result.failed
+        assert "dev3.group_2" not in result
+        assert "dev1.group_1" in result
+
+        brigade.data.reset_failed_hosts()

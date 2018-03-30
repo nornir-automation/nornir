@@ -2,11 +2,7 @@ import os
 import sys
 
 
-from brigade.core.exceptions import BrigadeExecutionError
 from brigade.plugins.tasks import data
-
-
-import pytest
 
 
 from yaml.scanner import ScannerError
@@ -29,12 +25,14 @@ class Test(object):
 
     def test_load_yaml_error_broken_file(self, brigade):
         test_file = '{}/broken.yaml'.format(data_dir)
-        with pytest.raises(BrigadeExecutionError) as e:
-            brigade.run(data.load_yaml,
-                        file=test_file)
-        assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
-        for result in e.value.failed_hosts.values():
+        results = brigade.run(data.load_yaml,
+                              file=test_file)
+        processed = False
+        for result in results.values():
+            processed = True
             assert isinstance(result.exception, ScannerError)
+        assert processed
+        brigade.data.reset_failed_hosts()
 
     def test_load_yaml_error_missing_file(self, brigade):
         test_file = '{}/missing.yaml'.format(data_dir)
@@ -44,9 +42,11 @@ class Test(object):
         else:
             not_found = FileNotFoundError # noqa
 
-        with pytest.raises(BrigadeExecutionError) as e:
-            brigade.run(data.load_yaml,
-                        file=test_file)
-        assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
-        for result in e.value.failed_hosts.values():
+        results = brigade.run(data.load_yaml,
+                              file=test_file)
+        processed = False
+        for result in results.values():
+            processed = True
             assert isinstance(result.exception, not_found)
+        assert processed
+        brigade.data.reset_failed_hosts()
