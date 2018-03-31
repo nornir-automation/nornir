@@ -1,3 +1,4 @@
+import logging
 import pprint
 
 from brigade.core.task import AggregatedResult, MultiResult, Result
@@ -16,7 +17,7 @@ def print_title(title):
     print("{}{}{}{}".format(Style.BRIGHT, Fore.GREEN, msg, "*" * (80 - len(msg))))
 
 
-def print_result(result, host=None, vars=None, failed=None, task_id=None):
+def print_result(result, host=None, vars=None, failed=None, severity_level=logging.INFO):
     """
     Prints on screen the :obj:`brigade.core.task.Result` from a previous task
 
@@ -47,17 +48,14 @@ def print_result(result, host=None, vars=None, failed=None, task_id=None):
                     " ** changed : {} ".format(host_data.changed)
             msg = "* {}{}".format(host, title)
             print("{}{}{}{}".format(Style.BRIGHT, Fore.BLUE, msg, "*" * (80 - len(msg))))
-            print_result(host_data, host, vars, failed, task_id)
+            print_result(host_data, host, vars, failed, severity_level)
     elif isinstance(result, MultiResult):
-        if task_id is not None:
-            r = result[task_id]
-            result = MultiResult(result.name)
-            result.append(r)
-
         for r in result:
-            print_result(r, host, vars, failed, task_id)
+            print_result(r, host, vars, failed, severity_level)
         print()
     elif isinstance(result, Result):
+        if result.severity < severity_level:
+            return
         if result.failed or failed:
             color = Fore.RED
         elif result.changed:
@@ -65,8 +63,9 @@ def print_result(result, host=None, vars=None, failed=None, task_id=None):
         else:
             color = Fore.GREEN
         subtitle = "" if result.changed is None else " ** changed : {} ".format(result.changed)
-        msg = "---- {}{} ".format(result.name, subtitle)
-        print("{}{}{}{}".format(Style.BRIGHT, color, msg, "-" * (80 - len(msg))))
+        level_name = logging.getLevelName(result.severity)
+        msg = "---- {}{}".format(result.name, subtitle)
+        print("{}{}{}{}- {}".format(Style.BRIGHT, color, msg, "-" * (80 - len(msg)), level_name))
         for v in vars:
             x = getattr(result, v, "")
             if x and not isinstance(x, str):
