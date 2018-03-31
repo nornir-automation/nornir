@@ -39,7 +39,25 @@ class Task(object):
     def __repr__(self):
         return self.name
 
-    def start(self, host, brigade, dry_run, sub_task=False):
+    def start(self, host, brigade, dry_run):
+        """
+        This methods contains the logic to call the underlying function in the task.
+
+        Arguments:
+            host (:obj:`brigade.core.inventory.Host`): Host we are operating with. Populated right
+              before calling the ``task``
+            brigade(:obj:`brigade.core.Brigade`): Populated right before calling
+              the ``task``
+            dry_run(bool): Populated right before calling the ``task``
+
+        Returns:
+            host (:obj:`brigade.core.task.MultiResult`): Results of the tasks ran
+        """
+        r = self._start(host, brigade, dry_run)
+        self.results.insert(0, r)
+        return self.results
+
+    def _start(self, host, brigade, dry_run):
         self.host = host
         self.brigade = brigade
         self.dry_run = dry_run if dry_run is not None else brigade.dry_run
@@ -54,15 +72,9 @@ class Task(object):
             tb = traceback.format_exc()
             logger.error("{}: {}".format(self.host, tb))
             r = Result(host, exception=e, result=tb, failed=True)
-            self.results.append(r)
         r.name = self.name
         r.severity = logging.ERROR if r.failed else self.severity
-
-        if sub_task:
-            return r
-        else:
-            self.results.insert(0, r)
-            return self.results
+        return r
 
     def run(self, task, dry_run=None, **kwargs):
         """
@@ -86,12 +98,8 @@ class Task(object):
 
         if "severity" not in kwargs:
             kwargs["severity"] = self.severity
-        r = Task(task, **kwargs).start(self.host, self.brigade, dry_run, sub_task=True)
-
-        if isinstance(r, MultiResult):
-            self.results.extend(r)
-        else:
-            self.results.append(r)
+        r = Task(task, **kwargs).start(self.host, self.brigade, dry_run)
+        self.results.append(r[0] if len(r) == 1 else r)
         return r
 
 
