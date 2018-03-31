@@ -6,7 +6,7 @@ class Test(object):
 
     def test_command(self, brigade):
         result = brigade.run(commands.command,
-                             command="echo {host.name}")
+                             command="echo {name}")
         assert result
         for h, r in result.items():
             assert h == r.stdout.strip()

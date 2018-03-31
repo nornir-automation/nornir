@@ -1,13 +1,14 @@
 from brigade.core.exceptions import CommandError
-from brigade.core.task import Result
+from brigade.core.task import Result, task
 
 
+@task(resolve_args=["command"])
 def remote_command(task, command):
     """
     Executes a command locally
 
     Arguments:
-        command (``str``): command to execute
+        command (``str``): (resolved) command to execute
 
     Returns:
         :obj:`brigade.core.task.Result`:
