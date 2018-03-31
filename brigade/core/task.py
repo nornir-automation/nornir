@@ -1,19 +1,8 @@
 import logging
 import traceback
 from builtins import super
-from functools import wraps
 
 from brigade.core.exceptions import BrigadeExecutionError
-
-
-def task():
-    def real_decorator(func):
-        @wraps(func)
-        def wrapper(task=None, **kwargs):
-            result = func(task=task, **kwargs)
-            return result
-        return wrapper
-    return real_decorator
 
 
 class Task(object):
