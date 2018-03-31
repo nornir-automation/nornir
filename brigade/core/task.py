@@ -41,7 +41,7 @@ class Task(object):
 
     def start(self, host, brigade, dry_run):
         """
-        This methods contains the logic to call the underlying function in the task.
+        Run the task for the given host.
 
         Arguments:
             host (:obj:`brigade.core.inventory.Host`): Host we are operating with. Populated right
@@ -51,13 +51,8 @@ class Task(object):
             dry_run(bool): Populated right before calling the ``task``
 
         Returns:
-            host (:obj:`brigade.core.task.MultiResult`): Results of the tasks ran
+            host (:obj:`brigade.core.task.MultiResult`): Results of the task and its subtasks
         """
-        r = self._start(host, brigade, dry_run)
-        self.results.insert(0, r)
-        return self.results
-
-    def _start(self, host, brigade, dry_run):
         self.host = host
         self.brigade = brigade
         self.dry_run = dry_run if dry_run is not None else brigade.dry_run
@@ -74,7 +69,9 @@ class Task(object):
             r = Result(host, exception=e, result=tb, failed=True)
         r.name = self.name
         r.severity = logging.ERROR if r.failed else self.severity
-        return r
+
+        self.results.insert(0, r)
+        return self.results
 
     def run(self, task, dry_run=None, **kwargs):
         """
