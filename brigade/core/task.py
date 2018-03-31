@@ -1,6 +1,19 @@
+import logging
+import traceback
 from builtins import super
+from functools import wraps
 
 from brigade.core.exceptions import BrigadeExecutionError
+
+
+def task():
+    def real_decorator(func):
+        @wraps(func)
+        def wrapper(task=None, **kwargs):
+            result = func(task=task, **kwargs)
+            return result
+        return wrapper
+    return real_decorator
 
 
 class Task(object):
@@ -26,22 +39,35 @@ class Task(object):
         dry_run(``bool``): Populated right before calling the ``task``
     """
 
-    def __init__(self, task, name=None, **kwargs):
+    def __init__(self, task, name=None, severity=logging.INFO, **kwargs):
         self.name = name or task.__name__
         self.task = task
         self.params = kwargs
         self.results = MultiResult(self.name)
         self.dry_run = None
+        self.severity = severity
 
     def __repr__(self):
         return self.name
 
-    def _start(self, host, brigade, dry_run, sub_task=False):
+    def start(self, host, brigade, dry_run, sub_task=False):
         self.host = host
         self.brigade = brigade
         self.dry_run = dry_run if dry_run is not None else brigade.dry_run
-        r = self.task(self, **self.params) or Result(host)
+
+        logger = logging.getLogger("brigade")
+        try:
+            logger.info("{}: {}: running task".format(self.host.name, self.name))
+            r = self.task(self, **self.params)
+            if not isinstance(r, Result):
+                r = Result(host=host, result=r)
+        except Exception as e:
+            tb = traceback.format_exc()
+            logger.error("{}: {}".format(self.host, tb))
+            r = Result(host, exception=e, result=tb, failed=True)
+            self.results.append(r)
         r.name = self.name
+        r.severity = logging.ERROR if r.failed else self.severity
 
         if sub_task:
             return r
@@ -69,7 +95,9 @@ class Task(object):
         # we want the subtask to receive self.dry_run in the case it was overriden in the parent
         dry_run = dry_run if dry_run is not None else self.dry_run
 
-        r = Task(task, **kwargs)._start(self.host, self.brigade, dry_run, sub_task=True)
+        if "severity" not in kwargs:
+            kwargs["severity"] = self.severity
+        r = Task(task, **kwargs).start(self.host, self.brigade, dry_run, sub_task=True)
 
         if isinstance(r, MultiResult):
             self.results.extend(r)
@@ -100,7 +128,7 @@ class Result(object):
     """
 
     def __init__(self, host, result=None, changed=False, diff="", failed=False, exception=None,
-                 **kwargs):
+                 severity=logging.INFO, **kwargs):
         self.result = result
         self.host = host
         self.changed = changed
@@ -108,6 +136,7 @@ class Result(object):
         self.failed = failed
         self.exception = exception
         self.name = None
+        self.severity = severity
 
         for k, v in kwargs.items():
             setattr(self, k, v)

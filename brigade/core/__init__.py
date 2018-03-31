@@ -1,11 +1,10 @@
 import logging
 import logging.config
 import sys
-import traceback
 from multiprocessing.dummy import Pool
 
 from brigade.core.configuration import Config
-from brigade.core.task import AggregatedResult, Result, Task
+from brigade.core.task import AggregatedResult, Task
 from brigade.plugins.tasks import connections
 
 
@@ -160,15 +159,15 @@ class Brigade(object):
     def _run_serial(self, task, hosts, dry_run, **kwargs):
         result = AggregatedResult(kwargs.get("name") or task.__name__)
         for host in hosts:
-            result[host.name] = run_task(host, self, dry_run, Task(task, **kwargs))
+            result[host.name] = Task(task, **kwargs).start(host, self, dry_run)
         return result
 
     def _run_parallel(self, task, hosts, num_workers, dry_run, **kwargs):
         result = AggregatedResult(kwargs.get("name") or task.__name__)
 
         pool = Pool(processes=num_workers)
-        result_pool = [pool.apply_async(run_task,
-                                        args=(h, self, dry_run, Task(task, **kwargs)))
+        result_pool = [pool.apply_async(Task(task, **kwargs).start,
+                                        args=(h, self, dry_run))
                        for h in hosts]
         pool.close()
         pool.join()
@@ -228,20 +227,6 @@ class Brigade(object):
         else:
             self.data.failed_hosts.update(result.failed_hosts.keys())
         return result
-
-
-def run_task(host, brigade, dry_run, task):
-    logger = logging.getLogger("brigade")
-    try:
-        logger.info("{}: {}: running task".format(host.name, task.name))
-        r = task._start(host=host, brigade=brigade, dry_run=dry_run)
-    except Exception as e:
-        tb = traceback.format_exc()
-        logger.error("{}: {}".format(host, tb))
-        r = Result(host, exception=e, result=tb, failed=True)
-        task.results.append(r)
-        r.name = task.name
-    return task.results
 
 
 def InitBrigade(config_file="", dry_run=False, **kwargs):
