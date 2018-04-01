@@ -23,7 +23,6 @@ class Task(object):
           before calling the ``task``
         brigade(:obj:`brigade.core.Brigade`): Populated right before calling
           the ``task``
-        dry_run(``bool``): Populated right before calling the ``task``
     """
 
     def __init__(self, task, name=None, **kwargs):
@@ -31,15 +30,13 @@ class Task(object):
         self.task = task
         self.params = kwargs
         self.results = MultiResult(self.name)
-        self.dry_run = None
 
     def __repr__(self):
         return self.name
 
-    def _start(self, host, brigade, dry_run, sub_task=False):
+    def _start(self, host, brigade, sub_task=False):
         self.host = host
         self.brigade = brigade
-        self.dry_run = dry_run if dry_run is not None else brigade.dry_run
         r = self.task(self, **self.params) or Result(host)
         r.name = self.name
 
@@ -49,7 +46,7 @@ class Task(object):
             self.results.insert(0, r)
             return self.results
 
-    def run(self, task, dry_run=None, **kwargs):
+    def run(self, task, **kwargs):
         """
         This is a utility method to call a task from within a task. For instance:
 
@@ -66,16 +63,22 @@ class Task(object):
                    "You probably called this from outside a nested task")
             raise Exception(msg)
 
-        # we want the subtask to receive self.dry_run in the case it was overriden in the parent
-        dry_run = dry_run if dry_run is not None else self.dry_run
-
-        r = Task(task, **kwargs)._start(self.host, self.brigade, dry_run, sub_task=True)
+        r = Task(task, **kwargs)._start(self.host, self.brigade, sub_task=True)
 
         if isinstance(r, MultiResult):
             self.results.extend(r)
         else:
             self.results.append(r)
         return r
+
+    def is_dry_run(self, override=None):
+        """
+        Returns whether current task is a dry_run or not.
+
+        Arguments:
+            override (bool): Override for current task
+        """
+        return override if override is not None else self.brigade.dry_run
 
 
 class Result(object):
