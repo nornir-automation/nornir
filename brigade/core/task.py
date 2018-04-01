@@ -25,7 +25,6 @@ class Task(object):
           before calling the ``task``
         brigade(:obj:`brigade.core.Brigade`): Populated right before calling
           the ``task``
-        dry_run(``bool``): Populated right before calling the ``task``
     """
 
     def __init__(self, task, name=None, severity=logging.INFO, **kwargs):
@@ -33,13 +32,12 @@ class Task(object):
         self.task = task
         self.params = kwargs
         self.results = MultiResult(self.name)
-        self.dry_run = None
         self.severity = severity
 
     def __repr__(self):
         return self.name
 
-    def start(self, host, brigade, dry_run):
+    def start(self, host, brigade):
         """
         Run the task for the given host.
 
@@ -48,14 +46,12 @@ class Task(object):
               before calling the ``task``
             brigade(:obj:`brigade.core.Brigade`): Populated right before calling
               the ``task``
-            dry_run(bool): Populated right before calling the ``task``
 
         Returns:
             host (:obj:`brigade.core.task.MultiResult`): Results of the task and its subtasks
         """
         self.host = host
         self.brigade = brigade
-        self.dry_run = dry_run if dry_run is not None else brigade.dry_run
 
         logger = logging.getLogger("brigade")
         try:
@@ -73,7 +69,7 @@ class Task(object):
         self.results.insert(0, r)
         return self.results
 
-    def run(self, task, dry_run=None, **kwargs):
+    def run(self, task, **kwargs):
         """
         This is a utility method to call a task from within a task. For instance:
 
@@ -90,14 +86,20 @@ class Task(object):
                    "You probably called this from outside a nested task")
             raise Exception(msg)
 
-        # we want the subtask to receive self.dry_run in the case it was overriden in the parent
-        dry_run = dry_run if dry_run is not None else self.dry_run
-
         if "severity" not in kwargs:
             kwargs["severity"] = self.severity
-        r = Task(task, **kwargs).start(self.host, self.brigade, dry_run)
+        r = Task(task, **kwargs).start(self.host, self.brigade)
         self.results.append(r[0] if len(r) == 1 else r)
         return r
+
+    def is_dry_run(self, override=None):
+        """
+        Returns whether current task is a dry_run or not.
+
+        Arguments:
+            override (bool): Override for current task
+        """
+        return override if override is not None else self.brigade.dry_run
 
 
 class Result(object):

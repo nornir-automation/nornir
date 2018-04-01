@@ -25,7 +25,7 @@ How the documentation is structured
 - :doc:`How-to guides </howto/index>` aim to solve a specific use case or answer key problems. These guides can be more advanced than the tutorial and can assume some knowledge about how Brigade and related technologies work.
 - :doc:`Reference guides </ref/index>` contains the API reference for Brigade and describe the core functions and plugins.
 
-Is something missing from the documentation? Please open an issue and `tell us what you are missing <https://github.com/napalm-automation/brigade/issues>`_ or `open a pull request <https://github.com/napalm-automation/brigade/pulls>`_ and suggest an improvement.
+Is something missing from the documentation? Please open an issue and `tell us what you are missing <https://github.com/brigade-automation/brigade/issues>`_ or `open a pull request <https://github.com/brigade-automation/brigade/pulls>`_ and suggest an improvement.
 
 A first glance
 ==============

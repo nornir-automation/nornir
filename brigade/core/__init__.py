@@ -156,18 +156,18 @@ class Brigade(object):
         b.inventory = self.inventory.filter(**kwargs)
         return b
 
-    def _run_serial(self, task, hosts, dry_run, **kwargs):
+    def _run_serial(self, task, hosts, **kwargs):
         result = AggregatedResult(kwargs.get("name") or task.__name__)
         for host in hosts:
-            result[host.name] = Task(task, **kwargs).start(host, self, dry_run)
+            result[host.name] = Task(task, **kwargs).start(host, self)
         return result
 
-    def _run_parallel(self, task, hosts, num_workers, dry_run, **kwargs):
+    def _run_parallel(self, task, hosts, num_workers, **kwargs):
         result = AggregatedResult(kwargs.get("name") or task.__name__)
 
         pool = Pool(processes=num_workers)
         result_pool = [pool.apply_async(Task(task, **kwargs).start,
-                                        args=(h, self, dry_run))
+                                        args=(h, self))
                        for h in hosts]
         pool.close()
         pool.join()
@@ -177,7 +177,7 @@ class Brigade(object):
             result[r.host.name] = r
         return result
 
-    def run(self, task, num_workers=None, dry_run=None, raise_on_error=None, on_good=True,
+    def run(self, task, num_workers=None, raise_on_error=None, on_good=True,
             on_failed=False, **kwargs):
         """
         Run task over all the hosts in the inventory.
@@ -186,7 +186,6 @@ class Brigade(object):
             task (``callable``): function or callable that will be run against each device in
               the inventory
             num_workers(``int``): Override for how many hosts to run in paralell for this task
-            dry_run(``bool``): Whether if we are testing the changes or not
             raise_on_error (``bool``): Override raise_on_error behavior
             on_good(``bool``): Whether to run or not this task on hosts marked as good
             on_failed(``bool``): Whether to run or not this task on hosts marked as failed
@@ -211,14 +210,14 @@ class Brigade(object):
                 if name in self.data.failed_hosts:
                     run_on.append(host)
 
-        self.logger.info("Running task '{}' with num_workers: {}, dry_run: {}".format(
-            kwargs.get("name") or task.__name__, num_workers, dry_run))
+        self.logger.info("Running task '{}' with num_workers: {}".format(
+            kwargs.get("name") or task.__name__, num_workers))
         self.logger.debug(kwargs)
 
         if num_workers == 1:
-            result = self._run_serial(task, run_on, dry_run, **kwargs)
+            result = self._run_serial(task, run_on, **kwargs)
         else:
-            result = self._run_parallel(task, run_on, num_workers, dry_run, **kwargs)
+            result = self._run_parallel(task, run_on, num_workers, **kwargs)
 
         raise_on_error = raise_on_error if raise_on_error is not None else \
             self.config.raise_on_error
