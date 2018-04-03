@@ -13,7 +13,8 @@ def http_method(task=None, method="get", url="", raise_for_status=True, **kwargs
         url (string): URL to connect to
         raise_for_status (bool): Whether to call `raise_for_status
             <http://docs.python-requests.org/en/master/api/#requests.Response.raise_for_status>`_
-            method automatically or not
+            method automatically or not. For quick reference, raise_for_status will consider an
+            error if the return code is any of 4xx or 5xx
         **kwargs: Keyword arguments will be passed to the `request
             <http://docs.python-requests.org/en/master/api/#requests.request>`_
             method
