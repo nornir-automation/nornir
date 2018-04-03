@@ -1,6 +1,7 @@
 import os
-
 from builtins import super
+
+
 from brigade.core import InitBrigade
 from brigade.core.inventory import Inventory
 
@@ -12,7 +13,7 @@ def transform_func(host):
     host.processed_by_transform_function = True
 
 
-class TestInventory(Inventory):
+class StringInventory(Inventory):
 
     def __init__(self, *args, **kwargs):
         hosts = {"host1": {}, "host2": {}}
@@ -62,15 +63,15 @@ class Test(object):
 
     def test_InitBrigade_different_inventory_by_string(self):
         brg = InitBrigade(config_file=os.path.join(dir_path, "a_config.yaml"),
-                          inventory="tests.core.test_InitBrigade.TestInventory",
+                          inventory="tests.core.test_InitBrigade.StringInventory",
                           )
-        assert isinstance(brg.inventory, TestInventory)
+        assert isinstance(brg.inventory, StringInventory)
 
     def test_InitBrigade_different_inventory_imported(self):
         brg = InitBrigade(config_file=os.path.join(dir_path, "a_config.yaml"),
-                          inventory=TestInventory,
+                          inventory=StringInventory,
                           )
-        assert isinstance(brg.inventory, TestInventory)
+        assert isinstance(brg.inventory, StringInventory)
 
     def test_InitBrigade_different_transform_function_by_string(self):
         brg = InitBrigade(config_file=os.path.join(dir_path, "a_config.yaml"),
