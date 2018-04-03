@@ -4,24 +4,26 @@ from brigade.plugins.inventory import ansible
 
 import pytest
 
-import yaml
+import ruamel.yaml
 
 
 BASE_PATH = os.path.join(os.path.dirname(__file__), "ansible")
 
 
 def save(hosts, groups, hosts_file, groups_file):
+    yml = ruamel.yaml.YAML(typ='rt', pure=True)
     with open(hosts_file, "w+") as f:
-        f.write(yaml.dump(hosts, default_flow_style=False))
+        f.write(yml.dump(hosts, default_flow_style=False))
     with open(groups_file, "w+") as f:
-        f.write(yaml.dump(groups, default_flow_style=False))
+        f.write(yml.dump(groups, default_flow_style=False))
 
 
 def read(hosts_file, groups_file):
+    yml = ruamel.yaml.YAML(typ='rt', pure=True)
     with open(hosts_file, "r") as f:
-        hosts = yaml.load(f.read())
+        hosts = yml.load(f.read())
     with open(groups_file, "r") as f:
-        groups = yaml.load(f.read())
+        groups = yml.load(f.read())
     return hosts, groups
 
 
@@ -42,5 +44,5 @@ class Test(object):
 
     def test_parse_error(self):
         base_path = os.path.join(BASE_PATH, "parse_error")
-        with pytest.raises(yaml.YAMLError):
+        with pytest.raises(ruamel.yaml.scanner.ScannerError):
             ansible.parse(path=os.path.join(base_path, "source"))

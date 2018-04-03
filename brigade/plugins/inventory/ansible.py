@@ -5,7 +5,7 @@ from builtins import super
 
 from brigade.core.inventory import Inventory
 
-import yaml
+import ruamel.yaml
 
 
 logger = logging.getLogger("brigade")
@@ -66,7 +66,8 @@ class AnsibleParser(object):
 
         with open(filepath, "r") as f:
             logger.debug("AnsibleInventory: reading var file: {}".format(filepath))
-            return yaml.load(f)
+            yml = ruamel.yaml.YAML(typ='rt', pure=True)
+            return yml.load(f)
 
     def map_brigade_vars(self, obj):
         mappings = {
@@ -144,7 +145,8 @@ class YAMLParser(AnsibleParser):
 
     def load_hosts_file(self):
         with open(os.path.join(self.path, "hosts"), "r") as f:
-            self.hostsfile = yaml.load(f.read())
+            yml = ruamel.yaml.YAML(typ='rt', pure=True)
+            self.hostsfile = yml.load(f.read())
 
 
 def parse(path):
@@ -153,7 +155,7 @@ def parse(path):
     except configparser.Error:
         try:
             parser = YAMLParser(path)
-        except yaml.YAMLError:
+        except ruamel.yaml.scanner.ScannerError:
             logger.error(
                 "couldn't parse '{}' as neither a ini nor yaml file".format(path)
             )
