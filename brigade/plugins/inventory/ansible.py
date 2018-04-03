@@ -66,7 +66,7 @@ class AnsibleParser(object):
 
         with open(filepath, "r") as f:
             logger.debug("AnsibleInventory: reading var file: {}".format(filepath))
-            yml = ruamel.yaml.YAML(typ='rt', pure=True)
+            yml = ruamel.yaml.YAML(typ="rt", pure=True)
             return yml.load(f)
 
     def map_brigade_vars(self, obj):
@@ -145,7 +145,7 @@ class YAMLParser(AnsibleParser):
 
     def load_hosts_file(self):
         with open(os.path.join(self.path, "hosts"), "r") as f:
-            yml = ruamel.yaml.YAML(typ='rt', pure=True)
+            yml = ruamel.yaml.YAML(typ="rt", pure=True)
             self.hostsfile = yml.load(f.read())
 
 
