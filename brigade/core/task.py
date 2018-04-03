@@ -1,8 +1,24 @@
 import logging
 import traceback
 from builtins import super
+from functools import wraps
 
 from brigade.core.exceptions import BrigadeExecutionError
+from brigade.core.helpers import format_object
+
+
+def task(resolve_args=None):
+    def real_decorator(func):
+        @wraps(func)
+        def wrapper(task=None, **kwargs):
+            if task:
+                for arg in resolve_args:
+                    kwargs[arg] = format_object(kwargs[arg], task.host)
+
+            result = func(task=task, **kwargs)
+            return result
+        return wrapper
+    return real_decorator
 
 
 class Task(object):
