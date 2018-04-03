@@ -23,10 +23,12 @@ def command(task, command):
         :obj:`brigade.core.exceptions.CommandError`: when there is a command error
     """
     command = format_string(command, task, **task.host)
-    cmd = subprocess.Popen(shlex.split(command),
-                           stdout=subprocess.PIPE,
-                           stderr=subprocess.PIPE,
-                           shell=False)
+    cmd = subprocess.Popen(
+        shlex.split(command),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=False,
+    )
 
     stdout, stderr = cmd.communicate()
     stdout = stdout.decode()

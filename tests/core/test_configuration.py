@@ -5,14 +5,21 @@ from brigade.core.configuration import Config
 #  import pytest
 
 
-dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_configuration")
+dir_path = os.path.join(
+    os.path.dirname(os.path.realpath(__file__)), "test_configuration"
+)
 
 
 class Test(object):
 
     def test_configuration_empty(self):
-        config = Config(config_file=os.path.join(dir_path, "empty.yaml"),
-                        arg1=1, arg2=False, arg3=None, arg4="asd")
+        config = Config(
+            config_file=os.path.join(dir_path, "empty.yaml"),
+            arg1=1,
+            arg2=False,
+            arg3=None,
+            arg4="asd",
+        )
         assert config.num_workers == 20
         assert not config.raise_on_error
         assert config.arg1 == 1
@@ -21,8 +28,13 @@ class Test(object):
         assert config.arg4 == "asd"
 
     def test_configuration_normal(self):
-        config = Config(config_file=os.path.join(dir_path, "config.yaml"),
-                        arg1=1, arg2=False, arg3=None, arg4="asd")
+        config = Config(
+            config_file=os.path.join(dir_path, "config.yaml"),
+            arg1=1,
+            arg2=False,
+            arg3=None,
+            arg4="asd",
+        )
         assert config.num_workers == 10
         assert not config.raise_on_error
         assert config.arg1 == 1
@@ -31,8 +43,11 @@ class Test(object):
         assert config.arg4 == "asd"
 
     def test_configuration_normal_override_argument(self):
-        config = Config(config_file=os.path.join(dir_path, "config.yaml"),
-                        num_workers=20, raise_on_error=True)
+        config = Config(
+            config_file=os.path.join(dir_path, "config.yaml"),
+            num_workers=20,
+            raise_on_error=True,
+        )
         assert config.num_workers == 20
         assert config.raise_on_error
 
@@ -53,16 +68,22 @@ class Test(object):
 
     def test_get_user_defined_from_file(self):
         config = Config(config_file=os.path.join(dir_path, "config.yaml"))
-        assert config.get("user_defined", env="USER_DEFINED", default="qweqwe") == "asdasd"
+        assert config.get(
+            "user_defined", env="USER_DEFINED", default="qweqwe"
+        ) == "asdasd"
 
     def test_get_user_defined_from_default(self):
         config = Config()
-        assert config.get("user_defined", env="USER_DEFINED", default="qweqwe") == "qweqwe"
+        assert config.get(
+            "user_defined", env="USER_DEFINED", default="qweqwe"
+        ) == "qweqwe"
 
     def test_get_user_defined_from_env(self):
         os.environ["USER_DEFINED"] = "zxczxc"
         config = Config(config_file=os.path.join(dir_path, "config.yaml"))
-        assert config.get("user_defined", env="USER_DEFINED", default="qweqwe") == "zxczxc"
+        assert config.get(
+            "user_defined", env="USER_DEFINED", default="qweqwe"
+        ) == "zxczxc"
         os.environ.pop("USER_DEFINED")
 
     def test_get_user_defined_from_env_bool(self):

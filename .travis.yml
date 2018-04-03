@@ -19,6 +19,7 @@ install:
     - pip install coveralls
 
 script:
+    - if [ $TRAVIS_PYTHON_VERSION == "3.6" ]; then pip install black && black --check . 2>&1 | grep reformatted; test $? -eq 1; fi
     - tox
 
 deploy:

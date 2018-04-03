@@ -61,10 +61,7 @@ class Test(object):
         url = "http://httpbin.org/get"
         params = {"my_param": "my_value"}
 
-        r = brigade.run(http_method,
-                        method="get",
-                        url=url,
-                        params=params)
+        r = brigade.run(http_method, method="get", url=url, params=params)
 
         processed = False
         for host, result in r.items():

@@ -88,7 +88,9 @@ class Test(object):
 
     def test_failing_task_complex_multithread_raise_on_error(self, brigade):
         with pytest.raises(BrigadeExecutionError) as e:
-            brigade.run(failing_task_complex, num_workers=NUM_WORKERS, raise_on_error=True)
+            brigade.run(
+                failing_task_complex, num_workers=NUM_WORKERS, raise_on_error=True
+            )
         for k, v in e.value.result.items():
             assert isinstance(k, str), k
             assert isinstance(v.exception, CommandError), v

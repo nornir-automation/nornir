@@ -72,26 +72,17 @@ if not os.path.exists(BASEPATH):
 
 def _test_write_file(task):
     filename = "{}/{}-{}".format(BASEPATH, task.host, str(uuid.uuid4()))
-    r = task.run(files.write_file,
-                 dry_run=True,
-                 filename=filename,
-                 content=content_a)
+    r = task.run(files.write_file, dry_run=True, filename=filename, content=content_a)
 
     assert r.diff.splitlines()[1:] == diff_new.splitlines()[1:]
     assert r.changed
 
-    r = task.run(files.write_file,
-                 dry_run=False,
-                 filename=filename,
-                 content=content_a)
+    r = task.run(files.write_file, dry_run=False, filename=filename, content=content_a)
 
     assert r.diff.splitlines()[1:] == diff_new.splitlines()[1:]
     assert r.changed
 
-    r = task.run(files.write_file,
-                 dry_run=False,
-                 filename=filename,
-                 content=content_a)
+    r = task.run(files.write_file, dry_run=False, filename=filename, content=content_a)
 
     assert not r.diff
     assert not r.changed
@@ -100,26 +91,17 @@ def _test_write_file(task):
 def _test_overwrite_file(task):
     filename = "{}/{}-{}".format(BASEPATH, task.host, str(uuid.uuid4()))
 
-    r = task.run(files.write_file,
-                 dry_run=False,
-                 filename=filename,
-                 content=content_a)
+    r = task.run(files.write_file, dry_run=False, filename=filename, content=content_a)
 
     assert r.diff.splitlines()[1:] == diff_new.splitlines()[1:]
     assert r.changed
 
-    r = task.run(files.write_file,
-                 dry_run=False,
-                 filename=filename,
-                 content=content_b)
+    r = task.run(files.write_file, dry_run=False, filename=filename, content=content_b)
 
     assert r.diff.splitlines()[1:] == diff_overwrite_file.splitlines()[1:]
     assert r.changed
 
-    r = task.run(files.write_file,
-                 dry_run=False,
-                 filename=filename,
-                 content=content_b)
+    r = task.run(files.write_file, dry_run=False, filename=filename, content=content_b)
 
     assert not r.diff
     assert not r.changed
@@ -128,19 +110,18 @@ def _test_overwrite_file(task):
 def _test_append(task):
     filename = "{}/{}-{}".format(BASEPATH, task.host, str(uuid.uuid4()))
 
-    r = task.run(files.write_file,
-                 dry_run=False,
-                 filename=filename,
-                 content=content_a)
+    r = task.run(files.write_file, dry_run=False, filename=filename, content=content_a)
 
     assert r.diff.splitlines()[1:] == diff_new.splitlines()[1:]
     assert r.changed
 
-    r = task.run(files.write_file,
-                 dry_run=False,
-                 filename=filename,
-                 content=content_b,
-                 append=True)
+    r = task.run(
+        files.write_file,
+        dry_run=False,
+        filename=filename,
+        content=content_b,
+        append=True,
+    )
 
     assert r.diff.splitlines()[1:] == diff_append.splitlines()[1:]
     assert r.changed

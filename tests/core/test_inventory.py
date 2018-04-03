@@ -7,8 +7,10 @@ import pytest
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-inventory = SimpleInventory("{}/../inventory_data/hosts.yaml".format(dir_path),
-                            "{}/../inventory_data/groups.yaml".format(dir_path))
+inventory = SimpleInventory(
+    "{}/../inventory_data/hosts.yaml".format(dir_path),
+    "{}/../inventory_data/groups.yaml".format(dir_path),
+)
 
 
 def compare_lists(left, right):
@@ -19,6 +21,7 @@ def compare_lists(left, right):
     def to_sets(l):
         if isinstance(l, str):
             return l
+
         r = set()
         for x in l:
             if isinstance(x, list) or isinstance(x, tuple):
@@ -45,78 +48,136 @@ class Test(object):
         assert h1["var2"] == "2"
         assert h1["var3"] == "3"
         assert h1["var4"] == "ALL"
-        assert compare_lists(list(h1.keys()),
-                             ['name', 'groups', 'var1', 'var2', 'var3', 'var4'])
-        assert compare_lists(list(h1.values()),
-                             ['host1', ['g1', 'g2'], '1', '2', '3', 'ALL'])
-        assert compare_lists(list(h1.items()),
-                             [('name', 'host1'), ('groups', ['g1', 'g2']),
-                              ('var1', '1'), ('var2', '2'), ('var3', '3'), ('var4', 'ALL')])
+        assert compare_lists(
+            list(h1.keys()), ["name", "groups", "var1", "var2", "var3", "var4"]
+        )
+        assert compare_lists(
+            list(h1.values()), ["host1", ["g1", "g2"], "1", "2", "3", "ALL"]
+        )
+        assert compare_lists(
+            list(h1.items()),
+            [
+                ("name", "host1"),
+                ("groups", ["g1", "g2"]),
+                ("var1", "1"),
+                ("var2", "2"),
+                ("var3", "3"),
+                ("var4", "ALL"),
+            ],
+        )
 
         h2 = Host(name="host2", groups=[g2, g1], defaults=defaults)
         assert h2["var1"] == "a"
         assert h2["var2"] == "b"
         assert h2["var3"] == "3"
         assert h2["var4"] == "ALL"
-        assert compare_lists(list(h2.keys()), ['name', 'groups', 'var1', 'var2', 'var3', 'var4'])
-        assert compare_lists(list(h2.values()), ['host2', ['g2', 'g1'], 'a', 'b', '3', 'ALL'])
-        assert compare_lists(list(h2.items()),
-                             [('name', 'host2'), ('groups', ['g2', 'g1']), ('var1', 'a'),
-                              ('var2', 'b'), ('var3', '3'), ('var4', 'ALL')])
+        assert compare_lists(
+            list(h2.keys()), ["name", "groups", "var1", "var2", "var3", "var4"]
+        )
+        assert compare_lists(
+            list(h2.values()), ["host2", ["g2", "g1"], "a", "b", "3", "ALL"]
+        )
+        assert compare_lists(
+            list(h2.items()),
+            [
+                ("name", "host2"),
+                ("groups", ["g2", "g1"]),
+                ("var1", "a"),
+                ("var2", "b"),
+                ("var3", "3"),
+                ("var4", "ALL"),
+            ],
+        )
 
         h3 = Host(name="host3", groups=[g4, g3], defaults=defaults)
         assert h3["var1"] == "a"
         assert h3["var2"] == "b"
         assert h3["var3"] == "q"
         assert h3["var4"] == "Z"
-        assert compare_lists(list(h3.keys()), ['name', 'groups', 'var3', 'var1', 'var2', 'var4'])
-        assert compare_lists(list(h3.values()), ['host3', ['g4', 'g3'], 'q', 'a', 'b', 'Z'])
-        assert compare_lists(list(h3.items()),
-                             [('name', 'host3'), ('groups', ['g4', 'g3']), ('var3', 'q'),
-                              ('var1', 'a'), ('var2', 'b'), ('var4', 'Z')])
+        assert compare_lists(
+            list(h3.keys()), ["name", "groups", "var3", "var1", "var2", "var4"]
+        )
+        assert compare_lists(
+            list(h3.values()), ["host3", ["g4", "g3"], "q", "a", "b", "Z"]
+        )
+        assert compare_lists(
+            list(h3.items()),
+            [
+                ("name", "host3"),
+                ("groups", ["g4", "g3"]),
+                ("var3", "q"),
+                ("var1", "a"),
+                ("var2", "b"),
+                ("var4", "Z"),
+            ],
+        )
 
         h4 = Host(name="host4", groups=[g3, g4], defaults=defaults)
         assert h4["var1"] == "A"
         assert h4["var2"] == "b"
         assert h4["var3"] == "q"
         assert h4["var4"] == "Z"
-        assert compare_lists(list(h4.keys()), ['name', 'groups', 'var1', 'var4', 'var3', 'var2'])
-        assert compare_lists(list(h4.values()), ['host4', ['g3', 'g4'], 'A', 'Z', 'q', 'b'])
-        assert compare_lists(list(h4.items()),
-                             [('name', 'host4'), ('groups', ['g3', 'g4']), ('var1', 'A'),
-                              ('var4', 'Z'), ('var3', 'q'), ('var2', 'b')])
+        assert compare_lists(
+            list(h4.keys()), ["name", "groups", "var1", "var4", "var3", "var2"]
+        )
+        assert compare_lists(
+            list(h4.values()), ["host4", ["g3", "g4"], "A", "Z", "q", "b"]
+        )
+        assert compare_lists(
+            list(h4.items()),
+            [
+                ("name", "host4"),
+                ("groups", ["g3", "g4"]),
+                ("var1", "A"),
+                ("var4", "Z"),
+                ("var3", "q"),
+                ("var2", "b"),
+            ],
+        )
 
         with pytest.raises(KeyError):
             assert h2["asdasd"]
 
     def test_filtering(self):
         unfiltered = sorted(list(inventory.hosts.keys()))
-        assert unfiltered == ['dev1.group_1', 'dev2.group_1', 'dev3.group_2', 'dev4.group_2']
+        assert unfiltered == [
+            "dev1.group_1", "dev2.group_1", "dev3.group_2", "dev4.group_2"
+        ]
 
         www = sorted(list(inventory.filter(role="www").hosts.keys()))
-        assert www == ['dev1.group_1', 'dev3.group_2']
+        assert www == ["dev1.group_1", "dev3.group_2"]
 
-        www_site1 = sorted(list(inventory.filter(role="www", site="site1").hosts.keys()))
-        assert www_site1 == ['dev1.group_1']
+        www_site1 = sorted(
+            list(inventory.filter(role="www", site="site1").hosts.keys())
+        )
+        assert www_site1 == ["dev1.group_1"]
 
-        www_site1 = sorted(list(inventory.filter(role="www").filter(site="site1").hosts.keys()))
-        assert www_site1 == ['dev1.group_1']
+        www_site1 = sorted(
+            list(inventory.filter(role="www").filter(site="site1").hosts.keys())
+        )
+        assert www_site1 == ["dev1.group_1"]
 
     def test_filtering_func(self):
-        long_names = sorted(list(inventory.filter(
-            filter_func=lambda x: len(x["my_var"]) > 20).hosts.keys()))
-        assert long_names == ['dev1.group_1', 'dev4.group_2']
+        long_names = sorted(
+            list(
+                inventory.filter(
+                    filter_func=lambda x: len(x["my_var"]) > 20
+                ).hosts.keys()
+            )
+        )
+        assert long_names == ["dev1.group_1", "dev4.group_2"]
 
         def longer_than(dev, length):
             return len(dev["my_var"]) > length
 
-        long_names = sorted(list(inventory.filter(
-            filter_func=longer_than, length=20).hosts.keys()))
-        assert long_names == ['dev1.group_1', 'dev4.group_2']
+        long_names = sorted(
+            list(inventory.filter(filter_func=longer_than, length=20).hosts.keys())
+        )
+        assert long_names == ["dev1.group_1", "dev4.group_2"]
 
     def test_filter_unique_keys(self):
-        filtered = sorted(list(inventory.filter(www_server='nginx').hosts.keys()))
-        assert filtered == ['dev1.group_1']
+        filtered = sorted(list(inventory.filter(www_server="nginx").hosts.keys()))
+        assert filtered == ["dev1.group_1"]
 
     def test_var_resolution(self):
         assert inventory.hosts["dev1.group_1"]["my_var"] == "comes_from_dev1.group_1"
@@ -124,9 +185,13 @@ class Test(object):
         assert inventory.hosts["dev3.group_2"]["my_var"] == "comes_from_defaults"
         assert inventory.hosts["dev4.group_2"]["my_var"] == "comes_from_dev4.group_2"
 
-        assert inventory.hosts["dev1.group_1"].data["my_var"] == "comes_from_dev1.group_1"
+        assert inventory.hosts["dev1.group_1"].data[
+            "my_var"
+        ] == "comes_from_dev1.group_1"
         with pytest.raises(KeyError):
             inventory.hosts["dev2.group_1"].data["my_var"]
         with pytest.raises(KeyError):
             inventory.hosts["dev3.group_2"].data["my_var"]
-        assert inventory.hosts["dev4.group_2"].data["my_var"] == "comes_from_dev4.group_2"
+        assert inventory.hosts["dev4.group_2"].data[
+            "my_var"
+        ] == "comes_from_dev4.group_2"
