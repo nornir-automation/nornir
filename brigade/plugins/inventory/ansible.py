@@ -59,7 +59,9 @@ class AnsibleParser(object):
         filepath = os.path.join(path, subdir, element)
 
         if not os.path.exists(filepath):
-            logger.debug("AnsibleInventory: var file doesn't exist: {}".format(filepath))
+            logger.debug(
+                "AnsibleInventory: var file doesn't exist: {}".format(filepath)
+            )
             return {}
 
         with open(filepath, "r") as f:
@@ -122,8 +124,9 @@ class INIParser(AnsibleParser):
             elif meta == "children":
                 result[k][meta] = {k: {} for k, _ in v.items()}
             else:
-                result[k]["hosts"] = {host: self.normalize_content(data)
-                                      for host, data in v.items()}
+                result[k]["hosts"] = {
+                    host: self.normalize_content(data) for host, data in v.items()
+                }
         return result
 
     def load_hosts_file(self):
@@ -151,7 +154,9 @@ def parse(path):
         try:
             parser = YAMLParser(path)
         except yaml.YAMLError:
-            logger.error("couldn't parse '{}' as neither a ini nor yaml file".format(path))
+            logger.error(
+                "couldn't parse '{}' as neither a ini nor yaml file".format(path)
+            )
             raise
 
     parser.parse()
@@ -165,6 +170,7 @@ class AnsibleInventory(Inventory):
     Arguments:
         path (string): Path to the directory where the host file is located
     """
+
     def __init__(self, path=".", **kwargs):
         host_vars, group_vars = parse(path)
         defaults = group_vars.pop("defaults")
