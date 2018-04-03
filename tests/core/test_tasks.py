@@ -1,3 +1,5 @@
+import logging
+
 from brigade.plugins.tasks import commands
 
 
@@ -8,7 +10,8 @@ def task_fails_for_some(task):
                  command="sasdasdasd")
     else:
         task.run(commands.command,
-                 command="echo {}".format(task.host))
+                 command="echo {}".format(task.host),
+                 severity=logging.DEBUG)
 
 
 def sub_task(task):
@@ -71,5 +74,33 @@ class Test(object):
         assert not result.failed
         assert "dev3.group_2" not in result
         assert "dev1.group_1" in result
+
+        brigade.data.reset_failed_hosts()
+
+    def test_severity(self, brigade):
+        r = brigade.run(commands.command,
+                        command="echo blah")
+        for host, result in r.items():
+            assert result[0].severity == logging.INFO
+
+        r = brigade.run(commands.command,
+                        command="echo blah",
+                        severity=logging.WARN)
+        for host, result in r.items():
+            assert result[0].severity == logging.WARN
+
+        r = brigade.run(sub_task, severity=logging.WARN)
+        for host, result in r.items():
+            for sr in result:
+                assert sr.severity == logging.WARN
+
+        r = brigade.run(task_fails_for_some, severity=logging.WARN, num_workers=1)
+        for host, result in r.items():
+            if host == "dev3.group_2":
+                assert result[0].severity == logging.WARN
+                assert result[1].severity == logging.ERROR
+            else:
+                assert result[0].severity == logging.WARN
+                assert result[1].severity == logging.DEBUG
 
         brigade.data.reset_failed_hosts()

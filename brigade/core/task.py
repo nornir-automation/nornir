@@ -1,3 +1,5 @@
+import logging
+import traceback
 from builtins import super
 
 from brigade.core.exceptions import BrigadeExecutionError
@@ -12,6 +14,7 @@ class Task(object):
     Arguments:
         task (callable): function or callable we will be calling
         name (``string``): name of task, defaults to ``task.__name__``
+        severity (logging.LEVEL): Severity level associated to the task
         **kwargs: Parameters that will be passed to the ``task``
 
     Attributes:
@@ -23,28 +26,50 @@ class Task(object):
           before calling the ``task``
         brigade(:obj:`brigade.core.Brigade`): Populated right before calling
           the ``task``
+        severity (logging.LEVEL): Severity level associated to the task
     """
 
-    def __init__(self, task, name=None, **kwargs):
+    def __init__(self, task, name=None, severity=logging.INFO, **kwargs):
         self.name = name or task.__name__
         self.task = task
         self.params = kwargs
         self.results = MultiResult(self.name)
+        self.severity = severity
 
     def __repr__(self):
         return self.name
 
-    def _start(self, host, brigade, sub_task=False):
+    def start(self, host, brigade):
+        """
+        Run the task for the given host.
+
+        Arguments:
+            host (:obj:`brigade.core.inventory.Host`): Host we are operating with. Populated right
+              before calling the ``task``
+            brigade(:obj:`brigade.core.Brigade`): Populated right before calling
+              the ``task``
+
+        Returns:
+            host (:obj:`brigade.core.task.MultiResult`): Results of the task and its subtasks
+        """
         self.host = host
         self.brigade = brigade
-        r = self.task(self, **self.params) or Result(host)
-        r.name = self.name
 
-        if sub_task:
-            return r
-        else:
-            self.results.insert(0, r)
-            return self.results
+        logger = logging.getLogger("brigade")
+        try:
+            logger.info("{}: {}: running task".format(self.host.name, self.name))
+            r = self.task(self, **self.params)
+            if not isinstance(r, Result):
+                r = Result(host=host, result=r)
+        except Exception as e:
+            tb = traceback.format_exc()
+            logger.error("{}: {}".format(self.host, tb))
+            r = Result(host, exception=e, result=tb, failed=True)
+        r.name = self.name
+        r.severity = logging.ERROR if r.failed else self.severity
+
+        self.results.insert(0, r)
+        return self.results
 
     def run(self, task, **kwargs):
         """
@@ -63,12 +88,10 @@ class Task(object):
                    "You probably called this from outside a nested task")
             raise Exception(msg)
 
-        r = Task(task, **kwargs)._start(self.host, self.brigade, sub_task=True)
-
-        if isinstance(r, MultiResult):
-            self.results.extend(r)
-        else:
-            self.results.append(r)
+        if "severity" not in kwargs:
+            kwargs["severity"] = self.severity
+        r = Task(task, **kwargs).start(self.host, self.brigade)
+        self.results.append(r[0] if len(r) == 1 else r)
         return r
 
     def is_dry_run(self, override=None):
@@ -91,6 +114,7 @@ class Result(object):
         result (obj): Result of the task execution, see task's documentation for details
         host (:obj:`brigade.core.inventory.Host`): Reference to the host that lead ot this result
         failed (bool): Whether the execution failed or not
+        severity (logging.LEVEL): Severity level associated to the result of the excecution
         exception (Exception): uncaught exception thrown during the exection of the task (if any)
 
     Attributes:
@@ -99,11 +123,12 @@ class Result(object):
         result (obj): Result of the task execution, see task's documentation for details
         host (:obj:`brigade.core.inventory.Host`): Reference to the host that lead ot this result
         failed (bool): Whether the execution failed or not
+        severity (logging.LEVEL): Severity level associated to the result of the excecution
         exception (Exception): uncaught exception thrown during the exection of the task (if any)
     """
 
     def __init__(self, host, result=None, changed=False, diff="", failed=False, exception=None,
-                 **kwargs):
+                 severity=logging.INFO, **kwargs):
         self.result = result
         self.host = host
         self.changed = changed
@@ -111,6 +136,7 @@ class Result(object):
         self.failed = failed
         self.exception = exception
         self.name = None
+        self.severity = severity
 
         for k, v in kwargs.items():
             setattr(self, k, v)
