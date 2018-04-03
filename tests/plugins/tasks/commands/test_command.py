@@ -5,15 +5,13 @@ from brigade.plugins.tasks import commands
 class Test(object):
 
     def test_command(self, brigade):
-        result = brigade.run(commands.command,
-                             command="echo {host.name}")
+        result = brigade.run(commands.command, command="echo {host.name}")
         assert result
         for h, r in result.items():
             assert h == r.stdout.strip()
 
     def test_command_error(self, brigade):
-        result = brigade.run(commands.command,
-                             command="ech")
+        result = brigade.run(commands.command, command="ech")
         processed = False
         for r in result.values():
             processed = True
@@ -22,8 +20,7 @@ class Test(object):
         brigade.data.reset_failed_hosts()
 
     def test_command_error_generic(self, brigade):
-        result = brigade.run(commands.command,
-                             command="ls /asdadsd")
+        result = brigade.run(commands.command, command="ls /asdadsd")
         processed = False
         for r in result.values():
             processed = True

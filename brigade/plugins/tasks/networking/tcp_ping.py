@@ -26,6 +26,7 @@ def tcp_ping(task, ports, timeout=2, host=None):
     if isinstance(ports, list):
         if not all(isinstance(port, int) for port in ports):
             raise ValueError("Invalid value for 'ports'")
+
     else:
         raise ValueError("Invalid value for 'ports'")
 

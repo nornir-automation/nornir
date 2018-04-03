@@ -16,7 +16,7 @@ def load_json(task, file):
           * result (``dict``): dictionary with the contents of the file
     """
     file = format_string(file, task)
-    with open(file, 'r') as f:
+    with open(file, "r") as f:
         data = json.loads(f.read())
 
     return Result(host=task.host, result=data)

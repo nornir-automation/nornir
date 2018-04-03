@@ -9,10 +9,10 @@ from brigade.plugins.tasks import networking, text
 
 
 brg = easy_brigade(
-        host_file="../inventory/hosts.yaml",
-        group_file="../inventory/groups.yaml",
-        dry_run=False,
-        raise_on_error=False,
+    host_file="../inventory/hosts.yaml",
+    group_file="../inventory/groups.yaml",
+    dry_run=False,
+    raise_on_error=False,
 )
 
 print_title("Getting interfaces and facts")
@@ -22,11 +22,9 @@ filtered = brg.filter(type="network_device", site="cmh")
 
 # we are going to gather "interfaces" and "facts"
 # information with napalm
-results = filtered.run(networking.napalm_get,
-                       getters=["interfaces", "facts"])
+results = filtered.run(networking.napalm_get, getters=["interfaces", "facts"])
 
 # Let's print the result on screen
-filtered.run(text.print_result,
-             num_workers=1,  # task should be done synchronously
-             data=results,
-             )
+filtered.run(
+    text.print_result, num_workers=1, data=results  # task should be done synchronously
+)

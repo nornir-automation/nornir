@@ -9,8 +9,4 @@ available_connections = {
     "paramiko": paramiko_connection,
 }
 
-__all__ = (
-    "napalm_connection",
-    "netmiko_connection",
-    "paramiko_connection",
-)
+__all__ = ("napalm_connection", "netmiko_connection", "paramiko_connection")

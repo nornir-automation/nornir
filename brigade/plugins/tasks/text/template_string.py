@@ -15,6 +15,5 @@ def template_string(task, template, **kwargs):
             * result (``string``): rendered string
     """
     merged = merge_two_dicts(task.host, kwargs)
-    text = jinja_helper.render_from_string(template=template,
-                                           host=task.host, **merged)
+    text = jinja_helper.render_from_string(template=template, host=task.host, **merged)
     return Result(host=task.host, result=text)

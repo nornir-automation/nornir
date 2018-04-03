@@ -19,10 +19,14 @@ def netmiko_file_transfer(task, source_file, dest_file, **kwargs):
 
     """
     net_connect = task.host.get_connection("netmiko")
-    kwargs.setdefault('direction', 'put')
-    scp_result = file_transfer(net_connect, source_file=source_file, dest_file=dest_file, **kwargs)
-    if kwargs.get('disable_md5') is True:
-        file_valid = scp_result['file_exists']
+    kwargs.setdefault("direction", "put")
+    scp_result = file_transfer(
+        net_connect, source_file=source_file, dest_file=dest_file, **kwargs
+    )
+    if kwargs.get("disable_md5") is True:
+        file_valid = scp_result["file_exists"]
     else:
-        file_valid = scp_result['file_exists'] and scp_result['file_verified']
-    return Result(host=task.host, result=file_valid, changed=scp_result['file_transferred'])
+        file_valid = scp_result["file_exists"] and scp_result["file_verified"]
+    return Result(
+        host=task.host, result=file_valid, changed=scp_result["file_transferred"]
+    )

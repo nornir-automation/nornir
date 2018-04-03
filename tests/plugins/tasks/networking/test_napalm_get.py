@@ -12,9 +12,7 @@ class Test(object):
         opt = {"path": THIS_DIR + "/test_napalm_getters"}
         d = brigade.filter(name="dev3.group_2")
         d.run(connections.napalm_connection, optional_args=opt)
-        result = d.run(networking.napalm_get,
-                       getters=["facts",
-                                "interfaces"])
+        result = d.run(networking.napalm_get, getters=["facts", "interfaces"])
         assert result
         for h, r in result.items():
             assert r.result["facts"]
@@ -25,9 +23,7 @@ class Test(object):
         d = brigade.filter(name="dev3.group_2")
         d.run(connections.napalm_connection, optional_args=opt)
 
-        results = d.run(networking.napalm_get,
-                        getters=["facts",
-                                 "interfaces"])
+        results = d.run(networking.napalm_get, getters=["facts", "interfaces"])
         processed = False
         for result in results.values():
             processed = True

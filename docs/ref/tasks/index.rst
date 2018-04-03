@@ -5,8 +5,9 @@ Tasks
    :maxdepth: 2
    :caption: Categories:
 
-   connections
+   apis
    commands
+   connections
    data
    files
    networking
