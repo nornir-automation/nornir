@@ -14,6 +14,7 @@ class Task(object):
     Arguments:
         task (callable): function or callable we will be calling
         name (``string``): name of task, defaults to ``task.__name__``
+        severity (logging.LEVEL): Severity level associated to the task
         **kwargs: Parameters that will be passed to the ``task``
 
     Attributes:
@@ -25,6 +26,7 @@ class Task(object):
           before calling the ``task``
         brigade(:obj:`brigade.core.Brigade`): Populated right before calling
           the ``task``
+        severity (logging.LEVEL): Severity level associated to the task
     """
 
     def __init__(self, task, name=None, severity=logging.INFO, **kwargs):
@@ -112,6 +114,7 @@ class Result(object):
         result (obj): Result of the task execution, see task's documentation for details
         host (:obj:`brigade.core.inventory.Host`): Reference to the host that lead ot this result
         failed (bool): Whether the execution failed or not
+        severity (logging.LEVEL): Severity level associated to the result of the excecution
         exception (Exception): uncaught exception thrown during the exection of the task (if any)
 
     Attributes:
@@ -120,6 +123,7 @@ class Result(object):
         result (obj): Result of the task execution, see task's documentation for details
         host (:obj:`brigade.core.inventory.Host`): Reference to the host that lead ot this result
         failed (bool): Whether the execution failed or not
+        severity (logging.LEVEL): Severity level associated to the result of the excecution
         exception (Exception): uncaught exception thrown during the exection of the task (if any)
     """
 
