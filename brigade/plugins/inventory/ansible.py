@@ -147,7 +147,7 @@ class YAMLParser(AnsibleParser):
 def parse(path):
     try:
         parser = INIParser(path)
-    except configparser.Error as e:
+    except configparser.Error:
         try:
             parser = YAMLParser(path)
         except yaml.YAMLError:
