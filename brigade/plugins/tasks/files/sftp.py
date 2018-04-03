@@ -15,11 +15,11 @@ from scp import SCPClient
 def get_src_hash(filename):
     sha1sum = hashlib.sha1()
 
-    with open(filename, 'rb') as f:
-        block = f.read(2**16)
+    with open(filename, "rb") as f:
+        block = f.read(2 ** 16)
         while len(block) != 0:
             sha1sum.update(block)
-            block = f.read(2**16)
+            block = f.read(2 ** 16)
     return sha1sum.hexdigest()
 
 
@@ -28,9 +28,11 @@ def get_dst_hash(task, filename):
     try:
         result = commands.remote_command(task, command)
         return result.stdout.split()[0]
+
     except CommandError as e:
         if "No such file or directory" in e.stderr:
-            return ''
+            return ""
+
         raise
 
 
@@ -38,6 +40,7 @@ def remote_exists(sftp_client, f):
     try:
         sftp_client.stat(f)
         return True
+
     except IOError:
         return False
 
@@ -49,7 +52,7 @@ def compare_put_files(task, sftp_client, src, dst):
         try:
             dst_hash = get_dst_hash(task, dst)
         except IOError:
-            dst_hash = ''
+            dst_hash = ""
         if src_hash != dst_hash:
             changed.append(dst)
     else:
@@ -71,7 +74,7 @@ def compare_get_files(task, sftp_client, src, dst):
         try:
             dst_hash = get_src_hash(dst)
         except IOError:
-            dst_hash = ''
+            dst_hash = ""
         if src_hash != dst_hash:
             changed.append(dst)
     else:
@@ -124,12 +127,11 @@ def sftp(task, src, dst, action, dry_run=None):
     src = format_string(src, task, **task.host)
     dst = format_string(dst, task, **task.host)
     dry_run = task.is_dry_run(dry_run)
-    actions = {
-        "put": put,
-        "get": get,
-    }
+    actions = {"put": put, "get": get}
     client = task.host.get_connection("paramiko")
     scp_client = SCPClient(client.get_transport())
     sftp_client = paramiko.SFTPClient.from_transport(client.get_transport())
     files_changed = actions[action](task, scp_client, sftp_client, src, dst, dry_run)
-    return Result(host=task.host, changed=bool(files_changed), files_changed=files_changed)
+    return Result(
+        host=task.host, changed=bool(files_changed), files_changed=files_changed
+    )

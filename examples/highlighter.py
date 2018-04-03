@@ -26,9 +26,7 @@ def highlight_file(filename):
 
     linenos = "inline"
 
-    formatter = HtmlFormatter(style='default',
-                              cssclass='pygments',
-                              linenos=linenos)
+    formatter = HtmlFormatter(style="default", cssclass="pygments", linenos=linenos)
 
     with open(filename) as f:
         code = f.read()

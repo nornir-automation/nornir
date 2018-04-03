@@ -6,24 +6,23 @@ from brigade.plugins.tasks import commands
 def task_fails_for_some(task):
     if task.host.name == "dev3.group_2":
         # let's hardcode a failure
-        task.run(commands.command,
-                 command="sasdasdasd")
+        task.run(commands.command, command="sasdasdasd")
     else:
-        task.run(commands.command,
-                 command="echo {}".format(task.host),
-                 severity=logging.DEBUG)
+        task.run(
+            commands.command,
+            command="echo {}".format(task.host),
+            severity=logging.DEBUG,
+        )
 
 
 def sub_task(task):
-    task.run(commands.command,
-             command="echo {}".format(task.host))
+    task.run(commands.command, command="echo {}".format(task.host))
 
 
 class Test(object):
 
     def test_task(self, brigade):
-        result = brigade.run(commands.command,
-                             command="echo hi")
+        result = brigade.run(commands.command, command="echo hi")
         assert result
         for h, r in result.items():
             assert r.stdout.strip() == "hi"
@@ -78,14 +77,11 @@ class Test(object):
         brigade.data.reset_failed_hosts()
 
     def test_severity(self, brigade):
-        r = brigade.run(commands.command,
-                        command="echo blah")
+        r = brigade.run(commands.command, command="echo blah")
         for host, result in r.items():
             assert result[0].severity == logging.INFO
 
-        r = brigade.run(commands.command,
-                        command="echo blah",
-                        severity=logging.WARN)
+        r = brigade.run(commands.command, command="echo blah", severity=logging.WARN)
         for host, result in r.items():
             assert result[0].severity == logging.WARN
 

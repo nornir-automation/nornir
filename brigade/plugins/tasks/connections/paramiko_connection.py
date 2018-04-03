@@ -28,18 +28,18 @@ def paramiko_connection(task=None):
     }
 
     user_config = ssh_config.lookup(host.host)
-    for k in ('hostname', 'username', 'port'):
+    for k in ("hostname", "username", "port"):
         if k in user_config:
             parameters[k] = user_config[k]
 
-    if 'proxycommand' in user_config:
-        parameters['sock'] = paramiko.ProxyCommand(user_config['proxycommand'])
+    if "proxycommand" in user_config:
+        parameters["sock"] = paramiko.ProxyCommand(user_config["proxycommand"])
 
     # TODO configurable
     #  if ssh_key_file:
     #      parameters['key_filename'] = ssh_key_file
-    if 'identityfile' in user_config:
-        parameters['key_filename'] = user_config['identityfile']
+    if "identityfile" in user_config:
+        parameters["key_filename"] = user_config["identityfile"]
 
     client.connect(**parameters)
     host.connections["paramiko"] = client

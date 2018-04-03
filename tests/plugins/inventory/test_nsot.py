@@ -17,14 +17,15 @@ def transform_function(host):
 @pytest.fixture(scope="module")
 def inv(request):
     """Start/Stop containers needed for the tests."""
+
     def fin():
-        subprocess.check_call(["make", "stop_nsot"],
-                              stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+        subprocess.check_call(
+            ["make", "stop_nsot"], stderr=subprocess.PIPE, stdout=subprocess.PIPE
+        )
 
     request.addfinalizer(fin)
 
-    subprocess.check_call(["make", "start_nsot"],
-                          stdout=subprocess.PIPE)
+    subprocess.check_call(["make", "start_nsot"], stdout=subprocess.PIPE)
 
     if os.getenv("TRAVIS"):
         time.sleep(10)

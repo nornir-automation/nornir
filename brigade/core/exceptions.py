@@ -30,6 +30,7 @@ class BrigadeExecutionError(Exception):
     Attributes:
         result (:obj:`brigade.core.task.AggregatedResult`):
     """
+
     def __init__(self, result):
         self.result = result
 

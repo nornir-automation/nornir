@@ -111,19 +111,23 @@ class Host(object):
         for g in self.groups:
             if g is group or g.has_parent_group(group):
                 return True
+
         return False
 
     def __getitem__(self, item):
         try:
             return self.data[item]
+
         except KeyError:
             for g in self.groups:
                 r = g.get(item)
                 if r:
                     return r
+
             r = self.defaults.get(item)
             if r:
                 return r
+
             raise
 
     def __setitem__(self, item, value):
@@ -151,6 +155,7 @@ class Host(object):
         """
         try:
             return self.__getitem__(item)
+
         except KeyError:
             return default
 
@@ -227,8 +232,10 @@ class Host(object):
             try:
                 conn_task = self.brigade.available_connections[connection]
             except KeyError:
-                raise AttributeError("not sure how to establish a connection for {}".format(
-                    connection))
+                raise AttributeError(
+                    "not sure how to establish a connection for {}".format(connection)
+                )
+
             # We use `filter(name=self.name)` to call the connection task for only
             # the given host. We also have to set `num_workers=1` because chances are
             # we are already inside a thread
@@ -236,6 +243,7 @@ class Host(object):
             r = self.brigade.filter(name=self.name).run(conn_task, num_workers=1)
             if r[self.name].exception:
                 raise r[self.name].exception
+
         return self.connections[connection]
 
 
@@ -243,7 +251,11 @@ class Group(Host):
     """Same as :obj:`Host`"""
 
     def children(self):
-        return {n: h for n, h in self.brigade.inventory.hosts.items() if h.has_parent_group(self)}
+        return {
+            n: h
+            for n, h in self.brigade.inventory.hosts.items()
+            if h.has_parent_group(self)
+        }
 
 
 class Inventory(object):
@@ -264,7 +276,9 @@ class Inventory(object):
         groups (dict): keys are group names and the values are :obj:`Group`.
     """
 
-    def __init__(self, hosts, groups=None, defaults=None, transform_function=None, brigade=None):
+    def __init__(
+        self, hosts, groups=None, defaults=None, transform_function=None, brigade=None
+    ):
         self._brigade = brigade
 
         self.defaults = defaults or {}
@@ -322,11 +336,13 @@ class Inventory(object):
               device. If the call returns ``True`` the device will be kept in the inventory
         """
         if filter_func:
-            filtered = {n: h for n, h in self.hosts.items()
-                        if filter_func(h, **kwargs)}
+            filtered = {n: h for n, h in self.hosts.items() if filter_func(h, **kwargs)}
         else:
-            filtered = {n: h for n, h in self.hosts.items()
-                        if all(h.get(k) == v for k, v in kwargs.items())}
+            filtered = {
+                n: h
+                for n, h in self.hosts.items()
+                if all(h.get(k) == v for k, v in kwargs.items())
+            }
         return Inventory(hosts=filtered, groups=self.groups, brigade=self.brigade)
 
     def __len__(self):

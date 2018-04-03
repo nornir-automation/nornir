@@ -14,24 +14,22 @@ import click
 
 
 def backup_task(task, path):
-    result = task.run(networking.napalm_get,
-                      getters="config")
+    result = task.run(networking.napalm_get, getters="config")
 
-    return task.run(files.write,
-                    content=result.result["config"]["running"],
-                    filename="{}/{}".format(path, task.host))
+    return task.run(
+        files.write,
+        content=result.result["config"]["running"],
+        filename="{}/{}".format(path, task.host),
+    )
 
 
 @click.command()
-@click.option('--backup-path', default=".")
+@click.option("--backup-path", default=".")
 @click.pass_context
 def backup(ctx, backup_path, **kwargs):
     functions.text.print_title("Backing up configurations")
     filtered = ctx.obj["filtered"]
-    results = filtered.run(backup_task,
-                           path=backup_path)
+    results = filtered.run(backup_task, path=backup_path)
 
     # Let's print the result on screen
-    return filtered.run(text.print_result,
-                        num_workers=1,
-                        data=results)
+    return filtered.run(text.print_result, num_workers=1, data=results)

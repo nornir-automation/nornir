@@ -7,6 +7,7 @@ from brigade.core.task import Result
 def _read_file(file):
     if not os.path.exists(file):
         return []
+
     with open(file, "r") as f:
         return f.read().splitlines()
 

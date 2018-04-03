@@ -84,8 +84,10 @@ class Task(object):
         This method will ensure the subtask is run only for the host in the current thread.
         """
         if not self.host or not self.brigade:
-            msg = ("You have to call this after setting host and brigade attributes. ",
-                   "You probably called this from outside a nested task")
+            msg = (
+                "You have to call this after setting host and brigade attributes. ",
+                "You probably called this from outside a nested task",
+            )
             raise Exception(msg)
 
         if "severity" not in kwargs:
@@ -127,8 +129,17 @@ class Result(object):
         exception (Exception): uncaught exception thrown during the exection of the task (if any)
     """
 
-    def __init__(self, host, result=None, changed=False, diff="", failed=False, exception=None,
-                 severity=logging.INFO, **kwargs):
+    def __init__(
+        self,
+        host,
+        result=None,
+        changed=False,
+        diff="",
+        failed=False,
+        exception=None,
+        severity=logging.INFO,
+        **kwargs
+    ):
         self.result = result
         self.host = host
         self.changed = changed
@@ -147,6 +158,7 @@ class Result(object):
     def __str__(self):
         if self.exception:
             return str(self.exception)
+
         else:
             return str(self.result)
 
@@ -156,12 +168,15 @@ class AggregatedResult(dict):
     It basically is a dict-like object that aggregates the results for all devices.
     You can access each individual result by doing ``my_aggr_result["hostname_of_device"]``.
     """
+
     def __init__(self, name, **kwargs):
         self.name = name
         super().__init__(**kwargs)
 
     def __repr__(self):
-        return '{} ({}): {}'.format(self.__class__.__name__, self.name, super().__repr__())
+        return "{} ({}): {}".format(
+            self.__class__.__name__, self.name, super().__repr__()
+        )
 
     @property
     def failed(self):
@@ -187,6 +202,7 @@ class MultiResult(list):
     It is basically is a list-like object that gives you access to the results of all subtasks for
     a particular device/task.
     """
+
     def __init__(self, name):
         self.name = name
 

@@ -13,8 +13,8 @@ from tasks import backup, configure, get_facts, validate
 
 
 @click.group()
-@click.option('--filter', '-f', multiple=True)
-@click.option('--commit/--no-commit', '-c', default=False)
+@click.option("--filter", "-f", multiple=True)
+@click.option("--commit/--no-commit", "-c", default=False)
 @click.pass_context
 def run(ctx, filter, commit):
     brigade = Brigade(
@@ -29,7 +29,7 @@ def run(ctx, filter, commit):
         k, v = f.split("=")
         filter_dict[k] = v
 
-    filtered = brigade.filter(**filter_dict)            # let's filter the devices
+    filtered = brigade.filter(**filter_dict)  # let's filter the devices
     ctx.obj["filtered"] = filtered
 
 
