@@ -11,7 +11,7 @@ one.example.com:
   my_var: from_one.example.com
 three.example.com:
   brigade_host: 192.0.2.50
-  brigade_ssh_port: '5555'
+  brigade_ssh_port: 5555
   groups:
   - dbservers
 two.example.com:

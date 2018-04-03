@@ -11,83 +11,151 @@ import yaml
 logger = logging.getLogger("brigade")
 
 
-def read_hostdata_from_hostfile(host_data):
-    if host_data:
-        return {k: v for k, v in [option.split("=") for option in host_data.split()]}
-    else:
-        return {}
+class AnsibleParser(object):
 
+    def __init__(self, path):
+        self.path = path
+        self.hosts = {}
+        self.groups = {}
+        self.hostsfile = None
+        self.load_hosts_file()
 
-def read_vars_file(element, path, is_host=True):
-    subdir = "host_vars" if is_host else "group_vars"
-    filepath = os.path.join(path, subdir, element)
-
-    if not os.path.exists(filepath):
-        logger.debug("AnsibleInventory: var file doesn't exist: {}".format(filepath))
-        return {}
-
-    with open(filepath, "r") as f:
-        logger.debug("AnsibleInventory: reading var file: {}".format(filepath))
-        return yaml.load(f)
-
-
-def map_brigade_vars(obj):
-    mappings = {
-        "ansible_host": "brigade_host",
-        "ansible_port": "brigade_ssh_port",
-        "ansible_user": "brigade_username",
-        "ansible_password": "brigade_password",
-    }
-    result = {}
-    for k, v in obj.items():
-        if k in mappings:
-            result[mappings[k]] = v
+    def parse_group(self, group, data, parent=None):
+        data = data or {}
+        if group == "defaults":
+            self.groups[group] = {}
+            group_file = "all"
         else:
+            self.add(group, self.groups)
+            group_file = group
+
+        if parent and parent != "defaults":
+            self.groups[group]["groups"].append(parent)
+
+        self.groups[group].update(data.get("vars", {}))
+        self.groups[group].update(self.read_vars_file(group_file, self.path, False))
+        self.groups[group] = self.map_brigade_vars(self.groups[group])
+
+        self.parse_hosts(data.get("hosts", {}), parent=group)
+
+        for children, children_data in data.get("children", {}).items():
+            self.parse_group(children, children_data, parent=group)
+
+    def parse(self):
+        self.parse_group("defaults", self.hostsfile["all"])
+
+    def parse_hosts(self, hosts, parent=None):
+        for host, data in hosts.items():
+            data = data or {}
+            self.add(host, self.hosts)
+            if parent:
+                self.hosts[host]["groups"].append(parent)
+            self.hosts[host].update(data)
+            self.hosts[host].update(self.read_vars_file(host, self.path, True))
+            self.hosts[host] = self.map_brigade_vars(self.hosts[host])
+
+    def read_vars_file(self, element, path, is_host=True):
+        subdir = "host_vars" if is_host else "group_vars"
+        filepath = os.path.join(path, subdir, element)
+
+        if not os.path.exists(filepath):
+            logger.debug("AnsibleInventory: var file doesn't exist: {}".format(filepath))
+            return {}
+
+        with open(filepath, "r") as f:
+            logger.debug("AnsibleInventory: reading var file: {}".format(filepath))
+            return yaml.load(f)
+
+    def map_brigade_vars(self, obj):
+        mappings = {
+            "ansible_host": "brigade_host",
+            "ansible_port": "brigade_ssh_port",
+            "ansible_user": "brigade_username",
+            "ansible_password": "brigade_password",
+        }
+        result = {}
+        for k, v in obj.items():
+            if k in mappings:
+                result[mappings[k]] = v
+            else:
+                result[k] = v
+        return result
+
+    def add(self, element, element_dict):
+        if element not in element_dict:
+            element_dict[element] = {"groups": []}
+
+
+class INIParser(AnsibleParser):
+
+    def normalize_content(self, content):
+        result = {}
+
+        if not content:
+            return result
+
+        for option in content.split():
+            k, v = option.split("=")
+            try:
+                v = int(v)
+            except Exception:
+                pass
             result[k] = v
-    return result
+
+        return result
+
+    def normalize(self, data):
+        result = {}
+        for k, v in data.items():
+            meta = None
+            if ":" in k:
+                k, meta = k.split(":")
+            if k not in result:
+                result[k] = {}
+
+            if meta not in result[k]:
+                result[k][meta] = {}
+
+            if meta == "vars":
+                for data, _ in v.items():
+                    result[k][meta].update(self.normalize_content(data))
+            elif meta == "children":
+                result[k][meta] = {k: {} for k, _ in v.items()}
+            else:
+                result[k]["hosts"] = {host: self.normalize_content(data)
+                                      for host, data in v.items()}
+        return result
+
+    def load_hosts_file(self):
+        hostsfile = configparser.ConfigParser(
+            interpolation=None, allow_no_value=True, delimiters=" "
+        )
+        hostsfile.read(os.path.join(self.path, "hosts"))
+        data = self.normalize(hostsfile)
+        data.pop("DEFAULT")
+        if "all" not in data:
+            self.hostsfile = {"all": {"children": data}}
+
+
+class YAMLParser(AnsibleParser):
+
+    def load_hosts_file(self):
+        with open(os.path.join(self.path, "hosts"), "r") as f:
+            self.hostsfile = yaml.load(f.read())
 
 
 def parse(path):
-    hostfile = configparser.ConfigParser(
-        interpolation=None, allow_no_value=True, delimiters=" "
-    )
-    hostfile.read(os.path.join(path, "hosts"))
+    try:
+        parser = INIParser(path)
+    except configparser.Error as e:
+        try:
+            parser = YAMLParser(path)
+        except yaml.YAMLError:
+            logger.error("couldn't parse '{}' as neither a ini nor yaml file".format(path))
+            raise
 
-    host_vars = {}
-    group_vars = {}
-
-    for group, group_data in hostfile.items():
-        meta = None
-        if ":" in group:
-            group, meta = group.split(":")
-
-        if group not in group_vars:
-            group_vars[group] = {"groups": []}
-
-        group_vars[group].update(read_vars_file(group, path, False))
-
-        if meta == "vars":
-            for data, _ in group_data.items():
-                group_vars[group].update(read_hostdata_from_hostfile(data))
-        elif meta == "children":
-            for children, _ in group_data.items():
-                group_vars[children]["groups"].append(group)
-        else:
-            for host, host_data in group_data.items():
-                if host not in host_vars:
-                    host_vars[host] = {"groups": []}
-
-                host_vars[host]["groups"].append(group)
-
-                host_vars[host].update(read_hostdata_from_hostfile(host_data))
-                host_vars[host].update(read_vars_file(host, path, True))
-
-                host_vars[host] = map_brigade_vars(host_vars[host])
-        group_vars[group] = map_brigade_vars(group_vars[group])
-
-    group_vars.pop("DEFAULT")
-    group_vars["defaults"] = read_vars_file("all", path, False)
-    return host_vars, group_vars
+    parser.parse()
+    return parser.hosts, parser.groups
 
 
 class AnsibleInventory(Inventory):
