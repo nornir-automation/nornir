@@ -43,6 +43,7 @@ class AnsibleParser(object):
 
     def parse(self):
         self.parse_group("defaults", self.hostsfile["all"])
+        self.sort_groups()
 
     def parse_hosts(self, hosts, parent=None):
         for host, data in hosts.items():
@@ -53,6 +54,15 @@ class AnsibleParser(object):
             self.hosts[host].update(data)
             self.hosts[host].update(self.read_vars_file(host, self.path, True))
             self.hosts[host] = self.map_brigade_vars(self.hosts[host])
+
+    def sort_groups(self):
+        for host in self.hosts.values():
+            host["groups"].sort()
+
+        for name, group in self.groups.items():
+            if name == "defaults":
+                continue
+            group["groups"].sort()
 
     def read_vars_file(self, element, path, is_host=True):
         subdir = "host_vars" if is_host else "group_vars"

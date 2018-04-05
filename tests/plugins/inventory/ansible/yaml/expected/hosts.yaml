@@ -3,8 +3,8 @@ bar.example.com:
   - webservers
 foo.example.com:
   groups:
-  - webservers
   - frontend
+  - webservers
 one.example.com:
   groups:
   - dbservers
