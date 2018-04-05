@@ -62,6 +62,7 @@ class AnsibleParser(object):
         for name, group in self.groups.items():
             if name == "defaults":
                 continue
+
             group["groups"].sort()
 
     def read_vars_file(self, element, path, is_host=True):
