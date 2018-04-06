@@ -1,3 +1,8 @@
+
+.PHONY: format
+format:
+	black .
+
 .PHONY: start_nsot
 start_nsot:
 	cp $(PWD)/tests/inventory_data/nsot/nsot.sqlite3 $(PWD)/tests/inventory_data/nsot/nsot-docker.sqlite3
@@ -6,3 +11,7 @@ start_nsot:
 .PHONY: stop_nsot
 stop_nsot:
 	docker rm -f nsot
+
+.PHONY: tests
+tests:
+	tox

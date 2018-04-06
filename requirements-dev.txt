@@ -3,4 +3,5 @@ pytest-cov
 pylama
 flake8-import-order
 tox
+black; python_version >= '3.6'
 -r requirements.txt
