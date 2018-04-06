@@ -1,4 +1,7 @@
-import configparser
+try:
+    import configparser as cp
+except ImportError:
+    import ConfigParser as cp
 import logging
 import os
 from builtins import super
@@ -142,7 +145,7 @@ class INIParser(AnsibleParser):
         return result
 
     def load_hosts_file(self):
-        hostsfile = configparser.ConfigParser(
+        hostsfile = cp.ConfigParser(
             interpolation=None, allow_no_value=True, delimiters=" "
         )
         hostsfile.read(os.path.join(self.path, "hosts"))
@@ -163,7 +166,7 @@ class YAMLParser(AnsibleParser):
 def parse(path):
     try:
         parser = INIParser(path)
-    except configparser.Error:
+    except cp.Error:
         try:
             parser = YAMLParser(path)
         except ruamel.yaml.scanner.ScannerError:
