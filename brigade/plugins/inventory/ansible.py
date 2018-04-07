@@ -53,7 +53,7 @@ class AnsibleParser(object):
         for host, data in hosts.items():
             data = data or {}
             self.add(host, self.hosts)
-            if parent:
+            if parent and parent != "defaults":
                 self.hosts[host]["groups"].append(parent)
             self.hosts[host].update(data)
             self.hosts[host].update(self.read_vars_file(host, self.path, True))

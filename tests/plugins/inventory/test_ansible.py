@@ -29,7 +29,7 @@ def read(hosts_file, groups_file):
 
 class Test(object):
 
-    @pytest.mark.parametrize("case", ["ini", "yaml"])
+    @pytest.mark.parametrize("case", ["ini", "yaml", "yaml2"])
     def test_inventory(self, case):
         base_path = os.path.join(BASE_PATH, case)
         hosts_file = os.path.join(base_path, "expected", "hosts.yaml")
