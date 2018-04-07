@@ -35,7 +35,9 @@ class Test(object):
         hosts_file = os.path.join(base_path, "expected", "hosts.yaml")
         groups_file = os.path.join(base_path, "expected", "groups.yaml")
 
-        hosts, groups = ansible.parse(hostsfile=os.path.join(base_path, "source", "hosts"))
+        hosts, groups = ansible.parse(
+            hostsfile=os.path.join(base_path, "source", "hosts")
+        )
         # save(hosts, groups, hosts_file, groups_file)
 
         expected_hosts, expected_groups = read(hosts_file, groups_file)
