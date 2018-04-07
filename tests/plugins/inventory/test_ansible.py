@@ -35,7 +35,7 @@ class Test(object):
         hosts_file = os.path.join(base_path, "expected", "hosts.yaml")
         groups_file = os.path.join(base_path, "expected", "groups.yaml")
 
-        hosts, groups = ansible.parse(path=os.path.join(base_path, "source"))
+        hosts, groups = ansible.parse(hostsfile=os.path.join(base_path, "source", "hosts"))
         # save(hosts, groups, hosts_file, groups_file)
 
         expected_hosts, expected_groups = read(hosts_file, groups_file)
@@ -45,4 +45,4 @@ class Test(object):
     def test_parse_error(self):
         base_path = os.path.join(BASE_PATH, "parse_error")
         with pytest.raises(ruamel.yaml.scanner.ScannerError):
-            ansible.parse(path=os.path.join(base_path, "source"))
+            ansible.parse(hostsfile=os.path.join(base_path, "source", "hosts"))

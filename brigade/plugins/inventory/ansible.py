@@ -16,11 +16,12 @@ logger = logging.getLogger("brigade")
 
 class AnsibleParser(object):
 
-    def __init__(self, path):
-        self.path = path
+    def __init__(self, hostsfile):
+        self.hostsfile = hostsfile
+        self.path = os.path.dirname(hostsfile)
         self.hosts = {}
         self.groups = {}
-        self.hostsfile = None
+        self.original_data = None
         self.load_hosts_file()
 
     def parse_group(self, group, data, parent=None):
@@ -45,7 +46,7 @@ class AnsibleParser(object):
             self.parse_group(children, children_data, parent=group)
 
     def parse(self):
-        self.parse_group("defaults", self.hostsfile["all"])
+        self.parse_group("defaults", self.original_data["all"])
         self.sort_groups()
 
     def parse_hosts(self, hosts, parent=None):
@@ -145,33 +146,33 @@ class INIParser(AnsibleParser):
         return result
 
     def load_hosts_file(self):
-        hostsfile = cp.ConfigParser(
+        original_data = cp.ConfigParser(
             interpolation=None, allow_no_value=True, delimiters=" "
         )
-        hostsfile.read(os.path.join(self.path, "hosts"))
-        data = self.normalize(hostsfile)
+        original_data.read(self.hostsfile)
+        data = self.normalize(original_data)
         data.pop("DEFAULT")
         if "all" not in data:
-            self.hostsfile = {"all": {"children": data}}
+            self.original_data = {"all": {"children": data}}
 
 
 class YAMLParser(AnsibleParser):
 
     def load_hosts_file(self):
-        with open(os.path.join(self.path, "hosts"), "r") as f:
+        with open(self.hostsfile, "r") as f:
             yml = ruamel.yaml.YAML(typ="rt", pure=True)
-            self.hostsfile = yml.load(f.read())
+            self.original_data = yml.load(f.read())
 
 
-def parse(path):
+def parse(hostsfile):
     try:
-        parser = INIParser(path)
+        parser = INIParser(hostsfile)
     except cp.Error:
         try:
-            parser = YAMLParser(path)
+            parser = YAMLParser(hostsfile)
         except ruamel.yaml.scanner.ScannerError:
             logger.error(
-                "couldn't parse '{}' as neither a ini nor yaml file".format(path)
+                "couldn't parse '{}' as neither a ini nor yaml file".format(hostsfile)
             )
             raise
 
@@ -184,10 +185,10 @@ class AnsibleInventory(Inventory):
     Inventory plugin that is capable of reading an ansible inventory.
 
     Arguments:
-        path (string): Path to the directory where the host file is located
+        hostsfile (string): Path to the hostsfile
     """
 
-    def __init__(self, path=".", **kwargs):
-        host_vars, group_vars = parse(path)
+    def __init__(self, hostsfile="hosts", **kwargs):
+        host_vars, group_vars = parse(hostsfile)
         defaults = group_vars.pop("defaults")
         super().__init__(host_vars, group_vars, defaults, **kwargs)
