@@ -10,7 +10,6 @@ class Test(object):
 
     def test_napalm_validate_src_ok(self, brigade):
         opt = {"path": THIS_DIR + "/mocked/napalm_get/test_napalm_getters"}
-        print(opt["path"])
         d = brigade.filter(name="dev3.group_2")
         d.run(connections.napalm_connection, optional_args=opt)
         result = d.run(
@@ -22,7 +21,6 @@ class Test(object):
 
     def test_napalm_validate_src_error(self, brigade):
         opt = {"path": THIS_DIR + "/mocked/napalm_get/test_napalm_getters"}
-        print(opt["path"])
         d = brigade.filter(name="dev3.group_2")
         d.run(connections.napalm_connection, optional_args=opt)
 
@@ -36,7 +34,6 @@ class Test(object):
 
     def test_napalm_validate_src_validate_source(self, brigade):
         opt = {"path": THIS_DIR + "/mocked/napalm_get/test_napalm_getters"}
-        print(opt["path"])
         d = brigade.filter(name="dev3.group_2")
         d.run(connections.napalm_connection, optional_args=opt)
 
