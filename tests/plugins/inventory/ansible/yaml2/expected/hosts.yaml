@@ -1,0 +1,9 @@
+one.example.com:
+  groups: []
+three.example.com:
+  brigade_host: 192.0.2.50
+  brigade_ssh_port: 5555
+  groups: []
+two.example.com:
+  groups: []
+  my_var: from_hostfile

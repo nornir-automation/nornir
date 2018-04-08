@@ -8,4 +8,5 @@ Inventory
    :caption: Categories:
 
    simple
+   ansible
    nsot

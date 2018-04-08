@@ -6,3 +6,4 @@ netmiko>=2.1.1
 paramiko
 future
 requests
+ruamel.yaml
