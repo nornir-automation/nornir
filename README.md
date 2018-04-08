@@ -31,7 +31,13 @@ Bugs & New features
 If you think you have bug or would like to request a new feature, please register a GitHub account and [open an issue](https://github.com/brigade-automation/brigade/issues).
 
 
-Contact
-=======
+Contact & Support
+=================
 
-Slack is probably the easiest way to get help with Brigade. You can find us in the `brigade` channel on the [networktoCode()](https://networktocode.herokuapp.com/) team.
+While we are happy to help, the [GitHub issues](<https://github.com/brigade-automation/brigade/issues>) are intended for bugs and discussions about new features. If are struggling to get something to work but don't believe its due to a bug in Brigade, the place to ask questions is in the #brigade channel in the [networktoCode Slack team](https://networktocode.herokuapp.com/).
+
+
+Contributing to Brigade
+=======================
+
+If you want to help the project, the [Contribution Guidelines](CONTRIBUTING.rst) is the best place to start.

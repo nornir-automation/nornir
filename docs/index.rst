@@ -99,6 +99,7 @@ Contents
    Tutorials <tutorials/intro/index>
    Howto <howto/index>
    ref/index
+   Contribute <contributing/index>
 
 
 Indices and tables
