@@ -117,27 +117,5 @@ class Test(object):
             assert not r.changed
 
     def test_sftp_get_directory(self, brigade):
-        filename = "/tmp/" + str(uuid.uuid4()) + "-{host}"
-        result = brigade.run(
-            files.sftp, dry_run=True, action="get", src="/etc/terminfo/", dst=filename
-        )
-
-        assert result
-        for h, r in result.items():
-            assert r.changed, r.files_changed
-
-        result = brigade.run(
-            files.sftp, dry_run=False, action="get", src="/etc/terminfo/", dst=filename
-        )
-
-        assert result
-        for h, r in result.items():
-            assert r.changed, r.files_changed
-
-        result = brigade.run(
-            files.sftp, dry_run=True, action="get", src="/etc/terminfo/", dst=filename
-        )
-
-        assert result
-        for h, r in result.items():
-            assert not r.changed
+        result = brigade.run(get_directory)
+        assert not result.failed
