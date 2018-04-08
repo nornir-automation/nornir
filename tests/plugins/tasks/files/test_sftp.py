@@ -27,6 +27,27 @@ def get_file(task):
     assert not r.changed
 
 
+def get_directory(task):
+    filename = "/tmp/{uuid}-{host.name}".format(uuid=uuid.uuid4(), host=task.host)
+    r = task.run(
+        task=files.sftp, dry_run=True, action="get", src="/etc/terminfo/", dst=filename
+    )
+    assert r
+    assert r.changed, r.files_changed
+
+    r = task.run(
+        task=files.sftp, dry_run=False, action="get", src="/etc/terminfo/", dst=filename
+    )
+    assert r
+    assert r.changed, r.files_changed
+
+    r = task.run(
+        task=files.sftp, dry_run=True, action="get", src="/etc/terminfo/", dst=filename
+    )
+    assert r
+    assert not r.changed
+
+
 class Test(object):
 
     def test_sftp_put(self, brigade):
