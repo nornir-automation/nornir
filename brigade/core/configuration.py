@@ -14,6 +14,11 @@ CONF = {
     "transform_function": {
         "description": "Path to transform function.", "type": "str", "default": {}
     },
+    "jinja_filters": {
+        "description": "Path to callable returning jinja filters to be used.",
+        "type": "str",
+        "default": {},
+    },
     "num_workers": {
         "description": "Number of Brigade worker processes that are run at the same time, "
         "configuration can be overridden on individual tasks by using the "
@@ -97,15 +102,16 @@ class Config:
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-        inventory = self._resolve_import_from_string(
-            kwargs.get("inventory", self.inventory)
-        )
-        self.inventory = inventory
+        resolve_imports = ["inventory", "transform_function", "jinja_filters"]
+        for r in resolve_imports:
+            obj = self._resolve_import_from_string(kwargs.get(r, getattr(self, r)))
+            setattr(self, r, obj)
 
-        transform_function = self._resolve_import_from_string(
-            kwargs.get("transform_function", self.transform_function)
-        )
-        self.transform_function = transform_function
+        callable = ["jinja_filters"]
+        for c in callable:
+            func = getattr(self, c)
+            if func:
+                setattr(self, c, func())
 
     def string_to_bool(self, v):
         if v.lower() in ["false", "no", "n", "off", "0"]:
