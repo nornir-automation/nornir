@@ -3,7 +3,6 @@ import subprocess
 
 
 from brigade.core.exceptions import CommandError
-from brigade.core.helpers import format_string
 from brigade.core.task import Result
 
 
@@ -22,7 +21,6 @@ def command(task, command):
     Raises:
         :obj:`brigade.core.exceptions.CommandError`: when there is a command error
     """
-    command = format_string(command, task, **task.host)
     cmd = subprocess.Popen(
         shlex.split(command),
         stdout=subprocess.PIPE,
