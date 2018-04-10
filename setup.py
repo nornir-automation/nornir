@@ -7,7 +7,7 @@ with open("requirements.txt", "r") as fs:
 __author__ = "dbarrosop@dravetech.com"
 __license__ = "Apache License, version 2"
 
-__version__ = "0.0.6"
+__version__ = "0.0.7"
 
 setup(
     name="brigade",
