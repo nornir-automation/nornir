@@ -68,22 +68,22 @@ class Test(object):
 
     def test_get_user_defined_from_file(self):
         config = Config(config_file=os.path.join(dir_path, "config.yaml"))
-        assert config.get(
-            "user_defined", env="USER_DEFINED", default="qweqwe"
-        ) == "asdasd"
+        assert (
+            config.get("user_defined", env="USER_DEFINED", default="qweqwe") == "asdasd"
+        )
 
     def test_get_user_defined_from_default(self):
         config = Config()
-        assert config.get(
-            "user_defined", env="USER_DEFINED", default="qweqwe"
-        ) == "qweqwe"
+        assert (
+            config.get("user_defined", env="USER_DEFINED", default="qweqwe") == "qweqwe"
+        )
 
     def test_get_user_defined_from_env(self):
         os.environ["USER_DEFINED"] = "zxczxc"
         config = Config(config_file=os.path.join(dir_path, "config.yaml"))
-        assert config.get(
-            "user_defined", env="USER_DEFINED", default="qweqwe"
-        ) == "zxczxc"
+        assert (
+            config.get("user_defined", env="USER_DEFINED", default="qweqwe") == "zxczxc"
+        )
         os.environ.pop("USER_DEFINED")
 
     def test_get_user_defined_from_env_bool(self):

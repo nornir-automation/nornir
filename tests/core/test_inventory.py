@@ -140,9 +140,10 @@ class Test(object):
 
     def test_filtering(self):
         unfiltered = sorted(list(inventory.hosts.keys()))
-        assert unfiltered == [
-            "dev1.group_1", "dev2.group_1", "dev3.group_2", "dev4.group_2"
-        ]
+        assert (
+            unfiltered
+            == ["dev1.group_1", "dev2.group_1", "dev3.group_2", "dev4.group_2"]
+        )
 
         www = sorted(list(inventory.filter(role="www").hosts.keys()))
         assert www == ["dev1.group_1", "dev3.group_2"]
@@ -185,13 +186,13 @@ class Test(object):
         assert inventory.hosts["dev3.group_2"]["my_var"] == "comes_from_defaults"
         assert inventory.hosts["dev4.group_2"]["my_var"] == "comes_from_dev4.group_2"
 
-        assert inventory.hosts["dev1.group_1"].data[
-            "my_var"
-        ] == "comes_from_dev1.group_1"
+        assert (
+            inventory.hosts["dev1.group_1"].data["my_var"] == "comes_from_dev1.group_1"
+        )
         with pytest.raises(KeyError):
             inventory.hosts["dev2.group_1"].data["my_var"]
         with pytest.raises(KeyError):
             inventory.hosts["dev3.group_2"].data["my_var"]
-        assert inventory.hosts["dev4.group_2"].data[
-            "my_var"
-        ] == "comes_from_dev4.group_2"
+        assert (
+            inventory.hosts["dev4.group_2"].data["my_var"] == "comes_from_dev4.group_2"
+        )
