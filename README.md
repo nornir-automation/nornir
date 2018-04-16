@@ -40,4 +40,4 @@ While we are happy to help, the [GitHub issues](<https://github.com/brigade-auto
 Contributing to Brigade
 =======================
 
-If you want to help the project, the [Contribution Guidelines](CONTRIBUTING.rst) is the best place to start.
+If you want to help the project, the [Contribution Guidelines](https://brigade.readthedocs.io/en/develop/contributing/index.html) is the best place to start.
