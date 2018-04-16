@@ -17,6 +17,7 @@ python:
 install:
     - pip install tox-travis
     - pip install coveralls
+    - pip install -r requirements-travis.txt
 
 script:
     - if [ $TRAVIS_PYTHON_VERSION == "3.6" ]; then black --check . ; fi
