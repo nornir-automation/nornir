@@ -11,6 +11,7 @@ def remote_command(task, command):
 
     Returns:
         :obj:`brigade.core.task.Result`:
+          * result (``str``): stderr or stdout
           * stdout (``str``): stdout
           * stderr (``srr``): stderr
 
@@ -32,4 +33,5 @@ def remote_command(task, command):
     if exit_status_code:
         raise CommandError(command, exit_status_code, stdout, stderr)
 
-    return Result(host=task.host, stderr=stderr, stdout=stdout)
+    result = stderr if stderr else stdout
+    return Result(result=result, host=task.host, stderr=stderr, stdout=stdout)

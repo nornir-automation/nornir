@@ -69,10 +69,6 @@ def print_result(
     Returns:
         :obj:`brigade.core.task.Result`:
     """
-    #  def print_aggregated_result(host, result):
-    #      title = "" if result.changed is None else " ** changed : {} ".format(host_data.changed)
-    #      msg = "* {}{}".format(host, title)
-    #      print("{}{}{}{}".format(Style.BRIGHT, color, msg, "*" * (80 - len(msg))))
 
     vars = vars or ["diff", "result", "stdout"]
     if isinstance(vars, str):

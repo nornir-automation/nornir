@@ -18,7 +18,7 @@ class Test(object):
 
         assert result
         for h, r in result.items():
-            assert r.tcp_port[65004]
+            assert r.result[65004]
 
     def test_tcp_ping_ports(self, brigade):
         filter = brigade.filter(name="dev4.group_2")
@@ -26,8 +26,8 @@ class Test(object):
 
         assert result
         for h, r in result.items():
-            assert r.tcp_port[35004] is False
-            assert r.tcp_port[65004]
+            assert r.result[35004] is False
+            assert r.result[65004]
 
     def test_tcp_ping_invalid_port(self, brigade):
         results = brigade.run(networking.tcp_ping, ports="web")
@@ -55,8 +55,8 @@ def test_tcp_ping_external_hosts():
     assert result
     for h, r in result.items():
         if h == "www.github.com":
-            assert r.tcp_port[23] is False
-            assert r.tcp_port[443]
+            assert r.result[23] is False
+            assert r.result[443]
         else:
-            assert r.tcp_port[23] is False
-            assert r.tcp_port[443] is False
+            assert r.result[23] is False
+            assert r.result[443] is False
