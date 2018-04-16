@@ -3,5 +3,6 @@ pytest-cov
 pylama
 flake8-import-order
 tox
-black; python_version >= '3.6'
+black==18.4a1; python_version >= '3.6'
+-r requirements-travis.txt
 -r requirements.txt
