@@ -22,7 +22,7 @@ pip install brigade
 Documentation
 =============
 
-Read the [Brigade documentation](https://brigade.readthedocs.io/en/latest/) online or review it's [code here](https://github.com/brigade-automation/brigade/tree/develop/docs)
+Read the [Brigade documentation](https://brigade.readthedocs.io/) online or review it's [code here](https://github.com/brigade-automation/brigade/tree/develop/docs)
 
 
 Bugs & New features
