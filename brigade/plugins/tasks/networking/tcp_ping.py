@@ -17,7 +17,7 @@ def tcp_ping(task, ports, timeout=2, host=None):
 
     Returns:
         :obj:`brigade.core.task.Result`:
-          * tcp_port (``dict``): Contains port numbers as keys with True/False as values
+          * result (``dict``): Contains port numbers as keys with True/False as values
     """
 
     if isinstance(ports, int):
@@ -48,4 +48,4 @@ def tcp_ping(task, ports, timeout=2, host=None):
             s.close()
         result[port] = connection
 
-    return Result(host=task.host, tcp_port=result)
+    return Result(host=task.host, result=result)
