@@ -93,8 +93,8 @@ class Brigade(object):
         self.data = data or Data()
         self.inventory = inventory
         self.inventory.brigade = self
+        self.data.dry_run = dry_run
 
-        self.dry_run = dry_run
         if config_file:
             self.config = Config(config_file=config_file)
         else:
@@ -106,6 +106,10 @@ class Brigade(object):
             self.available_connections = available_connections
         else:
             self.available_connections = connections.available_connections
+
+    @property
+    def dry_run(self):
+        return self.data.dry_run
 
     def configure_logging(self):
         dictConfig = self.config.logging_dictConfig or {
@@ -158,7 +162,7 @@ class Brigade(object):
         Returns:
             :obj:`Brigade`: A new object with same configuration as ``self`` but filtered inventory.
         """
-        b = Brigade(**self.__dict__)
+        b = Brigade(dry_run=self.dry_run, **self.__dict__)
         b.inventory = self.inventory.filter(**kwargs)
         return b
 
