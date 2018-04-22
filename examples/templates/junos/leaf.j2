@@ -1,8 +1,0 @@
-replace:
-vlans {
-{% for vlan_id, name in vlans.items() %}
-    {{ name }} {
-        vlan-id {{ vlan_id }};
-    }
-{% endfor %}
-}
