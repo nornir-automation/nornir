@@ -185,7 +185,7 @@ class AnsibleInventory(Inventory):
     Inventory plugin that is capable of reading an ansible inventory.
 
     Arguments:
-        hostsfile (string): Path to the hostsfile
+        hostsfile (string): Ansible inventory file to load
     """
 
     def __init__(self, hostsfile="hosts", **kwargs):
