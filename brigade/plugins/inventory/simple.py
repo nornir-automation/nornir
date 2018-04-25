@@ -18,14 +18,14 @@ class SimpleInventory(Inventory):
         host1.cmh:
             site: cmh
             role: host
-            group:
+            groups:
                 - cmh-host
             nos: linux
 
         host2.cmh:
             site: cmh
             role: host
-            group:
+            groups:
                 - cmh-host
             nos: linux
 
@@ -36,7 +36,7 @@ class SimpleInventory(Inventory):
             napalm_port: 12443
             site: cmh
             role: leaf
-            group:
+            groups:
                 - cmh-leaf
             nos: eos
 
@@ -47,21 +47,21 @@ class SimpleInventory(Inventory):
             napalm_port: 12203
             site: cmh
             role: leaf
-            group:
+            groups:
                 - cmh-leaf
             nos: junos
 
         host1.bma:
             site: bma
             role: host
-            group:
+            groups:
                 - bma-host
             nos: linux
 
         host2.bma:
             site: bma
             role: host
-            group:
+            groups:
                 - bma-host
             nos: linux
 
@@ -72,7 +72,7 @@ class SimpleInventory(Inventory):
             napalm_port: 12443
             site: bma
             role: leaf
-            group:
+            groups:
                 - bma-leaf
             nos: eos
 
@@ -83,7 +83,7 @@ class SimpleInventory(Inventory):
             napalm_port: 12203
             site: bma
             role: leaf
-            group:
+            groups:
                 - bma-leaf
             nos: junos
 
@@ -94,22 +94,22 @@ class SimpleInventory(Inventory):
             domain: acme.com
 
         bma-leaf:
-            group:
+            groups:
                 - bma
 
         bma-host:
-            group:
+            groups:
                 - bma
 
         bma:
             domain: bma.acme.com
 
         cmh-leaf:
-            group:
+            groups:
                 - cmh
 
         cmh-host:
-            group:
+            groups:
                 - cmh
 
         cmh:
