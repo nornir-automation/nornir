@@ -4,7 +4,7 @@ from tests.wrapper import wrap_cli_test
 
 
 def echo_task(task):
-    return Result(host=task.host, result='Hello from Brigade')
+    return Result(host=task.host, result="Hello from Brigade")
 
 
 class Test(object):

@@ -42,6 +42,7 @@ def wrap_cli_test(output, save_output=False):
             reference_output = f.read()
             if screen_output != reference_output:
                 raise Exception(screen_output, reference_output)
+
         with open("{}.stderr".format(output), "r") as f:
             screen_output = stderr.getvalue()
             reference_output = f.read()
