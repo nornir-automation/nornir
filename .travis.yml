@@ -14,13 +14,17 @@ python:
     - 3.5
     - 3.6
 
+matrix:
+  include:
+      - python: 3.6
+        env: TOXENV=sphinx
+      - python: 3.6
+        env: TOXENV=black
+
 install:
-    - pip install tox-travis
-    - pip install coveralls
-    - pip install -r requirements-travis.txt
+    - pip install tox tox-travis coveralls
 
 script:
-    - if [ $TRAVIS_PYTHON_VERSION == "3.6" ]; then black --check . ; fi
     - tox
 
 deploy:

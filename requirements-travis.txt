@@ -1,1 +1,0 @@
-black==18.4a1; python_version >= '3.6'
