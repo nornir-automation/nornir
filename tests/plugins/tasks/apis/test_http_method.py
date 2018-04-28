@@ -7,17 +7,20 @@ import pytest
 from requests.exceptions import HTTPError
 
 
+BASE_URL = "http://localhost:65080"
+
+
 class Test(object):
 
     def test_simple_get_text(self):
-        url = "http://httpbin.org/encoding/utf8"
+        url = "{}/encoding/utf8".format(BASE_URL)
         result = http_method(method="get", url=url)
         assert result.response.status_code
         assert result.result.startswith("<h1>Unicode Demo</h1>")
         assert result.result == result.response.text
 
     def test_simple_get_json(self):
-        url = "http://httpbin.org/get"
+        url = "{}/get".format(BASE_URL)
         result = http_method(method="get", url=url)
         assert result.response.status_code
         assert result.response.json()["args"] == {}
@@ -25,31 +28,31 @@ class Test(object):
         assert result.result == result.response.json()
 
     def test_headers(self):
-        url = "http://httpbin.org/headers"
+        url = "{}/headers".format(BASE_URL)
         headers = {"X-Test": "a test"}
         result = http_method(method="get", url=url, headers=headers)
         assert result.result["headers"]["X-Test"] == "a test"
 
     def test_params(self):
-        url = "http://httpbin.org/get"
+        url = "{}/get".format(BASE_URL)
         params = {"my_param": "my_value"}
         result = http_method(method="get", url=url, params=params)
         assert result.result["args"]["my_param"] == "my_value"
 
     def test_post_data(self):
-        url = "http://httpbin.org/post"
+        url = "{}/post".format(BASE_URL)
         data = {"my_param": "my_value"}
         result = http_method(method="post", url=url, data=data)
         assert result.result["form"]["my_param"] == "my_value"
 
     def test_post_json(self):
-        url = "http://httpbin.org/post"
+        url = "{}/post".format(BASE_URL)
         json = {"my_param": "my_value"}
         result = http_method(method="post", url=url, json=json)
         assert result.result["data"] == '{"my_param": "my_value"}'
 
     def test_raise_for_status(self):
-        url = "http://httpbin.org/status/418"
+        url = "{}/status/418".format(BASE_URL)
 
         with pytest.raises(HTTPError):
             http_method(method="post", url=url)
@@ -58,7 +61,7 @@ class Test(object):
         assert result.response.status_code
 
     def test_with_brigade(self, brigade):
-        url = "http://httpbin.org/get"
+        url = "{}/get".format(BASE_URL)
         params = {"my_param": "my_value"}
 
         r = brigade.run(http_method, method="get", url=url, params=params)
