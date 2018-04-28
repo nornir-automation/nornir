@@ -93,6 +93,10 @@ class Task(object):
         if "severity" not in kwargs:
             kwargs["severity"] = self.severity
         r = Task(task, **kwargs).start(self.host, self.brigade)
+        if r.failed:
+            # Without this we will keep running the grouped task
+            raise r.exception
+
         self.results.append(r[0] if len(r) == 1 else r)
         return r
 

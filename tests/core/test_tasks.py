@@ -93,8 +93,7 @@ class Test(object):
         r = brigade.run(task_fails_for_some, severity=logging.WARN, num_workers=1)
         for host, result in r.items():
             if host == "dev3.group_2":
-                assert result[0].severity == logging.WARN
-                assert result[1].severity == logging.ERROR
+                assert result[0].severity == logging.ERROR
             else:
                 assert result[0].severity == logging.WARN
                 assert result[1].severity == logging.DEBUG
