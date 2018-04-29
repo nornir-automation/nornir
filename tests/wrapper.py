@@ -19,6 +19,7 @@ def wrap_cli_test(output, save_output=False):
 
     @decorator
     def run_test(func, *args, **kwargs):
+
         stdout = StringIO()
         backup_stdout = sys.stdout
         sys.stdout = stdout
@@ -31,19 +32,23 @@ def wrap_cli_test(output, save_output=False):
         sys.stdout = backup_stdout
         sys.stderr = backup_stderr
 
-        if save_output:
-            with open("{}.stdout".format(output), "w+") as f:
-                f.write(stdout.getvalue())
-            with open("{}.stderr".format(), "w+") as f:
-                f.write(stdout.getvalue())
+        output_file = output
+        if sys.version_info.major == 2:
+            output_file += "_python27"
 
-        with open("{}.stdout".format(output), "r") as f:
+        if save_output:
+            with open("{}.stdout".format(output_file), "w+") as f:
+                f.write(stdout.getvalue())
+            with open("{}.stderr".format(output_file), "w+") as f:
+                f.write(stderr.getvalue())
+
+        with open("{}.stdout".format(output_file), "r") as f:
             screen_output = stdout.getvalue()
             reference_output = f.read()
             if screen_output != reference_output:
                 raise Exception(screen_output, reference_output)
 
-        with open("{}.stderr".format(output), "r") as f:
+        with open("{}.stderr".format(output_file), "r") as f:
             screen_output = stderr.getvalue()
             reference_output = f.read()
             if screen_output != reference_output:

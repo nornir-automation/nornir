@@ -77,7 +77,7 @@ def print_result(
     if isinstance(result, AggregatedResult):
         msg = result.name
         print("{}{}{}{}".format(Style.BRIGHT, Fore.CYAN, msg, "*" * (80 - len(msg))))
-        for host, host_data in result.items():
+        for host, host_data in sorted(result.items()):
             title = "" if host_data.changed is None else " ** changed : {} ".format(
                 host_data.changed
             )
