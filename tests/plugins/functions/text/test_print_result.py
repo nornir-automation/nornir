@@ -11,8 +11,8 @@ data_dir = "{}/test_data".format(os.path.dirname(os.path.realpath(__file__)))
 output_dir = "{}/output_data".format(os.path.dirname(os.path.realpath(__file__)))
 
 
-def echo_task(task):
-    return Result(host=task.host, result="Hello from Brigade")
+def echo_task(task, msg="Brigade"):
+    return Result(host=task.host, result="Hello from {}".format(msg))
 
 
 def data_with_greeting(task):
@@ -21,9 +21,14 @@ def data_with_greeting(task):
 
 
 def read_data(task):
-    task.run(task=echo_task)
-    r = task.run(task=load_yaml, file="{}/{}.yaml".format(data_dir, task.host))
-    return Result(host=task.host, result=r.result["data"], changed=r.result["changed"])
+    task.run(task=echo_task, severity_level=logging.DEBUG)
+    task.run(task=echo_task, msg="CRITICAL", severity_level=logging.CRITICAL)
+    r = task.run(
+        task=load_yaml,
+        file="{}/{}.yaml".format(data_dir, task.host),
+        severity_level=logging.WARN,
+    )
+    return Result(host=task.host, changed=r.result["changed"])
 
 
 class Test(object):
@@ -58,5 +63,10 @@ class Test(object):
     @wrap_cli_test(output="{}/changed_host".format(output_dir))
     def test_print_changed_host(self, brigade):
         filter = brigade.filter(site="site1")
-        result = filter.run(read_data)
+        result = filter.run(read_data, severity_level=logging.WARN)
         print_result(result)
+
+    @wrap_cli_test(output="{}/failed_with_severity".format(output_dir))
+    def test_print_failed_with_severity(self, brigade):
+        result = brigade.run(read_data)
+        print_result(result, vars="result", severity_level=logging.ERROR)

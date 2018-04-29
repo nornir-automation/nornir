@@ -11,7 +11,7 @@ def task_fails_for_some(task):
         task.run(
             commands.command,
             command="echo {}".format(task.host),
-            severity=logging.DEBUG,
+            severity_level=logging.DEBUG,
         )
 
 
@@ -79,23 +79,25 @@ class Test(object):
     def test_severity(self, brigade):
         r = brigade.run(commands.command, command="echo blah")
         for host, result in r.items():
-            assert result[0].severity == logging.INFO
+            assert result[0].severity_level == logging.INFO
 
-        r = brigade.run(commands.command, command="echo blah", severity=logging.WARN)
+        r = brigade.run(
+            commands.command, command="echo blah", severity_level=logging.WARN
+        )
         for host, result in r.items():
-            assert result[0].severity == logging.WARN
+            assert result[0].severity_level == logging.WARN
 
-        r = brigade.run(sub_task, severity=logging.WARN)
+        r = brigade.run(sub_task, severity_level=logging.WARN)
         for host, result in r.items():
             for sr in result:
-                assert sr.severity == logging.WARN
+                assert sr.severity_level == logging.WARN
 
-        r = brigade.run(task_fails_for_some, severity=logging.WARN, num_workers=1)
+        r = brigade.run(task_fails_for_some, severity_level=logging.WARN, num_workers=1)
         for host, result in r.items():
             if host == "dev3.group_2":
-                assert result[0].severity == logging.ERROR
+                assert result[0].severity_level == logging.ERROR
             else:
-                assert result[0].severity == logging.WARN
-                assert result[1].severity == logging.DEBUG
+                assert result[0].severity_level == logging.WARN
+                assert result[1].severity_level == logging.DEBUG
 
         brigade.data.reset_failed_hosts()

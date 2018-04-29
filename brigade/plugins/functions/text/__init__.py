@@ -30,14 +30,14 @@ def _get_color(result, failed):
 def _print_individual_result(
     result, host, vars, failed, severity_level, task_group=False
 ):
-    if result.severity < severity_level:
+    if result.severity_level < severity_level:
         return
 
     color = _get_color(result, failed)
     subtitle = "" if result.changed is None else " ** changed : {} ".format(
         result.changed
     )
-    level_name = logging.getLevelName(result.severity)
+    level_name = logging.getLevelName(result.severity_level)
     symbol = "v" if task_group else "-"
     msg = "{} {}{}".format(symbol * 4, result.name, subtitle)
     print(

@@ -14,7 +14,7 @@ class Task(object):
     Arguments:
         task (callable): function or callable we will be calling
         name (``string``): name of task, defaults to ``task.__name__``
-        severity (logging.LEVEL): Severity level associated to the task
+        severity_level (logging.LEVEL): Severity level associated to the task
         **kwargs: Parameters that will be passed to the ``task``
 
     Attributes:
@@ -26,15 +26,15 @@ class Task(object):
           before calling the ``task``
         brigade(:obj:`brigade.core.Brigade`): Populated right before calling
           the ``task``
-        severity (logging.LEVEL): Severity level associated to the task
+        severity_level (logging.LEVEL): Severity level associated to the task
     """
 
-    def __init__(self, task, name=None, severity=logging.INFO, **kwargs):
+    def __init__(self, task, name=None, severity_level=logging.INFO, **kwargs):
         self.name = name or task.__name__
         self.task = task
         self.params = kwargs
         self.results = MultiResult(self.name)
-        self.severity = severity
+        self.severity_level = severity_level
 
     def __repr__(self):
         return self.name
@@ -66,7 +66,7 @@ class Task(object):
             logger.error("{}: {}".format(self.host, tb))
             r = Result(host, exception=e, result=tb, failed=True)
         r.name = self.name
-        r.severity = logging.ERROR if r.failed else self.severity
+        r.severity_level = logging.ERROR if r.failed else self.severity_level
 
         self.results.insert(0, r)
         return self.results
@@ -90,8 +90,8 @@ class Task(object):
             )
             raise Exception(msg)
 
-        if "severity" not in kwargs:
-            kwargs["severity"] = self.severity
+        if "severity_level" not in kwargs:
+            kwargs["severity_level"] = self.severity_level
         r = Task(task, **kwargs).start(self.host, self.brigade)
         if r.failed:
             # Without this we will keep running the grouped task
@@ -120,7 +120,7 @@ class Result(object):
         result (obj): Result of the task execution, see task's documentation for details
         host (:obj:`brigade.core.inventory.Host`): Reference to the host that lead ot this result
         failed (bool): Whether the execution failed or not
-        severity (logging.LEVEL): Severity level associated to the result of the excecution
+        severity_level (logging.LEVEL): Severity level associated to the result of the excecution
         exception (Exception): uncaught exception thrown during the exection of the task (if any)
 
     Attributes:
@@ -129,7 +129,7 @@ class Result(object):
         result (obj): Result of the task execution, see task's documentation for details
         host (:obj:`brigade.core.inventory.Host`): Reference to the host that lead ot this result
         failed (bool): Whether the execution failed or not
-        severity (logging.LEVEL): Severity level associated to the result of the excecution
+        severity_level (logging.LEVEL): Severity level associated to the result of the excecution
         exception (Exception): uncaught exception thrown during the exection of the task (if any)
     """
 
@@ -141,7 +141,7 @@ class Result(object):
         diff="",
         failed=False,
         exception=None,
-        severity=logging.INFO,
+        severity_level=logging.INFO,
         **kwargs
     ):
         self.result = result
@@ -151,7 +151,7 @@ class Result(object):
         self.failed = failed
         self.exception = exception
         self.name = None
-        self.severity = severity
+        self.severity_level = severity_level
 
         for k, v in kwargs.items():
             setattr(self, k, v)
