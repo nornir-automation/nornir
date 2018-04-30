@@ -196,3 +196,11 @@ class Test(object):
         assert (
             inventory.hosts["dev4.group_2"].data["my_var"] == "comes_from_dev4.group_2"
         )
+
+    def test_has_parents(self):
+        assert inventory.hosts["dev1.group_1"].has_parent_group(
+            inventory.groups["group_1"]
+        )
+        assert not inventory.hosts["dev1.group_1"].has_parent_group(
+            inventory.groups["group_2"]
+        )
