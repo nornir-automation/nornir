@@ -119,7 +119,7 @@ class Brigade(object):
             "handlers": {},
             "loggers": {},
             "root": {
-                "level": "CRITICAL" if self.config.logging_loggers else self.config.logging_level.upper(),
+                "level": "CRITICAL" if self.config.logging_loggers else self.config.logging_level.upper(),  # noqa
                 "handlers": [],
                 "formatter": "simple",
             },
@@ -239,7 +239,7 @@ class Brigade(object):
         else:
             result = self._run_parallel(task, run_on, num_workers, **kwargs)
 
-        raise_on_error = raise_on_error if raise_on_error is not None else self.config.raise_on_error
+        raise_on_error = raise_on_error if raise_on_error is not None else self.config.raise_on_error  # noqa
         if raise_on_error:
             result.raise_on_error()
         else:

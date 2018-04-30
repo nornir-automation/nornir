@@ -20,6 +20,8 @@ matrix:
         env: TOXENV=sphinx
       - python: 3.6
         env: TOXENV=black
+      - python: 3.6
+        env: TOXENV=pylama
 
 install:
     - pip install tox tox-travis coveralls
