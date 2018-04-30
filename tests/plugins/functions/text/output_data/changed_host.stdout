@@ -1,15 +1,19 @@
 [1m[36mread_data***********************************************************************
 [1m[34m* dev1.group_1 ** changed : True ***********************************************
-[1m[33mvvvv read_data ** changed : True vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv WARNING
+[1m[32mvvvv read_data ** changed : False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv WARNING
 [1m[32m---- echo_task ** changed : False ---------------------------------------------- CRITICAL
 Hello from CRITICAL
+[1m[33mvvvv parse_data ** changed : True vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv WARNING
 [1m[32m---- load_yaml ** changed : False ---------------------------------------------- WARNING
 {'changed': True, 'data': [1, 2, 3], 'failed': False}
-[1m[33m^^^^ END read_data ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[33m^^^^ END parse_data ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[32m^^^^ END read_data ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 [1m[34m* dev2.group_1 ** changed : False **********************************************
 [1m[32mvvvv read_data ** changed : False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv WARNING
 [1m[32m---- echo_task ** changed : False ---------------------------------------------- CRITICAL
 Hello from CRITICAL
+[1m[32mvvvv parse_data ** changed : False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv WARNING
 [1m[32m---- load_yaml ** changed : False ---------------------------------------------- WARNING
 {'changed': False, 'data': [3, 4, 5], 'failed': False}
+[1m[32m^^^^ END parse_data ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 [1m[32m^^^^ END read_data ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

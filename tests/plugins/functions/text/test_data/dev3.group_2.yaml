@@ -4,5 +4,4 @@ data:
   - 7
   - 8
 failed: True
-is_it_broken; "You bet!"
 changed: True

@@ -12,7 +12,11 @@ output_dir = "{}/output_data".format(os.path.dirname(os.path.realpath(__file__))
 
 
 def echo_task(task, msg="Brigade"):
-    return Result(host=task.host, result="Hello from {}".format(msg))
+    return Result(
+        host=task.host,
+        result="Hello from {}".format(msg),
+        output="Hello from {}".format(msg),
+    )
 
 
 def data_with_greeting(task):
@@ -20,15 +24,22 @@ def data_with_greeting(task):
     task.run(task=load_yaml, file="{}/sample.yaml".format(data_dir))
 
 
-def read_data(task):
-    task.run(task=echo_task, severity_level=logging.DEBUG)
-    task.run(task=echo_task, msg="CRITICAL", severity_level=logging.CRITICAL)
+def parse_data(task):
     r = task.run(
         task=load_yaml,
         file="{}/{}.yaml".format(data_dir, task.host),
         severity_level=logging.WARN,
     )
+    if r.result["failed"]:
+        raise Exception("Unknown Error -> Contact your system administrator")
+
     return Result(host=task.host, changed=r.result["changed"])
+
+
+def read_data(task):
+    task.run(task=echo_task, severity_level=logging.DEBUG)
+    task.run(task=echo_task, msg="CRITICAL", severity_level=logging.CRITICAL)
+    task.run(task=parse_data, severity_level=logging.WARN)
 
 
 class Test(object):
@@ -37,7 +48,7 @@ class Test(object):
     def test_print_basic(self, brigade):
         filter = brigade.filter(name="dev1.group_1")
         result = filter.run(echo_task)
-        print_result(result)
+        print_result(result, vars="result")
 
     @wrap_cli_test(output="{}/basic_inventory".format(output_dir))
     def test_print_basic_inventory(self, brigade):
@@ -69,4 +80,4 @@ class Test(object):
     @wrap_cli_test(output="{}/failed_with_severity".format(output_dir))
     def test_print_failed_with_severity(self, brigade):
         result = brigade.run(read_data)
-        print_result(result, vars="result", severity_level=logging.ERROR)
+        print_result(result, vars=["exception", "output"], severity_level=logging.ERROR)

@@ -2,33 +2,21 @@
 [1m[34m* dev1.group_1 ** changed : True ***********************************************
 [1m[32m---- echo_task ** changed : False ---------------------------------------------- CRITICAL
 Hello from CRITICAL
-[1m[33m^^^^ END read_data ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[33m^^^^ END parse_data ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[32m^^^^ END read_data ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 [1m[34m* dev2.group_1 ** changed : False **********************************************
 [1m[32m---- echo_task ** changed : False ---------------------------------------------- CRITICAL
 Hello from CRITICAL
+[1m[32m^^^^ END parse_data ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 [1m[32m^^^^ END read_data ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 [1m[34m* dev3.group_2 ** changed : False **********************************************
 [1m[31mvvvv read_data ** changed : False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ERROR
-Traceback (most recent call last):
-  File "/Users/patrick/src/brigade/brigade/core/task.py", line 61, in start
-    r = self.task(self, **self.params)
-  File "/Users/patrick/src/brigade/tests/plugins/functions/text/test_print_result.py", line 29, in read_data
-    severity_level=logging.WARN,
-  File "/Users/patrick/src/brigade/brigade/core/task.py", line 98, in run
-    raise r.exception
-ScannerError: while scanning a simple key
-  in "<string>", line 7, column 1:
-    is_it_broken; "You bet!"
-    ^
-could not find expected ':'
-  in "<string>", line 8, column 1:
-    changed: True
-    ^
-
+Exception('Unknown Error -> Contact your system administrator',)
 [1m[32m---- echo_task ** changed : False ---------------------------------------------- CRITICAL
 Hello from CRITICAL
 [1m[31m^^^^ END read_data ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 [1m[34m* dev4.group_2 ** changed : False **********************************************
 [1m[32m---- echo_task ** changed : False ---------------------------------------------- CRITICAL
 Hello from CRITICAL
+[1m[32m^^^^ END parse_data ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 [1m[32m^^^^ END read_data ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
