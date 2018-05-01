@@ -1,6 +1,0 @@
----
-os: Linux
-services:
-  - http
-  - smtp
-  - dns

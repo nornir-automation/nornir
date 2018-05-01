@@ -3,11 +3,9 @@ import logging
 
 from brigade.plugins.functions.text import print_result
 from brigade.plugins.functions.text import print_title
-from brigade.plugins.tasks.data import load_yaml
 from brigade.core.task import Result
 from tests.wrapper import wrap_cli_test
 
-data_dir = "{}/test_data".format(os.path.dirname(os.path.realpath(__file__)))
 output_dir = "{}/output_data".format(os.path.dirname(os.path.realpath(__file__)))
 
 
@@ -19,21 +17,41 @@ def echo_task(task, msg="Brigade"):
     )
 
 
+def load_data(task):
+    data = {"os": "Linux", "services": ["http", "smtp", "dns"]}
+    return Result(host=task.host, result=data)
+
+
 def data_with_greeting(task):
     task.run(task=echo_task)
-    task.run(task=load_yaml, file="{}/sample.yaml".format(data_dir))
+    task.run(task=load_data)
 
 
 def parse_data(task):
-    r = task.run(
-        task=load_yaml,
-        file="{}/{}.yaml".format(data_dir, task.host),
-        severity_level=logging.WARN,
-    )
-    if r.result["failed"]:
+
+    data = {}
+    data["failed"] = False
+    data["changed"] = False
+
+    if "dev1.group_1" == task.host.name:
+        data["values"] = [1, 2, 3]
+        data["changed"] = True
+
+    elif "dev2.group_1" == task.host.name:
+        data["values"] = [4, 5, 6]
+
+    elif "dev3.group_2" == task.host.name:
+        data["values"] = [7, 8, 9]
+
+    elif "dev4.group_2" == task.host.name:
+        data["values"] = [10, 11, 12]
+        data["changed"] = False
+        data["failed"] = True
+
+    if data["failed"]:
         raise Exception("Unknown Error -> Contact your system administrator")
 
-    return Result(host=task.host, changed=r.result["changed"])
+    return Result(host=task.host, changed=data["changed"], result=data["values"])
 
 
 def read_data(task):
@@ -61,7 +79,7 @@ class Test(object):
         print_result(result["dev2.group_1"])
 
     @wrap_cli_test(output="{}/basic_inventory_one_task".format(output_dir))
-    def test_print_basic_inventory_one_host(self, brigade):
+    def test_print_basic_inventory_one_task(self, brigade):
         result = brigade.run(data_with_greeting)
         print_result(result["dev2.group_1"][1])
 

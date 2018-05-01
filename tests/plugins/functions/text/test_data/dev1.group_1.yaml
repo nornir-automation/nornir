@@ -1,7 +1,0 @@
----
-data:
-  - 1
-  - 2
-  - 3
-failed: False
-changed: True
