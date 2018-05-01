@@ -12,7 +12,12 @@ CONF = {
         "default": "brigade.plugins.inventory.simple.SimpleInventory",
     },
     "transform_function": {
-        "description": "Path to transform function.", "type": "str", "default": {}
+        "description": "Path to transform function. The transform_function you provide "
+        "will run against each host in the inventory. This is useful to manipulate host "
+        "data and make it more consumable. For instance, if your inventory has a 'user' "
+        "attribute you could use this function to map it to 'brigade_user'",
+        "type": "str",
+        "default": {},
     },
     "jinja_filters": {
         "description": "Path to callable returning jinja filters to be used.",

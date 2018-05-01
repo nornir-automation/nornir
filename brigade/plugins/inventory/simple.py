@@ -18,13 +18,15 @@ class SimpleInventory(Inventory):
         host1.cmh:
             site: cmh
             role: host
-            group: cmh-host
+            groups:
+                - cmh-host
             nos: linux
 
         host2.cmh:
             site: cmh
             role: host
-            group: cmh-host
+            groups:
+                - cmh-host
             nos: linux
 
         switch00.cmh:
@@ -34,7 +36,8 @@ class SimpleInventory(Inventory):
             napalm_port: 12443
             site: cmh
             role: leaf
-            group: cmh-leaf
+            groups:
+                - cmh-leaf
             nos: eos
 
         switch01.cmh:
@@ -44,19 +47,22 @@ class SimpleInventory(Inventory):
             napalm_port: 12203
             site: cmh
             role: leaf
-            group: cmh-leaf
+            groups:
+                - cmh-leaf
             nos: junos
 
         host1.bma:
             site: bma
             role: host
-            group: bma-host
+            groups:
+                - bma-host
             nos: linux
 
         host2.bma:
             site: bma
             role: host
-            group: bma-host
+            groups:
+                - bma-host
             nos: linux
 
         switch00.bma:
@@ -66,7 +72,8 @@ class SimpleInventory(Inventory):
             napalm_port: 12443
             site: bma
             role: leaf
-            group: bma-leaf
+            groups:
+                - bma-leaf
             nos: eos
 
         switch01.bma:
@@ -76,31 +83,37 @@ class SimpleInventory(Inventory):
             napalm_port: 12203
             site: bma
             role: leaf
-            group: bma-leaf
+            groups:
+                - bma-leaf
             nos: junos
 
     * group file::
 
         ---
         defaults:
-            group: null
             domain: acme.com
 
         bma-leaf:
-            group: bma
+            groups:
+                - bma
 
         bma-host:
-            group: bma
+            groups:
+                - bma
 
         bma:
+            domain: bma.acme.com
 
         cmh-leaf:
-            group: cmh
+            groups:
+                - cmh
 
         cmh-host:
-            group: cmh
+            groups:
+                - cmh
 
         cmh:
+            domain: cmh.acme.com
     """
 
     def __init__(self, host_file="hosts.yaml", group_file="groups.yaml", **kwargs):

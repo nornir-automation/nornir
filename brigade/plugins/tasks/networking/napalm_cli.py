@@ -5,6 +5,9 @@ def napalm_cli(task, commands):
     """
     Run commands on remote devices using napalm
 
+    Arguments:
+        commands (``list``): List of commands to execute
+
     Returns:
         :obj:`brigade.core.task.Result`:
           * result (``dict``): dictionary with the result of the commands

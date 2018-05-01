@@ -57,7 +57,7 @@ def print_result(
     result, host=None, vars=None, failed=None, severity_level=logging.INFO
 ):
     """
-    Prints on screen the :obj:`brigade.core.task.Result` from a previous task
+    Prints the :obj:`brigade.core.task.Result` from a previous task to screen
 
     Arguments:
         result (:obj:`brigade.core.task.Result`): from a previous task
