@@ -3,6 +3,7 @@ import traceback
 from builtins import super
 
 from brigade.core.exceptions import BrigadeExecutionError
+from brigade.core.exceptions import BrigadeSubTaskError
 
 
 class Task(object):
@@ -61,10 +62,17 @@ class Task(object):
             r = self.task(self, **self.params)
             if not isinstance(r, Result):
                 r = Result(host=host, result=r)
+
+        except BrigadeSubTaskError as e:
+            tb = traceback.format_exc()
+            logger.error("{}: {}".format(self.host, tb))
+            r = Result(host, exception=e, result=str(e), failed=True)
+
         except Exception as e:
             tb = traceback.format_exc()
             logger.error("{}: {}".format(self.host, tb))
             r = Result(host, exception=e, result=tb, failed=True)
+
         r.name = self.name
         r.severity_level = logging.ERROR if r.failed else self.severity_level
 
@@ -93,11 +101,12 @@ class Task(object):
         if "severity_level" not in kwargs:
             kwargs["severity_level"] = self.severity_level
         r = Task(task, **kwargs).start(self.host, self.brigade)
+        self.results.append(r[0] if len(r) == 1 else r)
+
         if r.failed:
             # Without this we will keep running the grouped task
-            raise r.exception
+            raise BrigadeSubTaskError((r.name))
 
-        self.results.append(r[0] if len(r) == 1 else r)
         return r
 
     def is_dry_run(self, override=None):

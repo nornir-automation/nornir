@@ -51,3 +51,24 @@ class BrigadeExecutionError(Exception):
                 text += "**** {}\n".format(sub_r.name)
                 text += "{}\n".format(sub_r)
         return text
+
+class BrigadeSubTaskError(Exception):
+    """
+    Raised by brigade when a sub task managed by :meth:`brigade.core.Task.run`
+    has failed
+
+    Arguments:
+        task (str): Name of the sub task that failed
+    Attributes:
+        task (str): Name of the sub task that failed
+    """
+
+    def __init__(self, task):
+        self.task = task
+
+    def __str__(self):
+        text = "\n"
+        text += "{}\n".format("#" * 40)
+        text += "# Subtask: {} (failed)\n".format(self.task)
+        text += "{}\n".format("#" * 40)
+        return text
