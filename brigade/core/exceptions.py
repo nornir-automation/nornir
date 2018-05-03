@@ -58,13 +58,16 @@ class BrigadeSubTaskError(Exception):
     has failed
 
     Arguments:
-        task (str): Name of the sub task that failed
+        task (:obj:`brigade.core.task.Task`): The subtask that failed
+        result (:obj:`brigade.core.task.Result`): The result of the failed task
     Attributes:
-        task (str): Name of the sub task that failed
+        task (:obj:`brigade.core.task.Task`): The subtask that failed
+        result (:obj:`brigade.core.task.Result`): The result of the failed task
     """
 
-    def __init__(self, task):
+    def __init__(self, task, result):
         self.task = task
+        self.result = result
 
     def __str__(self):
         text = "\n"
