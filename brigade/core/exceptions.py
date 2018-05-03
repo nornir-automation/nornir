@@ -52,6 +52,7 @@ class BrigadeExecutionError(Exception):
                 text += "{}\n".format(sub_r)
         return text
 
+
 class BrigadeSubTaskError(Exception):
     """
     Raised by brigade when a sub task managed by :meth:`brigade.core.Task.run`
