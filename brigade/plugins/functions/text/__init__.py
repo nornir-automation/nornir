@@ -63,8 +63,7 @@ def print_result(
         result (:obj:`brigade.core.task.Result`): from a previous task
         vars (list of str): Which attributes you want to print
         failed (``bool``): if ``True`` assume the task failed
-        task_id (``int``): if we have a :obj:`brigade.core.task.MultiResult` print
-            only task in this position
+        severity_level (int): Print only errors with this severity level or higher
 
     Returns:
         :obj:`brigade.core.task.Result`:

@@ -181,7 +181,7 @@ def build_configuration_parameters(app):
     data = {}
     data["params"] = CONF
     rendered_template = template_file.render(**data)
-    output_dir = "{0}/ref/configuration/generated".format(BASEPATH)
+    output_dir = "{0}/configuration/generated".format(BASEPATH)
     with open("{}/parameters.rst".format(output_dir), "w") as f:
         f.write(rendered_template)
 
