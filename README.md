@@ -19,6 +19,19 @@ While Brigade still supports Python 2.7 the recommended version is 3.6. Install 
 pip install brigade
 ```
 
+Versioning
+==========
+
+It is recommended to understand what the versioning of brigade tells you. The format is as follows; `x.y.z`, where:
+
+- `x` is the API version. This will rarely change and if it does it means it's a major release that breaks completely backwards compatibility.
+- `y` will indicate a change in the existing codebase. This means there has been additions to the core of brigade or changes to existing plugins. As they add new functionality to existing code it is recommended to test your code before upgrading.
+- `z` will indicate bugfixes or new plugins. Upgrading should be completely safe as existing code/API will not be modified other than to fix bugs.
+
+We will release a `y` version every quarter and indicate so with the format `YYQ` where `YY` is the year and `Q` the quarter. We will release `z` versions as often as needed.
+
+We recommend pinning the requirements to a `y` version. For instance `brigade>1.181.0<1.183.0` if you want to stick with `1.182.???`
+
 Documentation
 =============
 
