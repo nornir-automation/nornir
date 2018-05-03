@@ -71,8 +71,4 @@ class BrigadeSubTaskError(Exception):
         self.result = result
 
     def __str__(self):
-        text = "\n"
-        text += "{}\n".format("#" * 40)
-        text += "# Subtask: {} (failed)\n".format(self.task)
-        text += "{}\n".format("#" * 40)
-        return text
+        return "Subtask: {} (failed)\n".format(self.task)
