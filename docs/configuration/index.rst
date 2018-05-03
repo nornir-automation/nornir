@@ -1,5 +1,5 @@
-Brigade Configuration
-=====================
+Configuration
+=============
 
 Each configuration parameter are applied in the following order:
 
