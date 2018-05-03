@@ -24,6 +24,11 @@ Documentation
 
 Read the [Brigade documentation](https://brigade.readthedocs.io/) online or review it's [code here](https://github.com/brigade-automation/brigade/tree/develop/docs)
 
+Examples
+========
+
+You can find some examples and already made tools [here](https://github.com/brigade-automation/brg-tools/)
+
 
 Bugs & New features
 ===================
