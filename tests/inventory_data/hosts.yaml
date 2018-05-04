@@ -1,6 +1,7 @@
 ---
 dev1.group_1:
-    group: group_1
+    groups:
+        - group_1
     my_var: comes_from_dev1.group_1
     www_server: nginx
     role: www
@@ -8,13 +9,15 @@ dev1.group_1:
     brigade_nos: eos
 
 dev2.group_1:
-    group: group_1
+    groups:
+        - group_1
     role: db
     brigade_ssh_port: 65002
     brigade_nos: junos
 
 dev3.group_2:
-    group: group_2
+    groups:
+        - group_2
     www_server: apache
     role: www
     brigade_ssh_port: 65003
@@ -25,7 +28,8 @@ dev3.group_2:
     # brigade_password: vagrant
 
 dev4.group_2:
-    group: group_2
+    groups:
+        - group_2
     my_var: comes_from_dev4.group_2
     role: db
     brigade_ssh_port: 65004

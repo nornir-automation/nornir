@@ -1,6 +1,5 @@
 import json
 
-from brigade.core.helpers import format_string
 from brigade.core.task import Result
 
 
@@ -15,8 +14,7 @@ def load_json(task, file):
         :obj:`brigade.core.task.Result`:
           * result (``dict``): dictionary with the contents of the file
     """
-    file = format_string(file, task)
-    with open(file, 'r') as f:
+    with open(file, "r") as f:
         data = json.loads(f.read())
 
     return Result(host=task.host, result=data)

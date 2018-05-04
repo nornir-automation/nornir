@@ -30,6 +30,7 @@ class BrigadeExecutionError(Exception):
     Attributes:
         result (:obj:`brigade.core.task.AggregatedResult`):
     """
+
     def __init__(self, result):
         self.result = result
 
@@ -46,5 +47,28 @@ class BrigadeExecutionError(Exception):
             else:
                 text += "# {} (succeeded)\n".format(k)
             text += "{}\n".format("#" * 40)
-            text += "{}\n".format(r.result)
+            for sub_r in r:
+                text += "**** {}\n".format(sub_r.name)
+                text += "{}\n".format(sub_r)
         return text
+
+
+class BrigadeSubTaskError(Exception):
+    """
+    Raised by brigade when a sub task managed by :meth:`brigade.core.Task.run`
+    has failed
+
+    Arguments:
+        task (:obj:`brigade.core.task.Task`): The subtask that failed
+        result (:obj:`brigade.core.task.Result`): The result of the failed task
+    Attributes:
+        task (:obj:`brigade.core.task.Task`): The subtask that failed
+        result (:obj:`brigade.core.task.Result`): The result of the failed task
+    """
+
+    def __init__(self, task, result):
+        self.task = task
+        self.result = result
+
+    def __str__(self):
+        return "Subtask: {} (failed)\n".format(self.task)

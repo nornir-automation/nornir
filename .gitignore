@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+.pytest_cache/
 
 # C extensions
 *.so
@@ -51,6 +52,7 @@ coverage.xml
 
 # Django stuff:
 *.log
+*.log.*
 local_settings.py
 
 # Flask stuff:
@@ -62,7 +64,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
-docs/ref/configuration/generated/*.rst
+docs/configuration/generated/*.rst
 
 # PyBuilder
 target/
@@ -97,3 +99,10 @@ tags
 output/
 
 .DS_Store
+
+.pytest_cache/
+
+.vscode
+
+# Generated when testing
+nsot-docker.sqlite3

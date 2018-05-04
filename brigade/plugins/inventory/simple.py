@@ -1,3 +1,5 @@
+import logging
+import os
 from builtins import super
 
 from brigade.core.inventory import Inventory
@@ -16,13 +18,15 @@ class SimpleInventory(Inventory):
         host1.cmh:
             site: cmh
             role: host
-            group: cmh-host
+            groups:
+                - cmh-host
             nos: linux
 
         host2.cmh:
             site: cmh
             role: host
-            group: cmh-host
+            groups:
+                - cmh-host
             nos: linux
 
         switch00.cmh:
@@ -32,7 +36,8 @@ class SimpleInventory(Inventory):
             napalm_port: 12443
             site: cmh
             role: leaf
-            group: cmh-leaf
+            groups:
+                - cmh-leaf
             nos: eos
 
         switch01.cmh:
@@ -42,19 +47,22 @@ class SimpleInventory(Inventory):
             napalm_port: 12203
             site: cmh
             role: leaf
-            group: cmh-leaf
+            groups:
+                - cmh-leaf
             nos: junos
 
         host1.bma:
             site: bma
             role: host
-            group: bma-host
+            groups:
+                - bma-host
             nos: linux
 
         host2.bma:
             site: bma
             role: host
-            group: bma-host
+            groups:
+                - bma-host
             nos: linux
 
         switch00.bma:
@@ -64,7 +72,8 @@ class SimpleInventory(Inventory):
             napalm_port: 12443
             site: bma
             role: leaf
-            group: bma-leaf
+            groups:
+                - bma-leaf
             nos: eos
 
         switch01.bma:
@@ -74,43 +83,52 @@ class SimpleInventory(Inventory):
             napalm_port: 12203
             site: bma
             role: leaf
-            group: bma-leaf
+            groups:
+                - bma-leaf
             nos: junos
 
     * group file::
 
         ---
-        all:
-            group: null
+        defaults:
             domain: acme.com
 
         bma-leaf:
-            group: bma
+            groups:
+                - bma
 
         bma-host:
-            group: bma
+            groups:
+                - bma
 
         bma:
-            group: all
+            domain: bma.acme.com
 
         cmh-leaf:
-            group: cmh
+            groups:
+                - cmh
 
         cmh-host:
-            group: cmh
+            groups:
+                - cmh
 
         cmh:
-            group: all
+            domain: cmh.acme.com
     """
 
-    def __init__(self, host_file, group_file=None, **kwargs):
+    def __init__(self, host_file="hosts.yaml", group_file="groups.yaml", **kwargs):
         with open(host_file, "r") as f:
             hosts = yaml.load(f.read())
 
         if group_file:
-            with open(group_file, "r") as f:
-                groups = yaml.load(f.read())
+            if os.path.exists(group_file):
+                with open(group_file, "r") as f:
+                    groups = yaml.load(f.read())
+            else:
+                logging.warning("{}: doesn't exist".format(group_file))
+                groups = {}
         else:
             groups = {}
 
-        super().__init__(hosts, groups, **kwargs)
+        defaults = groups.pop("defaults", {})
+        super().__init__(hosts, groups, defaults, **kwargs)

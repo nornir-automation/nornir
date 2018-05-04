@@ -1,8 +1,9 @@
 colorama
 pyyaml
 jinja2
-napalm>=2.2.0
-netmiko>=2.0.0
+napalm>=2.3.0
+netmiko>=2.1.1
 paramiko
 future
 requests
+ruamel.yaml

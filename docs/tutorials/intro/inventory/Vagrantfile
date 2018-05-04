@@ -1,0 +1,63 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+"""
+You will need the boxes:
+ * vEOS-4.17.5M
+ * JunOS - juniper/ffp-12.1X47-D20.7-packetmode
+    * To provision and test JunOS first you have to add the ssh vagrant ssh key into the ssh-agent. I.e.:
+		ssh-add /opt/vagrant/embedded/gems/gems/vagrant-`vagrant --version | awk '{ print $2 }'`/keys/vagrant
+"""
+
+Vagrant.configure(2) do |config|
+  config.vbguest.auto_update = false
+
+  config.vm.define "spine00" do |spine00|
+    spine00.vm.box = "vEOS-lab-4.17.5M"
+
+    spine00.vm.network :forwarded_port, guest: 443, host: 12444, id: 'https'
+
+    spine00.vm.network "private_network", virtualbox__intnet: "link_1", ip: "169.254.1.11", auto_config: false
+    spine00.vm.network "private_network", virtualbox__intnet: "link_2", ip: "169.254.1.11", auto_config: false
+  end
+
+  config.vm.define "spine01" do |spine01|
+    spine01.vm.box = "juniper/ffp-12.1X47-D20.7-packetmode"
+
+    spine01.vm.network :forwarded_port, guest: 22, host: 12204, id: 'ssh'
+
+    spine01.vm.network "private_network", virtualbox__intnet: "link_3", ip: "169.254.1.11", auto_config: false
+    spine01.vm.network "private_network", virtualbox__intnet: "link_4", ip: "169.254.1.11", auto_config: false
+  end
+
+
+  config.vm.define "leaf00" do |leaf00|
+    leaf00.vm.box = "vEOS-lab-4.17.5M"
+
+    leaf00.vm.network :forwarded_port, guest: 443, host: 12443, id: 'https'
+
+    leaf00.vm.network "private_network", virtualbox__intnet: "link_1", ip: "169.254.1.11", auto_config: false
+    leaf00.vm.network "private_network", virtualbox__intnet: "link_3", ip: "169.254.1.11", auto_config: false
+    leaf00.vm.network "private_network", virtualbox__intnet: "link_5", ip: "169.254.1.11", auto_config: false
+  end
+
+  config.vm.define "leaf01" do |leaf01|
+    leaf01.vm.box = "juniper/ffp-12.1X47-D20.7-packetmode"
+
+    leaf01.vm.network :forwarded_port, guest: 22, host: 12203, id: 'ssh'
+
+    leaf01.vm.network "private_network", virtualbox__intnet: "link_2", ip: "169.254.1.11", auto_config: false
+    leaf01.vm.network "private_network", virtualbox__intnet: "link_4", ip: "169.254.1.11", auto_config: false
+    leaf01.vm.network "private_network", virtualbox__intnet: "link_5", ip: "169.254.1.11", auto_config: false
+  end
+
+  config.vm.define "host00" do |host00|
+    host00.vm.box = "hashicorp/precise64"
+    host00.vm.network "private_network", virtualbox__intnet: "link_5", ip: "10.123.231.100", auto_config: false
+  end
+
+  config.vm.define "host01" do |host01|
+    host01.vm.box = "hashicorp/precise64"
+    host01.vm.network "private_network", virtualbox__intnet: "link_5", ip: "10.123.231.101", auto_config: false
+  end
+
+end

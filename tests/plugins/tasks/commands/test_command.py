@@ -1,30 +1,34 @@
-from brigade.core.exceptions import BrigadeExecutionError, CommandError
+from brigade.core.exceptions import CommandError
 from brigade.plugins.tasks import commands
 
-import pytest
+
+def echo_hostname(task):
+    command = "echo {host.name}".format(host=task.host)
+    task.run(task=commands.command, command=command)
 
 
 class Test(object):
 
     def test_command(self, brigade):
-        result = brigade.run(commands.command,
-                             command="echo {host.name}")
+        result = brigade.run(echo_hostname)
         assert result
         for h, r in result.items():
-            assert h == r.stdout.strip()
+            assert h == r[1].stdout.strip()
 
     def test_command_error(self, brigade):
-        with pytest.raises(BrigadeExecutionError) as e:
-            brigade.run(commands.command,
-                        command="ech")
-        assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
-        for result in e.value.failed_hosts.values():
-            assert isinstance(result.exception, OSError)
+        result = brigade.run(commands.command, command="ech")
+        processed = False
+        for r in result.values():
+            processed = True
+            assert isinstance(r.exception, OSError)
+        assert processed
+        brigade.data.reset_failed_hosts()
 
     def test_command_error_generic(self, brigade):
-        with pytest.raises(BrigadeExecutionError) as e:
-            brigade.run(commands.command,
-                        command="ls /asdadsd")
-        assert len(e.value.failed_hosts) == len(brigade.inventory.hosts)
-        for result in e.value.failed_hosts.values():
-            assert isinstance(result.exception, CommandError)
+        result = brigade.run(commands.command, command="ls /asdadsd")
+        processed = False
+        for r in result.values():
+            processed = True
+            assert isinstance(r.exception, CommandError)
+        assert processed
+        brigade.data.reset_failed_hosts()

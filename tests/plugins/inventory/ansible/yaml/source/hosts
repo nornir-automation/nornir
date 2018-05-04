@@ -1,0 +1,24 @@
+all:
+    children:
+        servers:
+            children:
+                webservers:
+                    hosts:
+                        foo.example.com:
+                        bar.example.com:
+                dbservers:
+                    hosts:
+                        one.example.com:
+                        two.example.com:
+                            my_var: from_hostfile
+                        three.example.com:
+                            ansible_port: 5555
+                            ansible_host: 192.0.2.50
+            vars:
+                some_server: foo.southeast.example.com
+                halon_system_timeout: 30
+                self_destruct_countdown: 60
+                escape_pods: 2
+        frontend:
+            hosts:
+                foo.example.com:

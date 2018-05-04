@@ -11,3 +11,8 @@ Brigade
 .. autoclass:: brigade.core.Brigade
    :members:
    :undoc-members:
+
+InitBrigade
+###########
+
+.. automethod:: brigade.core.InitBrigade

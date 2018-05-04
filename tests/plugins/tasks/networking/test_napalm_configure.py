@@ -1,11 +1,8 @@
 import os
 
-from brigade.core.exceptions import BrigadeExecutionError
 from brigade.plugins.tasks import connections, networking
 
 from napalm.base import exceptions
-
-import pytest
 
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__)) + "/mocked/napalm_configure"
@@ -29,18 +26,18 @@ class Test(object):
         configuration = "hostname changed-hostname"
         d = brigade.filter(name="dev3.group_2")
         d.run(connections.napalm_connection, optional_args=opt)
-        result = d.run(networking.napalm_configure,
-                       dry_run=False,
-                       configuration=configuration)
+        result = d.run(
+            networking.napalm_configure, dry_run=False, configuration=configuration
+        )
         assert result
         for h, r in result.items():
             assert "+hostname changed-hostname" in r.diff
             assert r.changed
         opt = {"path": THIS_DIR + "/test_napalm_configure_change_commit/step2"}
         d.run(connections.napalm_connection, optional_args=opt)
-        result = d.run(networking.napalm_configure,
-                       dry_run=True,
-                       configuration=configuration)
+        result = d.run(
+            networking.napalm_configure, dry_run=True, configuration=configuration
+        )
         assert result
         for h, r in result.items():
             assert "+hostname changed-hostname" not in r.diff
@@ -52,8 +49,10 @@ class Test(object):
 
         d = brigade.filter(name="dev3.group_2")
         d.run(connections.napalm_connection, optional_args=opt)
-        with pytest.raises(BrigadeExecutionError) as e:
-            d.run(networking.napalm_configure, configuration=configuration)
-        assert len(e.value.failed_hosts)
-        for result in e.value.failed_hosts.values():
+        results = d.run(networking.napalm_configure, configuration=configuration)
+        processed = False
+        for result in results.values():
+            processed = True
             assert isinstance(result.exception, exceptions.MergeConfigException)
+        assert processed
+        brigade.data.reset_failed_hosts()

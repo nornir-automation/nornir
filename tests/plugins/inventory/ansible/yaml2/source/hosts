@@ -1,0 +1,8 @@
+all:
+    hosts:
+        one.example.com:
+        two.example.com:
+            my_var: from_hostfile
+        three.example.com:
+            ansible_port: 5555
+            ansible_host: 192.0.2.50
