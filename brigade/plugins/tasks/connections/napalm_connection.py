@@ -25,6 +25,8 @@ def napalm_connection(task=None, timeout=60, optional_args=None):
     }
     if "port" not in parameters["optional_args"] and host.network_api_port:
         parameters["optional_args"]["port"] = host.network_api_port
+    elif "port" not in parameters["optional_args"] and host.ssh_port:
+        parameters["optional_args"]["port"] = host.ssh_port
     network_driver = get_network_driver(host.nos)
 
     host.connections["napalm"] = network_driver(**parameters)
