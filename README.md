@@ -27,7 +27,7 @@ Read the [Nornir documentation](https://nornir.readthedocs.io/) online or review
 Examples
 ========
 
-You can find some examples and already made tools [here](https://github.com/nornir-automation/brg-tools/)
+You can find some examples and already made tools [here](https://github.com/nornir-automation/nornir-tools/)
 
 
 Bugs & New features
