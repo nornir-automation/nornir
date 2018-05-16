@@ -1,6 +1,6 @@
 Networking
 ==========
 
-.. automodule:: brigade.plugins.tasks.networking
+.. automodule:: nornir.plugins.tasks.networking
    :members:
    :undoc-members:

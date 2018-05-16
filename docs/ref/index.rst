@@ -3,12 +3,12 @@ Reference Guides
 
 .. toctree::
    :maxdepth: 2
-   :caption: Brigade Internals
+   :caption: Nornir Internals
 
    internals/index
 
 .. toctree::
    :maxdepth: 2
-   :caption: Brigade API
+   :caption: Nornir API
 
    API <api/index>

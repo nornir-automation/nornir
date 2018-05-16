@@ -1,6 +1,6 @@
 Commands
 ========
 
-.. automodule:: brigade.plugins.tasks.commands
+.. automodule:: nornir.plugins.tasks.commands
    :members:
    :undoc-members:

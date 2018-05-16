@@ -1,6 +1,6 @@
 Connections
 ===========
 
-.. automodule:: brigade.plugins.tasks.connections
+.. automodule:: nornir.plugins.tasks.connections
    :members:
    :undoc-members:

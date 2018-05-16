@@ -1,4 +1,4 @@
-How to use Brigade
+How to use Nornir
 ==================
 
 .. toctree::

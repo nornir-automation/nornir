@@ -1,6 +1,6 @@
 APIs
 ====
 
-.. automodule:: brigade.plugins.tasks.apis
+.. automodule:: nornir.plugins.tasks.apis
    :members:
    :undoc-members:

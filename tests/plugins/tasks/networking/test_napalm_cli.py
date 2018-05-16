@@ -1,7 +1,7 @@
 import os
 
-#  from brigade.core.exceptions import BrigadeExecutionError
-from brigade.plugins.tasks import connections, networking
+#  from nornir.core.exceptions import NornirExecutionError
+from nornir.plugins.tasks import connections, networking
 
 #  from napalm.base import exceptions
 
@@ -13,9 +13,9 @@ THIS_DIR = os.path.dirname(os.path.realpath(__file__)) + "/mocked/napalm_cli"
 
 class Test(object):
 
-    def test_napalm_cli(self, brigade):
+    def test_napalm_cli(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_cli"}
-        d = brigade.filter(name="dev3.group_2")
+        d = nornir.filter(name="dev3.group_2")
         d.run(connections.napalm_connection, optional_args=opt)
         result = d.run(
             networking.napalm_cli, commands=["show version", "show interfaces"]
@@ -26,10 +26,10 @@ class Test(object):
             assert r.result["show interfaces"]
 
 
-#  def test_napalm_cli_error(self, brigade):
+#  def test_napalm_cli_error(self, nornir):
 #      opt = {"path": THIS_DIR + "/test_napalm_cli_error"}
-#      with pytest.raises(BrigadeExecutionError) as e:
-#          brigade.filter(name="dev3.group_2").run(networking.napalm_cli,
+#      with pytest.raises(NornirExecutionError) as e:
+#          nornir.filter(name="dev3.group_2").run(networking.napalm_cli,
 #                                                  num_workers=1,
 #                                                  commands=["show version",
 #                                                            "show interfacesa"],

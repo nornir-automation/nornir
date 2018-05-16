@@ -1,15 +1,15 @@
 import os
 import logging
 
-from brigade.plugins.functions.text import print_result
-from brigade.plugins.functions.text import print_title
-from brigade.core.task import Result
+from nornir.plugins.functions.text import print_result
+from nornir.plugins.functions.text import print_title
+from nornir.core.task import Result
 from tests.wrapper import wrap_cli_test
 
 output_dir = "{}/output_data".format(os.path.dirname(os.path.realpath(__file__)))
 
 
-def echo_task(task, msg="Brigade"):
+def echo_task(task, msg="Nornir"):
     return Result(
         host=task.host,
         result="Hello from {}".format(msg),
@@ -63,39 +63,39 @@ def read_data(task):
 class Test(object):
 
     @wrap_cli_test(output="{}/basic_single".format(output_dir))
-    def test_print_basic(self, brigade):
-        filter = brigade.filter(name="dev1.group_1")
+    def test_print_basic(self, nornir):
+        filter = nornir.filter(name="dev1.group_1")
         result = filter.run(echo_task)
         print_result(result, vars="result")
 
     @wrap_cli_test(output="{}/basic_inventory".format(output_dir))
-    def test_print_basic_inventory(self, brigade):
-        result = brigade.run(echo_task)
+    def test_print_basic_inventory(self, nornir):
+        result = nornir.run(echo_task)
         print_result(result)
 
     @wrap_cli_test(output="{}/basic_inventory_one_host".format(output_dir))
-    def test_print_basic_inventory_one_host(self, brigade):
-        result = brigade.run(data_with_greeting)
+    def test_print_basic_inventory_one_host(self, nornir):
+        result = nornir.run(data_with_greeting)
         print_result(result["dev2.group_1"])
 
     @wrap_cli_test(output="{}/basic_inventory_one_task".format(output_dir))
-    def test_print_basic_inventory_one_task(self, brigade):
-        result = brigade.run(data_with_greeting)
+    def test_print_basic_inventory_one_task(self, nornir):
+        result = nornir.run(data_with_greeting)
         print_result(result["dev2.group_1"][1])
 
     @wrap_cli_test(output="{}/multiple_tasks".format(output_dir))
-    def test_print_multiple_tasks(self, brigade):
-        result = brigade.run(data_with_greeting)
+    def test_print_multiple_tasks(self, nornir):
+        result = nornir.run(data_with_greeting)
         print_title("Behold the data!")
         print_result(result)
 
     @wrap_cli_test(output="{}/changed_host".format(output_dir))
-    def test_print_changed_host(self, brigade):
-        filter = brigade.filter(site="site1")
+    def test_print_changed_host(self, nornir):
+        filter = nornir.filter(site="site1")
         result = filter.run(read_data, severity_level=logging.WARN)
         print_result(result)
 
     @wrap_cli_test(output="{}/failed_with_severity".format(output_dir))
-    def test_print_failed_with_severity(self, brigade):
-        result = brigade.run(read_data)
+    def test_print_failed_with_severity(self, nornir):
+        result = nornir.run(read_data)
         print_result(result, vars=["exception", "output"], severity_level=logging.ERROR)

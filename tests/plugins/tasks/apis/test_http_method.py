@@ -1,6 +1,6 @@
 import json
 
-from brigade.plugins.tasks.apis import http_method
+from nornir.plugins.tasks.apis import http_method
 
 import pytest
 
@@ -60,11 +60,11 @@ class Test(object):
         result = http_method(method="post", url=url, raise_for_status=False)
         assert result.response.status_code
 
-    def test_with_brigade(self, brigade):
+    def test_with_nornir(self, nornir):
         url = "{}/get".format(BASE_URL)
         params = {"my_param": "my_value"}
 
-        r = brigade.run(http_method, method="get", url=url, params=params)
+        r = nornir.run(http_method, method="get", url=url, params=params)
 
         processed = False
         for host, result in r.items():

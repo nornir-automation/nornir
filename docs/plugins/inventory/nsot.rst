@@ -1,6 +1,6 @@
 NSOT
 ====
 
-.. automodule:: brigade.plugins.inventory.nsot
+.. automodule:: nornir.plugins.inventory.nsot
    :members:
    :undoc-members:

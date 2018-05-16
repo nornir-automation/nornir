@@ -1,7 +1,7 @@
 import uuid
 
-#  from brigade.core.exceptions import BrigadeExecutionError, CommandError
-from brigade.plugins.tasks import files
+#  from nornir.core.exceptions import NornirExecutionError, CommandError
+from nornir.plugins.tasks import files
 
 #  import pytest
 
@@ -50,8 +50,8 @@ def get_directory(task):
 
 class Test(object):
 
-    def test_sftp_put(self, brigade):
-        result = brigade.run(
+    def test_sftp_put(self, nornir):
+        result = nornir.run(
             files.sftp,
             dry_run=True,
             action="put",
@@ -63,7 +63,7 @@ class Test(object):
         for h, r in result.items():
             assert r.changed, r.files_changed
 
-        result = brigade.run(
+        result = nornir.run(
             files.sftp,
             dry_run=False,
             action="put",
@@ -75,7 +75,7 @@ class Test(object):
         for h, r in result.items():
             assert r.changed, r.files_changed
 
-        result = brigade.run(
+        result = nornir.run(
             files.sftp,
             dry_run=True,
             action="put",
@@ -87,35 +87,35 @@ class Test(object):
         for h, r in result.items():
             assert not r.changed
 
-    def test_sftp_get(self, brigade):
-        result = brigade.run(get_file)
+    def test_sftp_get(self, nornir):
+        result = nornir.run(get_file)
         assert not result.failed
 
-    def test_sftp_put_directory(self, brigade):
-        result = brigade.run(
-            files.sftp, dry_run=True, action="put", src="./brigade", dst="/tmp/asd"
+    def test_sftp_put_directory(self, nornir):
+        result = nornir.run(
+            files.sftp, dry_run=True, action="put", src="./nornir", dst="/tmp/asd"
         )
 
         assert result
         for h, r in result.items():
             assert r.changed, r.files_changed
 
-        result = brigade.run(
-            files.sftp, dry_run=False, action="put", src="./brigade", dst="/tmp/asd"
+        result = nornir.run(
+            files.sftp, dry_run=False, action="put", src="./nornir", dst="/tmp/asd"
         )
 
         assert result
         for h, r in result.items():
             assert r.changed, r.files_changed
 
-        result = brigade.run(
-            files.sftp, dry_run=True, action="put", src="./brigade", dst="/tmp/asd"
+        result = nornir.run(
+            files.sftp, dry_run=True, action="put", src="./nornir", dst="/tmp/asd"
         )
 
         assert result
         for h, r in result.items():
             assert not r.changed
 
-    def test_sftp_get_directory(self, brigade):
-        result = brigade.run(get_directory)
+    def test_sftp_get_directory(self, nornir):
+        result = nornir.run(get_directory)
         assert not result.failed

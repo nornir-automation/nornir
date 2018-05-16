@@ -2,8 +2,8 @@ import logging
 import os
 import subprocess
 
-from brigade.core import Brigade
-from brigade.plugins.inventory.simple import SimpleInventory
+from nornir.core import Nornir
+from nornir.plugins.inventory.simple import SimpleInventory
 
 import pytest
 
@@ -41,15 +41,15 @@ def containers(request):
 
 
 @pytest.fixture(scope="session", autouse=True)
-def brigade(request):
-    """Initializes brigade"""
+def nornir(request):
+    """Initializes nornir"""
     dir_path = os.path.dirname(os.path.realpath(__file__))
 
-    brigade = Brigade(
+    nornir = Nornir(
         inventory=SimpleInventory(
             "{}/inventory_data/hosts.yaml".format(dir_path),
             "{}/inventory_data/groups.yaml".format(dir_path),
         ),
         dry_run=True,
     )
-    return brigade
+    return nornir
