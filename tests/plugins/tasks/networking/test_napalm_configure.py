@@ -1,6 +1,6 @@
 import os
 
-from brigade.plugins.tasks import connections, networking
+from nornir.plugins.tasks import connections, networking
 
 from napalm.base import exceptions
 
@@ -10,10 +10,10 @@ THIS_DIR = os.path.dirname(os.path.realpath(__file__)) + "/mocked/napalm_configu
 
 class Test(object):
 
-    def test_napalm_configure_change_dry_run(self, brigade):
+    def test_napalm_configure_change_dry_run(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_configure_change_dry_run"}
         configuration = "hostname changed-hostname"
-        d = brigade.filter(name="dev3.group_2")
+        d = nornir.filter(name="dev3.group_2")
         d.run(connections.napalm_connection, optional_args=opt)
         result = d.run(networking.napalm_configure, configuration=configuration)
         assert result
@@ -21,10 +21,10 @@ class Test(object):
             assert "+hostname changed-hostname" in r.diff
             assert r.changed
 
-    def test_napalm_configure_change_commit(self, brigade):
+    def test_napalm_configure_change_commit(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_configure_change_commit/step1"}
         configuration = "hostname changed-hostname"
-        d = brigade.filter(name="dev3.group_2")
+        d = nornir.filter(name="dev3.group_2")
         d.run(connections.napalm_connection, optional_args=opt)
         result = d.run(
             networking.napalm_configure, dry_run=False, configuration=configuration
@@ -43,11 +43,11 @@ class Test(object):
             assert "+hostname changed-hostname" not in r.diff
             assert not r.changed
 
-    def test_napalm_configure_change_error(self, brigade):
+    def test_napalm_configure_change_error(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_configure_change_error"}
         configuration = "hostname changed_hostname"
 
-        d = brigade.filter(name="dev3.group_2")
+        d = nornir.filter(name="dev3.group_2")
         d.run(connections.napalm_connection, optional_args=opt)
         results = d.run(networking.napalm_configure, configuration=configuration)
         processed = False
@@ -55,4 +55,4 @@ class Test(object):
             processed = True
             assert isinstance(result.exception, exceptions.MergeConfigException)
         assert processed
-        brigade.data.reset_failed_hosts()
+        nornir.data.reset_failed_hosts()

@@ -5,7 +5,7 @@ If you have your own backend with host information or you don't like the provide
 
     from builtins import super
 
-    from brigade.core.inventory import Inventory
+    from nornir.core.inventory import Inventory
 
 
     class MyInventory(Inventory):
@@ -40,9 +40,9 @@ So if you want to make it dynamic everything you have to do is get the data your
 
 .. note:: it is not mandatory to use groups. Feel free to skip the attribute ``group`` and just pass and empty dict or ``None`` to ``super()``.
 
-Finally, to have brigade use it, you can do::
+Finally, to have nornir use it, you can do::
 
     inv = MyInventory()
-    brigade = Brigade(inventory=inv)
+    nornir = Nornir(inventory=inv)
 
 And that's it, you now have your own inventory plugin :)

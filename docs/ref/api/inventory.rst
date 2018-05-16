@@ -4,18 +4,18 @@ Inventory
 Inventory
 =========
 
-.. autoclass:: brigade.core.inventory.Inventory
+.. autoclass:: nornir.core.inventory.Inventory
    :members:
    :undoc-members:
 
 Host
 ====
 
-.. autoclass:: brigade.core.inventory.Host
+.. autoclass:: nornir.core.inventory.Host
    :members:
    :undoc-members:
 
 Group
 =====
 
-.. autoclass:: brigade.core.inventory.Group
+.. autoclass:: nornir.core.inventory.Group

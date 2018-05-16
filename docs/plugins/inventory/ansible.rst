@@ -1,6 +1,6 @@
 Ansible
 =======
 
-.. automodule:: brigade.plugins.inventory.ansible
+.. automodule:: nornir.plugins.inventory.ansible
    :members:
    :undoc-members:

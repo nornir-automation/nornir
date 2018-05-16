@@ -1,0 +1,6 @@
+---
+num_workers: 100
+inventory: nornir.plugins.inventory.simple.SimpleInventory
+SimpleInventory:
+    host_file: "tests/inventory_data/hosts.yaml"
+    group_file: "tests/inventory_data/groups.yaml"

@@ -1,6 +1,6 @@
 Text
 ====
 
-.. automodule:: brigade.plugins.functions.text
+.. automodule:: nornir.plugins.functions.text
    :members:
    :undoc-members:

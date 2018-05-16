@@ -1,11 +1,11 @@
-Brigade API Reference
+Nornir API Reference
 =====================
 
 .. toctree::
    :maxdepth: 1
-   :caption: Brigade API
+   :caption: Nornir API
 
-   brigade
+   nornir
    configuration
    inventory
    task

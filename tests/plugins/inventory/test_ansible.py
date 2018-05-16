@@ -1,6 +1,6 @@
 import os
 
-from brigade.plugins.inventory import ansible
+from nornir.plugins.inventory import ansible
 
 import pytest
 

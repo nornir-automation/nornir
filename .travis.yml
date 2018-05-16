@@ -1,42 +1,34 @@
 sudo: required
-
 services:
-    - docker
-
+- docker
 addons:
   apt_packages:
-    - pandoc
-
+  - pandoc
 language: python
 python:
-    - 2.7
-    - 3.4
-    - 3.5
-    - 3.6
-
+- 2.7
+- 3.4
+- 3.5
+- 3.6
 matrix:
   include:
-      - python: 3.6
-        env: TOXENV=sphinx
-      - python: 3.6
-        env: TOXENV=black
-      - python: 3.6
-        env: TOXENV=pylama
-
+  - python: 3.6
+    env: TOXENV=sphinx
+  - python: 3.6
+    env: TOXENV=black
+  - python: 3.6
+    env: TOXENV=pylama
 install:
-    - pip install tox tox-travis coveralls
-
+- pip install tox tox-travis coveralls
 script:
-    - tox
-
+- tox
 deploy:
   provider: pypi
   user: dbarroso
   password:
-    secure: N8oS4N3BG8eMTXOxbGvCcZi5c/DSDml4qxux3OVZR2BvFp9X8yiC/9LgpTswp30cDZNgQqrd1cgHnm742hfKUMbcEpRergk65P+5tHcawUwS+jZ47PJJb84KQkne6i63vP5hGFGuN75cPk4U+Lv/q9MfTcWeaVqZfnjmMxwo90o/AqLIvPsduj8wP0wCSbO5DdaR5paTJOmHcTPksVDMyHaxbj5lDYx4kCS04jm4BHWRTBVP6ayyYdmgLDgcHdd54Xphk43EuI3vOMnB0TjU6GmwtsSkXGzsSpws+UNj/gAMZWkUpd5gwPgUThYWOtCiwPSism0DCCYQ9M9GH45210k+o+OgqEIU/HBxVve1rOYaLuApuOGO2gwpwM57WRv0AbnzQbgUVEDbC3XkOFnqxl2sD8ItvdpSTbI24pPj4CY5CdQkAjajorYIqZpmHMo9NVet9yPSTgtNVUqY7NNVIoEhwQzwqr/PtW+1o0f2+EVLyuYxR4Mvtx0B5Nuisrx1fwu0ZaCcpUTItXNkunSXsGmSk1THw06ub+/NgK8AqsKsOtGAwF37Uwgi92JkUmI4LA3UiO28Htu54q3IplhMaaxiMkTUNCj8BVBtykIK956TmDEjp0rJZTX+/64NN+68YYejFwW/Bkjkpra6LOK0AmM1sVoDBm9mNDIHMjiVIyw=
+    secure: kUJVNxWPy2J1LrB3Mu7uo4iDBLYFuNNZhUCgrueJy1hQJOQc2W7+RE3h2gKV/TmCOEDaXZxE8uN9GVX5TqJqFvycu6F1YUkhsgIg8ocKOtrpNqGWOnA7xCC9HN7V75xiTgtbkUadmlr+ui72FqSfryvO+hwmqgEeSbBK/tP9mHhB906CueGr1SZ8pSeJlvgqeiyqL/nTy3bvCi+sQdAjeXh2+sFvVMwcLgN4cYXcjNu3UD1YNJIZfUogbHvATmDRQtPYctIgDuwWRpzltVDnahhwP1zxIGFVIyW/BVsuQHtb3sNzt9WjdFmqLp927rBxEMJBoYYkK7kwOk94FLdazI/KpQGGLusGzhCSghrDzLcKRAoGv7ZrT65M6E/cmjLD9LcqmcLCqK19OlI66scbg3hn7nl9kLZ3UhqqMQOr51nK6dKBxXe0Fpzsy7V8p4WhLCg9BSTb1Bu6FNZvzNh+qovvC3hA2Gz0SUelEpf3STdeihgcbjlkVm6lz8b5/5ZhNTiF+bE2kNChchOrHg3ki5/yMV6KTmV3Gsd89GCQbAFB9vQwa981ZUnIfpapg5vLkW3uHfafrVadK+AyPYJ9rsWRmQ0MG9dCF4DeersqcVz7Aw8WFipC8kzr6SG91T8F8+okzBM7x8vX4S9/52HCa2aFKADHmyqtLpFvHaRkOsE=
   on:
     tags: true
     branch: master
-
 after_success:
-  - coveralls
+- coveralls

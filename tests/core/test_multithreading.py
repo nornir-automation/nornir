@@ -1,8 +1,8 @@
 import datetime
 import time
 
-from brigade.core.exceptions import BrigadeExecutionError, CommandError
-from brigade.plugins.tasks import commands
+from nornir.core.exceptions import NornirExecutionError, CommandError
+from nornir.plugins.tasks import commands
 
 import pytest
 
@@ -32,69 +32,69 @@ def verify_data_change(task):
 
 class Test(object):
 
-    def test_blocking_task_single_thread(self, brigade):
+    def test_blocking_task_single_thread(self, nornir):
         t1 = datetime.datetime.now()
-        brigade.run(blocking_task, wait=0.5, num_workers=1)
+        nornir.run(blocking_task, wait=0.5, num_workers=1)
         t2 = datetime.datetime.now()
         delta = t2 - t1
         assert delta.seconds == 2, delta
 
-    def test_blocking_task_multithreading(self, brigade):
+    def test_blocking_task_multithreading(self, nornir):
         t1 = datetime.datetime.now()
-        brigade.run(blocking_task, wait=2, num_workers=NUM_WORKERS)
+        nornir.run(blocking_task, wait=2, num_workers=NUM_WORKERS)
         t2 = datetime.datetime.now()
         delta = t2 - t1
         assert delta.seconds == 2, delta
 
-    def test_failing_task_simple_singlethread(self, brigade):
-        result = brigade.run(failing_task_simple, num_workers=1)
+    def test_failing_task_simple_singlethread(self, nornir):
+        result = nornir.run(failing_task_simple, num_workers=1)
         processed = False
         for k, v in result.items():
             processed = True
             assert isinstance(k, str), k
             assert isinstance(v.exception, Exception), v
         assert processed
-        brigade.data.reset_failed_hosts()
+        nornir.data.reset_failed_hosts()
 
-    def test_failing_task_simple_multithread(self, brigade):
-        result = brigade.run(failing_task_simple, num_workers=NUM_WORKERS)
+    def test_failing_task_simple_multithread(self, nornir):
+        result = nornir.run(failing_task_simple, num_workers=NUM_WORKERS)
         processed = False
         for k, v in result.items():
             processed = True
             assert isinstance(k, str), k
             assert isinstance(v.exception, Exception), v
         assert processed
-        brigade.data.reset_failed_hosts()
+        nornir.data.reset_failed_hosts()
 
-    def test_failing_task_complex_singlethread(self, brigade):
-        result = brigade.run(failing_task_complex, num_workers=1)
+    def test_failing_task_complex_singlethread(self, nornir):
+        result = nornir.run(failing_task_complex, num_workers=1)
         processed = False
         for k, v in result.items():
             processed = True
             assert isinstance(k, str), k
             assert isinstance(v.exception, CommandError), v
         assert processed
-        brigade.data.reset_failed_hosts()
+        nornir.data.reset_failed_hosts()
 
-    def test_failing_task_complex_multithread(self, brigade):
-        result = brigade.run(failing_task_complex, num_workers=NUM_WORKERS)
+    def test_failing_task_complex_multithread(self, nornir):
+        result = nornir.run(failing_task_complex, num_workers=NUM_WORKERS)
         processed = False
         for k, v in result.items():
             processed = True
             assert isinstance(k, str), k
             assert isinstance(v.exception, CommandError), v
         assert processed
-        brigade.data.reset_failed_hosts()
+        nornir.data.reset_failed_hosts()
 
-    def test_failing_task_complex_multithread_raise_on_error(self, brigade):
-        with pytest.raises(BrigadeExecutionError) as e:
-            brigade.run(
+    def test_failing_task_complex_multithread_raise_on_error(self, nornir):
+        with pytest.raises(NornirExecutionError) as e:
+            nornir.run(
                 failing_task_complex, num_workers=NUM_WORKERS, raise_on_error=True
             )
         for k, v in e.value.result.items():
             assert isinstance(k, str), k
             assert isinstance(v.exception, CommandError), v
 
-    def test_change_data_in_thread(self, brigade):
-        brigade.run(change_data, num_workers=NUM_WORKERS)
-        brigade.run(verify_data_change, num_workers=NUM_WORKERS)
+    def test_change_data_in_thread(self, nornir):
+        nornir.run(change_data, num_workers=NUM_WORKERS)
+        nornir.run(verify_data_change, num_workers=NUM_WORKERS)

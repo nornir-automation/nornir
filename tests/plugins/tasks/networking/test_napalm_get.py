@@ -1,6 +1,6 @@
 import os
 
-from brigade.plugins.tasks import connections, networking
+from nornir.plugins.tasks import connections, networking
 
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__)) + "/mocked/napalm_get"
@@ -8,9 +8,9 @@ THIS_DIR = os.path.dirname(os.path.realpath(__file__)) + "/mocked/napalm_get"
 
 class Test(object):
 
-    def test_napalm_getters(self, brigade):
+    def test_napalm_getters(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_getters"}
-        d = brigade.filter(name="dev3.group_2")
+        d = nornir.filter(name="dev3.group_2")
         d.run(connections.napalm_connection, optional_args=opt)
         result = d.run(networking.napalm_get, getters=["facts", "interfaces"])
         assert result
@@ -18,9 +18,9 @@ class Test(object):
             assert r.result["facts"]
             assert r.result["interfaces"]
 
-    def test_napalm_getters_error(self, brigade):
+    def test_napalm_getters_error(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_getters_error"}
-        d = brigade.filter(name="dev3.group_2")
+        d = nornir.filter(name="dev3.group_2")
         d.run(connections.napalm_connection, optional_args=opt)
 
         results = d.run(networking.napalm_get, getters=["facts", "interfaces"])
@@ -29,4 +29,4 @@ class Test(object):
             processed = True
             assert isinstance(result.exception, KeyError)
         assert processed
-        brigade.data.reset_failed_hosts()
+        nornir.data.reset_failed_hosts()

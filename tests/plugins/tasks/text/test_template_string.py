@@ -1,6 +1,6 @@
 import os
 
-from brigade.plugins.tasks import text
+from nornir.plugins.tasks import text
 
 from jinja2 import TemplateSyntaxError
 
@@ -26,9 +26,9 @@ my_var: {{ my_var}}
 
 class Test(object):
 
-    def test_template_string(self, brigade):
+    def test_template_string(self, nornir):
 
-        result = brigade.run(text.template_string, template=simple_j2)
+        result = nornir.run(text.template_string, template=simple_j2)
 
         assert result
         for h, r in result.items():
@@ -38,11 +38,11 @@ class Test(object):
             if h == "host2.group_1":
                 assert "my_var: comes_from_group_1" in r.result
 
-    def test_template_string_error_broken_string(self, brigade):
-        results = brigade.run(text.template_string, template=broken_j2)
+    def test_template_string_error_broken_string(self, nornir):
+        results = nornir.run(text.template_string, template=broken_j2)
         processed = False
         for result in results.values():
             processed = True
             assert isinstance(result.exception, TemplateSyntaxError)
         assert processed
-        brigade.data.reset_failed_hosts()
+        nornir.data.reset_failed_hosts()
