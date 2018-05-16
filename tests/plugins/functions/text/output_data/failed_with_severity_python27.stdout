@@ -13,7 +13,7 @@ Hello from CRITICAL
 [1m[32m^^^^ END read_data ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 [1m[34m* dev4.group_2 ** changed : False **********************************************
 [1m[31mvvvv read_data ** changed : False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ERROR
-BrigadeSubTaskError()
+NornirSubTaskError()
 [1m[32m---- echo_task ** changed : False ---------------------------------------------- CRITICAL
 Hello from CRITICAL
 [1m[31m---- parse_data ** changed : False --------------------------------------------- ERROR

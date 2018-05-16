@@ -1,4 +1,4 @@
-Brigade's Internals
+Nornir's Internals
 ===================
 
 .. toctree::

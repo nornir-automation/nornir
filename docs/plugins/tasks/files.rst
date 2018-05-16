@@ -1,6 +1,6 @@
 Files
 =====
 
-.. automodule:: brigade.plugins.tasks.files
+.. automodule:: nornir.plugins.tasks.files
    :members:
    :undoc-members:

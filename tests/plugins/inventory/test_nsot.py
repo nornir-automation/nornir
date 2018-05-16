@@ -2,7 +2,7 @@ import os
 import subprocess
 import time
 
-from brigade.plugins.inventory import nsot
+from nornir.plugins.inventory import nsot
 
 import pytest
 
@@ -11,7 +11,7 @@ def transform_function(host):
     attrs = ["user", "password"]
     for a in attrs:
         if a in host.data:
-            host["brigade_{}".format(a)] = host.data[a]
+            host["nornir_{}".format(a)] = host.data[a]
 
 
 @pytest.fixture(scope="module")
@@ -46,5 +46,5 @@ class Test(object):
 
     def test_transform_function(self, inv):
         for host in inv.hosts.values():
-            assert host["user"] == host["brigade_user"]
-            assert host["password"] == host["brigade_password"]
+            assert host["user"] == host["nornir_user"]
+            assert host["password"] == host["nornir_password"]

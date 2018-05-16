@@ -1,75 +1,75 @@
 ---
 host1.cmh:
-    brigade_host: 127.0.0.1
-    brigade_ssh_port: 2201
-    brigade_username: vagrant
-    brigade_password: vagrant
+    nornir_host: 127.0.0.1
+    nornir_ssh_port: 2201
+    nornir_username: vagrant
+    nornir_password: vagrant
     site: cmh
     role: host
     groups:
         - cmh
-    brigade_nos: linux
+    nornir_nos: linux
     type: host
 
 host2.cmh:
-    brigade_host: 127.0.0.1
-    brigade_ssh_port: 2202
-    brigade_username: vagrant
-    brigade_password: vagrant
+    nornir_host: 127.0.0.1
+    nornir_ssh_port: 2202
+    nornir_username: vagrant
+    nornir_password: vagrant
     site: cmh
     role: host
     groups:
         - cmh
-    brigade_nos: linux
+    nornir_nos: linux
     type: host
 
 spine00.cmh:
-    brigade_host: 127.0.0.1
-    brigade_username: vagrant
-    brigade_password: vagrant
-    brigade_network_api_port: 12444
+    nornir_host: 127.0.0.1
+    nornir_username: vagrant
+    nornir_password: vagrant
+    nornir_network_api_port: 12444
     site: cmh
     role: spine
     groups:
         - cmh
-    brigade_nos: eos
+    nornir_nos: eos
     type: network_device
 
 spine01.cmh:
-    brigade_host: 127.0.0.1
-    brigade_username: vagrant
-    brigade_password: ""
-    brigade_network_api_port: 12204
+    nornir_host: 127.0.0.1
+    nornir_username: vagrant
+    nornir_password: ""
+    nornir_network_api_port: 12204
     site: cmh
     role: spine
     groups:
         - cmh
-    brigade_nos: junos
+    nornir_nos: junos
     type: network_device
 
 leaf00.cmh:
-    brigade_host: 127.0.0.1
-    brigade_username: vagrant
-    brigade_password: vagrant
-    brigade_network_api_port: 12443
+    nornir_host: 127.0.0.1
+    nornir_username: vagrant
+    nornir_password: vagrant
+    nornir_network_api_port: 12443
     site: cmh
     role: leaf
     groups:
         - cmh
-    brigade_nos: eos
+    nornir_nos: eos
     type: network_device
     asn: 65100
 
 leaf01.cmh:
-    brigade_host: 127.0.0.1
-    brigade_username: vagrant
-    brigade_password: ""
-    brigade_network_api_port: 12203
+    nornir_host: 127.0.0.1
+    nornir_username: vagrant
+    nornir_password: ""
+    nornir_network_api_port: 12203
     site: cmh
     role: leaf
     groups:
         - cmh
-    brigade_nos: junos
+    nornir_nos: junos
     type: network_device
     asn: 65101
 
@@ -78,7 +78,7 @@ host1.bma:
     role: host
     groups:
         - bma
-    brigade_nos: linux
+    nornir_nos: linux
     type: host
 
 host2.bma:
@@ -86,53 +86,53 @@ host2.bma:
     role: host
     groups:
         - bma
-    brigade_nos: linux
+    nornir_nos: linux
     type: host
 
 spine00.bma:
-    brigade_host: 127.0.0.1
-    brigade_username: vagrant
-    brigade_password: vagrant
-    brigade_network_api_port: 12444
+    nornir_host: 127.0.0.1
+    nornir_username: vagrant
+    nornir_password: vagrant
+    nornir_network_api_port: 12444
     site: bma
     role: spine
     groups:
         - bma
-    brigade_nos: eos
+    nornir_nos: eos
     type: network_device
 
 spine01.bma:
-    brigade_host: 127.0.0.1
-    brigade_username: vagrant
-    brigade_password: ""
-    brigade_network_api_port: 12204
+    nornir_host: 127.0.0.1
+    nornir_username: vagrant
+    nornir_password: ""
+    nornir_network_api_port: 12204
     site: bma
     role: spine
     groups:
         - bma
-    brigade_nos: junos
+    nornir_nos: junos
     type: network_device
 
 leaf00.bma:
-    brigade_host: 127.0.0.1
-    brigade_username: vagrant
-    brigade_password: vagrant
-    brigade_network_api_port: 12443
+    nornir_host: 127.0.0.1
+    nornir_username: vagrant
+    nornir_password: vagrant
+    nornir_network_api_port: 12443
     site: bma
     role: leaf
     groups:
         - bma
-    brigade_nos: eos
+    nornir_nos: eos
     type: network_device
 
 leaf01.bma:
-    brigade_host: 127.0.0.1
-    brigade_username: vagrant
-    brigade_password: wrong_password
-    brigade_network_api_port: 12203
+    nornir_host: 127.0.0.1
+    nornir_username: vagrant
+    nornir_password: wrong_password
+    nornir_network_api_port: 12203
     site: bma
     role: leaf
     groups:
         - bma
-    brigade_nos: junos
+    nornir_nos: junos
     type: network_device

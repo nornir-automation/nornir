@@ -1,6 +1,6 @@
 import os
 
-from brigade.core.configuration import Config
+from nornir.core.configuration import Config
 
 #  import pytest
 

@@ -10,16 +10,16 @@ with open("README.md", "r") as fs:
 __author__ = "dbarrosop@dravetech.com"
 __license__ = "Apache License, version 2"
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 setup(
-    name="brigade",
+    name="nornir",
     version=__version__,
     description="Fighting fire with fire",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author=__author__,
-    url="https://github.com/brigade-automation/brigade",
+    url="https://github.com/nornir-automation/nornir",
     include_package_data=True,
     install_requires=reqs,
     packages=find_packages(exclude=("test*",)),

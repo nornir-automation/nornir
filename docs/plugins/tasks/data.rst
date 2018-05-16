@@ -1,6 +1,6 @@
 Data
 ====
 
-.. automodule:: brigade.plugins.tasks.data
+.. automodule:: nornir.plugins.tasks.data
    :members:
    :undoc-members:

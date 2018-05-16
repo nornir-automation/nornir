@@ -1,7 +1,7 @@
 import os
 
-from brigade.core.inventory import Group, Host
-from brigade.plugins.inventory.simple import SimpleInventory
+from nornir.core.inventory import Group, Host
+from nornir.plugins.inventory.simple import SimpleInventory
 
 import pytest
 

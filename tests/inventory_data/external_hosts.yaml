@@ -1,6 +1,6 @@
 ---
 www.github.com:
-    brigade_ip: www.github.com
+    nornir_ip: www.github.com
 
 dummy:
-    brigade_ip: 1.1.1.1
+    nornir_ip: 1.1.1.1
