@@ -36,16 +36,16 @@ Here is an example on how to quickly build a runbook leveraging Nornir to retrie
     from nornir.plugins.functions.text import print_result
     from nornir.plugins.tasks.networking import napalm_get
 
-    brg = InitNornir(
+    nr = InitNornir(
         config_file="nornir.yaml", dry_run=True, num_workers=20
     )
 
-    results = brg.run(
+    results = nr.run(
         task=napalm_get, getters=["facts", "interfaces"]
     )
     print_result(results)
 
-You can find this and other examples `here <https://github.com/nornir-automation/brg-tools/>`_.
+You can find this and other examples `here <https://github.com/nornir-automation/nornir-tools/>`_.
 
 Contents
 ========
