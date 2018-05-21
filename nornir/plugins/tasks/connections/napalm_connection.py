@@ -8,7 +8,7 @@ def napalm_connection(task=None, timeout=60, optional_args=None):
 
     Arguments:
         timeout (int, optional): defaults to 60
-        optional_args (dict, optional): defaults to ``{"port": task.host["network_api_port"]}``
+        optional_args (dict, optional): defaults to `{"port": task.host["nornir_network_api_port"]}`
 
     Inventory:
         napalm_options: maps directly to ``optional_args`` when establishing the connection
