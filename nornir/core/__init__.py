@@ -29,6 +29,7 @@ if sys.version_info.major == 2:
                 pass
             else:
                 break
+
         else:
             raise ValueError("Method ({}) not found for obj: {}".format(func_name, obj))
 
