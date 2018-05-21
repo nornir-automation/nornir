@@ -22,23 +22,26 @@ if sys.version_info.major == 2:
         return _unpickle_method, (func_name, obj, cls)
 
     def _unpickle_method(func_name, obj, cls):
-        for cls in cls.mro():
+        for cls_tmp in cls.mro():
             try:
-                func = cls.__dict__[func_name]
+                func = cls_tmp.__dict__[func_name]
             except KeyError:
                 pass
             else:
                 break
 
-        return func.__get__(obj, cls)
+        else:
+            raise ValueError("Method ({}) not found for obj: {}".format(func_name, obj))
+
+        return func.__get__(obj, cls_tmp)
 
     copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
 
 
 class Data(object):
     """
-    This class is just a placeholder to share data amongsts different
-    versions of Nornir  after running ``filter`` multiple times.
+    This class is just a placeholder to share data amongst different
+    versions of Nornir after running ``filter`` multiple times.
 
     Attributes:
         failed_hosts (list): Hosts that have failed to run a task properly
