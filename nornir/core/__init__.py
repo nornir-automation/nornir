@@ -58,6 +58,10 @@ class Data(object):
         """Reset failed hosts and make all hosts available for future tasks."""
         self.failed_hosts = set()
 
+    def to_dict(self):
+        """ Return a dictionary representing the object. """
+        return self.__dict__
+
 
 class Nornir(object):
     """
@@ -248,6 +252,10 @@ class Nornir(object):
         else:
             self.data.failed_hosts.update(result.failed_hosts.keys())
         return result
+
+    def to_dict(self):
+        """ Return a dictionary representing the object. """
+        return {"data": self.data.to_dict(), "inventory": self.inventory.to_dict()}
 
 
 def InitNornir(config_file="", dry_run=False, **kwargs):

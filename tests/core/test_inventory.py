@@ -204,3 +204,35 @@ class Test(object):
         assert not inventory.hosts["dev1.group_1"].has_parent_group(
             inventory.groups["group_2"]
         )
+
+    def test_to_dict(self):
+        expected = {
+            "hosts": {
+                "dev1.group_1": {
+                    "name": "dev1.group_1",
+                    "groups": ["group_1"],
+                    "my_var": "comes_from_dev1.group_1",
+                    "www_server": "nginx",
+                    "role": "www",
+                    "nornir_ssh_port": 65001,
+                    "nornir_nos": "eos",
+                },
+                "dev3.group_2": {
+                    "name": "dev3.group_2",
+                    "groups": ["group_2"],
+                    "www_server": "apache",
+                    "role": "www",
+                    "nornir_ssh_port": 65003,
+                    "nornir_network_api_port": 12443,
+                    "nornir_os": "linux",
+                    "nornir_nos": "mock",
+                },
+            },
+            "groups": {
+                "group_1": {
+                    "name": "group_1", "my_var": "comes_from_group_1", "site": "site1"
+                },
+                "group_2": {"name": "group_2", "site": "site2"},
+            },
+        }
+        assert inventory.filter(role="www").to_dict() == expected
