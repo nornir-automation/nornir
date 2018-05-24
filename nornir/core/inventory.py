@@ -338,24 +338,19 @@ class Inventory(object):
         if filter_func:
             filtered = {n: h for n, h in self.hosts.items() if filter_func(h, **kwargs)}
         else:
+            filtered = self.hosts
             if 'group_member' in kwargs:
                 group_member = kwargs['group_member']
                 filtered = {
                     n: h
-                    for n, h in self.hosts.items()
+                    for n, h in filtered.items()
                     if h.has_parent_group(self.groups[group_member])
                 }
-                if len(kwargs) > 1:
-                    filtered = {
-                        n: h
-                        for n, h in filtered.items()
-                        if all(h.get(k) == v for k, v in kwargs.items() if k != 'group_member')
-                    }
-            else:
-                filtered = {
+
+            filtered = {
                     n: h
-                    for n, h in self.hosts.items()
-                    if all(h.get(k) == v for k, v in kwargs.items())
+                    for n, h in filtered.items()
+                    if all(h.get(k) == v for k, v in kwargs.items() if k != 'group_member')
                 }
 
         return Inventory(hosts=filtered, groups=self.groups, nornir=self.nornir)
