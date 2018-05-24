@@ -41,8 +41,8 @@ class Host(object):
             # groups
             bma:
                 site: bma
-                group: [all]
-            all:
+
+            defaults:
                 domain: acme.com
 
         * ``my_host.data["ip"]`` will return ``1.2.3.4``
