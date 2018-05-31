@@ -174,7 +174,11 @@ class Test(object):
         assert group_member == ["dev1.group_1"]
 
         group_member = sorted(
-            list(inventory.filter(group_member="group_2").filter(group_member="group_alt").hosts.keys())
+            list(
+                inventory.filter(group_member="group_2").filter(
+                    group_member="group_alt"
+                ).hosts.keys()
+            )
         )
         assert group_member == ["dev4.group_2"]
 
