@@ -339,8 +339,8 @@ class Inventory(object):
             filtered = {n: h for n, h in self.hosts.items() if filter_func(h, **kwargs)}
         else:
             filtered = self.hosts
-            if 'group_member' in kwargs:
-                group_member = kwargs['group_member']
+            if "group_member" in kwargs:
+                group_member = kwargs["group_member"]
                 filtered = {
                     n: h
                     for n, h in filtered.items()
@@ -348,10 +348,10 @@ class Inventory(object):
                 }
 
             filtered = {
-                    n: h
-                    for n, h in filtered.items()
-                    if all(h.get(k) == v for k, v in kwargs.items() if k != 'group_member')
-                }
+                n: h
+                for n, h in filtered.items()
+                if all(h.get(k) == v for k, v in kwargs.items() if k != "group_member")
+            }
 
         return Inventory(hosts=filtered, groups=self.groups, nornir=self.nornir)
 
