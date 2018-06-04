@@ -370,7 +370,8 @@ class Inventory(object):
 
     def to_dict(self):
         """ Return a dictionary representing the object. """
+        groups = {k: v.to_dict() for k, v in self.groups.items()}
+        groups["defaults"] = self.defaults
         return {
-            "hosts": {k: v.to_dict() for k, v in self.hosts.items()},
-            "groups": {k: v.to_dict() for k, v in self.groups.items()},
+            "hosts": {k: v.to_dict() for k, v in self.hosts.items()}, "groups": groups
         }

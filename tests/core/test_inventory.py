@@ -229,6 +229,7 @@ class Test(object):
                 },
             },
             "groups": {
+                "defaults": {},
                 "group_1": {
                     "name": "group_1", "my_var": "comes_from_group_1", "site": "site1"
                 },
