@@ -204,3 +204,21 @@ class Test(object):
         assert not inventory.hosts["dev1.group_1"].has_parent_group(
             inventory.groups["group_2"]
         )
+
+    def test_filter_queries(self):
+        nested_list = inventory.filter(additional_data__alist__contains=2).hosts
+        assert len(nested_list) == 2
+        assert "dev1.group_1" in nested_list
+        assert "dev4.group_2" in nested_list
+
+        greater_equal = inventory.filter(additional_data__anumber__ge=3).hosts
+        assert len(greater_equal) == 3
+        assert "dev1.group_1" in greater_equal
+        assert "dev3.group_2" in greater_equal
+        assert "dev4.group_2" in greater_equal
+
+        text_contains = inventory.filter(additional_data__atext__contains="test").hosts
+        assert len(text_contains) == 3
+        assert "dev1.group_1" in text_contains
+        assert "dev2.group_1" in text_contains
+        assert "dev4.group_2" in text_contains

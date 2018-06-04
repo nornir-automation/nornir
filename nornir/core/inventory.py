@@ -335,13 +335,31 @@ class Inventory(object):
             filter_func (callable): if filter_func is passed it will be called against each
               device. If the call returns ``True`` the device will be kept in the inventory
         """
+
+        def verify_rules(data, rule, value):
+            if len(rule) > 1:
+                return verify_rules(data.get(rule[0], {}), rule[1:], value)
+
+            elif len(rule) == 1:
+                operator = "__{}__".format(rule[0])
+                if hasattr(data, operator):
+                    return getattr(data, operator)(value)
+
+                else:
+                    return data.get(rule[0]) == value
+
+            else:
+                raise Exception(
+                    "I don't know how I got here:\n{}\n{}\n{}".format(data, rule, value)
+                )
+
         if filter_func:
             filtered = {n: h for n, h in self.hosts.items() if filter_func(h, **kwargs)}
         else:
             filtered = {
                 n: h
                 for n, h in self.hosts.items()
-                if all(h.get(k) == v for k, v in kwargs.items())
+                if all(verify_rules(h, k.split("__"), v) for k, v in kwargs.items())
             }
         return Inventory(hosts=filtered, groups=self.groups, nornir=self.nornir)
 
