@@ -335,18 +335,59 @@ class Inventory(object):
             filter_func (callable): if filter_func is passed it will be called against each
               device. If the call returns ``True`` the device will be kept in the inventory
         """
+
+        def verify_rules(data, rule, value):
+            if len(rule) > 1:
+                return verify_rules(data.get(rule[0], {}), rule[1:], value)
+
+            elif len(rule) == 1:
+                operator = "__{}__".format(rule[0])
+                if hasattr(data, operator):
+                    return getattr(data, operator)(value)
+
+                else:
+                    return data.get(rule[0]) == value
+
+            else:
+                raise Exception(
+                    "I don't know how I got here:\n{}\n{}\n{}".format(data, rule, value)
+                )
+
         if filter_func:
             filtered = {n: h for n, h in self.hosts.items() if filter_func(h, **kwargs)}
         else:
             filtered = {
                 n: h
                 for n, h in self.hosts.items()
-                if all(h.get(k) == v for k, v in kwargs.items())
+                if all(verify_rules(h, k.split("__"), v) for k, v in kwargs.items())
             }
         return Inventory(hosts=filtered, groups=self.groups, nornir=self.nornir)
 
     def __len__(self):
         return self.hosts.__len__()
+
+    def __contains__(self, hostname):
+        return hostname in self.hosts
+
+    def __and__(self, other):
+        return Inventory(
+            hosts={
+                name: host for name, host in self.hosts.items() if name in other.hosts
+            },
+            groups={
+                name: group
+                for name, group in self.groups.items()
+                if name in other.groups
+            },
+            nornir=self.nornir,
+        )
+
+    def __or__(self, other):
+        return Inventory(
+            hosts={**self.hosts, **other.hosts},
+            groups={**self.groups, **other.groups},
+            nornir=self.nornir
+        )
 
     @property
     def nornir(self):

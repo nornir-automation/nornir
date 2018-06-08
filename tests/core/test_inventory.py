@@ -204,3 +204,41 @@ class Test(object):
         assert not inventory.hosts["dev1.group_1"].has_parent_group(
             inventory.groups["group_2"]
         )
+
+    def test_filter_queries_contains_list_element(self):
+        nested_list = inventory.filter(additional_data__alist__contains=2).hosts
+        assert len(nested_list) == 2
+        assert "dev1.group_1" in nested_list
+        assert "dev4.group_2" in nested_list
+
+    def test_filter_queries_ge(self):
+        greater_equal = inventory.filter(additional_data__anumber__ge=3).hosts
+        assert len(greater_equal) == 3
+        assert "dev1.group_1" in greater_equal
+        assert "dev3.group_2" in greater_equal
+        assert "dev4.group_2" in greater_equal
+
+    def test_filter_queries_contains_text(self):
+        text_contains = inventory.filter(additional_data__atext__contains="test").hosts
+        assert len(text_contains) == 3
+        assert "dev1.group_1" in text_contains
+        assert "dev2.group_1" in text_contains
+        assert "dev4.group_2" in text_contains
+
+    def test_filter_and(self):
+        text_contains = inventory.filter(additional_data__atext__contains="test")
+        greater_equal = inventory.filter(additional_data__anumber__ge=3)
+        intersection = text_contains & greater_equal
+        assert len(intersection) == 2
+        assert "dev1.group_1" in intersection
+        assert "dev4.group_2" in intersection
+
+    def test_filter_or(self):
+        text_contains = inventory.filter(additional_data__atext__contains="test")
+        greater_equal = inventory.filter(additional_data__anumber__ge=3)
+        combined = text_contains | greater_equal
+        assert len(combined) == 4
+        assert "dev1.group_1" in combined
+        assert "dev2.group_1" in combined
+        assert "dev3.group_2" in combined
+        assert "dev4.group_2" in combined
