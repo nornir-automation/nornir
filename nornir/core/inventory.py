@@ -106,6 +106,10 @@ class Host(object):
         """
         return self._resolve_data().items()
 
+    def to_dict(self):
+        """ Return a dictionary representing the object. """
+        return self.data
+
     def has_parent_group(self, group):
         """Retuns whether the object is a child of the :obj:`Group` ``group``"""
         for g in self.groups:
@@ -363,3 +367,11 @@ class Inventory(object):
 
         for g in self.groups.values():
             g.nornir = value
+
+    def to_dict(self):
+        """ Return a dictionary representing the object. """
+        groups = {k: v.to_dict() for k, v in self.groups.items()}
+        groups["defaults"] = self.defaults
+        return {
+            "hosts": {k: v.to_dict() for k, v in self.hosts.items()}, "groups": groups
+        }
