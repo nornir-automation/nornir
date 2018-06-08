@@ -366,6 +366,29 @@ class Inventory(object):
     def __len__(self):
         return self.hosts.__len__()
 
+    def __contains__(self, hostname):
+        return hostname in self.hosts
+
+    def __and__(self, other):
+        return Inventory(
+            hosts={
+                name: host for name, host in self.hosts.items() if name in other.hosts
+            },
+            groups={
+                name: group
+                for name, group in self.groups.items()
+                if name in other.groups
+            },
+            nornir=self.nornir,
+        )
+
+    def __or__(self, other):
+        return Inventory(
+            hosts={**self.hosts, **other.hosts},
+            groups={**self.groups, **other.groups},
+            nornir=self.nornir
+        )
+
     @property
     def nornir(self):
         """Reference to the parent :obj:`nornir.core.Nornir` object"""

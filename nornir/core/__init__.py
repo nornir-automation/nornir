@@ -249,6 +249,18 @@ class Nornir(object):
             self.data.failed_hosts.update(result.failed_hosts.keys())
         return result
 
+    def __len__(self):
+        return self.inventory.__len__()
+
+    def __contains__(self, other):
+        return self.inventory.__contains__(other)
+
+    def __and__(self, other):
+        return self.inventory.__and__(other)
+
+    def __or__(self, other):
+        return self.inventory.__or__(other)
+
 
 def InitNornir(config_file="", dry_run=False, **kwargs):
     """
