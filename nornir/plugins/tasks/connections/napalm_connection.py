@@ -25,8 +25,8 @@ def napalm_connection(task=None, timeout=60, optional_args=None):
     }
 
     platform = host.nos
-    api_platforms = ['nxos', 'eos', 'iosxr', 'junos']
-    ssh_platforms = ['nxos_ssh', 'ios']
+    api_platforms = ["nxos", "eos", "iosxr", "junos"]
+    ssh_platforms = ["nxos_ssh", "ios"]
 
     # If port is set in optional_args that will control the port setting (else look to inventory)
     if "port" not in parameters["optional_args"]:
@@ -36,10 +36,10 @@ def napalm_connection(task=None, timeout=60, optional_args=None):
             parameters["optional_args"]["port"] = host.ssh_port
 
         # Setting host.nos to 'nxos' is potentially ambiguous
-        if platform == 'nxos':
+        if platform == "nxos":
             if not host.network_api_port:
                 if host.ssh_port or parameters["optional_args"].get("port") == 22:
-                    platform == 'nxos_ssh'
+                    platform == "nxos_ssh"
 
         # Fallback for community drivers (priority api_port over ssh_port)
         if platform not in (api_platforms + ssh_platforms):

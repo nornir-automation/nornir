@@ -21,12 +21,10 @@ def paramiko_connection(task=None):
             ssh_config.parse(f)
 
     parameters = {
-        "hostname": host.host,
-        "username": host.username,
-        "password": host.password,
-    } 
+        "hostname": host.host, "username": host.username, "password": host.password
+    }
     if host.ssh_port:
-        parameters['port'] = host.ssh_port
+        parameters["port"] = host.ssh_port
 
     user_config = ssh_config.lookup(host.host)
     for k in ("hostname", "username", "port"):

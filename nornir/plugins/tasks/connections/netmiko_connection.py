@@ -19,12 +19,10 @@ def netmiko_connection(task, **netmiko_args):
     """
     host = task.host
     parameters = {
-        "host": host.host,
-        "username": host.username,
-        "password": host.password,
+        "host": host.host, "username": host.username, "password": host.password
     }
     if host.ssh_port:
-        parameters['port'] = host.ssh_port
+        parameters["port"] = host.ssh_port
 
     if host.nos is not None:
         # Look device_type up in corresponding map, if no entry return the host.nos unmodified
