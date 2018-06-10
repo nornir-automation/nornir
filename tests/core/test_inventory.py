@@ -158,6 +158,30 @@ class Test(object):
         )
         assert www_site1 == ["dev1.group_1"]
 
+        group_member = sorted(
+            list(inventory.filter(group_member="group_2").hosts.keys())
+        )
+        assert group_member == ["dev3.group_2", "dev4.group_2"]
+
+        group_member = sorted(
+            list(inventory.filter(group_member="group_alt").hosts.keys())
+        )
+        assert group_member == ["dev4.group_2"]
+
+        group_member = sorted(
+            list(inventory.filter(role="www", group_member="group_1").hosts.keys())
+        )
+        assert group_member == ["dev1.group_1"]
+
+        group_member = sorted(
+            list(
+                inventory.filter(group_member="group_2").filter(
+                    group_member="group_alt"
+                ).hosts.keys()
+            )
+        )
+        assert group_member == ["dev4.group_2"]
+
     def test_filtering_func(self):
         long_names = sorted(
             list(

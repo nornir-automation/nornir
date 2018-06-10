@@ -30,6 +30,7 @@ dev3.group_2:
 dev4.group_2:
     groups:
         - group_2
+        - group_alt
     my_var: comes_from_dev4.group_2
     role: db
     nornir_ssh_port: 65004
