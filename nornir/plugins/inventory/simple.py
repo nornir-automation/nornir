@@ -4,7 +4,7 @@ from builtins import super
 
 from nornir.core.inventory import Inventory
 
-import yaml
+import ruamel.yaml
 
 
 class SimpleInventory(Inventory):
@@ -118,12 +118,12 @@ class SimpleInventory(Inventory):
 
     def __init__(self, host_file="hosts.yaml", group_file="groups.yaml", **kwargs):
         with open(host_file, "r") as f:
-            hosts = yaml.load(f.read())
+            hosts = ruamel.yaml.safe_load(f.read())
 
         if group_file:
             if os.path.exists(group_file):
                 with open(group_file, "r") as f:
-                    groups = yaml.load(f.read())
+                    groups = ruamel.yaml.safe_load(f.read())
             else:
                 logging.warning("{}: doesn't exist".format(group_file))
                 groups = {}

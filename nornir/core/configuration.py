@@ -2,7 +2,7 @@ import importlib
 import os
 
 
-import yaml
+import ruamel.yaml
 
 
 CONF = {
@@ -93,7 +93,7 @@ class Config(object):
     def __init__(self, config_file=None, **kwargs):
         if config_file:
             with open(config_file, "r") as f:
-                data = yaml.load(f.read()) or {}
+                data = ruamel.yaml.safe_load(f.read()) or {}
         else:
             data = {}
 
