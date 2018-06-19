@@ -1,4 +1,5 @@
 import logging
+import threading
 import traceback
 from builtins import super
 
@@ -29,16 +30,17 @@ class Task(object):
           the ``task``
         severity_level (logging.LEVEL): Severity level associated to the task
     """
+    lock = threading.Lock()
 
     def __init__(
-        self, task, name=None, severity_level=logging.INFO, lock=None, **kwargs
+        self, task, name=None, severity_level=logging.INFO, thread_safe=False, **kwargs
     ):
         self.name = name or task.__name__
         self.task = task
         self.params = kwargs
         self.results = MultiResult(self.name)
         self.severity_level = severity_level
-        self.lock = lock
+        self.thread_safe = thread_safe
 
     def __repr__(self):
         return self.name
@@ -60,14 +62,14 @@ class Task(object):
         self.nornir = nornir
 
         logger = logging.getLogger("nornir")
+
+        if self.thread_safe:
+            logger.debug("{}: {}: acquire lock".format(self.host.name, self.name))
+            self.lock.acquire()
+
         try:
             logger.info("{}: {}: running task".format(self.host.name, self.name))
-
-            if self.lock:
-                self.lock.acquire()
             r = self.task(self, **self.params)
-            if self.lock:
-                self.lock.release()
 
             if not isinstance(r, Result):
                 r = Result(host=host, result=r)
@@ -81,6 +83,10 @@ class Task(object):
             tb = traceback.format_exc()
             logger.error("{}: {}".format(self.host, tb))
             r = Result(host, exception=e, result=tb, failed=True)
+
+        if self.thread_safe:
+            logger.debug("{}: {}: release lock".format(self.host.name, self.name))
+            self.lock.release()
 
         r.name = self.name
         r.severity_level = logging.ERROR if r.failed else self.severity_level

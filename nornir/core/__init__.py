@@ -183,11 +183,11 @@ class Nornir(object):
     def _run_parallel(self, task, hosts, num_workers, thread_safe, **kwargs):
         result = AggregatedResult(kwargs.get("name") or task.__name__)
 
-        lock = threading.Lock() if thread_safe else None
-
         pool = Pool(processes=num_workers)
         result_pool = [
-            pool.apply_async(Task(task, lock=lock, **kwargs).start, args=(h, self))
+            pool.apply_async(
+                Task(task, thread_safe=thread_safe, **kwargs).start, args=(h, self)
+            )
             for h in hosts
         ]
         pool.close()
