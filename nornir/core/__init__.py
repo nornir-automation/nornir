@@ -1,7 +1,6 @@
 import logging
 import logging.config
 import sys
-import threading
 from multiprocessing.dummy import Pool
 
 from nornir.core.configuration import Config
