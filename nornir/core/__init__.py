@@ -1,6 +1,7 @@
 import logging
 import logging.config
 import sys
+import threading
 from multiprocessing.dummy import Pool
 
 from nornir.core.configuration import Config
@@ -179,12 +180,15 @@ class Nornir(object):
             result[host.name] = Task(task, **kwargs).start(host, self)
         return result
 
-    def _run_parallel(self, task, hosts, num_workers, **kwargs):
+    def _run_parallel(self, task, hosts, num_workers, thread_safe, **kwargs):
         result = AggregatedResult(kwargs.get("name") or task.__name__)
+
+        lock = threading.Lock() if thread_safe else None
 
         pool = Pool(processes=num_workers)
         result_pool = [
-            pool.apply_async(Task(task, **kwargs).start, args=(h, self)) for h in hosts
+            pool.apply_async(Task(task, lock=lock, **kwargs).start, args=(h, self))
+            for h in hosts
         ]
         pool.close()
         pool.join()
@@ -201,6 +205,7 @@ class Nornir(object):
         raise_on_error=None,
         on_good=True,
         on_failed=False,
+        thread_safe=False,
         **kwargs
     ):
         """
@@ -244,7 +249,9 @@ class Nornir(object):
         if num_workers == 1:
             result = self._run_serial(task, run_on, **kwargs)
         else:
-            result = self._run_parallel(task, run_on, num_workers, **kwargs)
+            result = self._run_parallel(
+                task, run_on, num_workers, thread_safe, **kwargs
+            )
 
         raise_on_error = raise_on_error if raise_on_error is not None else self.config.raise_on_error  # noqa
         if raise_on_error:

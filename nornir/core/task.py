@@ -30,12 +30,15 @@ class Task(object):
         severity_level (logging.LEVEL): Severity level associated to the task
     """
 
-    def __init__(self, task, name=None, severity_level=logging.INFO, **kwargs):
+    def __init__(
+        self, task, name=None, severity_level=logging.INFO, lock=None, **kwargs
+    ):
         self.name = name or task.__name__
         self.task = task
         self.params = kwargs
         self.results = MultiResult(self.name)
         self.severity_level = severity_level
+        self.lock = lock
 
     def __repr__(self):
         return self.name
@@ -59,7 +62,13 @@ class Task(object):
         logger = logging.getLogger("nornir")
         try:
             logger.info("{}: {}: running task".format(self.host.name, self.name))
+
+            if self.lock:
+                self.lock.acquire()
             r = self.task(self, **self.params)
+            if self.lock:
+                self.lock.release()
+
             if not isinstance(r, Result):
                 r = Result(host=host, result=r)
 

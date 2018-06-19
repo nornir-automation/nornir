@@ -1,7 +1,7 @@
 import datetime
 import time
 
-from nornir.core.exceptions import NornirExecutionError, CommandError
+from nornir.core.exceptions import CommandError, NornirExecutionError
 from nornir.plugins.tasks import commands
 
 import pytest
