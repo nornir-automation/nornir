@@ -23,7 +23,7 @@ def remote_command(task, command):
     client = task.host.get_connection("paramiko")
 
     chan = client.get_transport().open_session()
-    
+
     if task.host.ssh_forwardagent:
         AgentRequestHandler(chan)
 
