@@ -1,4 +1,4 @@
-from nornir.core.filters import F
+from nornir.core.filter import F
 
 
 
