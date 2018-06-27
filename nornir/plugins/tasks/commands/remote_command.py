@@ -24,7 +24,7 @@ def remote_command(task, command):
 
     chan = client.get_transport().open_session()
 
-    if task.host.ssh_forwardagent:
+    if task.host["ssh_forwardagent"]:
         AgentRequestHandler(chan)
 
     chan.exec_command(command)
