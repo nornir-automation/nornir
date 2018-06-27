@@ -192,15 +192,6 @@ class Host(object):
         return self.get("nornir_ssh_port", 22)
 
     @property
-    def ssh_forwardagent(self):
-        """Either ``nornir_ssh_forwardagent`` or False."""
-        return self.get("nornir_ssh_forwardagent", False)
-
-    @ssh_forwardagent.setter
-    def ssh_forwardagent(self, value):
-        self.data["nornir_ssh_forwardagent"] = value
-
-    @property
     def network_api_port(self):
         """
         For network equipment this is the port where the device's API is listening to.
