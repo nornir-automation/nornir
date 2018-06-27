@@ -1,4 +1,5 @@
-from nornir.plugins.inventory.helpers.filters import F
+from nornir.core.filters import F
+
 
 
 def test_simple(nornir):
