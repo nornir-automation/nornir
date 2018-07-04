@@ -1,0 +1,5 @@
+[
+    {"name":"1-Core", "device_role":1, "device_type":11, "site":3},
+    {"name":"2-Distribution", "device_role":1, "device_type":9, "site":3},
+    {"name":"3-Access", "device_role":2, "device_type":2, "site":2}
+]
