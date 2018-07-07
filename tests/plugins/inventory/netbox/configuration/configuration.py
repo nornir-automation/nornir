@@ -5,11 +5,14 @@ import socket
 # Based on https://github.com/digitalocean/netbox/blob/develop/netbox/netbox/configuration.example.py
 
 # Read secret from file
+
+
 def read_secret(secret_name):
     try:
         f = open("/run/secrets/" + secret_name, "r", encoding="utf-8")
     except EnvironmentError:
         return ""
+
     else:
         with f:
             return f.readline().strip()

@@ -4,6 +4,7 @@ from nornir.core.inventory import Inventory
 
 
 class NBInventory(Inventory):
+
     def __init__(
         self,
         nb_url=None,

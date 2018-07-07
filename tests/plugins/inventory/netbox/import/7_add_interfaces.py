@@ -15,6 +15,7 @@ def add_data(data):
     try:
         output = nb.dcim.interfaces.create(**data)
         return output
+
     except pynetbox.lib.query.RequestError as e:
         return e.error
 
