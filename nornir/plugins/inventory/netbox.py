@@ -1,4 +1,5 @@
-import os, json, pynetbox
+import os
+import pynetbox
 from builtins import super
 from nornir.core.inventory import Inventory
 
