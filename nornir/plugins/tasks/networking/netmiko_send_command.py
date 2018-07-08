@@ -19,4 +19,8 @@ def netmiko_send_command(task, command_string, use_timing=False, **kwargs):
         result = net_connect.send_command_timing(command_string, **kwargs)
     else:
         result = net_connect.send_command(command_string, **kwargs)
+
+    # Cleanup the open net_connect connection, prevents stale sessions when using ssh ProxyCommand
+    net_connect.disconnect()
+
     return Result(host=task.host, result=result)
