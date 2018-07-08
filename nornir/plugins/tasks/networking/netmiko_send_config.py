@@ -23,4 +23,7 @@ def netmiko_send_config(task, config_commands=None, config_file=None, **kwargs):
     else:
         raise ValueError("Must specify either config_commands or config_file")
 
+    # Cleanup the open net_connect connection, prevents stale sessions when using ssh ProxyCommand
+    net_connect.disconnect()
+
     return Result(host=task.host, result=result, changed=True)
