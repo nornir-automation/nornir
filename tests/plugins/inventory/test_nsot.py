@@ -1,10 +1,24 @@
+import json
 import os
-import subprocess
-import time
 
 from nornir.plugins.inventory import nsot
 
-import pytest
+# We need import below to load fixtures
+import pytest  # noqa
+
+
+BASE_PATH = os.path.join(os.path.dirname(__file__), "nsot")
+
+
+def get_inv(requests_mock, case, **kwargs):
+    for i in ["interfaces", "sites", "devices"]:
+        with open("{}/{}/{}.json".format(BASE_PATH, case, i), "r") as f:
+            requests_mock.get(
+                "http://localhost:8990/api/{}".format(i),
+                json=json.load(f),
+                headers={"Content-type": "application/json"},
+            )
+    return nsot.NSOTInventory(**kwargs)
 
 
 def transform_function(host):
@@ -14,37 +28,17 @@ def transform_function(host):
             host["nornir_{}".format(a)] = host.data[a]
 
 
-@pytest.fixture(scope="module")
-def inv(request):
-    """Start/Stop containers needed for the tests."""
-
-    def fin():
-        subprocess.check_call(
-            ["make", "stop_nsot"], stderr=subprocess.PIPE, stdout=subprocess.PIPE
-        )
-
-    request.addfinalizer(fin)
-
-    subprocess.check_call(["make", "start_nsot"], stdout=subprocess.PIPE)
-
-    if os.getenv("TRAVIS"):
-        time.sleep(10)
-    else:
-        time.sleep(3)
-
-    return nsot.NSOTInventory(transform_function=transform_function)
-
-
-@pytest.mark.usefixtures("inv")
 class Test(object):
 
-    def test_inventory(self, inv):
+    def test_inventory(self, requests_mock):
+        inv = get_inv(requests_mock, "normal", transform_function=transform_function)
         assert len(inv.hosts) == 4
         assert len(inv.filter(site="site1").hosts) == 2
         assert len(inv.filter(os="junos").hosts) == 2
         assert len(inv.filter(site="site1", os="junos").hosts) == 1
 
-    def test_transform_function(self, inv):
+    def test_transform_function(self, requests_mock):
+        inv = get_inv(requests_mock, "normal", transform_function=transform_function)
         for host in inv.hosts.values():
             assert host["user"] == host["nornir_user"]
             assert host["password"] == host["nornir_password"]

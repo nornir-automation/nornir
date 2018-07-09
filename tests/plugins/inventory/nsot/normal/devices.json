@@ -1,0 +1,58 @@
+[
+  {
+    "attributes": {
+      "router_id": "10.1.1.1",
+      "host": "127.0.0.1",
+      "user": "vagrant",
+      "password": "vagrant",
+      "os": "eos",
+      "port": "12443",
+      "asn": "65001"
+    },
+    "hostname": "rtr00-site1",
+    "site_id": 1,
+    "id": 1
+  },
+  {
+    "attributes": {
+      "router_id": "10.1.1.2",
+      "host": "127.0.0.1",
+      "user": "vagrant",
+      "password": "",
+      "os": "junos",
+      "port": "12203",
+      "asn": "65002"
+    },
+    "hostname": "rtr01-site1",
+    "site_id": 1,
+    "id": 2
+  },
+  {
+    "attributes": {
+      "router_id": "10.1.1.1",
+      "host": "127.0.0.1",
+      "user": "vagrant",
+      "password": "vagrant",
+      "os": "eos",
+      "port": "12443",
+      "asn": "65001"
+    },
+    "hostname": "rtr00-site2",
+    "site_id": 2,
+    "id": 3
+  },
+  {
+    "attributes": {
+      "router_id": "10.1.1.2",
+      "host": "127.0.0.1",
+      "user": "vagrant",
+      "password": "",
+      "os": "junos",
+      "port": "12203",
+      "asn": "65002"
+    },
+    "hostname": "rtr01-site2",
+    "site_id": 2,
+    "id": 4
+  }
+]
