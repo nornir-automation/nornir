@@ -1,5 +1,4 @@
 import os
-import sys
 
 
 from nornir.plugins.tasks import data
@@ -34,16 +33,10 @@ class Test(object):
 
     def test_load_yaml_error_missing_file(self, nornir):
         test_file = "{}/missing.yaml".format(data_dir)
-
-        if sys.version_info.major == 2:
-            not_found = IOError
-        else:
-            not_found = FileNotFoundError  # noqa
-
         results = nornir.run(data.load_yaml, file=test_file)
         processed = False
         for result in results.values():
             processed = True
-            assert isinstance(result.exception, not_found)
+            assert isinstance(result.exception, FileNotFoundError)
         assert processed
         nornir.data.reset_failed_hosts()
