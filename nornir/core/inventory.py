@@ -192,8 +192,8 @@ class Host(object):
 
     @property
     def ssh_port(self):
-        """Either ``nornir_ssh_port`` or 22."""
-        return self.get("nornir_ssh_port", 22)
+        """Either ``nornir_ssh_port`` or ``None``."""
+        return self.get("nornir_ssh_port")
 
     @property
     def network_api_port(self):
