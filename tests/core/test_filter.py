@@ -64,3 +64,39 @@ class Test(object):
         filtered = sorted(list((inventory.filter(f).hosts.keys())))
 
         assert filtered == ["dev2.group_1", "dev3.group_2", "dev4.group_2"]
+
+    def test_nested_data_a_string(self):
+        f = F(nested_data__a_string="asdasd")
+        filtered = sorted(list((inventory.filter(f).hosts.keys())))
+
+        assert filtered == ["dev1.group_1"]
+
+    def test_nested_data_a_string_contains(self):
+        f = F(nested_data__a_string__contains="asd")
+        filtered = sorted(list((inventory.filter(f).hosts.keys())))
+
+        assert filtered == ["dev1.group_1"]
+
+    def test_nested_data_a_dict_contains(self):
+        f = F(nested_data__a_dict__contains="a")
+        filtered = sorted(list((inventory.filter(f).hosts.keys())))
+
+        assert filtered == ["dev1.group_1"]
+
+    def test_nested_data_a_dict_element(self):
+        f = F(nested_data__a_dict__a=1)
+        filtered = sorted(list((inventory.filter(f).hosts.keys())))
+
+        assert filtered == ["dev1.group_1"]
+
+    def test_nested_data_a_dict_doesnt_contain(self):
+        f = ~F(nested_data__a_dict__contains="a")
+        filtered = sorted(list((inventory.filter(f).hosts.keys())))
+
+        assert filtered == ["dev2.group_1", "dev3.group_2", "dev4.group_2"]
+
+    def test_nested_data_a_list_contains(self):
+        f = F(nested_data__a_list__contains=2)
+        filtered = sorted(list((inventory.filter(f).hosts.keys())))
+
+        assert filtered == ["dev1.group_1", "dev2.group_1"]
