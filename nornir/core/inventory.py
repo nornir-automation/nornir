@@ -316,7 +316,7 @@ class Inventory(object):
                 r = groups
         return r
 
-    def filter(self, filter_func=None, **kwargs):
+    def filter(self, filter_obj=None, filter_func=None, *args, **kwargs):
         """
         Returns a new inventory after filtering the hosts by matching the data passed to the
         function. For instance, assume an inventory with::
@@ -336,9 +336,11 @@ class Inventory(object):
         * ``my_inventory.filter(site="bma", role="db")`` will result in ``host3`` only
 
         Arguments:
+            filter_obj (:obj:nornir.core.filter.F): Filter object to run
             filter_func (callable): if filter_func is passed it will be called against each
               device. If the call returns ``True`` the device will be kept in the inventory
         """
+        filter_func = filter_obj or filter_func
         if filter_func:
             filtered = {n: h for n, h in self.hosts.items() if filter_func(h, **kwargs)}
         else:
