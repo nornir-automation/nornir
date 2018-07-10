@@ -1,64 +1,52 @@
-import copy
+class F_OP_BASE(object):
+
+    def __init__(self, op1, op2):
+        self.op1 = op1
+        self.op2 = op2
+
+    def __and__(self, other):
+        return AND(self, other)
+
+    def __or__(self, other):
+        return OR(self, other)
+
+    def __repr__(self):
+        return "( {} {} {} )".format(self.op1, self.__class__.__name__, self.op2)
+
+
+class AND(F_OP_BASE):
+
+    def __call__(self, host):
+        return self.op1(host) and self.op2(host)
+
+
+class OR(F_OP_BASE):
+
+    def __call__(self, host):
+        return self.op1(host) or self.op2(host)
 
 
 class F(object):
-    AND = "AND"
-    OR = "OR"
 
     def __init__(self, **kwargs):
-        self.operator = self.AND
-        self.operands = []
-        self.filters = list(kwargs.items())
-        self.negate = False
+        self.filters = kwargs
 
-    def __call__(self, object):
-        if self.operator == self.AND:
-            reducer_func = all
-        elif self.operator == self.OR:
-            reducer_func = any
-        matching_result = [o(object) for o in self.operands]
-        matching_result += [
-            F._verify_rules(object, k.split("__"), v) for k, v in self.filters
-        ]
-        if self.negate:
-            return not reducer_func(matching_result)
-
-        else:
-            return reducer_func(matching_result)
+    def __call__(self, host):
+        return all(
+            F._verify_rules(host, k.split("__"), v) for k, v in self.filters.items()
+        )
 
     def __and__(self, other):
-        res = F()
-        if self.operator == self.AND and other.operator == self.AND:
-            res.operator = self.AND
-            res.operands = self.operands + other.operands
-            res.filters = self.filters + other.filters
-        else:
-            res.operator = self.AND
-            res.operands = [self, other]
-        return res
+        return AND(self, other)
 
     def __or__(self, other):
-        res = F()
-        if self.operator == self.OR and other.operator == self.OR:
-            res.operator = self.OR
-            res.oprands = self.operands + other.operands
-            res.filters = self.filters + other.filters
-        else:
-            res.operator = self.OR
-            res.operands = [self, other]
-        return res
+        return OR(self, other)
 
     def __invert__(self):
-        res = copy.deepcopy(self)
-        res.negate = ~res.negate
-        return res
+        return NOT_F(**self.filters)
 
     def __repr__(self):
-        if self.negate:
-            template = "<Filter NOT {} {}>"
-        else:
-            template = "<Filter {} {}>"
-        return template.format(self.operator, self.operands + self.filters)
+        return "<Filter ({})>".format(self.filters)
 
     @staticmethod
     def _verify_rules(data, rule, value):
@@ -77,3 +65,17 @@ class F(object):
             raise Exception(
                 "I don't know how I got here:\n{}\n{}\n{}".format(data, rule, value)
             )
+
+
+class NOT_F(F):
+
+    def __call__(self, host):
+        return not any(
+            F._verify_rules(host, k.split("__"), v) for k, v in self.filters.items()
+        )
+
+    def __invert__(self):
+        return F(**self.filters)
+
+    def __repr__(self):
+        return "<Filter NOT ({})>".format(self.filters)
