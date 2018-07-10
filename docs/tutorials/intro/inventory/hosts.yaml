@@ -10,6 +10,12 @@ host1.cmh:
         - cmh
     nornir_nos: linux
     type: host
+    nested_data:
+        a_dict:
+            a: 1
+            b: 2
+        a_list: [1, 2]
+        a_string: "asdasd"
 
 host2.cmh:
     nornir_host: 127.0.0.1
@@ -22,6 +28,12 @@ host2.cmh:
         - cmh
     nornir_nos: linux
     type: host
+    nested_data:
+        a_dict:
+            b: 2
+            c: 3
+        a_list: [1, 2]
+        a_string: "qwe"
 
 spine00.cmh:
     nornir_host: 127.0.0.1
