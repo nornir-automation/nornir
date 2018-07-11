@@ -41,5 +41,5 @@ if __name__ == "__main__":
                     index + 1, device.name
                 )
             )
-        except netbox_tools.pynetbox.RequestError as e:
+        except NetBoxTools.pynetbox.RequestError as e:
             print(e.error)
