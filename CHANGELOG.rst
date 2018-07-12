@@ -6,7 +6,6 @@
 + [TESTS] replace nsot container with requests-mock #172 
 + [PLUGIN_IMPROVEMENT] Support SSH Agent forwarding for paramiko SSH connections #159
 + [PLUGIN_IMPROVEMENT] allow passing options to napalm getters #156 
-+ [CORE_NEW_FEATURE] Filter object #155
 + [PLUGIN_BUGFIX] Fix for SSH and API port mapping issues #154
 + [CORE_NEW_FEATURE] add to_dict function so the inventory is serializable #146
 + [CORE_BUGFIX] Fix issues with using built-in and overwriting variable with loop variable #144 
