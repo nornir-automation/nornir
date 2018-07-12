@@ -1,0 +1,55 @@
+{
+  "hosts": {
+    "1-Core": {
+      "name": "1-Core",
+      "nornir_host": {
+        "id": 1,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/1/",
+        "family": 4,
+        "address": "10.0.1.1/32"
+      },
+      "serial": "",
+      "vendor": "Juniper",
+      "asset_tag": null,
+      "site": "sunnyvale-ca",
+      "role": "rt",
+      "model": "mx480",
+      "nornir_nos": null
+    },
+    "2-Distribution": {
+      "name": "2-Distribution",
+      "nornir_host": {
+        "id": 2,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/2/",
+        "family": 4,
+        "address": "172.16.2.1/32"
+      },
+      "serial": "",
+      "vendor": "Juniper",
+      "asset_tag": null,
+      "site": "sunnyvale-ca",
+      "role": "rt",
+      "model": "ex4550-32f",
+      "nornir_nos": null
+    },
+    "3-Access": {
+      "name": "3-Access",
+      "nornir_host": {
+        "id": 3,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/3/",
+        "family": 4,
+        "address": "192.168.3.1/32"
+      },
+      "serial": "",
+      "vendor": "Cisco",
+      "asset_tag": null,
+      "site": "san-jose-ca",
+      "role": "sw",
+      "model": "3650-48tq-l",
+      "nornir_nos": null
+    }
+  },
+  "groups": {
+    "defaults": {}
+  }
+}

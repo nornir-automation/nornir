@@ -1,5 +1,0 @@
-[
-    {"address":"10.0.1.1", "interface":1},
-    {"address":"172.16.2.1", "interface":2},
-    {"address":"192.168.3.1", "interface":3}
-]

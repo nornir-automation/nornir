@@ -1,7 +1,9 @@
 import os
-import requests
 from builtins import super
+
 from nornir.core.inventory import Inventory
+
+import requests
 
 
 class NBInventory(Inventory):
