@@ -1,7 +1,9 @@
 Writing a custom inventory
 ==========================
 
-If you have your own backend with host information or you don't like the provided ones you can write your own custom inventory. Doing so is quite easy. A continuation you can find a very simple one with static data::
+If you have your own backend with host information or you don't like the provided ones you can write your own custom inventory. Doing so is quite easy. A continuation you can find a very simple one with static data.
+
+.. code-block:: python
 
     from builtins import super
 
@@ -15,13 +17,13 @@ If you have your own backend with host information or you don't like the provide
             hosts = {
                 "host1": {
                     "data1": "value1",
-                    "data2": "value2".
-                    "group": "my_group1",
+                    "data2": "value2",
+                    "groups": ["my_group1"],
                 },
                 "host2": {
                     "data1": "value1",
-                    "data2": "value2".
-                    "group": "my_group1",
+                    "data2": "value2",
+                    "groups": ["my_group1"],
                 }
             }
             groups = {
@@ -30,19 +32,27 @@ If you have your own backend with host information or you don't like the provide
                     "more_data2": "more_value2",
                 }
             }
+            defaults = {
+                "location": "internet",
+                "language": "Python",
+            }
 
             # passing the data to the parent class so the data is
             # transformed into actual Host/Group objects
-            super().__init__(hosts, groups, **kwargs)
+            # and set default data for all hosts
+            super().__init__(hosts, groups, defaults, **kwargs)
 
 
 So if you want to make it dynamic everything you have to do is get the data yourself and organize it in a similar format to the one described in the example above.
 
-.. note:: it is not mandatory to use groups. Feel free to skip the attribute ``group`` and just pass and empty dict or ``None`` to ``super()``.
+.. note:: it is not mandatory to use groups or defaults. Feel free to skip the attribute ``groups`` and just pass and empty dict or ``None`` to ``super()``.
 
-Finally, to have nornir use it, you can do::
+Finally, to have nornir use it, you can:
 
-    inv = MyInventory()
-    nornir = Nornir(inventory=inv)
+.. code-block:: python
+
+    from nornir.core import InitNornir
+    nr = InitNornir(inventory=MyInventory)
+
 
 And that's it, you now have your own inventory plugin :)
