@@ -3,6 +3,7 @@ pytest
 pytest-cov
 pylama
 flake8-import-order
+requests-mock
 tox
 black==18.4a1; python_version >= '3.6'
 -r requirements.txt
