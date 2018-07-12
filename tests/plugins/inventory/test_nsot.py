@@ -31,14 +31,14 @@ def transform_function(host):
 class Test(object):
 
     def test_inventory(self, requests_mock):
-        inv = get_inv(requests_mock, "normal", transform_function=transform_function)
+        inv = get_inv(requests_mock, "1.3.0", transform_function=transform_function)
         assert len(inv.hosts) == 4
         assert len(inv.filter(site="site1").hosts) == 2
         assert len(inv.filter(os="junos").hosts) == 2
         assert len(inv.filter(site="site1", os="junos").hosts) == 1
 
     def test_transform_function(self, requests_mock):
-        inv = get_inv(requests_mock, "normal", transform_function=transform_function)
+        inv = get_inv(requests_mock, "1.3.0", transform_function=transform_function)
         for host in inv.hosts.values():
             assert host["user"] == host["nornir_user"]
             assert host["password"] == host["nornir_password"]
