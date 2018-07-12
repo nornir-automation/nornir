@@ -34,10 +34,7 @@ def paramiko_connection(task=None):
     if "proxycommand" in user_config:
         parameters["sock"] = paramiko.ProxyCommand(user_config["proxycommand"])
 
-    task.host["ssh_forwardagent"] = False
-    if "forwardagent" in user_config:
-        if user_config["forwardagent"] == "yes":
-            task.host["ssh_forwardagent"] = True
+    task.host._ssh_forward_agent = user_config.get("forwardagent") == "yes"
 
     # TODO configurable
     #  if ssh_key_file:

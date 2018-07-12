@@ -64,6 +64,7 @@ class Host(object):
         self.data["name"] = name
         self.connections = {}
         self.defaults = defaults or {}
+        self._ssh_forward_agent = False
 
         if len(self.groups):
             if isinstance(groups[0], str):
