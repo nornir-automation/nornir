@@ -22,23 +22,26 @@ if sys.version_info.major == 2:
         return _unpickle_method, (func_name, obj, cls)
 
     def _unpickle_method(func_name, obj, cls):
-        for cls in cls.mro():
+        for cls_tmp in cls.mro():
             try:
-                func = cls.__dict__[func_name]
+                func = cls_tmp.__dict__[func_name]
             except KeyError:
                 pass
             else:
                 break
 
-        return func.__get__(obj, cls)
+        else:
+            raise ValueError("Method ({}) not found for obj: {}".format(func_name, obj))
+
+        return func.__get__(obj, cls_tmp)
 
     copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
 
 
 class Data(object):
     """
-    This class is just a placeholder to share data amongsts different
-    versions of Nornir  after running ``filter`` multiple times.
+    This class is just a placeholder to share data amongst different
+    versions of Nornir after running ``filter`` multiple times.
 
     Attributes:
         failed_hosts (list): Hosts that have failed to run a task properly
@@ -54,6 +57,10 @@ class Data(object):
     def reset_failed_hosts(self):
         """Reset failed hosts and make all hosts available for future tasks."""
         self.failed_hosts = set()
+
+    def to_dict(self):
+        """ Return a dictionary representing the object. """
+        return self.__dict__
 
 
 class Nornir(object):
@@ -245,6 +252,10 @@ class Nornir(object):
         else:
             self.data.failed_hosts.update(result.failed_hosts.keys())
         return result
+
+    def to_dict(self):
+        """ Return a dictionary representing the object. """
+        return {"data": self.data.to_dict(), "inventory": self.inventory.to_dict()}
 
 
 def InitNornir(config_file="", dry_run=False, **kwargs):

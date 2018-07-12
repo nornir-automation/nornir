@@ -82,7 +82,7 @@ CONF = {
 types = {"int": int, "str": str}
 
 
-class Config:
+class Config(object):
     """
     This object handles the configuration of Nornir.
 
@@ -112,8 +112,8 @@ class Config:
             obj = self._resolve_import_from_string(kwargs.get(r, getattr(self, r)))
             setattr(self, r, obj)
 
-        callable = ["jinja_filters"]
-        for c in callable:
+        callable_func = ["jinja_filters"]
+        for c in callable_func:
             func = getattr(self, c)
             if func:
                 setattr(self, c, func())

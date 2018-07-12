@@ -41,8 +41,8 @@ class Host(object):
             # groups
             bma:
                 site: bma
-                group: [all]
-            all:
+
+            defaults:
                 domain: acme.com
 
         * ``my_host.data["ip"]`` will return ``1.2.3.4``
@@ -64,6 +64,7 @@ class Host(object):
         self.data["name"] = name
         self.connections = {}
         self.defaults = defaults or {}
+        self._ssh_forward_agent = False
 
         if len(self.groups):
             if isinstance(groups[0], str):
@@ -105,6 +106,10 @@ class Host(object):
         the one inherited from parent groups
         """
         return self._resolve_data().items()
+
+    def to_dict(self):
+        """ Return a dictionary representing the object. """
+        return self.data
 
     def has_parent_group(self, group):
         """Retuns whether the object is a child of the :obj:`Group` ``group``"""
@@ -188,8 +193,8 @@ class Host(object):
 
     @property
     def ssh_port(self):
-        """Either ``nornir_ssh_port`` or 22."""
-        return self.get("nornir_ssh_port", 22)
+        """Either ``nornir_ssh_port`` or ``None``."""
+        return self.get("nornir_ssh_port")
 
     @property
     def network_api_port(self):
@@ -363,3 +368,11 @@ class Inventory(object):
 
         for g in self.groups.values():
             g.nornir = value
+
+    def to_dict(self):
+        """ Return a dictionary representing the object. """
+        groups = {k: v.to_dict() for k, v in self.groups.items()}
+        groups["defaults"] = self.defaults
+        return {
+            "hosts": {k: v.to_dict() for k, v in self.hosts.items()}, "groups": groups
+        }
