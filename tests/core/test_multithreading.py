@@ -1,7 +1,7 @@
 import datetime
 import time
 
-from nornir.core.exceptions import NornirExecutionError, CommandError
+from nornir.core.exceptions import CommandError, NornirExecutionError
 from nornir.plugins.tasks import commands
 
 import pytest
@@ -12,6 +12,10 @@ NUM_WORKERS = 20
 
 def blocking_task(task, wait):
     time.sleep(wait)
+
+
+def group_task_thread_safety(task, wait):
+    task.run(blocking_task, wait=wait, thread_safe=True)
 
 
 def failing_task_simple(task):
@@ -42,6 +46,22 @@ class Test(object):
     def test_blocking_task_multithreading(self, nornir):
         t1 = datetime.datetime.now()
         nornir.run(blocking_task, wait=2, num_workers=NUM_WORKERS)
+        t2 = datetime.datetime.now()
+        delta = t2 - t1
+        assert delta.seconds == 2, delta
+
+    def test_blocking_task_multithreading_thread_safety(self, nornir):
+        # this should behave like test_block_task_single_thread
+        t1 = datetime.datetime.now()
+        nornir.run(blocking_task, wait=0.5, num_workers=NUM_WORKERS, thread_safe=True)
+        t2 = datetime.datetime.now()
+        delta = t2 - t1
+        assert delta.seconds == 2, delta
+
+    def test_blocking_subtask_multithreading_thread_safety(self, nornir):
+        # this should behave like test_block_task_single_thread
+        t1 = datetime.datetime.now()
+        nornir.run(group_task_thread_safety, wait=0.5, num_workers=NUM_WORKERS)
         t2 = datetime.datetime.now()
         delta = t2 - t1
         assert delta.seconds == 2, delta
