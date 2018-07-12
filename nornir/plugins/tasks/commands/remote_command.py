@@ -1,3 +1,5 @@
+from paramiko.agent import AgentRequestHandler
+
 from nornir.core.exceptions import CommandError
 from nornir.core.task import Result
 
@@ -21,6 +23,10 @@ def remote_command(task, command):
     client = task.host.get_connection("paramiko")
 
     chan = client.get_transport().open_session()
+
+    if task.host["ssh_forwardagent"]:
+        AgentRequestHandler(chan)
+
     chan.exec_command(command)
 
     exit_status_code = chan.recv_exit_status()
