@@ -1,0 +1,4 @@
+[
+    {"name":"Router", "slug":"rt","color":"2196f3","vm_role":false},
+    {"name":"Switch", "slug":"sw","color":"4caf50","vm_role":false}
+]

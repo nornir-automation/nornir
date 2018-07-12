@@ -1,0 +1,5 @@
+[
+    {"name":"Arista",    "slug":"arista"},
+    {"name":"Cisco",     "slug":"cisco"},
+    {"name":"Juniper",   "slug":"juniper"}
+]
