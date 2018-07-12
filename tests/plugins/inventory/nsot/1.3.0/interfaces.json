@@ -1,0 +1,290 @@
+[
+  {
+    "addresses": [
+      "2001:db8:b33f::100/128"
+    ],
+    "parent": null,
+    "device": 1,
+    "device_hostname": "rtr00-site1",
+    "speed": 1000,
+    "networks": [
+      "2001:db8:b33f::/64"
+    ],
+    "description": "",
+    "name": "lo0",
+    "id": 1,
+    "parent_id": null,
+    "name_slug": "rtr00-site1:lo0",
+    "mac_address": null,
+    "attributes": {
+      "connects_to_iface": "lo0",
+      "link_type": "loopback",
+      "connects_to_device": "loopback"
+    },
+    "type": 6
+  },
+  {
+    "addresses": [
+      "2001:db8:b33f::101/128"
+    ],
+    "parent": null,
+    "device": 2,
+    "device_hostname": "rtr01-site1",
+    "speed": 1000,
+    "networks": [
+      "2001:db8:b33f::/64"
+    ],
+    "description": "",
+    "name": "lo0",
+    "id": 2,
+    "parent_id": null,
+    "name_slug": "rtr01-site1:lo0",
+    "mac_address": null,
+    "attributes": {
+      "connects_to_iface": "lo0",
+      "link_type": "loopback",
+      "connects_to_device": "loopback"
+    },
+    "type": 6
+  },
+  {
+    "addresses": [
+      "2001:db8:caf3::/128"
+    ],
+    "parent": null,
+    "device": 1,
+    "device_hostname": "rtr00-site1",
+    "speed": 1000,
+    "networks": [
+      "2001:db8:caf3::/127"
+    ],
+    "description": "",
+    "name": "et1",
+    "id": 3,
+    "parent_id": null,
+    "name_slug": "rtr00-site1:et1",
+    "mac_address": null,
+    "attributes": {
+      "connects_to_iface": "ge-0/0/1",
+      "connects_to_device": "rtr01",
+      "link_type": "fabric"
+    },
+    "type": 6
+  },
+  {
+    "addresses": [
+      "2001:db8:caf3::2/128"
+    ],
+    "parent": null,
+    "device": 1,
+    "device_hostname": "rtr00-site1",
+    "speed": 1000,
+    "networks": [
+      "2001:db8:caf3::2/127"
+    ],
+    "description": "",
+    "name": "et2",
+    "id": 4,
+    "parent_id": null,
+    "name_slug": "rtr00-site1:et2",
+    "mac_address": null,
+    "attributes": {
+      "connects_to_iface": "ge-0/0/2",
+      "connects_to_device": "rtr01",
+      "link_type": "fabric"
+    },
+    "type": 6
+  },
+  {
+    "addresses": [
+      "2001:db8:caf3::1/128"
+    ],
+    "parent": null,
+    "device": 2,
+    "device_hostname": "rtr01-site1",
+    "speed": 1000,
+    "networks": [
+      "2001:db8:caf3::/127"
+    ],
+    "description": "",
+    "name": "ge-0/0/1",
+    "id": 5,
+    "parent_id": null,
+    "name_slug": "rtr01-site1:ge-0/0/1",
+    "mac_address": null,
+    "attributes": {
+      "connects_to_iface": "et1",
+      "connects_to_device": "rtr00",
+      "link_type": "fabric"
+    },
+    "type": 6
+  },
+  {
+    "addresses": [
+      "2001:db8:caf3::3/128"
+    ],
+    "parent": null,
+    "device": 2,
+    "device_hostname": "rtr01-site1",
+    "speed": 1000,
+    "networks": [
+      "2001:db8:caf3::2/127"
+    ],
+    "description": "",
+    "name": "ge-0/0/2",
+    "id": 6,
+    "parent_id": null,
+    "name_slug": "rtr01-site1:ge-0/0/2",
+    "mac_address": null,
+    "attributes": {
+      "connects_to_iface": "et2",
+      "connects_to_device": "rtr00",
+      "link_type": "fabric"
+    },
+    "type": 6
+  },
+  {
+    "addresses": [
+      "2001:db8:f4c3::100/128"
+    ],
+    "parent": null,
+    "device": 3,
+    "device_hostname": "rtr00-site2",
+    "speed": 1000,
+    "networks": [
+      "2001:db8:f4c3::/64"
+    ],
+    "description": "",
+    "name": "lo0",
+    "id": 7,
+    "parent_id": null,
+    "name_slug": "rtr00-site2:lo0",
+    "mac_address": null,
+    "attributes": {
+      "connects_to_iface": "lo0",
+      "link_type": "loopback",
+      "connects_to_device": "loopback"
+    },
+    "type": 6
+  },
+  {
+    "addresses": [
+      "2001:db8:f4c3::101/128"
+    ],
+    "parent": null,
+    "device": 4,
+    "device_hostname": "rtr01-site2",
+    "speed": 1000,
+    "networks": [
+      "2001:db8:f4c3::/64"
+    ],
+    "description": "",
+    "name": "lo0",
+    "id": 8,
+    "parent_id": null,
+    "name_slug": "rtr01-site2:lo0",
+    "mac_address": null,
+    "attributes": {
+      "connects_to_iface": "lo0",
+      "link_type": "loopback",
+      "connects_to_device": "loopback"
+    },
+    "type": 6
+  },
+  {
+    "addresses": [
+      "2001:db8:dead::/128"
+    ],
+    "parent": null,
+    "device": 3,
+    "device_hostname": "rtr00-site2",
+    "speed": 1000,
+    "networks": [
+      "2001:db8:dead::/127"
+    ],
+    "description": "",
+    "name": "et1",
+    "id": 9,
+    "parent_id": null,
+    "name_slug": "rtr00-site2:et1",
+    "mac_address": null,
+    "attributes": {
+      "connects_to_iface": "ge-0/0/1",
+      "connects_to_device": "rtr01",
+      "link_type": "fabric"
+    },
+    "type": 6
+  },
+  {
+    "addresses": [
+      "2001:db8:dead::2/128"
+    ],
+    "parent": null,
+    "device": 3,
+    "device_hostname": "rtr00-site2",
+    "speed": 1000,
+    "networks": [
+      "2001:db8:dead::2/127"
+    ],
+    "description": "",
+    "name": "et2",
+    "id": 10,
+    "parent_id": null,
+    "name_slug": "rtr00-site2:et2",
+    "mac_address": null,
+    "attributes": {
+      "connects_to_iface": "ge-0/0/2",
+      "connects_to_device": "rtr01",
+      "link_type": "fabric"
+    },
+    "type": 6
+  },
+  {
+    "addresses": [
+      "2001:db8:dead::1/128"
+    ],
+    "parent": null,
+    "device": 4,
+    "device_hostname": "rtr01-site2",
+    "speed": 1000,
+    "networks": [
+      "2001:db8:dead::/127"
+    ],
+    "description": "",
+    "name": "ge-0/0/1",
+    "id": 11,
+    "parent_id": null,
+    "name_slug": "rtr01-site2:ge-0/0/1",
+    "mac_address": null,
+    "attributes": {
+      "connects_to_iface": "et1",
+      "connects_to_device": "rtr00",
+      "link_type": "fabric"
+    },
+    "type": 6
+  },
+  {
+    "addresses": [
+      "2001:db8:dead::3/128"
+    ],
+    "parent": null,
+    "device": 4,
+    "device_hostname": "rtr01-site2",
+    "speed": 1000,
+    "networks": [
+      "2001:db8:dead::2/127"
+    ],
+    "description": "",
+    "name": "ge-0/0/2",
+    "id": 12,
+    "parent_id": null,
+    "name_slug": "rtr01-site2:ge-0/0/2",
+    "mac_address": null,
+    "attributes": {
+      "connects_to_iface": "et2",
+      "connects_to_device": "rtr00",
+      "link_type": "fabric"
+    },
+    "type": 6
+  }
+]
