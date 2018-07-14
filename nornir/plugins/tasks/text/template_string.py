@@ -1,5 +1,5 @@
 from nornir.core.helpers import jinja_helper, merge_two_dicts
-from nornir.core.task import Result
+from nornir.core.result import Result
 
 
 def template_string(task, template, jinja_filters=None, **kwargs):

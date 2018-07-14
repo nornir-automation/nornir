@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from nornir.core.task import Result
+from nornir.core.result import Result
 
 
 def netmiko_send_config(task, config_commands=None, config_file=None, **kwargs):

@@ -1,4 +1,4 @@
-from nornir.core.task import Result
+from nornir.core.result import Result
 
 
 import yaml

@@ -1,5 +1,5 @@
 from nornir.core.exceptions import CommandError
-from nornir.core.task import Result
+from nornir.core.result import Result
 
 from paramiko.agent import AgentRequestHandler
 

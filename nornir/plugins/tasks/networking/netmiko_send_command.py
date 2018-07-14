@@ -1,4 +1,4 @@
-from nornir.core.task import Result
+from nornir.core.result import Result
 
 
 def netmiko_send_command(task, command_string, use_timing=False, **kwargs):

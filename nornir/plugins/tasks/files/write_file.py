@@ -1,7 +1,7 @@
 import difflib
 import os
 
-from nornir.core.task import Result
+from nornir.core.result import Result
 
 
 def _read_file(file):
