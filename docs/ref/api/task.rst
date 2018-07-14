@@ -5,23 +5,9 @@ Task
    :members:
    :undoc-members:
 
-Result
-######
+HostTask
+########
 
-.. autoclass:: nornir.core.task.Result
-   :members:
-   :undoc-members:
-
-AggregatedResult
-################
-
-.. autoclass:: nornir.core.task.AggregatedResult
-   :members:
-   :undoc-members:
-
-MultiResult
-################
-
-.. autoclass:: nornir.core.task.MultiResult
+.. autoclass:: nornir.core.task.HostTask
    :members:
    :undoc-members:
