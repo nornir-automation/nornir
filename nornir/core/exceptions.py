@@ -26,9 +26,9 @@ class NornirExecutionError(Exception):
     when any of the tasks fail.
 
     Arguments:
-        result (:obj:`nornir.core.task.AggregatedResult`):
+        result (:obj:`nornir.core.result.AggregatedResult`):
     Attributes:
-        result (:obj:`nornir.core.task.AggregatedResult`):
+        result (:obj:`nornir.core.result.AggregatedResult`):
     """
 
     def __init__(self, result):
@@ -55,15 +55,15 @@ class NornirExecutionError(Exception):
 
 class NornirSubTaskError(Exception):
     """
-    Raised by nornir when a sub task managed by :meth:`nornir.core.Task.run`
+    Raised by nornir when a sub task managed by :meth:`nornir.core.task.HostTask.run`
     has failed
 
     Arguments:
         task (:obj:`nornir.core.task.Task`): The subtask that failed
-        result (:obj:`nornir.core.task.Result`): The result of the failed task
+        result (:obj:`nornir.core.result.Result`): The result of the failed task
     Attributes:
         task (:obj:`nornir.core.task.Task`): The subtask that failed
-        result (:obj:`nornir.core.task.Result`): The result of the failed task
+        result (:obj:`nornir.core.result.Result`): The result of the failed task
     """
 
     def __init__(self, task, result):

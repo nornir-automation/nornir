@@ -93,10 +93,10 @@ def print_result(
     result, host=None, vars=None, failed=None, severity_level=logging.INFO
 ):
     """
-    Prints the :obj:`nornir.core.task.Result` from a previous task to screen
+    Prints the :obj:`nornir.core.result.Result` from a previous task to screen
 
     Arguments:
-        result (:obj:`nornir.core.task.Result`): from a previous task
+        result (:obj:`nornir.core.result.Result`): from a previous task
         vars (list of str): Which attributes you want to print
         failed (``bool``): if ``True`` assume the task failed
         severity_level (int): Print only errors with this severity level or higher

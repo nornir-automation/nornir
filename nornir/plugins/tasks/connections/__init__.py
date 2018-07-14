@@ -8,5 +8,8 @@ available_connections = {
     "netmiko": netmiko_connection,
     "paramiko": paramiko_connection,
 }
+"""
+Available connections
+"""
 
 __all__ = ("napalm_connection", "netmiko_connection", "paramiko_connection")
