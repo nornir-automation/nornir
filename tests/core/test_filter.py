@@ -100,3 +100,9 @@ class Test(object):
         filtered = sorted(list((inventory.filter(f).hosts.keys())))
 
         assert filtered == ["dev1.group_1", "dev2.group_1"]
+
+    def test_has_parent_group(self):
+        f = F(has_parent_group="parent_group")
+        filtered = sorted(list((inventory.filter(f).hosts.keys())))
+
+        assert filtered == ["dev1.group_1", "dev2.group_1"]
