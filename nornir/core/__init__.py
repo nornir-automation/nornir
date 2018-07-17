@@ -1,10 +1,12 @@
 import logging
 import logging.config
 import sys
-from multiprocessing.dummy import Pool
+from typing import Any, Dict, Set
 
 from nornir.core.configuration import Config
-from nornir.core.task import AggregatedResult, Task
+from nornir.core.inventory import Host
+from nornir.core.scheduler import TaskScheduler
+from nornir.core.task import Task
 from nornir.plugins.tasks import connections
 
 
@@ -46,19 +48,21 @@ class Data(object):
     Attributes:
         failed_hosts (list): Hosts that have failed to run a task properly
     """
+    __slots__ = "failed_hosts", "dry_run"
 
-    def __init__(self):
-        self.failed_hosts = set()
+    def __init__(self) -> None:
+        self.failed_hosts: Set[Host] = set()
+        self.dry_run: bool = False
 
-    def recover_host(self, host):
+    def recover_host(self, host: Host) -> None:
         """Remove ``host`` from list of failed hosts."""
         self.failed_hosts.discard(host)
 
-    def reset_failed_hosts(self):
+    def reset_failed_hosts(self) -> None:
         """Reset failed hosts and make all hosts available for future tasks."""
         self.failed_hosts = set()
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         """ Return a dictionary representing the object. """
         return self.__dict__
 
@@ -173,27 +177,6 @@ class Nornir(object):
         b.inventory = self.inventory.filter(**kwargs)
         return b
 
-    def _run_serial(self, task, hosts, **kwargs):
-        result = AggregatedResult(kwargs.get("name") or task.__name__)
-        for host in hosts:
-            result[host.name] = Task(task, **kwargs).start(host, self)
-        return result
-
-    def _run_parallel(self, task, hosts, num_workers, **kwargs):
-        result = AggregatedResult(kwargs.get("name") or task.__name__)
-
-        pool = Pool(processes=num_workers)
-        result_pool = [
-            pool.apply_async(Task(task, **kwargs).start, args=(h, self)) for h in hosts
-        ]
-        pool.close()
-        pool.join()
-
-        for rp in result_pool:
-            r = rp.get()
-            result[r.host.name] = r
-        return result
-
     def run(
         self,
         task,
@@ -241,10 +224,12 @@ class Nornir(object):
         )
         self.logger.debug(kwargs)
 
+        t = Task(task, nornir=self, **kwargs)
+        scheduler = TaskScheduler(t, run_on)
         if num_workers == 1:
-            result = self._run_serial(task, run_on, **kwargs)
+            result = scheduler.run_serial()
         else:
-            result = self._run_parallel(task, run_on, num_workers, **kwargs)
+            result = scheduler.run_parallel(num_workers)
 
         raise_on_error = raise_on_error if raise_on_error is not None else self.config.raise_on_error  # noqa
         if raise_on_error:

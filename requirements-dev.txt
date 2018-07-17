@@ -1,4 +1,5 @@
 decorator
+mypy
 pytest
 pytest-cov
 pylama

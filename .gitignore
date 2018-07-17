@@ -103,3 +103,4 @@ output/
 .pytest_cache/
 
 .vscode
+.mypy_cache

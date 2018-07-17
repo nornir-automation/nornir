@@ -1,179 +1,143 @@
 import importlib
 import os
+from typing import Any, Callable, Dict, List, Optional
 
 
 import yaml
 
 
-CONF = {
-    "inventory": {
-        "description": "Path to inventory modules.",
-        "type": "str",
-        "default": "nornir.plugins.inventory.simple.SimpleInventory",
-    },
-    "transform_function": {
-        "description": "Path to transform function. The transform_function you provide "
-        "will run against each host in the inventory. This is useful to manipulate host "
-        "data and make it more consumable. For instance, if your inventory has a 'user' "
-        "attribute you could use this function to map it to 'nornir_user'",
-        "type": "str",
-        "default": {},
-    },
-    "jinja_filters": {
-        "description": "Path to callable returning jinja filters to be used.",
-        "type": "str",
-        "default": {},
-    },
-    "num_workers": {
-        "description": "Number of Nornir worker processes that are run at the same time, "
-        "configuration can be overridden on individual tasks by using the "
-        "`num_workers` argument to (:obj:`nornir.core.Nornir.run`)",
-        "type": "int",
-        "default": 20,
-    },
-    "raise_on_error": {
-        "description": "If set to ``True``, (:obj:`nornir.core.Nornir.run`) method of will raise "
-        "an exception if at least a host failed.",
-        "type": "bool",
-        "default": False,
-    },
-    "ssh_config_file": {
-        "description": "User ssh_config_file",
-        "type": "str",
-        "default": os.path.join(os.path.expanduser("~"), ".ssh", "config"),
-        "default_doc": "~/.ssh/config",
-    },
-    "logging_dictConfig": {
-        "description": "Configuration dictionary schema supported by the logging subsystem. "
-        "Overrides rest of logging_* parameters.",
-        "type": "dict",
-        "default": {},
-    },
-    "logging_level": {
-        "description": "Logging level. Can be any supported level by the logging subsystem",
-        "type": "str",
-        "default": "debug",
-    },
-    "logging_file": {
-        "description": "Logging file. Empty string disables logging to file.",
-        "type": "str",
-        "default": "nornir.log",
-    },
-    "logging_format": {
-        "description": "Logging format",
-        "type": "str",
-        "default": "%(asctime)s - %(name)12s - %(levelname)8s - %(funcName)10s() - %(message)s",
-    },
-    "logging_to_console": {
-        "description": "Whether to log to stdout or not.",
-        "type": "bool",
-        "default": False,
-    },
-    "logging_loggers": {
-        "description": "List of loggers to configure. This allows you to enable logging for "
-        "multiple loggers. For instance, you could enable logging for both nornir "
-        "and paramiko or just for paramiko. An empty list will enable logging for "
-        "all loggers.",
-        "type": "list",
-        "default": ["nornir"],
-    },
-}
-
-types = {"int": int, "str": str}
-
-
 class Config(object):
     """
-    This object handles the configuration of Nornir.
-
     Arguments:
-        config_file(``str``): Yaml configuration file.
+        inventory: Path to inventory modules
+        jinja_filters: Path to callable returning jinja filters to be used
+        logging_dictConfig: Configuration dictionary schema supported by the logging subsystem.
+        logging_format:
+        logging_level: Logging level. Can be any supported level by the logging subsystem
+        logging_loggers: List of loggers to configure. This allows you to enable logging for
+            multiple loggers. For instance, you could enable logging for both nornir and paramiko
+            or just for paramiko. An empty list will enable logging for
+        logging_to_console: Whether to log to stdout or not
+        num_workers: description": "Number of Nornir worker processes that are run at the same time,
+            configuration can be overridden on individual tasks by using the `num_workers`
+            argument to (:obj:`nornir.core.Nornir.run`)
+        transform_function: Path to transform function. The transform_function you provide
+            will run against each host in the inventory. This is useful to manipulate host
+            data and make it more consumable. For instance, if your inventory has a 'user'
+        raise_on_error: If set to ``True``, (:obj:`nornir.core.Nornir.run`) method of will raise
+            an exception if at least a host failed
+        ssh_config_file: User ssh_config_file
     """
 
-    def __init__(self, config_file=None, **kwargs):
+    class Defaults(object):
+        inventory = "nornir.plugins.inventory.simple.SimpleInventory"
+        jinja_filters = ""
+        logging_dictConfig: Dict[str, Any] = {}
+        logging_file = "nornir.log"
+        logging_format = (
+            "%(asctime)s - %(name)12s - %(levelname)8s - %(funcName)10s() - %(message)s"
+        )
+        logging_level = "debug"
+        logging_loggers = ["nornir"]
+        logging_to_console = False
+        num_workers = 20
+        raise_on_error = False
+        ssh_config_file = os.path.join(os.path.expanduser("~"), ".ssh", "config")
+        transform_function = ""
+
+    __slots__ = (
+        "_raw_config",
+        "inventory",
+        "jinja_filters",
+        "num_workers",
+        "logging_dictConfig",
+        "logging_file",
+        "logging_format",
+        "logging_level",
+        "logging_loggers",
+        "logging_to_console",
+        "raise_on_error",
+        "ssh_config_file",
+        "transform_function",
+    )
+
+    def __init__(
+        self, config_file: Optional[str] = None, **kwargs: Optional[Dict[str, Any]]
+    ) -> None:
+        self._raw_config: Dict[str, Any] = self._parse_config(config_file, **kwargs)
+
+        self.inventory: str = (
+            str(self._raw_config.get("inventory", Config.Defaults.inventory))
+        )
+        self.jinja_filters: str = (
+            str(self._raw_config.get("jinja_filters", Config.Defaults.jinja_filters))
+        )
+        self.logging_dictConfig: Dict[str, Any] = (
+            dict(
+                self._raw_config.get(
+                    "logging_dictConfig", Config.Defaults.logging_dictConfig
+                )
+            )
+        )
+        self.logging_file: str = (
+            str(self._raw_config.get("logging_file", Config.Defaults.logging_file))
+        )
+        self.logging_format: str = (
+            str(self._raw_config.get("logging_format", Config.Defaults.logging_format))
+        )
+        self.logging_level: str = (
+            str(self._raw_config.get("logging_level", Config.Defaults.logging_level))
+        )
+        self.logging_loggers: List[str] = (
+            list(
+                self._raw_config.get("logging_loggers", Config.Defaults.logging_loggers)
+            )
+        )
+        self.logging_to_console: bool = (
+            bool(
+                self._raw_config.get(
+                    "logging_to_console", Config.Defaults.logging_to_console
+                )
+            )
+        )
+        self.num_workers: int = (
+            int(self._raw_config.get("num_workers", Config.Defaults.num_workers))
+        )
+        self.raise_on_error: bool = (
+            bool(self._raw_config.get("raise_on_error", Config.Defaults.raise_on_error))
+        )
+        self.transform_function: str = (
+            str(
+                self._raw_config.get(
+                    "transform_function", Config.Defaults.transform_function
+                )
+            )
+        )
+
+    def _parse_config(
+        self, config_file: Optional[str], **kwargs: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        result: Dict[str, Any] = {}
         if config_file:
             with open(config_file, "r") as f:
-                data = yaml.load(f.read()) or {}
-        else:
-            data = {}
+                result = yaml.load(f.read()) or {}
 
-        for parameter, param_conf in CONF.items():
-            self._assign_property(parameter, param_conf, data)
+        result.update(kwargs)
 
-        for k, v in data.items():
-            if k not in CONF:
-                setattr(self, k, v)
+        for k in self.__slots__:
+            if not k.startswith("_"):
+                v = os.environ.get(f"BRIGADE_{k.upper()}")
+                if v:
+                    result[k] = v
+        return result
 
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-
-        resolve_imports = ["inventory", "transform_function", "jinja_filters"]
-        for r in resolve_imports:
-            obj = self._resolve_import_from_string(kwargs.get(r, getattr(self, r)))
-            setattr(self, r, obj)
-
-        callable_func = ["jinja_filters"]
-        for c in callable_func:
-            func = getattr(self, c)
-            if func:
-                setattr(self, c, func())
-
-    def string_to_bool(self, v):
-        if v.lower() in ["false", "no", "n", "off", "0"]:
-            return False
-
-        else:
-            return True
-
-    def _assign_property(self, parameter, param_conf, data):
-        v = None
-        if param_conf["type"] in ("bool", "int", "str"):
-            env = param_conf.get("env") or "BRIGADE_" + parameter.upper()
-            v = os.environ.get(env)
-        if v is None:
-            v = data.get(parameter, param_conf["default"])
-        else:
-            if param_conf["type"] == "bool":
-                v = self.string_to_bool(v)
-            else:
-                v = types[param_conf["type"]](v)
-        setattr(self, parameter, v)
-
-    def get(self, parameter, env=None, default=None, parameter_type="str", root=""):
-        """
-        Retrieve a custom parameter from the configuration.
-
-        Arguments:
-            parameter(str): Name of the parameter to retrieve
-            env(str): Environment variable name to retrieve the object from
-            default: default value in case no parameter is found
-            parameter_type(str): if a value is found cast the variable to this type
-            root(str): parent key in the configuration file where to look for the parameter
-        """
-        value = os.environ.get(env) if env else None
-        if value is None:
-            if root:
-                d = getattr(self, root, {})
-                value = d.get(parameter, default)
-            else:
-                value = getattr(self, parameter, default)
-        if parameter_type in [bool, "bool"]:
-            if not isinstance(value, bool):
-                value = self.string_to_bool(value)
-        else:
-            value = types[str(parameter_type)](value)
-        return value
-
-    def _resolve_import_from_string(self, import_path):
+    def _resolve_import_from_string(self, import_path: str) -> Callable[..., Any]:
         """
         Resolves import from a string. Checks if callable or path is given.
 
         Arguments:
             import_path(str): path of the import
         """
-        if not import_path or callable(import_path):
-            return import_path
-
         module_name = ".".join(import_path.split(".")[:-1])
         obj_name = import_path.split(".")[-1]
         module = importlib.import_module(module_name)
