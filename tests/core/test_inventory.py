@@ -205,6 +205,8 @@ class Test(object):
         assert not inventory.hosts["dev1.group_1"].has_parent_group(
             inventory.groups["group_2"]
         )
+        assert inventory.hosts["dev1.group_1"].has_parent_group("group_1")
+        assert not inventory.hosts["dev1.group_1"].has_parent_group("group_2")
 
     def test_to_dict(self):
         expected = {
@@ -236,10 +238,12 @@ class Test(object):
             },
             "groups": {
                 "defaults": {},
+                "parent_group": {"a_var": "blah", "name": "parent_group"},
                 "group_1": {
                     "name": "group_1",
                     "my_var": "comes_from_group_1",
                     "site": "site1",
+                    "groups": ["parent_group"],
                 },
                 "group_2": {"name": "group_2", "site": "site2"},
             },

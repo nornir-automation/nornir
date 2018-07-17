@@ -113,11 +113,21 @@ class Host(object):
 
     def has_parent_group(self, group):
         """Retuns whether the object is a child of the :obj:`Group` ``group``"""
+        if isinstance(group, str):
+            return self._has_parent_group_by_name(group)
+
+        else:
+            return self._has_parent_group_by_object(group)
+
+    def _has_parent_group_by_name(self, group):
+        for g in self.groups:
+            if g.name == group or g.has_parent_group(group):
+                return True
+
+    def _has_parent_group_by_object(self, group):
         for g in self.groups:
             if g is group or g.has_parent_group(group):
                 return True
-
-        return False
 
     def __getitem__(self, item):
         try:
@@ -376,5 +386,6 @@ class Inventory(object):
         groups = {k: v.to_dict() for k, v in self.groups.items()}
         groups["defaults"] = self.defaults
         return {
-            "hosts": {k: v.to_dict() for k, v in self.hosts.items()}, "groups": groups
+            "hosts": {k: v.to_dict() for k, v in self.hosts.items()},
+            "groups": groups,
         }

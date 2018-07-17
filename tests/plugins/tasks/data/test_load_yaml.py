@@ -11,6 +11,7 @@ data_dir = "{}/test_data".format(os.path.dirname(os.path.realpath(__file__)))
 
 
 class Test(object):
+
     def test_load_yaml(self, nornir):
         test_file = "{}/simple.yaml".format(data_dir)
         result = nornir.run(data.load_yaml, file=test_file)
