@@ -1,41 +1,10 @@
 import logging
 import logging.config
-import sys
 from multiprocessing.dummy import Pool
 
 from nornir.core.configuration import Config
 from nornir.core.task import AggregatedResult, Task
 from nornir.plugins.tasks import connections
-
-
-if sys.version_info.major == 2:
-    import copy_reg
-    import types
-
-    # multithreading requires objects passed around to be pickable
-    # following methods allow py2 to know how to pickle methods
-
-    def _pickle_method(method):
-        func_name = method.im_func.__name__
-        obj = method.im_self
-        cls = method.im_class
-        return _unpickle_method, (func_name, obj, cls)
-
-    def _unpickle_method(func_name, obj, cls):
-        for cls_tmp in cls.mro():
-            try:
-                func = cls_tmp.__dict__[func_name]
-            except KeyError:
-                pass
-            else:
-                break
-
-        else:
-            raise ValueError("Method ({}) not found for obj: {}".format(func_name, obj))
-
-        return func.__get__(obj, cls_tmp)
-
-    copy_reg.pickle(types.MethodType, _pickle_method, _unpickle_method)
 
 
 class Data(object):
