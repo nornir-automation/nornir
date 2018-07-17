@@ -35,7 +35,6 @@ def compare_lists(left, right):
 
 
 class Test(object):
-
     def test_hosts(self):
         defaults = {"var4": "ALL"}
         g1 = Group(name="g1", var1="1", var2="2", var3="3")
@@ -140,10 +139,12 @@ class Test(object):
 
     def test_filtering(self):
         unfiltered = sorted(list(inventory.hosts.keys()))
-        assert (
-            unfiltered
-            == ["dev1.group_1", "dev2.group_1", "dev3.group_2", "dev4.group_2"]
-        )
+        assert unfiltered == [
+            "dev1.group_1",
+            "dev2.group_1",
+            "dev3.group_2",
+            "dev4.group_2",
+        ]
 
         www = sorted(list(inventory.filter(role="www").hosts.keys()))
         assert www == ["dev1.group_1", "dev3.group_2"]
@@ -210,6 +211,11 @@ class Test(object):
             "hosts": {
                 "dev1.group_1": {
                     "name": "dev1.group_1",
+                    "nested_data": {
+                        "a_dict": {"a": 1, "b": 2},
+                        "a_list": [1, 2],
+                        "a_string": "asdasd",
+                    },
                     "groups": ["group_1"],
                     "my_var": "comes_from_dev1.group_1",
                     "www_server": "nginx",
@@ -231,7 +237,9 @@ class Test(object):
             "groups": {
                 "defaults": {},
                 "group_1": {
-                    "name": "group_1", "my_var": "comes_from_group_1", "site": "site1"
+                    "name": "group_1",
+                    "my_var": "comes_from_group_1",
+                    "site": "site1",
                 },
                 "group_2": {"name": "group_2", "site": "site2"},
             },
