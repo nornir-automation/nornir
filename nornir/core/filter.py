@@ -1,4 +1,5 @@
 class F_OP_BASE(object):
+
     def __init__(self, op1, op2):
         self.op1 = op1
         self.op2 = op2
@@ -14,16 +15,19 @@ class F_OP_BASE(object):
 
 
 class AND(F_OP_BASE):
+
     def __call__(self, host):
         return self.op1(host) and self.op2(host)
 
 
 class OR(F_OP_BASE):
+
     def __call__(self, host):
         return self.op1(host) or self.op2(host)
 
 
 class F(object):
+
     def __init__(self, **kwargs):
         self.filters = kwargs
 
@@ -53,9 +57,11 @@ class F(object):
             operator = "__{}__".format(rule[0])
             if hasattr(data, operator):
                 return getattr(data, operator)(value)
+
             elif hasattr(data, rule[0]):
                 if callable(getattr(data, rule[0])):
                     return getattr(data, rule[0])(value)
+
                 else:
                     return getattr(data, rule[0]) == value
 
@@ -69,6 +75,7 @@ class F(object):
 
 
 class NOT_F(F):
+
     def __call__(self, host):
         return not any(
             F._verify_rules(host, k.split("__"), v) for k, v in self.filters.items()
