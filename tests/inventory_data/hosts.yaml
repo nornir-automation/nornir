@@ -7,6 +7,12 @@ dev1.group_1:
     role: www
     nornir_ssh_port: 65001
     nornir_nos: eos
+    nested_data:
+        a_dict:
+            a: 1
+            b: 2
+        a_list: [1, 2]
+        a_string: "asdasd"
 
 dev2.group_1:
     groups:
@@ -14,6 +20,12 @@ dev2.group_1:
     role: db
     nornir_ssh_port: 65002
     nornir_nos: junos
+    nested_data:
+        a_dict:
+            b: 2
+            c: 3
+        a_list: [2, 3]
+        a_string: "qwe"
 
 dev3.group_2:
     groups:
