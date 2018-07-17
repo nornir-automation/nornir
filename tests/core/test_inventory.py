@@ -204,12 +204,19 @@ class Test(object):
         assert not inventory.hosts["dev1.group_1"].has_parent_group(
             inventory.groups["group_2"]
         )
+        assert inventory.hosts["dev1.group_1"].has_parent_group("group_1")
+        assert not inventory.hosts["dev1.group_1"].has_parent_group("group_2")
 
     def test_to_dict(self):
         expected = {
             "hosts": {
                 "dev1.group_1": {
                     "name": "dev1.group_1",
+                    "nested_data": {
+                        "a_dict": {"a": 1, "b": 2},
+                        "a_list": [1, 2],
+                        "a_string": "asdasd",
+                    },
                     "groups": ["group_1"],
                     "my_var": "comes_from_dev1.group_1",
                     "www_server": "nginx",
@@ -230,8 +237,12 @@ class Test(object):
             },
             "groups": {
                 "defaults": {},
+                "parent_group": {"a_var": "blah", "name": "parent_group"},
                 "group_1": {
-                    "name": "group_1", "my_var": "comes_from_group_1", "site": "site1"
+                    "name": "group_1",
+                    "my_var": "comes_from_group_1",
+                    "site": "site1",
+                    "groups": ["parent_group"],
                 },
                 "group_2": {"name": "group_2", "site": "site2"},
             },

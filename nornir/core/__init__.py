@@ -131,7 +131,7 @@ class Nornir(object):
         if dictConfig["root"]["handlers"]:
             logging.config.dictConfig(dictConfig)
 
-    def filter(self, **kwargs):
+    def filter(self, *args, **kwargs):
         """
         See :py:meth:`nornir.core.inventory.Inventory.filter`
 
@@ -139,7 +139,7 @@ class Nornir(object):
             :obj:`Nornir`: A new object with same configuration as ``self`` but filtered inventory.
         """
         b = Nornir(dry_run=self.dry_run, **self.__dict__)
-        b.inventory = self.inventory.filter(**kwargs)
+        b.inventory = self.inventory.filter(*args, **kwargs)
         return b
 
     def _run_serial(self, task, hosts, **kwargs):
