@@ -31,6 +31,7 @@ AnsibleGroupsDict = Dict[str, AnsibleGroupDataDict]
 
 
 class AnsibleParser(object):
+
     def __init__(self, hostsfile: str) -> None:
         self.hostsfile = hostsfile
         self.path = os.path.dirname(hostsfile)
@@ -60,7 +61,9 @@ class AnsibleParser(object):
         self.parse_hosts(data.get("hosts", {}), parent=group)
 
         for children, children_data in data.get("children", {}).items():
-            self.parse_group(children, cast(AnsibleGroupDataDict, children_data), parent=group)
+            self.parse_group(
+                children, cast(AnsibleGroupDataDict, children_data), parent=group
+            )
 
     def parse(self) -> None:
         if self.original_data is not None:
@@ -136,6 +139,7 @@ class INIParser(AnsibleParser):
     def normalize_value(value: str) -> Union[str, int]:
         try:
             return int(value)
+
         except (ValueError, TypeError):
             return value
 
@@ -152,14 +156,17 @@ class INIParser(AnsibleParser):
         return result
 
     @staticmethod
-    def process_meta(meta: Optional[str], section: MutableMapping[str, str]) -> Dict[str, Any]:
+    def process_meta(
+        meta: Optional[str], section: MutableMapping[str, str]
+    ) -> Dict[str, Any]:
         if meta == "vars":
             return {
-                key: INIParser.normalize_value(value)
-                for key, value in section.items()
+                key: INIParser.normalize_value(value) for key, value in section.items()
             }
+
         elif meta == "children":
             return {group_name: {} for group_name in section}
+
         else:
             raise ValueError(f"Unknown tag {meta}")
 
@@ -167,11 +174,13 @@ class INIParser(AnsibleParser):
         groups: DefaultDict[str, Dict[str, Any]] = defaultdict(dict)
         # Dict[str, AnsibleGroupDataDict] does not work because of
         # https://github.com/python/mypy/issues/5359
-        result: Dict[str, Dict[str, Dict[str, Dict[str, Any]]]] = {"all": {"children": groups}}
+        result: Dict[str, Dict[str, Dict[str, Dict[str, Any]]]] = {
+            "all": {"children": groups}
+        }
 
         for section_name, section in data.items():
 
-            if section_name == 'DEFAULT':
+            if section_name == "DEFAULT":
                 continue
 
             if ":" in section_name:
@@ -197,6 +206,7 @@ class INIParser(AnsibleParser):
 
 
 class YAMLParser(AnsibleParser):
+
     def load_hosts_file(self) -> None:
         with open(self.hostsfile, "r") as f:
             yml = ruamel.yaml.YAML(typ="rt", pure=True)
@@ -214,6 +224,7 @@ def parse(hostsfile: str) -> Tuple[HostsDict, GroupsDict]:
                 "couldn't parse '{}' as neither a ini nor yaml file".format(hostsfile)
             )
             raise
+
     parser.parse()
 
     return parser.hosts, parser.groups

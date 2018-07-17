@@ -6,7 +6,12 @@ from nornir.core.task import Result, Task
 GetterOptionsDict = Optional[Dict[str, Dict[str, Any]]]
 
 
-def napalm_get(task: Task, getters: List[str], getters_options: GetterOptionsDict = None, **kwargs: Any) -> Result:
+def napalm_get(
+    task: Task,
+    getters: List[str],
+    getters_options: GetterOptionsDict = None,
+    **kwargs: Any
+) -> Result:
     """
     Gather information from network devices using napalm
 

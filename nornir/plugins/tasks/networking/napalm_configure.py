@@ -5,7 +5,7 @@ from nornir.core.task import Result, Task
 
 def napalm_configure(
     task: Task,
-    dry_run: bool = False,
+    dry_run: Optional[bool] = None,
     filename: Optional[str] = None,
     configuration: Optional[str] = None,
     replace: bool = False,

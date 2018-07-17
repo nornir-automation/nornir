@@ -35,6 +35,7 @@ def get_dst_hash(task: Task, filename: str) -> str:
             return ""
 
         raise
+
     return ""
 
 
@@ -47,7 +48,9 @@ def remote_exists(sftp_client: paramiko.SFTPClient, f: str) -> bool:
         return False
 
 
-def compare_put_files(task: Task, sftp_client: paramiko.SFTPClient, src: str, dst: str) -> List[str]:
+def compare_put_files(
+    task: Task, sftp_client: paramiko.SFTPClient, src: str, dst: str
+) -> List[str]:
     changed = []
     if os.path.isfile(src):
         src_hash = get_src_hash(src)
@@ -68,7 +71,9 @@ def compare_put_files(task: Task, sftp_client: paramiko.SFTPClient, src: str, ds
     return changed
 
 
-def compare_get_files(task: Task, sftp_client: paramiko.SFTPClient, src: str, dst: str) -> List[str]:
+def compare_get_files(
+    task: Task, sftp_client: paramiko.SFTPClient, src: str, dst: str
+) -> List[str]:
     changed = []
     if stat.S_ISREG(sftp_client.stat(src).st_mode):
         # is a file
@@ -90,21 +95,37 @@ def compare_get_files(task: Task, sftp_client: paramiko.SFTPClient, src: str, ds
     return changed
 
 
-def get(task: Task, scp_client: SCPClient, sftp_client: paramiko.SFTPClient, src: str, dst: str, dry_run: Optional[bool] = None) -> List[str]:
+def get(
+    task: Task,
+    scp_client: SCPClient,
+    sftp_client: paramiko.SFTPClient,
+    src: str,
+    dst: str,
+    dry_run: Optional[bool] = None,
+) -> List[str]:
     changed = compare_get_files(task, sftp_client, src, dst)
     if changed and not dry_run:
         scp_client.get(src, dst, recursive=True)
     return changed
 
 
-def put(task: Task, scp_client: SCPClient, sftp_client: paramiko.SFTPClient, src: str, dst: str, dry_run: Optional[bool] = None) -> List[str]:
+def put(
+    task: Task,
+    scp_client: SCPClient,
+    sftp_client: paramiko.SFTPClient,
+    src: str,
+    dst: str,
+    dry_run: Optional[bool] = None,
+) -> List[str]:
     changed = compare_put_files(task, sftp_client, src, dst)
     if changed and not dry_run:
         scp_client.put(src, dst, recursive=True)
     return changed
 
 
-def sftp(task: Task, src: str, dst: str, action: str, dry_run: Optional[bool] = None) -> Result:
+def sftp(
+    task: Task, src: str, dst: str, action: str, dry_run: Optional[bool] = None
+) -> Result:
     """
     Transfer files from/to the device using sftp protocol
 

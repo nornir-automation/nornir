@@ -4,7 +4,13 @@ from nornir.core.task import Result, Task
 import requests
 
 
-def http_method(task: Optional[Task] = None, method: str = "get", url: str = "", raise_for_status: bool = True, **kwargs: Any) -> Result:
+def http_method(
+    task: Optional[Task] = None,
+    method: str = "get",
+    url: str = "",
+    raise_for_status: bool = True,
+    **kwargs: Any
+) -> Result:
     """
     This is a convenience task that uses `requests <http://docs.python-requests.org/en/master/>`_ to
     interact with an HTTP server.

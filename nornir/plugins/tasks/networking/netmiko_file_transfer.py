@@ -4,7 +4,9 @@ from nornir.core.task import Result, Task
 from netmiko import file_transfer
 
 
-def netmiko_file_transfer(task: Task, source_file: str, dest_file: str, **kwargs: Any) -> Result:
+def netmiko_file_transfer(
+    task: Task, source_file: str, dest_file: str, **kwargs: Any
+) -> Result:
     """
     Execute Netmiko file_transfer method
 

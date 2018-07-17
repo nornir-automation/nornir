@@ -57,8 +57,12 @@ class NSOTInventory(Inventory):
             )
             headers = {nsot_auth_header: nsot_email}
 
-        devices: List[VarsDict] = requests.get("{}/devices".format(nsot_url), headers=headers).json()
-        sites: List[VarsDict] = requests.get("{}/sites".format(nsot_url), headers=headers).json()
+        devices: List[VarsDict] = requests.get(
+            "{}/devices".format(nsot_url), headers=headers
+        ).json()
+        sites: List[VarsDict] = requests.get(
+            "{}/sites".format(nsot_url), headers=headers
+        ).json()
         interfaces: List[VarsDict] = requests.get(
             "{}/interfaces".format(nsot_url), headers=headers
         ).json()

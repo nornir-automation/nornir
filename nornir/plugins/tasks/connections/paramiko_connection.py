@@ -2,7 +2,7 @@ import os
 
 import paramiko
 
-from nornir.core.inventory.task import Task
+from nornir.core.task import Task
 
 
 def paramiko_connection(task: Task) -> None:

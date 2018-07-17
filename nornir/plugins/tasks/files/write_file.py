@@ -27,7 +27,13 @@ def _generate_diff(filename: str, content: str, append: bool) -> str:
     return "\n".join(diff)
 
 
-def write_file(task: Task, filename: str, content: str, append: bool = False, dry_run: Optional[bool] = None) -> Result:
+def write_file(
+    task: Task,
+    filename: str,
+    content: str,
+    append: bool = False,
+    dry_run: Optional[bool] = None,
+) -> Result:
     """
     Write contents to a file (locally)
 

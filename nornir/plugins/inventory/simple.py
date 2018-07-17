@@ -116,7 +116,12 @@ class SimpleInventory(Inventory):
             domain: cmh.acme.com
     """
 
-    def __init__(self, host_file: str = "hosts.yaml", group_file: str = "groups.yaml", **kwargs: Any) -> None:
+    def __init__(
+        self,
+        host_file: str = "hosts.yaml",
+        group_file: str = "groups.yaml",
+        **kwargs: Any
+    ) -> None:
         with open(host_file, "r") as f:
             hosts: HostsDict = ruamel.yaml.safe_load(f.read())
 

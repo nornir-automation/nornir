@@ -33,7 +33,12 @@ def _get_color(result: Result, failed: bool) -> str:
 
 
 def _print_individual_result(
-    result: Result, host: Optional[str], attrs: List[str], failed: bool, severity_level: int, task_group: bool = False
+    result: Result,
+    host: Optional[str],
+    attrs: List[str],
+    failed: bool,
+    severity_level: int,
+    task_group: bool = False,
 ) -> None:
     if result.severity_level < severity_level:
         return
@@ -59,7 +64,11 @@ def _print_individual_result(
 
 
 def _print_result(
-    result: Result, host: Optional[str] = None, attrs: List[str] = None, failed: bool = False, severity_level: int = logging.INFO
+    result: Result,
+    host: Optional[str] = None,
+    attrs: List[str] = None,
+    failed: bool = False,
+    severity_level: int = logging.INFO,
 ) -> None:
     attrs = attrs or ["diff", "result", "stdout"]
     if isinstance(attrs, str):
@@ -91,7 +100,11 @@ def _print_result(
 
 
 def print_result(
-    result: Result, host: Optional[str] = None, vars: List[str] = None, failed: bool = False, severity_level: int = logging.INFO
+    result: Result,
+    host: Optional[str] = None,
+    vars: List[str] = None,
+    failed: bool = False,
+    severity_level: int = logging.INFO,
 ) -> None:
     """
     Prints the :obj:`nornir.core.task.Result` from a previous task to screen
