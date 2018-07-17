@@ -36,10 +36,8 @@ class NBInventory(Inventory):
                 temp = {}
 
                 # Add value for IP address
-                try:
-                    temp["nornir_host"] = d["primary_ip"]
-                except TypeError:
-                    temp["nornir_host"] = None
+                if d.get("primary_ip", {}):
+                    temp["nornir_host"] = d["primary_ip"]["address"].split("/")[0]
 
                 # Add values that don't have an option for 'slug'
                 temp["serial"] = d["serial"]
@@ -59,10 +57,7 @@ class NBInventory(Inventory):
                     temp["model"] = d["device_type"]["slug"]
 
                     # Attempt to add 'platform' based of value in 'slug'
-                    try:
-                        temp["nornir_nos"] = d["platform"]["slug"]
-                    except TypeError:
-                        temp["nornir_nos"] = None
+                    temp["nornir_nos"] = d["platform"]["slug"] if d["platform"] else None
 
                 else:
                     temp["site"] = d["site"]["name"]
