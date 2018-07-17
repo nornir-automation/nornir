@@ -11,7 +11,6 @@ inventory = SimpleInventory(
 
 
 class Test(object):
-
     def test_simple(self):
         f = F(site="site1")
         filtered = sorted(list((inventory.filter(f).hosts.keys())))
@@ -101,8 +100,14 @@ class Test(object):
 
         assert filtered == ["dev1.group_1", "dev2.group_1"]
 
-    def test_has_parent_group(self):
+    def test_filtering_by_callable_has_parent_group(self):
         f = F(has_parent_group="parent_group")
         filtered = sorted(list((inventory.filter(f).hosts.keys())))
 
         assert filtered == ["dev1.group_1", "dev2.group_1"]
+
+    def test_filtering_by_attribute_name(self):
+        f = F(name="dev1.group_1")
+        filtered = sorted(list((inventory.filter(f).hosts.keys())))
+
+        assert filtered == ["dev1.group_1"]
