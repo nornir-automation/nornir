@@ -1,5 +1,4 @@
 colorama
-pyyaml
 jinja2
 napalm>=2.3.0
 netmiko>=2.1.1
