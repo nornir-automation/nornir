@@ -1,9 +1,13 @@
 import logging
 import pprint
+import threading
+
+from colorama import Fore, Style, init
 
 from nornir.core.task import AggregatedResult, MultiResult, Result
 
-from colorama import Fore, Style, init
+
+LOCK = threading.Lock()
 
 
 init(autoreset=True, convert=False, strip=False)
@@ -53,22 +57,9 @@ def _print_individual_result(
             print(x)
 
 
-def print_result(
+def _print_result(
     result, host=None, vars=None, failed=None, severity_level=logging.INFO
 ):
-    """
-    Prints the :obj:`nornir.core.task.Result` from a previous task to screen
-
-    Arguments:
-        result (:obj:`nornir.core.task.Result`): from a previous task
-        vars (list of str): Which attributes you want to print
-        failed (``bool``): if ``True`` assume the task failed
-        severity_level (int): Print only errors with this severity level or higher
-
-    Returns:
-        :obj:`nornir.core.task.Result`:
-    """
-
     vars = vars or ["diff", "result", "stdout"]
     if isinstance(vars, str):
         vars = [vars]
@@ -84,15 +75,37 @@ def print_result(
             print(
                 "{}{}{}{}".format(Style.BRIGHT, Fore.BLUE, msg, "*" * (80 - len(msg)))
             )
-            print_result(host_data, host, vars, failed, severity_level)
+            _print_result(host_data, host, vars, failed, severity_level)
     elif isinstance(result, MultiResult):
         _print_individual_result(
             result[0], host, vars, failed, severity_level, task_group=True
         )
         for r in result[1:]:
-            print_result(r, host, vars, failed, severity_level)
+            _print_result(r, host, vars, failed, severity_level)
         color = _get_color(result[0], failed)
         msg = "^^^^ END {} ".format(result[0].name)
         print("{}{}{}{}".format(Style.BRIGHT, color, msg, "^" * (80 - len(msg))))
     elif isinstance(result, Result):
         _print_individual_result(result, host, vars, failed, severity_level)
+
+
+def print_result(
+    result, host=None, vars=None, failed=None, severity_level=logging.INFO
+):
+    """
+    Prints the :obj:`nornir.core.task.Result` from a previous task to screen
+
+    Arguments:
+        result (:obj:`nornir.core.task.Result`): from a previous task
+        vars (list of str): Which attributes you want to print
+        failed (``bool``): if ``True`` assume the task failed
+        severity_level (int): Print only errors with this severity level or higher
+
+    Returns:
+        :obj:`nornir.core.task.Result`:
+    """
+    LOCK.acquire()
+    try:
+        _print_result(result, host, vars, failed, severity_level)
+    finally:
+        LOCK.release()

@@ -10,7 +10,7 @@ with open("README.md", "r") as fs:
 __author__ = "dbarrosop@dravetech.com"
 __license__ = "Apache License, version 2"
 
-__version__ = "1.0.1"
+__version__ = "1.1.0"
 
 setup(
     name="nornir",
@@ -27,11 +27,6 @@ setup(
     test_suite="tests",
     platforms="any",
     classifiers=[
-        "Development Status :: 4 - Beta",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.4",
-        "Programming Language :: Python :: 3.5",
-        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.6", "Programming Language :: Python :: 3.7"
     ],
 )

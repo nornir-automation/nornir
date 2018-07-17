@@ -21,11 +21,10 @@ def paramiko_connection(task=None):
             ssh_config.parse(f)
 
     parameters = {
-        "hostname": host.host,
-        "username": host.username,
-        "password": host.password,
-        "port": host.ssh_port,
+        "hostname": host.host, "username": host.username, "password": host.password
     }
+    if host.ssh_port:
+        parameters["port"] = host.ssh_port
 
     user_config = ssh_config.lookup(host.host)
     for k in ("hostname", "username", "port"):
@@ -34,6 +33,8 @@ def paramiko_connection(task=None):
 
     if "proxycommand" in user_config:
         parameters["sock"] = paramiko.ProxyCommand(user_config["proxycommand"])
+
+    task.host._ssh_forward_agent = user_config.get("forwardagent") == "yes"
 
     # TODO configurable
     #  if ssh_key_file:
