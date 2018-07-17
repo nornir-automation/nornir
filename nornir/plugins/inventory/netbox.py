@@ -65,7 +65,7 @@ class NBInventory(Inventory):
                     temp["model"] = d["device_type"]
                     temp["nornir_nos"] = d["platform"]
 
-                # Copy temporary dict to outer dict
+                # Assign temporary dict to outer dict
                 devices[d["name"]] = temp
 
         except KeyError:
