@@ -1,4 +1,8 @@
+from typing import Any
+
 from netmiko import ConnectHandler
+
+from nornir.core.task import Task
 
 napalm_to_netmiko_map = {
     "ios": "cisco_ios",
@@ -9,7 +13,7 @@ napalm_to_netmiko_map = {
 }
 
 
-def netmiko_connection(task, **netmiko_args):
+def netmiko_connection(task: Task, **netmiko_args: Any) -> None:
     """Connect to the host using Netmiko and set the relevant connection in the connection map.
 
     Precedence: ``**netmiko_args`` > discrete inventory attributes > inventory netmiko_options

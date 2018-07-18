@@ -17,6 +17,8 @@ matrix:
     env: TOXENV=black
   - python: 3.6
     env: TOXENV=pylama
+  - python: 3.6
+    env: TOXENV=mypy
 install:
 - pip install tox tox-travis coveralls
 script:
