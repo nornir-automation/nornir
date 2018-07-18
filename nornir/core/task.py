@@ -28,14 +28,25 @@ class Task(object):
         nornir(:obj:`nornir.core.Nornir`): Populated right before calling
           the ``task``
         severity_level (logging.LEVEL): Severity level associated to the task
+
+    Properties:
+        dry_run: whether the task can perform any changes
     """
 
-    def __init__(self, task, name=None, severity_level=logging.INFO, **kwargs):
+    def __init__(
+        self,
+        task,
+        name=None,
+        severity_level=logging.INFO,
+        dry_run: bool = False,
+        **kwargs
+    ):
         self.name = name or task.__name__
         self.task = task
         self.params = kwargs
         self.results = MultiResult(self.name)
         self.severity_level = severity_level
+        self._dry_run = dry_run
 
     def __repr__(self):
         return self.name
@@ -110,14 +121,9 @@ class Task(object):
 
         return r
 
-    def is_dry_run(self, override=None):
-        """
-        Returns whether current task is a dry_run or not.
-
-        Arguments:
-            override (bool): Override for current task
-        """
-        return override if override is not None else self.nornir.dry_run
+    @property
+    def dry_run(self) -> bool:
+        return self._dry_run or self.nornir.dry_run
 
 
 class Result(object):

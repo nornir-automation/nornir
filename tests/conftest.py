@@ -50,6 +50,6 @@ def nornir(request):
             "{}/inventory_data/hosts.yaml".format(dir_path),
             "{}/inventory_data/groups.yaml".format(dir_path),
         ),
-        dry_run=True,
+        dry_run=False,
     )
     return nornir
