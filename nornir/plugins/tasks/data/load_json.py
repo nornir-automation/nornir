@@ -20,6 +20,7 @@ def load_json(task: Task, file: str, ordered_dict: bool = False) -> Result:
             > nr.run(task=load_json,
                      file="mydata.json",
                      ordered_dict=True)
+
         file: path to the file containing the json file to load
 
     Returns:
