@@ -13,9 +13,12 @@ class Test(object):
     def test_napalm_configure_change_dry_run(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_configure_change_dry_run"}
         configuration = "hostname changed-hostname"
+
         d = nornir.filter(name="dev3.group_2")
         d.run(connections.napalm_connection, optional_args=opt)
-        result = d.run(networking.napalm_configure, configuration=configuration)
+        result = d.run(
+            networking.napalm_configure, dry_run=True, configuration=configuration
+        )
         assert result
         for h, r in result.items():
             assert "+hostname changed-hostname" in r.diff
@@ -24,6 +27,7 @@ class Test(object):
     def test_napalm_configure_change_commit(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_configure_change_commit/step1"}
         configuration = "hostname changed-hostname"
+
         d = nornir.filter(name="dev3.group_2")
         d.run(connections.napalm_connection, optional_args=opt)
         result = d.run(
