@@ -6,3 +6,4 @@ paramiko
 future
 requests
 ruamel.yaml
+mypy_extensions

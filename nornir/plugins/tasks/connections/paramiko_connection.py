@@ -2,8 +2,10 @@ import os
 
 import paramiko
 
+from nornir.core.task import Task
 
-def paramiko_connection(task=None):
+
+def paramiko_connection(task: Task) -> None:
     """
     This tasks connects to the device with paramiko to the device and sets the
     relevant connection.

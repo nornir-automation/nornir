@@ -1,4 +1,10 @@
+from typing import Dict, Any
+
 import getpass
+
+VarsDict = Dict[str, Any]
+HostsDict = Dict[str, VarsDict]
+GroupsDict = Dict[str, VarsDict]
 
 
 class Host(object):

@@ -1,15 +1,16 @@
-from nornir.core.task import Result
-
 import ruamel.yaml
+from typing import Dict
+
+from nornir.core.task import Result, Task
 
 
-def load_yaml(task, file, ordered_dict=False):
+def load_yaml(task: Task, file: str, ordered_dict: bool = False):
     """
     Loads a yaml file.
 
     Arguments:
-        file (str): path to the file containing the yaml file to load
-        ordered_dict (bool): If set to true used OrderedDict to load maps
+        file: path to the file containing the yaml file to load
+        ordered_dict: If set to true used OrderedDict to load maps
 
     Examples:
 
@@ -20,10 +21,10 @@ def load_yaml(task, file, ordered_dict=False):
                      ordered_dict=True)
 
     Returns:
-        :obj:`nornir.core.task.Result`:
+        Result object with the following attributes set:
           * result (``dict``): dictionary with the contents of the file
     """
-    kwargs = {}
+    kwargs: Dict[str, str] = {}
     kwargs["typ"] = "rt" if ordered_dict else "safe"
     with open(file, "r") as f:
         yml = ruamel.yaml.YAML(pure=True, **kwargs)
