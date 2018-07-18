@@ -1,17 +1,24 @@
-from nornir.core.task import Result
+from typing import Optional, Any
+from nornir.core.task import Result, Task
 
 import requests
 
 
-def http_method(task=None, method="get", url="", raise_for_status=True, **kwargs):
+def http_method(
+    task: Optional[Task] = None,
+    method: str = "get",
+    url: str = "",
+    raise_for_status: bool = True,
+    **kwargs: Any
+) -> Result:
     """
     This is a convenience task that uses `requests <http://docs.python-requests.org/en/master/>`_ to
     interact with an HTTP server.
 
     Arguments:
-        method (string): HTTP method to call
-        url (string): URL to connect to
-        raise_for_status (bool): Whether to call `raise_for_status
+        method: HTTP method to call
+        url: URL to connect to
+        raise_for_status: Whether to call `raise_for_status
             <http://docs.python-requests.org/en/master/api/#requests.Response.raise_for_status>`_
             method automatically or not. For quick reference, raise_for_status will consider an
             error if the return code is any of 4xx or 5xx
@@ -20,10 +27,10 @@ def http_method(task=None, method="get", url="", raise_for_status=True, **kwargs
             method
 
     Returns:
-        :obj:`nornir.core.task.Result`:
+        Result object with the following attributes set:
           * result (``string/dict``): Body of the response. Either text or a dict if the
             response was a json object
-          * reponse (object): Original `Response
+          * response (``requests.Response``): Original `Response
             <http://docs.python-requests.org/en/master/api/#requests.Response>`_
     """
     r = requests.request(method, url, **kwargs)

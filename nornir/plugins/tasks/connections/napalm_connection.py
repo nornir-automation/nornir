@@ -1,14 +1,20 @@
+from typing import Optional, Dict, Any
+
 from napalm import get_network_driver
 
+from nornir.core.task import Task
 
-def napalm_connection(task=None, timeout=60, optional_args=None):
+
+def napalm_connection(
+    task: Task, timeout: int = 60, optional_args: Optional[Dict[str, Any]] = None
+) -> None:
     """
-    This tasks connects to the device using the NAPALM driver and sets the
+    This task connects to the device using the NAPALM driver and sets the
     relevant connection.
 
     Arguments:
-        timeout (int, optional): defaults to 60
-        optional_args (dict, optional): defaults to `{"port": task.host["nornir_network_api_port"]}`
+        timeout: defaults to 60
+        optional_args: defaults to `{"port": task.host["nornir_network_api_port"]}`
 
     Inventory:
         napalm_options: maps directly to ``optional_args`` when establishing the connection
@@ -39,7 +45,7 @@ def napalm_connection(task=None, timeout=60, optional_args=None):
         if platform == "nxos":
             if not host.network_api_port:
                 if host.ssh_port or parameters["optional_args"].get("port") == 22:
-                    platform == "nxos_ssh"
+                    platform = "nxos_ssh"
 
         # Fallback for community drivers (priority api_port over ssh_port)
         if platform not in (api_platforms + ssh_platforms):

@@ -1,8 +1,8 @@
 import logging
 import os
-from builtins import super
+from typing import Any
 
-from nornir.core.inventory import Inventory
+from nornir.core.inventory import Inventory, GroupsDict, HostsDict, VarsDict
 
 import ruamel.yaml
 
@@ -116,19 +116,24 @@ class SimpleInventory(Inventory):
             domain: cmh.acme.com
     """
 
-    def __init__(self, host_file="hosts.yaml", group_file="groups.yaml", **kwargs):
+    def __init__(
+        self,
+        host_file: str = "hosts.yaml",
+        group_file: str = "groups.yaml",
+        **kwargs: Any
+    ) -> None:
         with open(host_file, "r") as f:
-            hosts = ruamel.yaml.safe_load(f.read())
+            hosts: HostsDict = ruamel.yaml.safe_load(f.read())
 
         if group_file:
             if os.path.exists(group_file):
                 with open(group_file, "r") as f:
-                    groups = ruamel.yaml.safe_load(f.read())
+                    groups: GroupsDict = ruamel.yaml.safe_load(f.read())
             else:
                 logging.warning("{}: doesn't exist".format(group_file))
                 groups = {}
         else:
             groups = {}
 
-        defaults = groups.pop("defaults", {})
+        defaults: VarsDict = groups.pop("defaults", {})
         super().__init__(hosts, groups, defaults, **kwargs)

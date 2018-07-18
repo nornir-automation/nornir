@@ -3,7 +3,6 @@ from collections import OrderedDict
 
 from nornir.plugins.tasks import data
 
-
 from ruamel.yaml.scanner import ScannerError
 
 

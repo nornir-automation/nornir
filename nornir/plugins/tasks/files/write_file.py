@@ -1,10 +1,11 @@
 import difflib
 import os
+from typing import List, Optional
 
-from nornir.core.task import Result
+from nornir.core.task import Result, Task
 
 
-def _read_file(file):
+def _read_file(file: str) -> List[str]:
     if not os.path.exists(file):
         return []
 
@@ -12,33 +13,40 @@ def _read_file(file):
         return f.read().splitlines()
 
 
-def _generate_diff(filename, content, append):
+def _generate_diff(filename: str, content: str, append: bool) -> str:
     original = _read_file(filename)
     if append:
         c = list(original)
         c.extend(content.splitlines())
-        content = c
+        new_content = c
     else:
-        content = content.splitlines()
+        new_content = content.splitlines()
 
-    diff = difflib.unified_diff(original, content, fromfile=filename, tofile="new")
+    diff = difflib.unified_diff(original, new_content, fromfile=filename, tofile="new")
 
     return "\n".join(diff)
 
 
-def write_file(task, filename, content, append=False, dry_run=None):
+def write_file(
+    task: Task,
+    filename: str,
+    content: str,
+    append: bool = False,
+    dry_run: Optional[bool] = None,
+) -> Result:
     """
     Write contents to a file (locally)
 
     Arguments:
-        dry_run (bool): Whether to apply changes or not
-        filename (``str``): file you want to write into
-        conteint (``str``): content you want to write
-        append (``bool``): whether you want to replace the contents or append to it
+        dry_run: Whether to apply changes or not
+        filename: file you want to write into
+        content: content you want to write
+        append: whether you want to replace the contents or append to it
 
     Returns:
-        * changed (``bool``):
-        * diff (``str``): unified diff
+        Result object with the following attributes set:
+          * changed (``bool``):
+          * diff (``str``): unified diff
     """
     diff = _generate_diff(filename, content, append)
 

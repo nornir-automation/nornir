@@ -1,6 +1,7 @@
 import logging
 import traceback
-from builtins import super
+
+from typing import Optional
 
 from nornir.core.exceptions import NornirExecutionError
 from nornir.core.exceptions import NornirSubTaskError
@@ -162,6 +163,9 @@ class Result(object):
         self.exception = exception
         self.name = None
         self.severity_level = severity_level
+
+        self.stdout: Optional[str] = None
+        self.stderr: Optional[str] = None
 
         for k, v in kwargs.items():
             setattr(self, k, v)

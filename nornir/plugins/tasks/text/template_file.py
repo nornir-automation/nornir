@@ -1,20 +1,30 @@
+from typing import Any, Optional, Dict, Callable
+
 from nornir.core.helpers import jinja_helper, merge_two_dicts
-from nornir.core.task import Result
+from nornir.core.task import Result, Task
+
+FiltersDict = Optional[Dict[str, Callable[..., str]]]
 
 
-def template_file(task, template, path, jinja_filters=None, **kwargs):
+def template_file(
+    task: Task,
+    template: str,
+    path: str,
+    jinja_filters: FiltersDict = None,
+    **kwargs: Any
+):
     """
     Renders contants of a file with jinja2. All the host data is available in the tempalte
 
     Arguments:
-        template (string): filename
-        path (string): path to dir with templates
-        jinja_filters (dict): jinja filters to enable. Defaults to nornir.config.jinja_filters
+        template: filename
+        path: path to dir with templates
+        jinja_filters: jinja filters to enable. Defaults to nornir.config.jinja_filters
         **kwargs: additional data to pass to the template
 
     Returns:
-        :obj:`nornir.core.task.Result`:
-            * result (``string``): rendered string
+        Result object with the following attributes set:
+          * result (``string``): rendered string
     """
     jinja_filters = jinja_filters or {} or task.nornir.config.jinja_filters
     merged = merge_two_dicts(task.host, kwargs)

@@ -1,7 +1,14 @@
-from nornir.core.task import Result
+from typing import Optional, Dict, Any
+from nornir.core.task import Result, Task
+
+ValidationSourceData = Optional[Dict[str, Dict[str, Any]]]
 
 
-def napalm_validate(task, src=None, validation_source=None):
+def napalm_validate(
+    task: Task,
+    src: Optional[str] = None,
+    validation_source: ValidationSourceData = None,
+) -> Result:
     """
     Gather information with napalm and validate it:
 
@@ -9,10 +16,10 @@ def napalm_validate(task, src=None, validation_source=None):
 
     Arguments:
         src: file to use as validation source
-        validation_source (list): instead of a file data needed to validate device's state
+        validation_source (list): data to validate device's state
 
     Returns:
-      :obj:`nornir.core.task.Result`:
+        Result object with the following attributes set:
         * result (``dict``): dictionary with the result of the validation
         * complies (``bool``): Whether the device complies or not
     """
