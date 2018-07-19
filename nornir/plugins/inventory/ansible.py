@@ -31,7 +31,6 @@ AnsibleGroupsDict = Dict[str, AnsibleGroupDataDict]
 
 
 class AnsibleParser(object):
-
     def __init__(self, hostsfile: str) -> None:
         self.hostsfile = hostsfile
         self.path = os.path.dirname(hostsfile)
@@ -134,7 +133,6 @@ class AnsibleParser(object):
 
 
 class INIParser(AnsibleParser):
-
     @staticmethod
     def normalize_value(value: str) -> Union[str, int]:
         try:
@@ -206,7 +204,6 @@ class INIParser(AnsibleParser):
 
 
 class YAMLParser(AnsibleParser):
-
     def load_hosts_file(self) -> None:
         with open(self.hostsfile, "r") as f:
             yml = ruamel.yaml.YAML(typ="rt", pure=True)
