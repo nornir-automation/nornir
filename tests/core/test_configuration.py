@@ -11,7 +11,6 @@ dir_path = os.path.join(
 
 
 class Test(object):
-
     def test_configuration_empty(self):
         config = Config(
             config_file=os.path.join(dir_path, "empty.yaml"),

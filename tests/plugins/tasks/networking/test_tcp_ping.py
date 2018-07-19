@@ -11,7 +11,6 @@ ext_inv_file = "{}/../../../inventory_data/external_hosts.yaml".format(cur_dir)
 
 
 class Test(object):
-
     def test_tcp_ping_port(self, nornir):
         filter = nornir.filter(name="dev4.group_2")
         result = filter.run(networking.tcp_ping, ports=65004)

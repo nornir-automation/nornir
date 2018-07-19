@@ -61,7 +61,6 @@ def read_data(task):
 
 
 class Test(object):
-
     @wrap_cli_test(output="{}/basic_single".format(output_dir))
     def test_print_basic(self, nornir):
         filter = nornir.filter(name="dev1.group_1")

@@ -20,7 +20,6 @@ def sub_task(task):
 
 
 class Test(object):
-
     def test_task(self, nornir):
         result = nornir.run(commands.command, command="echo hi")
         assert result

@@ -128,7 +128,6 @@ def _test_append(task):
 
 
 class Test(object):
-
     def test_write_file(self, nornir):
         nornir.run(_test_write_file)
 

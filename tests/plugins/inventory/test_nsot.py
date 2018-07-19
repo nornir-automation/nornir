@@ -29,7 +29,6 @@ def transform_function(host):
 
 
 class Test(object):
-
     def test_inventory(self, requests_mock):
         inv = get_inv(requests_mock, "1.3.0", transform_function=transform_function)
         assert len(inv.hosts) == 4

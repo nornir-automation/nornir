@@ -24,7 +24,6 @@ my_var: {{ my_var}}
 
 
 class Test(object):
-
     def test_template_string(self, nornir):
 
         result = nornir.run(text.template_string, template=simple_j2)
