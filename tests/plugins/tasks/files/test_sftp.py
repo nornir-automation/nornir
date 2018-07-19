@@ -49,7 +49,6 @@ def get_directory(task):
 
 
 class Test(object):
-
     def test_sftp_put(self, nornir):
         result = nornir.run(
             files.sftp,

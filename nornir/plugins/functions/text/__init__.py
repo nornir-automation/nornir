@@ -44,8 +44,8 @@ def _print_individual_result(
         return
 
     color = _get_color(result, failed)
-    subtitle = "" if result.changed is None else " ** changed : {} ".format(
-        result.changed
+    subtitle = (
+        "" if result.changed is None else " ** changed : {} ".format(result.changed)
     )
     level_name = logging.getLevelName(result.severity_level)
     symbol = "v" if task_group else "-"
@@ -78,8 +78,10 @@ def _print_result(
         msg = result.name
         print("{}{}{}{}".format(Style.BRIGHT, Fore.CYAN, msg, "*" * (80 - len(msg))))
         for host, host_data in sorted(result.items()):
-            title = "" if host_data.changed is None else " ** changed : {} ".format(
-                host_data.changed
+            title = (
+                ""
+                if host_data.changed is None
+                else " ** changed : {} ".format(host_data.changed)
             )
             msg = "* {}{}".format(host, title)
             print(

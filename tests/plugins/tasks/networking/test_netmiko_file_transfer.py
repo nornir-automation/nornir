@@ -6,7 +6,6 @@ THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
 class Test(object):
-
     def test_netmiko_file_transfer(self, nornir):
         source_file = os.path.join(THIS_DIR, "data", "test_file.txt")
         dest_file = "test_file.txt"

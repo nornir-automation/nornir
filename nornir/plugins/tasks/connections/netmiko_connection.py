@@ -23,7 +23,9 @@ def netmiko_connection(task: Task, **netmiko_args: Any) -> None:
     """
     host = task.host
     parameters = {
-        "host": host.host, "username": host.username, "password": host.password
+        "host": host.host,
+        "username": host.username,
+        "password": host.password,
     }
     if host.ssh_port:
         parameters["port"] = host.ssh_port

@@ -7,7 +7,6 @@ data_dir = "{}/test_data".format(os.path.dirname(os.path.realpath(__file__)))
 
 
 class Test(object):
-
     def test_load_json(self, nornir):
         test_file = "{}/simple.json".format(data_dir)
         result = nornir.run(data.load_json, file=test_file)

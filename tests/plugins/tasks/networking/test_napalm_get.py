@@ -7,7 +7,6 @@ THIS_DIR = os.path.dirname(os.path.realpath(__file__)) + "/mocked/napalm_get"
 
 
 class Test(object):
-
     def test_napalm_getters(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_getters"}
         d = nornir.filter(name="dev3.group_2")
