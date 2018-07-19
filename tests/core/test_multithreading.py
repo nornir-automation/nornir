@@ -31,7 +31,6 @@ def verify_data_change(task):
 
 
 class Test(object):
-
     def test_blocking_task_single_thread(self, nornir):
         t1 = datetime.datetime.now()
         nornir.run(blocking_task, wait=0.5, num_workers=1)

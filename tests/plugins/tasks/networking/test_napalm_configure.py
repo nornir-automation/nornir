@@ -9,7 +9,6 @@ THIS_DIR = os.path.dirname(os.path.realpath(__file__)) + "/mocked/napalm_configu
 
 
 class Test(object):
-
     def test_napalm_configure_change_dry_run(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_configure_change_dry_run"}
         configuration = "hostname changed-hostname"

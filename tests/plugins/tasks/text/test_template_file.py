@@ -10,7 +10,6 @@ data_dir = "{}/test_data".format(os.path.dirname(os.path.realpath(__file__)))
 
 
 class Test(object):
-
     def test_template_file(self, nornir):
         result = nornir.run(text.template_file, template="simple.j2", path=data_dir)
 

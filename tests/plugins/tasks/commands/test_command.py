@@ -8,7 +8,6 @@ def echo_hostname(task):
 
 
 class Test(object):
-
     def test_command(self, nornir):
         result = nornir.run(echo_hostname)
         assert result

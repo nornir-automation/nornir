@@ -11,7 +11,6 @@ BASE_URL = "http://localhost:65080"
 
 
 class Test(object):
-
     def test_simple_get_text(self):
         url = "{}/encoding/utf8".format(BASE_URL)
         result = http_method(method="get", url=url)

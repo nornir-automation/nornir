@@ -12,7 +12,6 @@ THIS_DIR = os.path.dirname(os.path.realpath(__file__)) + "/mocked/napalm_cli"
 
 
 class Test(object):
-
     def test_napalm_cli(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_cli"}
         d = nornir.filter(name="dev3.group_2")

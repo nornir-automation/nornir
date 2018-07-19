@@ -392,5 +392,6 @@ class Inventory(object):
         groups = {k: v.to_dict() for k, v in self.groups.items()}
         groups["defaults"] = self.defaults
         return {
-            "hosts": {k: v.to_dict() for k, v in self.hosts.items()}, "groups": groups
+            "hosts": {k: v.to_dict() for k, v in self.hosts.items()},
+            "groups": groups,
         }

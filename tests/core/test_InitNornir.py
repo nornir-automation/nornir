@@ -14,14 +14,12 @@ def transform_func(host):
 
 
 class StringInventory(Inventory):
-
     def __init__(self, *args, **kwargs):
         hosts = {"host1": {}, "host2": {}}
         super().__init__(hosts, *args, **kwargs)
 
 
 class Test(object):
-
     def test_InitNornir_defaults(self):
         os.chdir("tests/inventory_data/")
         try:

@@ -11,7 +11,6 @@ inventory = SimpleInventory(
 
 
 class Test(object):
-
     def test_simple(self):
         f = F(site="site1")
         filtered = sorted(list((inventory.filter(f).hosts.keys())))

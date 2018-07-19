@@ -2,7 +2,6 @@ from nornir.plugins.tasks import connections, networking
 
 
 class Test(object):
-
     def test_explicit_netmiko_connection(self, nornir):
         nornir.filter(name="dev4.group_2").run(task=connections.netmiko_connection)
         result = nornir.filter(name="dev4.group_2").run(
