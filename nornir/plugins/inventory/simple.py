@@ -122,13 +122,14 @@ class SimpleInventory(Inventory):
         group_file: str = "groups.yaml",
         **kwargs: Any
     ) -> None:
+        yml = ruamel.yaml.YAML()
         with open(host_file, "r") as f:
-            hosts: HostsDict = ruamel.yaml.safe_load(f.read())
+            hosts: HostsDict = yml.load(f)
 
         if group_file:
             if os.path.exists(group_file):
                 with open(group_file, "r") as f:
-                    groups: GroupsDict = ruamel.yaml.safe_load(f.read())
+                    groups: GroupsDict = yml.load(f)
             else:
                 logging.warning("{}: doesn't exist".format(group_file))
                 groups = {}
