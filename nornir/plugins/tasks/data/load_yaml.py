@@ -1,5 +1,3 @@
-from typing import Dict
-
 from nornir.core.task import Result, Task
 
 import ruamel.yaml
@@ -23,9 +21,8 @@ def load_yaml(task: Task, file: str):
         Result object with the following attributes set:
           * result (``dict``): dictionary with the contents of the file
     """
-    kwargs: Dict[str, str] = {}
     with open(file, "r") as f:
-        yml = ruamel.yaml.YAML(pure=True, **kwargs)
-        data = yml.load(f.read())
+        yml = ruamel.yaml.YAML(pure=True)
+        data = yml.load(f)
 
     return Result(host=task.host, result=data)

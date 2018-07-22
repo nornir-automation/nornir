@@ -104,7 +104,7 @@ class AnsibleParser(object):
 
         with open(filepath, "r") as f:
             logger.debug("AnsibleInventory: reading var file: {}".format(filepath))
-            yml = ruamel.yaml.YAML(typ="rt", pure=True)
+            yml = ruamel.yaml.YAML()
             return yml.load(f)
 
     @staticmethod
@@ -206,8 +206,8 @@ class INIParser(AnsibleParser):
 class YAMLParser(AnsibleParser):
     def load_hosts_file(self) -> None:
         with open(self.hostsfile, "r") as f:
-            yml = ruamel.yaml.YAML(typ="rt", pure=True)
-            self.original_data = cast(AnsibleGroupsDict, yml.load(f.read()))
+            yml = ruamel.yaml.YAML()
+            self.original_data = cast(AnsibleGroupsDict, yml.load(f))
 
 
 def parse(hostsfile: str) -> Tuple[HostsDict, GroupsDict]:
