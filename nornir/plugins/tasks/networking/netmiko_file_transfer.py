@@ -21,7 +21,7 @@ def netmiko_file_transfer(
           * changed (``bool``): the destination file was changed
 
     """
-    net_connect = task.host.get_connection("netmiko")
+    net_connect = task.host.get_connection("netmiko").connection
     kwargs.setdefault("direction", "put")
     scp_result = file_transfer(
         net_connect, source_file=source_file, dest_file=dest_file, **kwargs

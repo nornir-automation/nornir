@@ -20,11 +20,12 @@ def remote_command(task: Task, command: str) -> Result:
     Raises:
         :obj:`nornir.core.exceptions.CommandError`: when there is a command error
     """
-    client = task.host.get_connection("paramiko")
+    connection = task.host.get_connection("paramiko")
+    client = connection.connection
 
     chan = client.get_transport().open_session()
 
-    if task.host._ssh_forward_agent:
+    if connection.state["ssh_forward_agent"]:
         AgentRequestHandler(chan)
 
     chan.exec_command(command)

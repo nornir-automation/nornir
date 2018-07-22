@@ -1,5 +1,5 @@
 import copy
-from typing import List, Optional, Dict, Any
+from typing import Any, Dict, List, Optional
 
 from nornir.core.task import Result, Task
 
@@ -46,7 +46,7 @@ def napalm_get(
         Result object with the following attributes set:
           * result (``dict``): dictionary with the result of the getter
     """
-    device = task.host.get_connection("napalm")
+    device = task.host.get_connection("napalm").connection
     getters_options = getters_options or {}
 
     if isinstance(getters, str):
