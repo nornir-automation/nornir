@@ -7,7 +7,6 @@ Tasks
 
    apis
    commands
-   connections
    data
    files
    networking
