@@ -1,10 +1,12 @@
 import logging
 import logging.config
 from multiprocessing.dummy import Pool
+from typing import Type
 
 from nornir.core.configuration import Config
+from nornir.core.connections import ConnectionPlugin
 from nornir.core.task import AggregatedResult, Task
-from nornir.plugins.tasks import connections
+from nornir.plugins import connections
 
 
 class Data(object):
@@ -14,10 +16,12 @@ class Data(object):
 
     Attributes:
         failed_hosts (list): Hosts that have failed to run a task properly
+        available_connections (dict): Dictionary holding available connection plugins
     """
 
     def __init__(self):
         self.failed_hosts = set()
+        self.available_connections = connections.available_connections
 
     def recover_host(self, host):
         """Remove ``host`` from list of failed hosts."""
@@ -51,7 +55,6 @@ class Nornir(object):
         data(:obj:`nornir.core.Data`): shared data amongst different iterations of nornir
         dry_run(``bool``): Whether if we are testing the changes or not
         config (:obj:`nornir.core.configuration.Config`): Configuration parameters
-        available_connections (``dict``): dict of connection types are available
     """
 
     def __init__(
@@ -79,9 +82,7 @@ class Nornir(object):
         self.configure_logging()
 
         if available_connections is not None:
-            self.available_connections = available_connections
-        else:
-            self.available_connections = connections.available_connections
+            self.data.available_connections = available_connections
 
     @property
     def dry_run(self):
@@ -230,6 +231,10 @@ class Nornir(object):
     def to_dict(self):
         """ Return a dictionary representing the object. """
         return {"data": self.data.to_dict(), "inventory": self.inventory.to_dict()}
+
+    def get_connection_type(self, connection: str) -> Type[ConnectionPlugin]:
+        """Returns the class for the given connection type."""
+        return self.data.available_connections[connection]
 
 
 def InitNornir(config_file="", dry_run=False, **kwargs):
