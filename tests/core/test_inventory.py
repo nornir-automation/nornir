@@ -246,6 +246,7 @@ class Test(object):
                     "groups": ["parent_group"],
                 },
                 "group_2": {"name": "group_2", "site": "site2"},
+                "empty_group": {"name": "empty_group"},
             },
         }
         assert inventory.filter(role="www").to_dict() == expected
