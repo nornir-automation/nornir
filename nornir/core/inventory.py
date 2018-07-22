@@ -304,11 +304,23 @@ class Inventory(object):
 
         self.defaults = defaults or {}
 
-        self.groups = groups or {}
-        for n, g in self.groups.items():
-            if isinstance(g, dict):
-                g = Group(name=n, nornir=nornir, **g)
-            self.groups[n] = g
+        self.groups: Dict[str, Group] = {}
+        if groups is not None:
+            for group_name, group_details in groups.items():
+                if group_details is None:
+                    group = Group(name=group_name, nornir=nornir)
+                elif isinstance(group_details, dict):
+                    group = Group(name=group_name, nornir=nornir, **group_details)
+                elif isinstance(group_details, Group):
+                    group = group_details
+                else:
+                    raise ValueError(
+                        f"Parsing group {group_name}: "
+                        f"expected dict or Group object, "
+                        f"got {type(group_details)} instead"
+                    )
+
+                self.groups[group_name] = group
 
         for group in self.groups.values():
             group.groups = self._resolve_groups(group.groups)
