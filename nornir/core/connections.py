@@ -55,7 +55,4 @@ class UnestablishedConnection(object):
 
 
 class Connections(Dict[str, ConnectionPlugin]):
-    def __del__(self):
-        for connection in self.values():
-            if connection is not None:
-                connection.close()
+    pass

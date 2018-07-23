@@ -329,6 +329,11 @@ class Host(object):
         """ Close the connection"""
         self.connections[connection].close()
 
+    def close_connections(self) -> None:
+        for connection in self.connections.values():
+            if connection is not None:
+                connection.close()
+
 
 class Group(Host):
     """Same as :obj:`Host`"""
