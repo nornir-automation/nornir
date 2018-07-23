@@ -61,6 +61,8 @@ class F(object):
                 else:
                     return getattr(data, rule[0]) == value
 
+            elif rule == ["in"]:
+                return data in value
             else:
                 return data.get(rule[0]) == value
 
