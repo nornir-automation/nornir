@@ -199,20 +199,40 @@ class Host(object):
         """String used to connect to the device. Either ``nornir_host`` or ``self.name``"""
         return self.get("nornir_host", self.name)
 
+    @host.setter
+    def host(self, value):
+        """Allow host to be assigned as an attribute."""
+        self.data['nornir_host'] = value
+
     @property
     def username(self):
         """Either ``nornir_username`` or user running the script."""
         return self.get("nornir_username", getpass.getuser())
+
+    @username.setter
+    def username(self, value):
+        """Allow username to be assigned as an attribute."""
+        self.data['nornir_username'] = value
 
     @property
     def password(self):
         """Either ``nornir_password`` or empty string."""
         return self.get("nornir_password", "")
 
+    @password.setter
+    def password(self, value):
+        """Allow password to be assigned as an attribute."""
+        self.data['nornir_password'] = value
+
     @property
     def ssh_port(self):
         """Either ``nornir_ssh_port`` or ``None``."""
         return self.get("nornir_ssh_port")
+
+    @ssh_port.setter
+    def ssh_port(self, value):
+        """Allow ssh_port to be assigned as an attribute."""
+        self.data['nornir_ssh_port'] = value
 
     @property
     def network_api_port(self):
@@ -222,15 +242,30 @@ class Host(object):
         """
         return self.get("nornir_network_api_port")
 
+    @network_api_port.setter
+    def network_api_port(self, value):
+        """Allow network_api_port to be assigned as an attribute."""
+        self.data['nornir_network_api_port'] = value
+
     @property
     def os(self):
         """OS the device is running. Defaults to ``nornir_os``."""
         return self.get("nornir_os")
 
+    @os.setter
+    def os(self, value):
+        """Allow os to be assigned as an attribute."""
+        self.data['nornir_os'] = value
+
     @property
     def nos(self):
         """Network OS the device is running. Defaults to ``nornir_nos``."""
         return self.get("nornir_nos")
+
+    @nos.setter
+    def nos(self, value):
+        """Allow nos to be assigned as an attribute."""
+        self.data['nornir_nos'] = value
 
     def get_connection(self, connection: str) -> ConnectionPlugin:
         """
