@@ -37,9 +37,10 @@ class Napalm(ConnectionPlugin):
             "hostname": hostname,
             "username": username,
             "password": password,
-            "timeout": connection_options.get("timeout"),
             "optional_args": connection_options or {},
         }
+        if connection_options.get("timeout"):
+            parameters["timeout"] = connection_options["timeout"]
 
         network_driver = get_network_driver(nos)
         connection = network_driver(**parameters)
