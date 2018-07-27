@@ -7,7 +7,6 @@ import requests
 
 
 class NBInventory(Inventory):
-
     def __init__(
         self,
         nb_url=None,
@@ -24,52 +23,48 @@ class NBInventory(Inventory):
         headers = {"Authorization": "Token {}".format(nb_token)}
 
         # Create dict of hosts using 'devices' from NetBox
+        r = requests.get("{}/api/dcim/devices/?limit=0".format(nb_url), headers=headers)
+        r.raise_for_status()
+        nb_devices = r.json()
+
         devices = {}
-        nb_devices = requests.get(
-            "{}/api/dcim/devices/?limit=0".format(nb_url), headers=headers
-        ).json()
+        for d in nb_devices["results"]:
 
-        try:
-            for d in nb_devices["results"]:
+            # Create temporary dict
+            temp = {}
 
-                # Create temporary dict
-                temp = {}
+            # Add value for IP address
+            if d.get("primary_ip", {}):
+                temp["nornir_host"] = d["primary_ip"]["address"].split("/")[0]
 
-                # Add value for IP address
-                if d.get("primary_ip", {}):
-                    temp["nornir_host"] = d["primary_ip"]["address"].split("/")[0]
+            # Add values that don't have an option for 'slug'
+            temp["serial"] = d["serial"]
+            temp["vendor"] = d["device_type"]["manufacturer"]["name"]
+            temp["asset_tag"] = d["asset_tag"]
 
-                # Add values that don't have an option for 'slug'
-                temp["serial"] = d["serial"]
-                temp["vendor"] = d["device_type"]["manufacturer"]["name"]
-                temp["asset_tag"] = d["asset_tag"]
+            if flatten_custom_fields:
+                for cf, value in d["custom_fields"].items():
+                    temp[cf] = value
+            else:
+                temp["custom_fields"] = d["custom_fields"]
 
-                if flatten_custom_fields:
-                    for cf, value in d["custom_fields"].items():
-                        temp[cf] = value
-                else:
-                    temp["custom_fields"] = d["custom_fields"]
+            # Add values that do have an option for 'slug'
+            if use_slugs:
+                temp["site"] = d["site"]["slug"]
+                temp["role"] = d["device_role"]["slug"]
+                temp["model"] = d["device_type"]["slug"]
 
-                # Add values that do have an option for 'slug'
-                if use_slugs:
-                    temp["site"] = d["site"]["slug"]
-                    temp["role"] = d["device_role"]["slug"]
-                    temp["model"] = d["device_type"]["slug"]
+                # Attempt to add 'platform' based of value in 'slug'
+                temp["nornir_nos"] = d["platform"]["slug"] if d["platform"] else None
 
-                    # Attempt to add 'platform' based of value in 'slug'
-                    temp["nornir_nos"] = d["platform"]["slug"] if d["platform"] else None
+            else:
+                temp["site"] = d["site"]["name"]
+                temp["role"] = d["device_role"]
+                temp["model"] = d["device_type"]
+                temp["nornir_nos"] = d["platform"]
 
-                else:
-                    temp["site"] = d["site"]["name"]
-                    temp["role"] = d["device_role"]
-                    temp["model"] = d["device_type"]
-                    temp["nornir_nos"] = d["platform"]
-
-                # Assign temporary dict to outer dict
-                devices[d["name"]] = temp
-
-        except KeyError:
-            print(nb_devices["detail"])
+            # Assign temporary dict to outer dict
+            devices[d["name"]] = temp
 
         # Pass the data back to the parent class
         super().__init__(devices, None, **kwargs)
