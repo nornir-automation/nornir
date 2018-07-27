@@ -7,6 +7,7 @@ import requests
 
 
 class NBInventory(Inventory):
+
     def __init__(
         self,
         nb_url=None,
