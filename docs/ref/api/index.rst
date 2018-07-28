@@ -2,7 +2,7 @@ Nornir API Reference
 =====================
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: Nornir API
 
    nornir

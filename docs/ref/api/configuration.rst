@@ -1,6 +1,8 @@
 Configuration
-#############
+=============
 
+Configuration
+-------------
 
 .. autoclass:: nornir.core.configuration.Config
    :members:

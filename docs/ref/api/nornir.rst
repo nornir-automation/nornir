@@ -1,18 +1,21 @@
-Data
-####
+Core
+====
 
-.. autoclass:: nornir.core.Data
-   :members:
-   :undoc-members:
+InitNornir
+----------
+
+.. automethod:: nornir.core.InitNornir
 
 Nornir
-#######
+------
 
 .. autoclass:: nornir.core.Nornir
    :members:
    :undoc-members:
 
-InitNornir
-###########
+Data
+----
 
-.. automethod:: nornir.core.InitNornir
+.. autoclass:: nornir.core.Data
+   :members:
+   :undoc-members:
