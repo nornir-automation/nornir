@@ -117,3 +117,15 @@ class Test(object):
         filtered = sorted(list((inventory.filter(f).hosts.keys())))
 
         assert filtered == ["dev3.group_2", "dev4.group_2"]
+
+    def test_filtering_list_any(self):
+        f = F(nested_data__a_list__any=[1, 3])
+        filtered = sorted(list((inventory.filter(f).hosts.keys())))
+
+        assert filtered == ["dev1.group_1", "dev2.group_1"]
+
+    def test_filtering_list_all(self):
+        f = F(nested_data__a_list__all=[1, 2])
+        filtered = sorted(list((inventory.filter(f).hosts.keys())))
+
+        assert filtered == ["dev1.group_1"]
