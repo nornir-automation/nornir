@@ -7,6 +7,8 @@ THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 
 
 def connect(task, connection_options):
+    if "napalm" in task.host.connections:
+        task.host.close_connection("napalm")
     task.host.open_connection(
         "napalm",
         hostname=task.host.username,

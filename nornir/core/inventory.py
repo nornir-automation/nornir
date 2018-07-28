@@ -3,6 +3,7 @@ from typing import Any, Dict, Optional
 
 from nornir.core.configuration import Config
 from nornir.core.connections import Connections
+from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
 
 
 VarsDict = Dict[str, Any]
@@ -272,6 +273,9 @@ class Host(object):
         """
         For an already established connection return its state.
         """
+        if connection not in self.connections:
+            raise ConnectionNotOpen(connection)
+
         return self.connections[connection].state
 
     def open_connection(
@@ -300,6 +304,9 @@ class Host(object):
         Returns:
             An already established connection
         """
+        if connection in self.connections:
+            raise ConnectionAlreadyOpen(connection)
+
         self.connections[connection] = self.nornir.get_connection_type(connection)()
         if default_to_host_attributes:
             self.connections[connection].open(
@@ -337,7 +344,10 @@ class Host(object):
 
     def close_connection(self, connection: str) -> None:
         """ Close the connection"""
-        self.connections[connection].close()
+        if connection not in self.connections:
+            raise ConnectionNotOpen(connection)
+
+        self.connections.pop(connection).close()
 
     def close_connections(self) -> None:
         for connection in self.connections.values():
