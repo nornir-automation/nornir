@@ -1,7 +1,8 @@
 from typing import Any
-from nornir.core.task import Result, Task
 
 from netmiko import file_transfer
+
+from nornir.core.task import Result, Task
 
 
 def netmiko_file_transfer(
@@ -21,7 +22,7 @@ def netmiko_file_transfer(
           * changed (``bool``): the destination file was changed
 
     """
-    net_connect = task.host.get_connection("netmiko").connection
+    net_connect = task.host.get_connection("netmiko")
     kwargs.setdefault("direction", "put")
     scp_result = file_transfer(
         net_connect, source_file=source_file, dest_file=dest_file, **kwargs

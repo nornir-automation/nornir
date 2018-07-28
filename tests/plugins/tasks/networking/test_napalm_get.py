@@ -9,7 +9,7 @@ THIS_DIR = os.path.dirname(os.path.realpath(__file__)) + "/mocked/napalm_get"
 def connect(task, connection_options):
     task.host.open_connection(
         "napalm",
-        hostname=task.host.username,
+        hostname=task.host.host,
         password=task.host.password,
         network_api_port=task.host.network_api_port,
         nos=task.host.nos,

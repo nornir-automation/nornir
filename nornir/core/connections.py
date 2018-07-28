@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, NoReturn, Optional, Union
+from typing import Any, Dict, NoReturn, Optional
 
 
 from nornir.core.configuration import Config
@@ -19,7 +19,7 @@ class ConnectionPlugin(ABC):
     __slots__ = ("connection", "state")
 
     def __init__(self) -> None:
-        self.connection: Union[Any, UnestablishedConnection] = UnestablishedConnection()
+        self.connection: Any = UnestablishedConnection()
         self.state: Dict[str, Any] = {}
 
     @abstractmethod

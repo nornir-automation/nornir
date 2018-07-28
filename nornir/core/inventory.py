@@ -2,7 +2,7 @@ import getpass
 from typing import Any, Dict, Optional
 
 from nornir.core.configuration import Config
-from nornir.core.connections import ConnectionPlugin, Connections
+from nornir.core.connections import Connections
 
 
 VarsDict = Dict[str, Any]
@@ -232,7 +232,7 @@ class Host(object):
         """Network OS the device is running. Defaults to ``nornir_nos``."""
         return self.get("nornir_nos")
 
-    def get_connection(self, connection: str) -> ConnectionPlugin:
+    def get_connection(self, connection: str) -> Any:
         """
         The function of this method is twofold:
 
@@ -266,7 +266,13 @@ class Host(object):
                 self.get(f"{connection}_options", {}),
                 config,
             )
-        return self.connections[connection]
+        return self.connections[connection].connection
+
+    def get_connection_state(self, connection: str) -> Dict[str, Any]:
+        """
+        For an already established connection return its state.
+        """
+        return self.connections[connection].state
 
     def open_connection(
         self,
@@ -297,31 +303,35 @@ class Host(object):
         self.connections[connection] = self.nornir.get_connection_type(connection)()
         if default_to_host_attributes:
             self.connections[connection].open(
-                hostname if hostname is not None else self.host,
-                username if username is not None else self.username,
-                password if password is not None else self.password,
-                ssh_port if ssh_port is not None else self.ssh_port,
-                network_api_port
+                hostname=hostname if hostname is not None else self.host,
+                username=username if username is not None else self.username,
+                password=password if password is not None else self.password,
+                ssh_port=ssh_port if ssh_port is not None else self.ssh_port,
+                network_api_port=network_api_port
                 if network_api_port is not None
                 else self.network_api_port,
-                operating_system if operating_system is not None else self.os,
-                nos if nos is not None else self.nos,
-                connection_options
+                operating_system=operating_system
+                if operating_system is not None
+                else self.os,
+                nos=nos if nos is not None else self.nos,
+                connection_options=connection_options
                 if connection_options is not None
                 else self.get(f"{connection}_options"),
-                configuration if configuration is not None else self.nornir.config,
+                configuration=configuration
+                if configuration is not None
+                else self.nornir.config,
             )
         else:
             self.connections[connection].open(
-                hostname,
-                username,
-                password,
-                ssh_port,
-                network_api_port,
-                operating_system,
-                nos,
-                connection_options,
-                configuration,
+                hostname=hostname,
+                username=username,
+                password=password,
+                ssh_port=ssh_port,
+                network_api_port=network_api_port,
+                operating_system=operating_system,
+                nos=nos,
+                connection_options=connection_options,
+                configuration=configuration,
             )
         return self.connections[connection]
 
