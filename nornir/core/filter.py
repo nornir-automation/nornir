@@ -63,6 +63,10 @@ class F(object):
 
             elif rule == ["in"]:
                 return data in value
+            elif rule == ["any"]:
+                return any([x in data for x in value])
+            elif rule == ["all"]:
+                return all([x in data for x in value])
             else:
                 return data.get(rule[0]) == value
 
