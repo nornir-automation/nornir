@@ -1,6 +1,11 @@
 Core
 ====
 
+InitNornir
+----------
+
+.. automethod:: nornir.core.InitNornir
+
 Nornir
 ------
 
@@ -8,7 +13,9 @@ Nornir
    :members:
    :undoc-members:
 
-InitNornir
-----------
+Data
+----
 
-.. automethod:: nornir.core.InitNornir
+.. autoclass:: nornir.core.Data
+   :members:
+   :undoc-members:
