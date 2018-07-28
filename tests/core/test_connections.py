@@ -62,6 +62,10 @@ def close_not_opened_connection(task):
         assert "dummy" not in task.host.connections
 
 
+def a_task(task):
+    task.host.get_connection("dummy")
+
+
 class Test(object):
     def test_open_and_close_connection(self, nornir):
         nornir.data.available_connections["dummy"] = DummyConnectionPlugin
@@ -83,3 +87,10 @@ class Test(object):
         r = nr.run(task=close_not_opened_connection, num_workers=1)
         assert len(r) == 1
         assert not r.failed
+
+    def test_context_manager(self, nornir):
+        with nornir.filter(name="dev2.group_1") as nr:
+            nr.run(task=a_task)
+            assert "dummy" in nr.inventory.hosts["dev2.group_1"].connections
+        assert "dummy" not in nr.inventory.hosts["dev2.group_1"].connections
+        nornir.data.reset_failed_hosts()

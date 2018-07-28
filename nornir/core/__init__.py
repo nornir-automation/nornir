@@ -88,7 +88,7 @@ class Nornir(object):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close_all_connections()
+        self.close_connections(on_good=True, on_failed=True)
 
     @property
     def dry_run(self):
@@ -242,11 +242,11 @@ class Nornir(object):
         """Returns the class for the given connection type."""
         return self.data.available_connections[connection]
 
-    def close_connections(self):
+    def close_connections(self, on_good=True, on_failed=False):
         def close_connections_task(task):
             task.host.close_connections()
 
-        self.run(task=close_connections_task)
+        self.run(task=close_connections_task, on_good=on_good, on_failed=on_failed)
 
 
 def InitNornir(config_file="", dry_run=False, **kwargs):

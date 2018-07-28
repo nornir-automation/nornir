@@ -72,7 +72,7 @@ class Host(object):
         self.groups = groups or []
         self.data = {}
         self.data["name"] = name
-        self.connections: Connections = Connections()
+        self.connections = Connections()
         self.defaults = defaults or {}
 
         if len(self.groups):
@@ -350,9 +350,8 @@ class Host(object):
         self.connections.pop(connection).close()
 
     def close_connections(self) -> None:
-        for connection in self.connections.values():
-            if connection is not None:
-                connection.close()
+        for connection in self.connections:
+            self.close_connection(connection)
 
 
 class Group(Host):
