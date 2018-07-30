@@ -1,6 +1,6 @@
 Connections
 ===========
 
-.. automodule:: nornir.plugins.tasks.connections
+.. automodule:: nornir.core.connections
    :members:
    :undoc-members:

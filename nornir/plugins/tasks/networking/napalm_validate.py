@@ -1,4 +1,5 @@
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
 from nornir.core.task import Result, Task
 
 ValidationSourceData = Optional[Dict[str, Dict[str, Any]]]
