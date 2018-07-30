@@ -10,7 +10,7 @@ class ConnectionAlreadyOpen(ConnectionException):
     pass
 
 
-class ConnectionNotOpen(Exception):
+class ConnectionNotOpen(ConnectionException):
     pass
 
 
