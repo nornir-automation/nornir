@@ -6,15 +6,19 @@ except ImportError:
 import logging
 import os
 from collections import defaultdict
+from pathlib import Path
 from typing import Dict, Any, Tuple, Optional, cast, Union, MutableMapping, DefaultDict
-from mypy_extensions import TypedDict
 
 import ruamel.yaml
+from mypy_extensions import TypedDict
 from ruamel.yaml.scanner import ScannerError
 from ruamel.yaml.composer import ComposerError
 
 from nornir.core.inventory import Inventory, VarsDict, GroupsDict, HostsDict
 
+VARS_FILENAME_EXTENSIONS = ["", ".yml", ".yaml"]
+
+YAML = ruamel.yaml.YAML(typ="safe")
 
 logger = logging.getLogger("nornir")
 
@@ -93,19 +97,27 @@ class AnsibleParser(object):
 
     @staticmethod
     def read_vars_file(element: str, path: str, is_host: bool = True) -> VarsDict:
-        subdir = "host_vars" if is_host else "group_vars"
-        filepath = os.path.join(path, subdir, element)
-
-        if not os.path.exists(filepath):
+        sub_dir = "host_vars" if is_host else "group_vars"
+        vars_dir = Path(path) / sub_dir
+        if vars_dir.is_dir():
+            vars_file_base = vars_dir / element
+            for extension in VARS_FILENAME_EXTENSIONS:
+                vars_file = vars_file_base.with_suffix(
+                    vars_file_base.suffix + extension
+                )
+                if vars_file.is_file():
+                    with open(vars_file) as f:
+                        logger.debug(
+                            "AnsibleInventory: reading var file: %s", vars_file
+                        )
+                        return YAML.load(f)
             logger.debug(
-                "AnsibleInventory: var file doesn't exist: {}".format(filepath)
+                "AnsibleInventory: no vars file was found with the path %s "
+                "and one of the supported extensions: %s",
+                vars_file_base,
+                VARS_FILENAME_EXTENSIONS,
             )
-            return {}
-
-        with open(filepath, "r") as f:
-            logger.debug("AnsibleInventory: reading var file: {}".format(filepath))
-            yml = ruamel.yaml.YAML()
-            return yml.load(f)
+        return {}
 
     @staticmethod
     def map_nornir_vars(obj: VarsDict):
@@ -206,8 +218,7 @@ class INIParser(AnsibleParser):
 class YAMLParser(AnsibleParser):
     def load_hosts_file(self) -> None:
         with open(self.hostsfile, "r") as f:
-            yml = ruamel.yaml.YAML()
-            self.original_data = cast(AnsibleGroupsDict, yml.load(f))
+            self.original_data = cast(AnsibleGroupsDict, YAML.load(f))
 
 
 def parse(hostsfile: str) -> Tuple[HostsDict, GroupsDict]:
