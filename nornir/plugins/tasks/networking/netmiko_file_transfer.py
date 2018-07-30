@@ -1,7 +1,8 @@
 from typing import Any
-from nornir.core.task import Result, Task
 
 from netmiko import file_transfer
+
+from nornir.core.task import Result, Task
 
 
 def netmiko_file_transfer(

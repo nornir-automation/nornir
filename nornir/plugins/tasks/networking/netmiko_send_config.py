@@ -1,4 +1,5 @@
-from typing import Optional, Any, List
+from typing import Any, List, Optional
+
 from nornir.core.task import Result, Task
 
 

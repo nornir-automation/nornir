@@ -1,6 +1,10 @@
-from typing import Dict, Any
-
 import getpass
+from typing import Any, Dict, Optional
+
+from nornir.core.configuration import Config
+from nornir.core.connections import Connections
+from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
+
 
 VarsDict = Dict[str, Any]
 HostsDict = Dict[str, VarsDict]
@@ -68,9 +72,8 @@ class Host(object):
         self.groups = groups or []
         self.data = {}
         self.data["name"] = name
-        self.connections = {}
+        self.connections = Connections()
         self.defaults = defaults or {}
-        self._ssh_forward_agent = False
 
         if len(self.groups):
             if isinstance(groups[0], str):
@@ -230,42 +233,125 @@ class Host(object):
         """Network OS the device is running. Defaults to ``nornir_nos``."""
         return self.get("nornir_nos")
 
-    def get_connection(self, connection):
+    def get_connection(self, connection: str) -> Any:
         """
         The function of this method is twofold:
 
             1. If an existing connection is already established for the given type return it
-            2. If non exists, establish a new connection of that type with default parameters
-                and return it
+            2. If none exists, establish a new connection of that type with default parameters
+               and return it
 
         Raises:
-            AttributeError: if it's unknown how to establish a connection for the given
-                type
+            AttributeError: if it's unknown how to establish a connection for the given type
 
         Arguments:
-            connection_name (str): Name of the connection, for instance, netmiko, paramiko,
-                napalm...
+            connection: Name of the connection, for instance, netmiko, paramiko, napalm...
 
         Returns:
-            An already established connection of type ``connection``
+            An already established connection
+        """
+        if self.nornir:
+            config = self.nornir.config
+        else:
+            config = None
+        if connection not in self.connections:
+            self.open_connection(
+                connection,
+                self.host,
+                self.username,
+                self.password,
+                self.ssh_port,
+                self.network_api_port,
+                self.os,
+                self.nos,
+                self.get(f"{connection}_options", {}),
+                config,
+            )
+        return self.connections[connection].connection
+
+    def get_connection_state(self, connection: str) -> Dict[str, Any]:
+        """
+        For an already established connection return its state.
         """
         if connection not in self.connections:
-            try:
-                conn_task = self.nornir.available_connections[connection]
-            except KeyError:
-                raise AttributeError(
-                    "not sure how to establish a connection for {}".format(connection)
-                )
+            raise ConnectionNotOpen(connection)
 
-            # We use `filter(name=self.name)` to call the connection task for only
-            # the given host. We also have to set `num_workers=1` because chances are
-            # we are already inside a thread
-            # Task should establish a connection and populate self.connection[connection]
-            r = self.nornir.filter(name=self.name).run(conn_task, num_workers=1)
-            if r[self.name].exception:
-                raise r[self.name].exception
+        return self.connections[connection].state
 
+    def open_connection(
+        self,
+        connection: str,
+        hostname: Optional[str] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        ssh_port: Optional[int] = None,
+        network_api_port: Optional[int] = None,
+        operating_system: Optional[str] = None,
+        nos: Optional[str] = None,
+        connection_options: Optional[Dict[str, Any]] = None,
+        configuration: Optional[Config] = None,
+        default_to_host_attributes: bool = True,
+    ) -> None:
+        """
+        Open a new connection.
+
+        If ``default_to_host_attributes`` is set to ``True`` arguments will default to host
+        attributes if not specified.
+
+        Raises:
+            AttributeError: if it's unknown how to establish a connection for the given type
+
+        Returns:
+            An already established connection
+        """
+        if connection in self.connections:
+            raise ConnectionAlreadyOpen(connection)
+
+        self.connections[connection] = self.nornir.get_connection_type(connection)()
+        if default_to_host_attributes:
+            self.connections[connection].open(
+                hostname=hostname if hostname is not None else self.host,
+                username=username if username is not None else self.username,
+                password=password if password is not None else self.password,
+                ssh_port=ssh_port if ssh_port is not None else self.ssh_port,
+                network_api_port=network_api_port
+                if network_api_port is not None
+                else self.network_api_port,
+                operating_system=operating_system
+                if operating_system is not None
+                else self.os,
+                nos=nos if nos is not None else self.nos,
+                connection_options=connection_options
+                if connection_options is not None
+                else self.get(f"{connection}_options"),
+                configuration=configuration
+                if configuration is not None
+                else self.nornir.config,
+            )
+        else:
+            self.connections[connection].open(
+                hostname=hostname,
+                username=username,
+                password=password,
+                ssh_port=ssh_port,
+                network_api_port=network_api_port,
+                operating_system=operating_system,
+                nos=nos,
+                connection_options=connection_options,
+                configuration=configuration,
+            )
         return self.connections[connection]
+
+    def close_connection(self, connection: str) -> None:
+        """ Close the connection"""
+        if connection not in self.connections:
+            raise ConnectionNotOpen(connection)
+
+        self.connections.pop(connection).close()
+
+    def close_connections(self) -> None:
+        for connection in self.connections:
+            self.close_connection(connection)
 
 
 class Group(Host):
