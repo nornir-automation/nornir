@@ -138,6 +138,21 @@ class Host(object):
             if g is group or g.has_parent_group(group):
                 return True
 
+    def __setattr__(self, name, value):
+        if name in [
+            "host",
+            "username",
+            "password",
+            "ssh_port",
+            "network_api_port",
+            "os",
+            "nos",
+        ]:
+            nornir_name = f"nornir_{name}"
+            self.data[nornir_name] = value
+        else:
+            super().__setattr__(name, value)
+
     def __getitem__(self, item):
         try:
             return self.data[item]
