@@ -1,6 +1,19 @@
 from builtins import super
 
 
+class ConnectionException(Exception):
+    def __init__(self, connection):
+        self.connection = connection
+
+
+class ConnectionAlreadyOpen(ConnectionException):
+    pass
+
+
+class ConnectionNotOpen(ConnectionException):
+    pass
+
+
 class CommandError(Exception):
     """
     Raised when there is a command error.

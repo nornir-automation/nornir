@@ -186,9 +186,16 @@ def build_configuration_parameters(app):
         f.write(rendered_template)
 
 
+def skip_slots(app, what, name, obj, skip, options):
+    if obj.__class__.__name__ == "member_descriptor":
+        return True
+    return None
+
+
 def setup(app):
     """Map methods to states of the documentation build."""
     app.connect("builder-inited", build_configuration_parameters)
+    app.connect("autodoc-skip-member", skip_slots)
     app.add_stylesheet("css/custom.css")
 
 
