@@ -26,7 +26,6 @@ def transform_function(host):
 
 
 class Test(object):
-
     def test_inventory(self, requests_mock):
         inv = get_inv(requests_mock, "2.3.5")
         with open("{}/{}/expected.json".format(BASE_PATH, "2.3.5"), "r") as f:
