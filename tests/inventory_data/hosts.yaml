@@ -47,3 +47,8 @@ dev4.group_2:
     nornir_ssh_port: 65004
     nornir_network_api_port: 65004
     nornir_nos: linux
+
+dev5.netmiko_group:
+    nornir_host: foo.bogus.com
+    groups:
+      - netmiko_group
