@@ -20,10 +20,9 @@ class Test(object):
             )
 
             netmiko_conn = nornir_obj.inventory.hosts[nornir_host].get_connection('netmiko')
-            netmiko_args = netmiko_conn.__dict__
             for k, v in test_args.items():
-                assert netmiko_args[k] == v
-            assert netmiko_args['remote_conn'] is not None
+                assert getattr(netmiko_conn, k) == v
+            assert netmiko_conn.remote_conn is not None
 
             # Close the Netmiko connections
             nornir_obj.inventory.hosts[nornir_host].close_connection("netmiko")
