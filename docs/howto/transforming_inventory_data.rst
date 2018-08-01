@@ -23,6 +23,6 @@ It turns out nornir is going to look for ``nornir_username`` and ``nornir_passwo
 What's going to happen is that the inventory is going to create the :obj:`nornir.core.inventory.Host` and :obj:`nornir.core.inventory.Group` objects as usual and then finally the ``transform_function`` is going to be called for each individual host one by one.
 
 
-Note that you can also set this in the configuration. To do so just set the full import path in as a string, i.e., ``path.to.my_lib.adapt_host_hada``
+Note that you can also set this in the configuration. To do so just set the full import path as a string, i.e., ``path.to.my_lib.adapt_host_hada``
 
 .. note:: This was a very simple example but the ``transform_function`` can basically do anything you want/need.
