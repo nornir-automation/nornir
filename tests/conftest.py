@@ -53,3 +53,18 @@ def nornir(request):
         dry_run=True,
     )
     return nornir
+
+
+@pytest.fixture(scope="session", autouse=True)
+def nornir_conn_tests(request):
+    """Connection argument parsing tests need alternate inventory files."""
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+
+    nornir = Nornir(
+        inventory=SimpleInventory(
+            "{}/inventory_data/hosts_conn.yaml".format(dir_path),
+            "{}/inventory_data/groups_conn.yaml".format(dir_path),
+        ),
+        dry_run=True,
+    )
+    return nornir

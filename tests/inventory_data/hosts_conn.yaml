@@ -47,3 +47,19 @@ dev4.group_2:
     nornir_ssh_port: 65004
     nornir_network_api_port: 65004
     nornir_nos: linux
+
+dev5.group_2:
+    nornir_host: foo.bogus.com
+    nornir_nos: cisco_ios
+    nornir_ssh_port: 6500
+    nornir_username: foo
+    nornir_password: bar
+    groups:
+      - group_2
+    netmiko_options:
+      # netmiko_options should take precedence
+      host: 127.0.0.1
+      username: root 
+      password: docker
+      device_type: linux
+      port: 65004
