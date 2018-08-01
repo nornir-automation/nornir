@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 from netmiko import ConnectHandler
 
@@ -37,8 +37,12 @@ class Netmiko(ConnectionPlugin):
         configuration: Optional[Config] = None,
     ) -> None:
 
-        parameters = {"host": hostname, "username": username, "password": password}
-        if ssh_port is not None:
+        parameters: Dict[str, Union[str, int]] = {
+            "host": hostname,
+            "username": username,
+            "password": password,
+        }
+        if ssh_port:
             parameters["port"] = ssh_port
 
         if nos is not None:
