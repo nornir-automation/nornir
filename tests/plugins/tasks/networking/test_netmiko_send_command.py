@@ -5,21 +5,21 @@ class Test(object):
     def test_netmiko_conn(self, nornir_conn_tests):
 
         test_args = {
-            'device_type': 'linux',
-            'host': '127.0.0.1',
-            'username': 'root',
-            'password': 'docker',
-            'port': 65004,
+            "device_type": "linux",
+            "host": "127.0.0.1",
+            "username": "root",
+            "password": "docker",
+            "port": 65004,
         }
 
         test_hosts = ["dev4.group_2", "dev5.group_2"]
         for nornir_host in test_hosts:
             nornir_obj = nornir_conn_tests.filter(name=nornir_host)
-            nornir_obj.run(
-                networking.netmiko_send_command, command_string="hostname"
-            )
+            nornir_obj.run(networking.netmiko_send_command, command_string="hostname")
 
-            netmiko_conn = nornir_obj.inventory.hosts[nornir_host].get_connection('netmiko')
+            netmiko_conn = nornir_obj.inventory.hosts[nornir_host].get_connection(
+                "netmiko"
+            )
             for k, v in test_args.items():
                 assert getattr(netmiko_conn, k) == v
             assert netmiko_conn.remote_conn is not None

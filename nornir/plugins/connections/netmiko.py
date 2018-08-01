@@ -23,6 +23,7 @@ class Netmiko(ConnectionPlugin):
         netmiko_options: maps to argument passed to ``ConnectHandler``.
         nornir_network_ssh_port: maps to ``port``
     """
+
     def open(
         self,
         hostname: str,
@@ -36,13 +37,9 @@ class Netmiko(ConnectionPlugin):
         configuration: Optional[Config] = None,
     ) -> None:
 
-        parameters = {
-            "host": hostname,
-            "username": username,
-            "password": password,
-        }
+        parameters = {"host": hostname, "username": username, "password": password}
         if ssh_port is not None:
-            parameters['port'] = ssh_port
+            parameters["port"] = ssh_port
 
         if nos is not None:
             # Look device_type up in corresponding map, if no entry return the host.nos unmodified
