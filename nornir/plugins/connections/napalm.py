@@ -1,8 +1,5 @@
-from typing import Any, Dict, Optional
-
 from napalm import get_network_driver
 
-from nornir.core.configuration import Config
 from nornir.core.connections import ConnectionPlugin
 
 

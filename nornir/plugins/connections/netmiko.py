@@ -1,8 +1,5 @@
-from typing import Any, Dict, Optional
-
 from netmiko import ConnectHandler
 
-from nornir.core.configuration import Config
 from nornir.core.connections import ConnectionPlugin
 
 napalm_to_netmiko_map = {
