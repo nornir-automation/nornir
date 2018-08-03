@@ -15,7 +15,8 @@ class Paramiko(ConnectionPlugin):
         paramiko_options: maps to argument passed to ``ConnectHandler``.
         nornir_network_ssh_port: maps to ``port``
     """
-    def _process_args(self) -> Dict:    # type: ignore
+
+    def _process_args(self) -> Dict:  # type: ignore
         connection_options = self.connection_options or {}
         parameters = {
             "hostname": self.hostname,

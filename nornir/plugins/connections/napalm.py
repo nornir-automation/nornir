@@ -15,7 +15,7 @@ class Napalm(ConnectionPlugin):
         napalm_options["timeout"]: maps to ``timeout``.
     """
 
-    def _process_args(self) -> Dict:        # type: ignore
+    def _process_args(self) -> Dict:  # type: ignore
         connection_options = self.connection_options or {}
         if self.network_api_port:
             connection_options["port"] = self.network_api_port

@@ -44,7 +44,7 @@ class ConnectionPlugin(ABC):
         self.state: Dict[str, Any] = {}
 
     @abstractmethod
-    def _process_args(self,) -> Dict:       # type: ignore
+    def _process_args(self,) -> Dict:  # type: ignore
         """
         Process the connection objects bound to the object return a dictionary used to
         create the connection.

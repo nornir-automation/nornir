@@ -21,7 +21,8 @@ class Netmiko(ConnectionPlugin):
         netmiko_options: maps to argument passed to ``ConnectHandler``.
         nornir_network_ssh_port: maps to ``port``
     """
-    def _process_args(self) -> Dict:    # type: ignore
+
+    def _process_args(self) -> Dict:  # type: ignore
         parameters = {
             "host": self.hostname,
             "username": self.username,

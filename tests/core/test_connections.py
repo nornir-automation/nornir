@@ -14,6 +14,7 @@ class DummyConnectionPlugin(ConnectionPlugin):
         nornir_network_api_port: maps to ``optional_args["port"]``
         napalm_options["timeout"]: maps to ``timeout``.
     """
+
     def _process_args(self,) -> Dict:
         return {}
 
