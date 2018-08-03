@@ -1,7 +1,6 @@
 import os
-from typing import Any, Dict, Optional
+from typing import Dict
 
-from nornir.core.configuration import Config
 from nornir.core.connections import ConnectionPlugin
 
 import paramiko
@@ -17,37 +16,32 @@ class Paramiko(ConnectionPlugin):
         nornir_network_ssh_port: maps to ``port``
     """
 
-    def open(
-        self,
-        hostname: str,
-        username: str,
-        password: str,
-        ssh_port: int,
-        network_api_port: int,
-        operating_system: str,
-        nos: str,
-        connection_options: Optional[Dict[str, Any]] = None,
-        configuration: Optional[Config] = None,
-    ) -> None:
-        connection_options = connection_options or {}
+    def _process_args(self) -> Dict:  # type: ignore
+        connection_options = self.connection_options or {}
+        parameters = {
+            "hostname": self.hostname,
+            "username": self.username,
+            "password": self.password,
+            "port": self.ssh_port,
+        }
+        connection_options.update(parameters)
+        return connection_options
+
+    def open(self) -> None:
+
+        parameters = self._process_args()
 
         client = paramiko.SSHClient()
         client._policy = paramiko.WarningPolicy()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
         ssh_config = paramiko.SSHConfig()
-        ssh_config_file = configuration.ssh_config_file  # type: ignore
+        ssh_config_file = self.configuration.ssh_config_file  # type: ignore
         if os.path.exists(ssh_config_file):
             with open(ssh_config_file) as f:
                 ssh_config.parse(f)
-        parameters = {
-            "hostname": hostname,
-            "username": username,
-            "password": password,
-            "port": ssh_port,
-        }
 
-        user_config = ssh_config.lookup(hostname)
+        user_config = ssh_config.lookup(self.hostname)
         for k in ("hostname", "username", "port"):
             if k in user_config:
                 parameters[k] = user_config[k]
@@ -63,8 +57,7 @@ class Paramiko(ConnectionPlugin):
         if "identityfile" in user_config:
             parameters["key_filename"] = user_config["identityfile"]
 
-        connection_options.update(parameters)
-        client.connect(**connection_options)
+        client.connect(**parameters)
         self.connection = client
 
     def close(self) -> None:

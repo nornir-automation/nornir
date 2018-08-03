@@ -1,6 +1,5 @@
-from typing import Any, Dict, Optional
+from typing import Dict
 
-from nornir.core.configuration import Config
 from nornir.core.connections import ConnectionPlugin
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
 
@@ -16,18 +15,10 @@ class DummyConnectionPlugin(ConnectionPlugin):
         napalm_options["timeout"]: maps to ``timeout``.
     """
 
-    def open(
-        self,
-        hostname: str,
-        username: str,
-        password: str,
-        ssh_port: int,
-        network_api_port: int,
-        operating_system: str,
-        nos: str,
-        connection_options: Optional[Dict[str, Any]] = None,
-        configuration: Optional[Config] = None,
-    ) -> None:
+    def _process_args(self,) -> Dict:
+        return {}
+
+    def open(self,) -> None:
         self.connection = True
         self.state["something"] = "something"
 
