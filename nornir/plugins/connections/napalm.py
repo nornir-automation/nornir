@@ -16,10 +16,6 @@ class Napalm(ConnectionPlugin):
     """
 
     def _process_args(self) -> Dict:        # type: ignore
-        """
-        Process the connection objects bound to the object return a dictionary used to
-        create the connection.
-        """
         connection_options = self.connection_options or {}
         if self.network_api_port:
             connection_options["port"] = self.network_api_port

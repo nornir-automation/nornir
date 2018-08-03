@@ -22,10 +22,6 @@ class Netmiko(ConnectionPlugin):
         nornir_network_ssh_port: maps to ``port``
     """
     def _process_args(self) -> Dict:    # type: ignore
-        """
-        Process the connection objects bound to the object return a dictionary used to
-        create the connection.
-        """
         parameters = {
             "host": self.hostname,
             "username": self.username,
