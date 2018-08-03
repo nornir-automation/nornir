@@ -13,9 +13,7 @@ class DummyConnectionPlugin(ConnectionPlugin):
         napalm_options["timeout"]: maps to ``timeout``.
     """
 
-    def open(
-        self,
-    ) -> None:
+    def open(self,) -> None:
         self.connection = True
         self.state["something"] = "something"
 
