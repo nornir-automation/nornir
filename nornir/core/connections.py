@@ -44,6 +44,14 @@ class ConnectionPlugin(ABC):
         self.state: Dict[str, Any] = {}
 
     @abstractmethod
+    def _process_args(self,) -> Dict:       # type: ignore
+        """
+        Process the connection objects bound to the object return a dictionary used to
+        create the connection.
+        """
+        pass
+
+    @abstractmethod
     def open(self,) -> None:
         """
         Connect to the device and populate the attribute :attr:`connection` with

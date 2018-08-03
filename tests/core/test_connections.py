@@ -1,3 +1,5 @@
+from typing import Dict
+
 from nornir.core.connections import ConnectionPlugin
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
 
@@ -12,6 +14,8 @@ class DummyConnectionPlugin(ConnectionPlugin):
         nornir_network_api_port: maps to ``optional_args["port"]``
         napalm_options["timeout"]: maps to ``timeout``.
     """
+    def _process_args(self,) -> Dict:
+        return {}
 
     def open(self,) -> None:
         self.connection = True

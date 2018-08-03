@@ -1,5 +1,6 @@
-from netmiko import ConnectHandler
+from typing import Dict
 
+from netmiko import ConnectHandler
 from nornir.core.connections import ConnectionPlugin
 
 napalm_to_netmiko_map = {
@@ -20,8 +21,11 @@ class Netmiko(ConnectionPlugin):
         netmiko_options: maps to argument passed to ``ConnectHandler``.
         nornir_network_ssh_port: maps to ``port``
     """
-
-    def open(self) -> None:
+    def _process_args(self) -> Dict:    # type: ignore
+        """
+        Process the connection objects bound to the object return a dictionary used to
+        create the connection.
+        """
         parameters = {
             "host": self.hostname,
             "username": self.username,
@@ -37,7 +41,11 @@ class Netmiko(ConnectionPlugin):
 
         netmiko_connection_args = self.connection_options or {}
         netmiko_connection_args.update(parameters)
-        self.connection = ConnectHandler(**netmiko_connection_args)
+        return parameters
+
+    def open(self) -> None:
+        parameters = self._process_args()
+        self.connection = ConnectHandler(**parameters)
 
     def close(self) -> None:
         self.connection.disconnect()

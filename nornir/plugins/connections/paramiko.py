@@ -1,4 +1,5 @@
 import os
+from typing import Dict
 
 from nornir.core.connections import ConnectionPlugin
 
@@ -14,10 +15,24 @@ class Paramiko(ConnectionPlugin):
         paramiko_options: maps to argument passed to ``ConnectHandler``.
         nornir_network_ssh_port: maps to ``port``
     """
+    def _process_args(self) -> Dict:    # type: ignore
+        """
+        Process the connection objects bound to the object return a dictionary used to
+        create the connection.
+        """
+        connection_options = self.connection_options or {}
+        parameters = {
+            "hostname": self.hostname,
+            "username": self.username,
+            "password": self.password,
+            "port": self.ssh_port,
+        }
+        connection_options.update(parameters)
+        return connection_options
 
     def open(self) -> None:
 
-        connection_options = self.connection_options or {}
+        parameters = self._process_args()
 
         client = paramiko.SSHClient()
         client._policy = paramiko.WarningPolicy()
@@ -28,12 +43,6 @@ class Paramiko(ConnectionPlugin):
         if os.path.exists(ssh_config_file):
             with open(ssh_config_file) as f:
                 ssh_config.parse(f)
-        parameters = {
-            "hostname": self.hostname,
-            "username": self.username,
-            "password": self.password,
-            "port": self.ssh_port,
-        }
 
         user_config = ssh_config.lookup(self.hostname)
         for k in ("hostname", "username", "port"):
@@ -51,8 +60,7 @@ class Paramiko(ConnectionPlugin):
         if "identityfile" in user_config:
             parameters["key_filename"] = user_config["identityfile"]
 
-        connection_options.update(parameters)
-        client.connect(**connection_options)
+        client.connect(**parameters)
         self.connection = client
 
     def close(self) -> None:

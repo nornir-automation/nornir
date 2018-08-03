@@ -1,3 +1,4 @@
+from typing import Dict
 from napalm import get_network_driver
 
 from nornir.core.connections import ConnectionPlugin
@@ -14,8 +15,11 @@ class Napalm(ConnectionPlugin):
         napalm_options["timeout"]: maps to ``timeout``.
     """
 
-    def open(self) -> None:
-
+    def _process_args(self) -> Dict:        # type: ignore
+        """
+        Process the connection objects bound to the object return a dictionary used to
+        create the connection.
+        """
         connection_options = self.connection_options or {}
         if self.network_api_port:
             connection_options["port"] = self.network_api_port
@@ -28,7 +32,10 @@ class Napalm(ConnectionPlugin):
         }
         if connection_options.get("timeout"):
             parameters["timeout"] = connection_options.pop("timeout")
+        return parameters
 
+    def open(self) -> None:
+        parameters = self._process_args()
         network_driver = get_network_driver(self.nos)
         connection = network_driver(**parameters)
         connection.open()
