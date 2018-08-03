@@ -18,13 +18,8 @@ class ConnectionPlugin(ABC):
 
     __slots__ = ("connection", "state")
 
-    def __init__(self) -> None:
-        self.connection: Any = UnestablishedConnection()
-        self.state: Dict[str, Any] = {}
-
-    @abstractmethod
-    def open(
-        self,
+    def __init__(
+        self
         hostname: str,
         username: str,
         password: str,
@@ -33,7 +28,24 @@ class ConnectionPlugin(ABC):
         operating_system: str,
         nos: str,
         connection_options: Optional[Dict[str, Any]] = None,
-        configuration: Optional[Config] = None,
+        configuration: Optional[Config] = None,l
+        ) -> None:
+
+        self.hostname = hostname
+        self.username = username
+        self.password = password
+        self.ssh_port = ssh_port
+        self.network_api_port = api_port
+        self.operating_system = operating_system
+        self.nos = nos
+        self.connection_options = connection_options
+        self.configuration = config
+        self.connection: Any = UnestablishedConnection()
+        self.state: Dict[str, Any] = {}
+
+    @abstractmethod
+    def open(
+        self,
     ) -> None:
         """
         Connect to the device and populate the attribute :attr:`connection` with

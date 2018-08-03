@@ -307,9 +307,10 @@ class Host(object):
         if connection in self.connections:
             raise ConnectionAlreadyOpen(connection)
 
-        self.connections[connection] = self.nornir.get_connection_type(connection)()
+        connection_class = self.nornir.get_connection_type(connection)
         if default_to_host_attributes:
-            self.connections[connection].open(
+            # Create connection object
+            self.connections[connection] = connection_class(
                 hostname=hostname if hostname is not None else self.host,
                 username=username if username is not None else self.username,
                 password=password if password is not None else self.password,
@@ -329,7 +330,8 @@ class Host(object):
                 else self.nornir.config,
             )
         else:
-            self.connections[connection].open(
+            # Create connection object
+            self.connections[connection] = connection_class(
                 hostname=hostname,
                 username=username,
                 password=password,
@@ -340,6 +342,8 @@ class Host(object):
                 connection_options=connection_options,
                 configuration=configuration,
             )
+
+        self.connections[connection].open()
         return self.connections[connection]
 
     def close_connection(self, connection: str) -> None:
