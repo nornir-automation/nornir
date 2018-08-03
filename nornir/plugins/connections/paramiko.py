@@ -17,19 +17,9 @@ class Paramiko(ConnectionPlugin):
         nornir_network_ssh_port: maps to ``port``
     """
 
-    def open(
-        self,
-        hostname: str,
-        username: str,
-        password: str,
-        ssh_port: int,
-        network_api_port: int,
-        operating_system: str,
-        nos: str,
-        connection_options: Optional[Dict[str, Any]] = None,
-        configuration: Optional[Config] = None,
-    ) -> None:
-        connection_options = connection_options or {}
+    def open(self) -> None:
+    
+        connection_options = self.connection_options or {}
 
         client = paramiko.SSHClient()
         client._policy = paramiko.WarningPolicy()
@@ -41,13 +31,13 @@ class Paramiko(ConnectionPlugin):
             with open(ssh_config_file) as f:
                 ssh_config.parse(f)
         parameters = {
-            "hostname": hostname,
-            "username": username,
-            "password": password,
-            "port": ssh_port,
+            "hostname": self.hostname,
+            "username": self.username,
+            "password": self.password,
+            "port": self.ssh_port,
         }
 
-        user_config = ssh_config.lookup(hostname)
+        user_config = ssh_config.lookup(self.hostname)
         for k in ("hostname", "username", "port"):
             if k in user_config:
                 parameters[k] = user_config[k]
