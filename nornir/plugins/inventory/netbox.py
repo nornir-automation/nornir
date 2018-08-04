@@ -37,6 +37,17 @@ class NBInventory(Inventory):
             if d.get("primary_ip", {}):
                 temp["nornir_host"] = d["primary_ip"]["address"].split("/")[0]
 
+                # Find interface name using additional API call
+                i = requests.get(
+                    "{}/api/ipam/ip-addresses/?address={}".format(
+                        nb_url, temp["nornir_host"]
+                    ),
+                    headers=headers,
+                ).json()
+
+                # Strip extraneous information and add it to the dictionary
+                temp["primary_interface"] = i["results"][0]["interface"]["name"]
+
             # Add values that don't have an option for 'slug'
             temp["serial"] = d["serial"]
             temp["vendor"] = d["device_type"]["manufacturer"]["name"]
