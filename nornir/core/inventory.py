@@ -196,42 +196,52 @@ class Host(object):
             self._nornir = value
 
     @property
-    def host(self):
-        """String used to connect to the device. Either ``nornir_host`` or ``self.name``"""
-        return self.get("nornir_host", self.name)
+    def hostname(self):
+        """String used to connect to the device. Either ``hostname`` or ``self.name``"""
+        return self.get("hostname", self.name)
+
+    @property
+    def port(self):
+        """Either ``port`` or ``None``."""
+        return self.get("port")
 
     @property
     def username(self):
         """Either ``nornir_username`` or user running the script."""
-        return self.get("nornir_username", getpass.getuser())
+        return self.get("username", getpass.getuser())
 
     @property
     def password(self):
         """Either ``nornir_password`` or empty string."""
-        return self.get("nornir_password", "")
+        return self.get("password", "")
 
     @property
-    def ssh_port(self):
-        """Either ``nornir_ssh_port`` or ``None``."""
-        return self.get("nornir_ssh_port")
+    def device_type(self):
+        """OS the device is running. Defaults to ``device_type``."""
+        return self.get("device_type")
 
-    @property
-    def network_api_port(self):
-        """
-        For network equipment this is the port where the device's API is listening to.
-        Either ``nornir_network_api_port`` or ``None``.
-        """
-        return self.get("nornir_network_api_port")
-
-    @property
-    def os(self):
-        """OS the device is running. Defaults to ``nornir_os``."""
-        return self.get("nornir_os")
-
-    @property
-    def nos(self):
-        """Network OS the device is running. Defaults to ``nornir_nos``."""
-        return self.get("nornir_nos")
+    def get_connection_parameters(
+        self, connection: Optional[str] = None
+    ) -> Dict[str, Any]:
+        if not connection:
+            return {
+                "hostname": self.hostname,
+                "port": self.port,
+                "username": self.username,
+                "password": self.password,
+                "device_type": self.device_type,
+                "connection_options": {},
+            }
+        else:
+            conn_params = self.get("connection_options", {}).get(connection, {})
+            return {
+                "hostname": conn_params.get("hostname", self.hostname),
+                "port": conn_params.get("port", self.port),
+                "username": conn_params.get("username", self.username),
+                "password": conn_params.get("password", self.password),
+                "device_type": conn_params.get("device_type", self.device_type),
+                "connection_options": conn_params.get("additional_options", {}),
+            }
 
     def get_connection(self, connection: str) -> Any:
         """
@@ -257,15 +267,8 @@ class Host(object):
         if connection not in self.connections:
             self.open_connection(
                 connection,
-                self.host,
-                self.username,
-                self.password,
-                self.ssh_port,
-                self.network_api_port,
-                self.os,
-                self.nos,
-                self.get(f"{connection}_options", {}),
-                config,
+                **self.get_connection_parameters(connection),
+                configuration=config,
             )
         return self.connections[connection].connection
 
@@ -284,11 +287,9 @@ class Host(object):
         hostname: Optional[str] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
-        ssh_port: Optional[int] = None,
-        network_api_port: Optional[int] = None,
-        operating_system: Optional[str] = None,
-        nos: Optional[str] = None,
-        connection_options: Optional[Dict[str, Any]] = None,
+        port: Optional[int] = None,
+        device_type: Optional[int] = None,
+        connection_options: Optional[int] = None,
         configuration: Optional[Config] = None,
         default_to_host_attributes: bool = True,
     ) -> None:
@@ -309,21 +310,18 @@ class Host(object):
 
         self.connections[connection] = self.nornir.get_connection_type(connection)()
         if default_to_host_attributes:
+            conn_params = self.get_connection_parameters(connection)
             self.connections[connection].open(
-                hostname=hostname if hostname is not None else self.host,
-                username=username if username is not None else self.username,
-                password=password if password is not None else self.password,
-                ssh_port=ssh_port if ssh_port is not None else self.ssh_port,
-                network_api_port=network_api_port
-                if network_api_port is not None
-                else self.network_api_port,
-                operating_system=operating_system
-                if operating_system is not None
-                else self.os,
-                nos=nos if nos is not None else self.nos,
+                hostname=hostname if hostname is not None else conn_params["hostname"],
+                username=username if username is not None else conn_params["username"],
+                password=password if password is not None else conn_params["password"],
+                port=port if port is not None else conn_params["port"],
+                device_type=device_type
+                if device_type is not None
+                else conn_params["device_type"],
                 connection_options=connection_options
                 if connection_options is not None
-                else self.get(f"{connection}_options"),
+                else conn_params["connection_options"],
                 configuration=configuration
                 if configuration is not None
                 else self.nornir.config,
@@ -333,10 +331,8 @@ class Host(object):
                 hostname=hostname,
                 username=username,
                 password=password,
-                ssh_port=ssh_port,
-                network_api_port=network_api_port,
-                operating_system=operating_system,
-                nos=nos,
+                port=port,
+                device_type=device_type,
                 connection_options=connection_options,
                 configuration=configuration,
             )

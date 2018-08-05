@@ -12,12 +12,7 @@ def connect(task, connection_options):
     if "napalm" in task.host.connections:
         task.host.close_connection("napalm")
     task.host.open_connection(
-        "napalm",
-        hostname=task.host.username,
-        password=task.host.password,
-        network_api_port=task.host.network_api_port,
-        nos=task.host.nos,
-        connection_options=connection_options,
+        "napalm", connection_options=connection_options, default_to_host_attributes=True
     )
 
 

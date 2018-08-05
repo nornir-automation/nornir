@@ -22,16 +22,14 @@ class Napalm(ConnectionPlugin):
         hostname: str,
         username: str,
         password: str,
-        ssh_port: int,
-        network_api_port: int,
-        operating_system: str,
-        nos: str,
+        port: int,
+        device_type: str,
         connection_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
         connection_options = connection_options or {}
-        if network_api_port:
-            connection_options["port"] = network_api_port
+        if port:
+            connection_options["port"] = port
 
         parameters = {
             "hostname": hostname,
@@ -42,7 +40,7 @@ class Napalm(ConnectionPlugin):
         if connection_options.get("timeout"):
             parameters["timeout"] = connection_options["timeout"]
 
-        network_driver = get_network_driver(nos)
+        network_driver = get_network_driver(device_type)
         connection = network_driver(**parameters)
         connection.open()
         self.connection = connection

@@ -29,10 +29,8 @@ class Netmiko(ConnectionPlugin):
         hostname: str,
         username: str,
         password: str,
-        ssh_port: int,
-        network_api_port: int,
-        operating_system: str,
-        nos: str,
+        port: int,
+        device_type: str,
         connection_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
@@ -40,12 +38,12 @@ class Netmiko(ConnectionPlugin):
             "host": hostname,
             "username": username,
             "password": password,
-            "port": ssh_port,
+            "port": port,
         }
 
-        if nos is not None:
+        if device_type is not None:
             # Look device_type up in corresponding map, if no entry return the host.nos unmodified
-            device_type = napalm_to_netmiko_map.get(nos, nos)
+            device_type = napalm_to_netmiko_map.get(device_type, device_type)
             parameters["device_type"] = device_type
 
         netmiko_connection_args = connection_options or {}

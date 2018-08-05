@@ -21,10 +21,8 @@ class DummyConnectionPlugin(ConnectionPlugin):
         hostname: str,
         username: str,
         password: str,
-        ssh_port: int,
-        network_api_port: int,
-        operating_system: str,
-        nos: str,
+        port: int,
+        device_type: str,
         connection_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
@@ -89,6 +87,7 @@ class Test(object):
         assert not r.failed
 
     def test_context_manager(self, nornir):
+        nornir.data.available_connections["dummy"] = DummyConnectionPlugin
         with nornir.filter(name="dev2.group_1") as nr:
             nr.run(task=a_task)
             assert "dummy" in nr.inventory.hosts["dev2.group_1"].connections

@@ -22,10 +22,8 @@ class Paramiko(ConnectionPlugin):
         hostname: str,
         username: str,
         password: str,
-        ssh_port: int,
-        network_api_port: int,
-        operating_system: str,
-        nos: str,
+        port: int,
+        device_type: str,
         connection_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
@@ -44,7 +42,7 @@ class Paramiko(ConnectionPlugin):
             "hostname": hostname,
             "username": username,
             "password": password,
-            "port": ssh_port,
+            "port": port,
         }
 
         user_config = ssh_config.lookup(hostname)

@@ -5,8 +5,8 @@ dev1.group_1:
     my_var: comes_from_dev1.group_1
     www_server: nginx
     role: www
-    nornir_ssh_port: 65001
-    nornir_nos: eos
+    port: 65001
+    device_type: eos
     nested_data:
         a_dict:
             a: 1
@@ -18,8 +18,8 @@ dev2.group_1:
     groups:
         - group_1
     role: db
-    nornir_ssh_port: 65002
-    nornir_nos: junos
+    port: 65002
+    device_type: junos
     nested_data:
         a_dict:
             b: 2
@@ -32,18 +32,19 @@ dev3.group_2:
         - group_2
     www_server: apache
     role: www
-    nornir_ssh_port: 65003
-    nornir_network_api_port: 12443
-    nornir_os: linux
-    nornir_nos: mock
-    # nornir_username: vagrant
-    # nornir_password: vagrant
+    port: 65003
+    device_type: linux
+    connection_options:
+        napalm:
+            device_type: mock
 
 dev4.group_2:
     groups:
         - group_2
     my_var: comes_from_dev4.group_2
     role: db
-    nornir_ssh_port: 65004
-    nornir_network_api_port: 65004
-    nornir_nos: linux
+    port: 65004
+    device_type: linux
+    connection_options:
+        napalm:
+            device_type: mock
