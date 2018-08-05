@@ -32,7 +32,7 @@ def tcp_ping(
     else:
         raise ValueError("Invalid value for 'ports'")
 
-    host = host or task.host.host
+    host = host or task.host.hostname
 
     result = {}
     for port in ports:
