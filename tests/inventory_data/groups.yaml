@@ -4,7 +4,7 @@ defaults:
     hostname: 127.0.0.1
     username: root
     password: docker
-    device_type: linux
+    platform: linux
 
 parent_group:
     a_var: blah

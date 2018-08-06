@@ -22,7 +22,7 @@ class DummyConnectionPlugin(ConnectionPlugin):
         username: str,
         password: str,
         port: int,
-        device_type: str,
+        platform: str,
         connection_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:

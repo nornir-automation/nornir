@@ -23,7 +23,7 @@ class Napalm(ConnectionPlugin):
         username: str,
         password: str,
         port: int,
-        device_type: str,
+        platform: str,
         connection_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
@@ -40,7 +40,7 @@ class Napalm(ConnectionPlugin):
         if connection_options.get("timeout"):
             parameters["timeout"] = connection_options["timeout"]
 
-        network_driver = get_network_driver(device_type)
+        network_driver = get_network_driver(platform)
         connection = network_driver(**parameters)
         connection.open()
         self.connection = connection

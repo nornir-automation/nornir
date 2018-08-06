@@ -223,7 +223,7 @@ class Test(object):
                     "www_server": "nginx",
                     "role": "www",
                     "port": 65001,
-                    "device_type": "eos",
+                    "platform": "eos",
                 },
                 "dev3.group_2": {
                     "name": "dev3.group_2",
@@ -231,8 +231,8 @@ class Test(object):
                     "www_server": "apache",
                     "role": "www",
                     "port": 65003,
-                    "device_type": "linux",
-                    "connection_options": {"napalm": {"device_type": "mock"}},
+                    "platform": "linux",
+                    "connection_options": {"napalm": {"platform": "mock"}},
                 },
             },
             "groups": {
