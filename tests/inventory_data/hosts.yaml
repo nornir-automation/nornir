@@ -6,7 +6,7 @@ dev1.group_1:
     www_server: nginx
     role: www
     port: 65001
-    device_type: eos
+    platform: eos
     nested_data:
         a_dict:
             a: 1
@@ -19,7 +19,7 @@ dev2.group_1:
         - group_1
     role: db
     port: 65002
-    device_type: junos
+    platform: junos
     nested_data:
         a_dict:
             b: 2
@@ -33,10 +33,10 @@ dev3.group_2:
     www_server: apache
     role: www
     port: 65003
-    device_type: linux
+    platform: linux
     connection_options:
         napalm:
-            device_type: mock
+            platform: mock
 
 dev4.group_2:
     groups:
@@ -44,7 +44,7 @@ dev4.group_2:
     my_var: comes_from_dev4.group_2
     role: db
     port: 65004
-    device_type: linux
+    platform: linux
     connection_options:
         napalm:
-            device_type: mock
+            platform: mock

@@ -30,7 +30,7 @@ class Netmiko(ConnectionPlugin):
         username: str,
         password: str,
         port: int,
-        device_type: str,
+        platform: str,
         connection_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
@@ -41,10 +41,10 @@ class Netmiko(ConnectionPlugin):
             "port": port,
         }
 
-        if device_type is not None:
-            # Look device_type up in corresponding map, if no entry return the host.nos unmodified
-            device_type = napalm_to_netmiko_map.get(device_type, device_type)
-            parameters["device_type"] = device_type
+        if platform is not None:
+            # Look platform up in corresponding map, if no entry return the host.nos unmodified
+            platform = napalm_to_netmiko_map.get(platform, platform)
+            parameters["device_type"] = platform
 
         netmiko_connection_args = connection_options or {}
         netmiko_connection_args.update(parameters)

@@ -35,7 +35,7 @@ class NBInventory(Inventory):
 
             # Add value for IP address
             if d.get("primary_ip", {}):
-                temp["nornir_host"] = d["primary_ip"]["address"].split("/")[0]
+                temp["hostname"] = d["primary_ip"]["address"].split("/")[0]
 
             # Add values that don't have an option for 'slug'
             temp["serial"] = d["serial"]
@@ -55,13 +55,13 @@ class NBInventory(Inventory):
                 temp["model"] = d["device_type"]["slug"]
 
                 # Attempt to add 'platform' based of value in 'slug'
-                temp["nornir_nos"] = d["platform"]["slug"] if d["platform"] else None
+                temp["platform"] = d["platform"]["slug"] if d["platform"] else None
 
             else:
                 temp["site"] = d["site"]["name"]
                 temp["role"] = d["device_role"]
                 temp["model"] = d["device_type"]
-                temp["nornir_nos"] = d["platform"]
+                temp["platform"] = d["platform"]
 
             # Assign temporary dict to outer dict
             devices[d["name"]] = temp

@@ -1,8 +1,8 @@
 one.example.com:
   groups: []
 three.example.com:
-  nornir_host: 192.0.2.50
-  nornir_ssh_port: 5555
+  hostname: 192.0.2.50
+  port: 5555
   groups: []
 two.example.com:
   groups: []

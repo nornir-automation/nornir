@@ -122,10 +122,10 @@ class AnsibleParser(object):
     @staticmethod
     def map_nornir_vars(obj: VarsDict):
         mappings = {
-            "ansible_host": "nornir_host",
-            "ansible_port": "nornir_ssh_port",
-            "ansible_user": "nornir_username",
-            "ansible_password": "nornir_password",
+            "ansible_host": "hostname",
+            "ansible_port": "port",
+            "ansible_user": "username",
+            "ansible_password": "password",
         }
         result = {}
         for k, v in obj.items():

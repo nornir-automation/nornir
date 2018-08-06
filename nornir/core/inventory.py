@@ -216,9 +216,9 @@ class Host(object):
         return self.get("password", "")
 
     @property
-    def device_type(self):
-        """OS the device is running. Defaults to ``device_type``."""
-        return self.get("device_type")
+    def platform(self):
+        """OS the device is running. Defaults to ``platform``."""
+        return self.get("platform")
 
     def get_connection_parameters(
         self, connection: Optional[str] = None
@@ -229,7 +229,7 @@ class Host(object):
                 "port": self.port,
                 "username": self.username,
                 "password": self.password,
-                "device_type": self.device_type,
+                "platform": self.platform,
                 "connection_options": {},
             }
         else:
@@ -239,7 +239,7 @@ class Host(object):
                 "port": conn_params.get("port", self.port),
                 "username": conn_params.get("username", self.username),
                 "password": conn_params.get("password", self.password),
-                "device_type": conn_params.get("device_type", self.device_type),
+                "platform": conn_params.get("platform", self.platform),
                 "connection_options": conn_params.get("additional_options", {}),
             }
 
@@ -288,7 +288,7 @@ class Host(object):
         username: Optional[str] = None,
         password: Optional[str] = None,
         port: Optional[int] = None,
-        device_type: Optional[int] = None,
+        platform: Optional[int] = None,
         connection_options: Optional[int] = None,
         configuration: Optional[Config] = None,
         default_to_host_attributes: bool = True,
@@ -316,9 +316,9 @@ class Host(object):
                 username=username if username is not None else conn_params["username"],
                 password=password if password is not None else conn_params["password"],
                 port=port if port is not None else conn_params["port"],
-                device_type=device_type
-                if device_type is not None
-                else conn_params["device_type"],
+                platform=platform
+                if platform is not None
+                else conn_params["platform"],
                 connection_options=connection_options
                 if connection_options is not None
                 else conn_params["connection_options"],
@@ -332,7 +332,7 @@ class Host(object):
                 username=username,
                 password=password,
                 port=port,
-                device_type=device_type,
+                platform=platform,
                 connection_options=connection_options,
                 configuration=configuration,
             )
