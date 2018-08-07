@@ -316,9 +316,7 @@ class Host(object):
                 username=username if username is not None else conn_params["username"],
                 password=password if password is not None else conn_params["password"],
                 port=port if port is not None else conn_params["port"],
-                platform=platform
-                if platform is not None
-                else conn_params["platform"],
+                platform=platform if platform is not None else conn_params["platform"],
                 connection_options=connection_options
                 if connection_options is not None
                 else conn_params["connection_options"],
