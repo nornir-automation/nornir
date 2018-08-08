@@ -1,8 +1,4 @@
-try:
-    import configparser as cp
-except ImportError:
-    # https://github.com/python/mypy/issues/1153
-    import ConfigParser as cp  # type: ignore
+import configparser as cp
 import logging
 import os
 from collections import defaultdict
