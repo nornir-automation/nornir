@@ -5,6 +5,7 @@ from nornir.core.configuration import Config
 from nornir.core.connections import Connections
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
 
+from ruamel.yaml.comments import CommentedMap
 
 VarsDict = Dict[str, Any]
 HostsDict = Dict[str, VarsDict]
@@ -389,7 +390,7 @@ class Inventory(object):
             for group_name, group_details in groups.items():
                 if group_details is None:
                     group = Group(name=group_name, nornir=nornir)
-                elif isinstance(group_details, dict):
+                elif isinstance(group_details, (dict, CommentedMap)):
                     group = Group(name=group_name, nornir=nornir, **group_details)
                 elif isinstance(group_details, Group):
                     group = group_details
@@ -407,7 +408,7 @@ class Inventory(object):
 
         self.hosts = {}
         for n, h in hosts.items():
-            if isinstance(h, dict):
+            if isinstance(h, (dict, CommentedMap)):
                 h = Host(name=n, nornir=nornir, defaults=self.defaults, **h)
 
             if transform_function:
