@@ -26,12 +26,12 @@ class Netmiko(ConnectionPlugin):
 
     def open(
         self,
-        hostname: str,
-        username: str,
-        password: str,
-        port: int,
-        platform: str,
-        connection_options: Optional[Dict[str, Any]] = None,
+        hostname: Optional[str],
+        username: Optional[str],
+        password: Optional[str],
+        port: Optional[int],
+        platform: Optional[str],
+        advanced_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
         parameters = {
@@ -46,9 +46,9 @@ class Netmiko(ConnectionPlugin):
             platform = napalm_to_netmiko_map.get(platform, platform)
             parameters["device_type"] = platform
 
-        netmiko_connection_args = connection_options or {}
-        netmiko_connection_args.update(parameters)
-        self.connection = ConnectHandler(**netmiko_connection_args)
+        netmiko_advanced_args = advanced_options or {}
+        netmiko_advanced_args.update(parameters)
+        self.connection = ConnectHandler(**netmiko_advanced_args)
 
     def close(self) -> None:
         self.connection.disconnect()

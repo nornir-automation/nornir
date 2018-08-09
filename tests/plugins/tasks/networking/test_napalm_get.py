@@ -6,11 +6,11 @@ from nornir.plugins.tasks import networking
 THIS_DIR = os.path.dirname(os.path.realpath(__file__)) + "/mocked/napalm_get"
 
 
-def connect(task, connection_options):
+def connect(task, advanced_options):
     if "napalm" in task.host.connections:
         task.host.close_connection("napalm")
     task.host.open_connection(
-        "napalm", connection_options=connection_options, default_to_host_attributes=True
+        "napalm", advanced_options=advanced_options, default_to_host_attributes=True
     )
 
 
@@ -18,7 +18,7 @@ class Test(object):
     def test_napalm_getters(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_getters"}
         d = nornir.filter(name="dev3.group_2")
-        d.run(task=connect, connection_options=opt)
+        d.run(task=connect, advanced_options=opt)
         result = d.run(networking.napalm_get, getters=["facts", "interfaces"])
         assert result
         for h, r in result.items():
@@ -28,7 +28,7 @@ class Test(object):
     def test_napalm_getters_error(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_getters_error"}
         d = nornir.filter(name="dev3.group_2")
-        d.run(task=connect, connection_options=opt)
+        d.run(task=connect, advanced_options=opt)
 
         results = d.run(networking.napalm_get, getters=["facts", "interfaces"])
         processed = False
@@ -41,7 +41,7 @@ class Test(object):
     def test_napalm_getters_with_options_error(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_getters_single_with_options"}
         d = nornir.filter(name="dev3.group_2")
-        d.run(task=connect, connection_options=opt)
+        d.run(task=connect, advanced_options=opt)
         result = d.run(
             task=networking.napalm_get, getters=["config"], nonexistent="asdsa"
         )
@@ -54,7 +54,7 @@ class Test(object):
     def test_napalm_getters_with_options_error_optional_args(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_getters_single_with_options"}
         d = nornir.filter(name="dev3.group_2")
-        d.run(task=connect, connection_options=opt)
+        d.run(task=connect, advanced_options=opt)
         result = d.run(
             task=networking.napalm_get,
             getters=["config"],
@@ -69,7 +69,7 @@ class Test(object):
     def test_napalm_getters_single_with_options(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_getters_single_with_options"}
         d = nornir.filter(name="dev3.group_2")
-        d.run(task=connect, connection_options=opt)
+        d.run(task=connect, advanced_options=opt)
         result = d.run(
             task=networking.napalm_get, getters=["config"], retrieve="candidate"
         )
@@ -81,7 +81,7 @@ class Test(object):
     def test_napalm_getters_multiple_with_options(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_getters_multiple_with_options"}
         d = nornir.filter(name="dev3.group_2")
-        d.run(task=connect, connection_options=opt)
+        d.run(task=connect, advanced_options=opt)
         result = d.run(
             task=networking.napalm_get,
             getters=["config", "facts"],
