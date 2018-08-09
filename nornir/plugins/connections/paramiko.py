@@ -19,15 +19,15 @@ class Paramiko(ConnectionPlugin):
 
     def open(
         self,
-        hostname: str,
-        username: str,
-        password: str,
-        port: int,
-        platform: str,
-        connection_options: Optional[Dict[str, Any]] = None,
+        hostname: Optional[str],
+        username: Optional[str],
+        password: Optional[str],
+        port: Optional[int],
+        platform: Optional[str],
+        advanced_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
-        connection_options = connection_options or {}
+        advanced_options = advanced_options or {}
 
         client = paramiko.SSHClient()
         client._policy = paramiko.WarningPolicy()
@@ -61,8 +61,8 @@ class Paramiko(ConnectionPlugin):
         if "identityfile" in user_config:
             parameters["key_filename"] = user_config["identityfile"]
 
-        connection_options.update(parameters)
-        client.connect(**connection_options)
+        advanced_options.update(parameters)
+        client.connect(**advanced_options)
         self.connection = client
 
     def close(self) -> None:

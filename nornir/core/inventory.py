@@ -230,7 +230,7 @@ class Host(object):
                 "username": self.username,
                 "password": self.password,
                 "platform": self.platform,
-                "connection_options": {},
+                "advanced_options": {},
             }
         else:
             conn_params = self.get("connection_options", {}).get(connection, {})
@@ -240,7 +240,7 @@ class Host(object):
                 "username": conn_params.get("username", self.username),
                 "password": conn_params.get("password", self.password),
                 "platform": conn_params.get("platform", self.platform),
-                "connection_options": conn_params.get("additional_options", {}),
+                "advanced_options": conn_params.get("advanced_options", {}),
             }
 
     def get_connection(self, connection: str) -> Any:
@@ -289,7 +289,7 @@ class Host(object):
         password: Optional[str] = None,
         port: Optional[int] = None,
         platform: Optional[int] = None,
-        connection_options: Optional[int] = None,
+        advanced_options: Optional[int] = None,
         configuration: Optional[Config] = None,
         default_to_host_attributes: bool = True,
     ) -> None:
@@ -317,9 +317,9 @@ class Host(object):
                 password=password if password is not None else conn_params["password"],
                 port=port if port is not None else conn_params["port"],
                 platform=platform if platform is not None else conn_params["platform"],
-                connection_options=connection_options
-                if connection_options is not None
-                else conn_params["connection_options"],
+                advanced_options=advanced_options
+                if advanced_options is not None
+                else conn_params["advanced_options"],
                 configuration=configuration
                 if configuration is not None
                 else self.nornir.config,
@@ -331,7 +331,7 @@ class Host(object):
                 password=password,
                 port=port,
                 platform=platform,
-                connection_options=connection_options,
+                advanced_options=advanced_options,
                 configuration=configuration,
             )
         return self.connections[connection]

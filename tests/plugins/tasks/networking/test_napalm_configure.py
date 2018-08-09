@@ -8,11 +8,11 @@ from nornir.plugins.tasks import networking
 THIS_DIR = os.path.dirname(os.path.realpath(__file__)) + "/mocked/napalm_configure"
 
 
-def connect(task, connection_options):
+def connect(task, advanced_options):
     if "napalm" in task.host.connections:
         task.host.close_connection("napalm")
     task.host.open_connection(
-        "napalm", connection_options=connection_options, default_to_host_attributes=True
+        "napalm", advanced_options=advanced_options, default_to_host_attributes=True
     )
 
 
@@ -21,7 +21,7 @@ class Test(object):
         opt = {"path": THIS_DIR + "/test_napalm_configure_change_dry_run"}
         configuration = "hostname changed-hostname"
         d = nornir.filter(name="dev3.group_2")
-        d.run(connect, connection_options=opt)
+        d.run(connect, advanced_options=opt)
         result = d.run(networking.napalm_configure, configuration=configuration)
         assert result
         for h, r in result.items():
@@ -32,7 +32,7 @@ class Test(object):
         opt = {"path": THIS_DIR + "/test_napalm_configure_change_commit/step1"}
         configuration = "hostname changed-hostname"
         d = nornir.filter(name="dev3.group_2")
-        d.run(connect, connection_options=opt)
+        d.run(connect, advanced_options=opt)
         result = d.run(
             networking.napalm_configure, dry_run=False, configuration=configuration
         )
@@ -41,7 +41,7 @@ class Test(object):
             assert "+hostname changed-hostname" in r.diff
             assert r.changed
         opt = {"path": THIS_DIR + "/test_napalm_configure_change_commit/step2"}
-        d.run(connect, connection_options=opt)
+        d.run(connect, advanced_options=opt)
         result = d.run(
             networking.napalm_configure, dry_run=True, configuration=configuration
         )
@@ -55,7 +55,7 @@ class Test(object):
         configuration = "hostname changed_hostname"
 
         d = nornir.filter(name="dev3.group_2")
-        d.run(connect, connection_options=opt)
+        d.run(connect, advanced_options=opt)
         results = d.run(networking.napalm_configure, configuration=configuration)
         processed = False
         for result in results.values():

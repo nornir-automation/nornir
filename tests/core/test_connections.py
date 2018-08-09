@@ -18,12 +18,12 @@ class DummyConnectionPlugin(ConnectionPlugin):
 
     def open(
         self,
-        hostname: str,
-        username: str,
-        password: str,
-        port: int,
-        platform: str,
-        connection_options: Optional[Dict[str, Any]] = None,
+        hostname: Optional[str],
+        username: Optional[str],
+        password: Optional[str],
+        port: Optional[int],
+        platform: Optional[str],
+        advanced_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
         self.connection = True

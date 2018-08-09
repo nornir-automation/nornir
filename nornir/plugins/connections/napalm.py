@@ -19,26 +19,24 @@ class Napalm(ConnectionPlugin):
 
     def open(
         self,
-        hostname: str,
-        username: str,
-        password: str,
-        port: int,
-        platform: str,
-        connection_options: Optional[Dict[str, Any]] = None,
+        hostname: Optional[str],
+        username: Optional[str],
+        password: Optional[str],
+        port: Optional[int],
+        platform: Optional[str],
+        advanced_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
-        connection_options = connection_options or {}
-        if port:
-            connection_options["port"] = port
+        advanced_options = advanced_options or {}
 
         parameters = {
             "hostname": hostname,
             "username": username,
             "password": password,
-            "optional_args": connection_options or {},
+            "optional_args": advanced_options or {},
         }
-        if connection_options.get("timeout"):
-            parameters["timeout"] = connection_options["timeout"]
+        if advanced_options.get("timeout"):
+            parameters["timeout"] = advanced_options["timeout"]
 
         network_driver = get_network_driver(platform)
         connection = network_driver(**parameters)
