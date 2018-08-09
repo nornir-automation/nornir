@@ -17,7 +17,6 @@ class Test(object):
             d = r.result
             assert d["env"] == "test"
             assert d["services"] == ["dhcp", "dns"]
-            assert isinstance(d["a_dict"], dict)
 
     def test_load_yaml_error_broken_file(self, nornir):
         test_file = "{}/broken.yaml".format(data_dir)
