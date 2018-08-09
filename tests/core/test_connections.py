@@ -28,6 +28,13 @@ class DummyConnectionPlugin(ConnectionPlugin):
     ) -> None:
         self.connection = True
         self.state["something"] = "something"
+        self.hostname = hostname
+        self.username = username
+        self.password = password
+        self.port = port
+        self.platform = platform
+        self.advanced_options = advanced_options
+        self.configuration = configuration
 
     def close(self) -> None:
         self.connection = False
@@ -64,6 +71,12 @@ def a_task(task):
     task.host.get_connection("dummy")
 
 
+def validate_params(task, conn, params):
+    task.host.get_connection(conn)
+    for k, v in params.items():
+        assert getattr(task.host.connections[conn], k) == v
+
+
 class Test(object):
     def test_open_and_close_connection(self, nornir):
         nornir.data.available_connections["dummy"] = DummyConnectionPlugin
@@ -93,3 +106,38 @@ class Test(object):
             assert "dummy" in nr.inventory.hosts["dev2.group_1"].connections
         assert "dummy" not in nr.inventory.hosts["dev2.group_1"].connections
         nornir.data.reset_failed_hosts()
+
+    def test_validate_params_simple(self, nornir):
+        nornir.data.available_connections["dummy_no_overrides"] = DummyConnectionPlugin
+        params = {
+            "hostname": "127.0.0.1",
+            "username": "root",
+            "password": "docker",
+            "port": 65002,
+            "platform": "junos",
+            "advanced_options": {},
+        }
+        nr = nornir.filter(name="dev2.group_1")
+        r = nr.run(
+            task=validate_params,
+            conn="dummy_no_overrides",
+            params=params,
+            num_workers=1,
+        )
+        assert len(r) == 1
+        assert not r.failed
+
+    def test_validate_params_overrides(self, nornir):
+        nornir.data.available_connections["dummy"] = DummyConnectionPlugin
+        params = {
+            "hostname": "overriden_hostname",
+            "username": "root",
+            "password": "docker",
+            "port": None,
+            "platform": "junos",
+            "advanced_options": {"awesome_feature": 1},
+        }
+        nr = nornir.filter(name="dev2.group_1")
+        r = nr.run(task=validate_params, conn="dummy", params=params, num_workers=1)
+        assert len(r) == 1
+        assert not r.failed
