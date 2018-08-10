@@ -6,16 +6,6 @@ from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
 
 
 class DummyConnectionPlugin(ConnectionPlugin):
-    """
-    This plugin connects to the device using the NAPALM driver and sets the
-    relevant connection.
-
-    Inventory:
-        napalm_options: maps directly to ``optional_args`` when establishing the connection
-        nornir_network_api_port: maps to ``optional_args["port"]``
-        napalm_options["timeout"]: maps to ``timeout``.
-    """
-
     def open(
         self,
         hostname: Optional[str],
