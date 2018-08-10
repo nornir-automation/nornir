@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 from netmiko import ConnectHandler
 
@@ -36,20 +36,25 @@ class Netmiko(ConnectionPlugin):
         connection_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
-        parameters = {
+
+        parameters: Dict[str, Union[str, int]] = {
             "host": hostname,
             "username": username,
             "password": password,
-            "port": ssh_port,
         }
+        if ssh_port:
+            parameters["port"] = ssh_port
 
         if nos is not None:
             # Look device_type up in corresponding map, if no entry return the host.nos unmodified
             device_type = napalm_to_netmiko_map.get(nos, nos)
             parameters["device_type"] = device_type
 
-        netmiko_connection_args = connection_options or {}
-        netmiko_connection_args.update(parameters)
+        if connection_options is None:
+            connection_options = {}
+
+        netmiko_connection_args = parameters
+        netmiko_connection_args.update(connection_options)
         self.connection = ConnectHandler(**netmiko_connection_args)
 
     def close(self) -> None:

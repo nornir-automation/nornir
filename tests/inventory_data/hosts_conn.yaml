@@ -1,0 +1,65 @@
+---
+dev1.group_1:
+    groups:
+        - group_1
+    my_var: comes_from_dev1.group_1
+    www_server: nginx
+    role: www
+    nornir_ssh_port: 65001
+    nornir_nos: eos
+    nested_data:
+        a_dict:
+            a: 1
+            b: 2
+        a_list: [1, 2]
+        a_string: "asdasd"
+
+dev2.group_1:
+    groups:
+        - group_1
+    role: db
+    nornir_ssh_port: 65002
+    nornir_nos: junos
+    nested_data:
+        a_dict:
+            b: 2
+            c: 3
+        a_list: [2, 3]
+        a_string: "qwe"
+
+dev3.group_2:
+    groups:
+        - group_2
+    www_server: apache
+    role: www
+    nornir_ssh_port: 65003
+    nornir_network_api_port: 12443
+    nornir_os: linux
+    nornir_nos: mock
+    # nornir_username: vagrant
+    # nornir_password: vagrant
+
+dev4.group_2:
+    groups:
+        - group_2
+    my_var: comes_from_dev4.group_2
+    role: db
+    nornir_ssh_port: 65004
+    nornir_network_api_port: 65004
+    nornir_nos: linux
+
+dev5.group_2:
+    nornir_host: foo.bogus.com
+    nornir_nos: cisco_ios
+    nornir_ssh_port: 6500
+    nornir_username: foo
+    nornir_password: bar
+    groups:
+      - group_2
+    netmiko_options:
+      # netmiko_options should take precedence
+      host: 127.0.0.1
+      username: root 
+      password: docker
+      device_type: linux
+      port: 65004

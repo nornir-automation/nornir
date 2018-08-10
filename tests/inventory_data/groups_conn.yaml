@@ -1,0 +1,21 @@
+---
+defaults:
+    my_var: comes_from_defaults
+    nornir_host: 127.0.0.1
+    nornir_username: root
+    nornir_password: docker
+    nornir_os: linux
+
+parent_group:
+    a_var: blah
+
+group_1:
+    my_var: comes_from_group_1
+    site: site1
+    groups:
+        - parent_group
+
+group_2:
+    site: site2
+
+empty_group:
