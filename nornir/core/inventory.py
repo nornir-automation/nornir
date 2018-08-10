@@ -208,12 +208,12 @@ class Host(object):
 
     @property
     def username(self):
-        """Either ``nornir_username`` or user running the script."""
+        """Either ``username`` or user running the script."""
         return self.get("username", getpass.getuser())
 
     @property
     def password(self):
-        """Either ``nornir_password`` or empty string."""
+        """Either ``password`` or empty string."""
         return self.get("password", "")
 
     @property
@@ -370,8 +370,7 @@ class Inventory(object):
         groups (dict): keys are group names and values are either :obj:`Group` or a dict
             representing the group data.
         transform_function (callable): we will call this function for each host. This is useful
-            to manipulate host data and make it more consumable. For instance, if your inventory
-            has a "user" attribute you could use this function to map it to "nornir_user"
+            to manipulate host data and make it more consumable.
 
     Attributes:
         hosts (dict): keys are hostnames and values are :obj:`Host`.

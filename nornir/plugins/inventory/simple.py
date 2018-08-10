@@ -20,72 +20,72 @@ class SimpleInventory(Inventory):
             role: host
             groups:
                 - cmh-host
-            nos: linux
+            platform: linux
 
         host2.cmh:
             site: cmh
             role: host
             groups:
                 - cmh-host
-            nos: linux
+            platform: linux
 
         switch00.cmh:
-            nornir_ip: 127.0.0.1
-            nornir_username: vagrant
-            nornir_password: vagrant
+            hostname: 127.0.0.1
+            username: vagrant
+            password: vagrant
             napalm_port: 12443
             site: cmh
             role: leaf
             groups:
                 - cmh-leaf
-            nos: eos
+            platform: eos
 
         switch01.cmh:
-            nornir_ip: 127.0.0.1
-            nornir_username: vagrant
-            nornir_password: ""
+            hostname: 127.0.0.1
+            username: vagrant
+            password: ""
             napalm_port: 12203
             site: cmh
             role: leaf
             groups:
                 - cmh-leaf
-            nos: junos
+            platform: juplatform
 
         host1.bma:
             site: bma
             role: host
             groups:
                 - bma-host
-            nos: linux
+            platform: linux
 
         host2.bma:
             site: bma
             role: host
             groups:
                 - bma-host
-            nos: linux
+            platform: linux
 
         switch00.bma:
-            nornir_ip: 127.0.0.1
-            nornir_username: vagrant
-            nornir_password: vagrant
+            hostname: 127.0.0.1
+            username: vagrant
+            password: vagrant
             napalm_port: 12443
             site: bma
             role: leaf
             groups:
                 - bma-leaf
-            nos: eos
+            platform: eos
 
         switch01.bma:
-            nornir_ip: 127.0.0.1
-            nornir_username: vagrant
-            nornir_password: ""
+            hostname: 127.0.0.1
+            username: vagrant
+            password: ""
             napalm_port: 12203
             site: bma
             role: leaf
             groups:
                 - bma-leaf
-            nos: junos
+            platform: juplatform
 
     * group file::
 

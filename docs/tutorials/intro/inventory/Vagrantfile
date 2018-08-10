@@ -2,7 +2,7 @@
 # vi: set ft=ruby :
 """
 You will need the boxes:
- * vEOS-4.17.5M
+ * vEOS-lab-4.20.1F
  * JunOS - juniper/ffp-12.1X47-D20.7-packetmode
     * To provision and test JunOS first you have to add the ssh vagrant ssh key into the ssh-agent. I.e.:
 		ssh-add /opt/vagrant/embedded/gems/gems/vagrant-`vagrant --version | awk '{ print $2 }'`/keys/vagrant
@@ -12,7 +12,7 @@ Vagrant.configure(2) do |config|
   config.vbguest.auto_update = false
 
   config.vm.define "spine00" do |spine00|
-    spine00.vm.box = "vEOS-lab-4.17.5M"
+    spine00.vm.box = "vEOS-lab-4.20.1F"
 
     spine00.vm.network :forwarded_port, guest: 443, host: 12444, id: 'https'
 
@@ -31,7 +31,7 @@ Vagrant.configure(2) do |config|
 
 
   config.vm.define "leaf00" do |leaf00|
-    leaf00.vm.box = "vEOS-lab-4.17.5M"
+    leaf00.vm.box = "vEOS-lab-4.20.1F"
 
     leaf00.vm.network :forwarded_port, guest: 443, host: 12443, id: 'https'
 

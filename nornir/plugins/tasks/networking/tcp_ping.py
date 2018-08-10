@@ -14,7 +14,7 @@ def tcp_ping(
     Arguments:
         ports (list of int): tcp ports to ping
         timeout (int, optional): defaults to 2
-        host (string, optional): defaults to ``nornir_ip``
+        host (string, optional): defaults to ``hostname``
 
 
     Returns:
