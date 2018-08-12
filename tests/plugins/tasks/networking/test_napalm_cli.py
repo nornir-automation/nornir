@@ -15,7 +15,9 @@ def connect(task, advanced_options):
     if "napalm" in task.host.connections:
         task.host.close_connection("napalm")
     task.host.open_connection(
-        "napalm", advanced_options=advanced_options, default_to_host_attributes=True
+        "napalm",
+        advanced_options={"optional_args": advanced_options},
+        default_to_host_attributes=True,
     )
 
 

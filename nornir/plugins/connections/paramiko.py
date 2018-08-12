@@ -13,8 +13,7 @@ class Paramiko(ConnectionPlugin):
     relevant connection.
 
     Inventory:
-        paramiko_options: maps to argument passed to ``ConnectHandler``.
-        nornir_network_ssh_port: maps to ``port``
+        advanced_options: maps to argument passed to ``ConnectHandler``.
     """
 
     def open(

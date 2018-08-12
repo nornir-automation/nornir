@@ -58,4 +58,4 @@ def test_tcp_ping_external_hosts():
             assert r.result[443]
         else:
             assert r.result[23] is False
-            assert r.result[443] is False
+            assert r.result[443]
