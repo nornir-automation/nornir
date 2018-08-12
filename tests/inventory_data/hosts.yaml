@@ -26,12 +26,11 @@ dev2.group_1:
             c: 3
         a_list: [2, 3]
         a_string: "qwe"
-    connection_options:
-        dummy:
-            hostname: overriden_hostname
-            port: null
-            advanced_options:
-                awesome_feature: 1
+    dummy_options:
+        hostname: overriden_hostname
+        port: null
+        advanced_options:
+            awesome_feature: 1
 
 dev3.group_2:
     groups:
@@ -40,9 +39,8 @@ dev3.group_2:
     role: www
     port: 65003
     platform: linux
-    connection_options:
-        napalm:
-            platform: mock
+    napalm_options:
+        platform: mock
 
 dev4.group_2:
     groups:
@@ -51,6 +49,5 @@ dev4.group_2:
     role: db
     port: 65004
     platform: linux
-    connection_options:
-        napalm:
-            platform: mock
+    napalm_options:
+        platform: mock

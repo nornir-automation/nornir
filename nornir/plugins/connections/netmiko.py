@@ -20,8 +20,7 @@ class Netmiko(ConnectionPlugin):
     relevant connection.
 
     Inventory:
-        netmiko_options: maps to argument passed to ``ConnectHandler``.
-        nornir_network_ssh_port: maps to ``port``
+        advanced_options: maps to argument passed to ``ConnectHandler``.
     """
 
     def open(
@@ -46,9 +45,9 @@ class Netmiko(ConnectionPlugin):
             platform = napalm_to_netmiko_map.get(platform, platform)
             parameters["device_type"] = platform
 
-        netmiko_advanced_args = advanced_options or {}
-        netmiko_advanced_args.update(parameters)
-        self.connection = ConnectHandler(**netmiko_advanced_args)
+        advanced_options = advanced_options or {}
+        parameters.update(advanced_options)
+        self.connection = ConnectHandler(**parameters)
 
     def close(self) -> None:
         self.connection.disconnect()

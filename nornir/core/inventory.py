@@ -234,7 +234,7 @@ class Host(object):
                 "advanced_options": {},
             }
         else:
-            conn_params = self.get("connection_options", {}).get(connection, {})
+            conn_params = self.get(f"{connection}_options", {})
             return {
                 "hostname": conn_params.get("hostname", self.hostname),
                 "port": conn_params.get("port", self.port),

@@ -12,9 +12,8 @@ class Napalm(ConnectionPlugin):
     relevant connection.
 
     Inventory:
-        napalm_options: maps directly to ``optional_args`` when establishing the connection
-        nornir_network_api_port: maps to ``optional_args["port"]``
-        napalm_options["timeout"]: maps to ``timeout``.
+        advanced_options: passed as it is to the napalm driver
+        advanced_options["timeout"]: maps to ``timeout``.
     """
 
     def open(
@@ -29,12 +28,17 @@ class Napalm(ConnectionPlugin):
     ) -> None:
         advanced_options = advanced_options or {}
 
-        parameters = {
+        parameters: Dict[str, Any] = {
             "hostname": hostname,
             "username": username,
             "password": password,
-            "optional_args": advanced_options or {},
+            "optional_args": {},
         }
+        parameters.update(advanced_options)
+
+        if port and "port" not in advanced_options:
+            parameters["optional_args"]["port"] = port
+
         if advanced_options.get("timeout"):
             parameters["timeout"] = advanced_options["timeout"]
 

@@ -232,7 +232,7 @@ class Test(object):
                     "role": "www",
                     "port": 65003,
                     "platform": "linux",
-                    "connection_options": {"napalm": {"platform": "mock"}},
+                    "napalm_options": {"platform": "mock"},
                 },
             },
             "groups": {
