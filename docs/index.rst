@@ -61,6 +61,7 @@ Contents
    configuration/index
    plugins/index
    ref/index
+   upgrading/index
    Contribute <contributing/index>
 
 
