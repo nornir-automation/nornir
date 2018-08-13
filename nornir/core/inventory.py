@@ -1,11 +1,11 @@
 import getpass
+from collections import Mapping
 from typing import Any, Dict, Optional
 
 from nornir.core.configuration import Config
 from nornir.core.connections import Connections
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
 
-from ruamel.yaml.comments import CommentedMap
 
 VarsDict = Dict[str, Any]
 HostsDict = Dict[str, VarsDict]
@@ -231,7 +231,7 @@ class Host(object):
                 "username": self.username,
                 "password": self.password,
                 "platform": self.platform,
-                "advanced_options": {},
+                "connection_options": {},
             }
         else:
             conn_params = self.get(f"{connection}_options", {})
@@ -241,7 +241,7 @@ class Host(object):
                 "username": conn_params.get("username", self.username),
                 "password": conn_params.get("password", self.password),
                 "platform": conn_params.get("platform", self.platform),
-                "advanced_options": conn_params.get("advanced_options", {}),
+                "connection_options": conn_params.get("connection_options", {}),
             }
 
     def get_connection(self, connection: str) -> Any:
@@ -289,8 +289,8 @@ class Host(object):
         username: Optional[str] = None,
         password: Optional[str] = None,
         port: Optional[int] = None,
-        platform: Optional[int] = None,
-        advanced_options: Optional[int] = None,
+        platform: Optional[str] = None,
+        connection_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
         default_to_host_attributes: bool = True,
     ) -> None:
@@ -318,9 +318,9 @@ class Host(object):
                 password=password if password is not None else conn_params["password"],
                 port=port if port is not None else conn_params["port"],
                 platform=platform if platform is not None else conn_params["platform"],
-                advanced_options=advanced_options
-                if advanced_options is not None
-                else conn_params["advanced_options"],
+                connection_options=connection_options
+                if connection_options is not None
+                else conn_params["connection_options"],
                 configuration=configuration
                 if configuration is not None
                 else self.nornir.config,
@@ -332,7 +332,7 @@ class Host(object):
                 password=password,
                 port=port,
                 platform=platform,
-                advanced_options=advanced_options,
+                connection_options=connection_options,
                 configuration=configuration,
             )
         return self.connections[connection]
@@ -389,7 +389,7 @@ class Inventory(object):
             for group_name, group_details in groups.items():
                 if group_details is None:
                     group = Group(name=group_name, nornir=nornir)
-                elif isinstance(group_details, (dict, CommentedMap)):
+                elif isinstance(group_details, Mapping):
                     group = Group(name=group_name, nornir=nornir, **group_details)
                 elif isinstance(group_details, Group):
                     group = group_details
@@ -407,7 +407,7 @@ class Inventory(object):
 
         self.hosts = {}
         for n, h in hosts.items():
-            if isinstance(h, (dict, CommentedMap)):
+            if isinstance(h, Mapping):
                 h = Host(name=n, nornir=nornir, defaults=self.defaults, **h)
 
             if transform_function:

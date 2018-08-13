@@ -13,7 +13,7 @@ class Paramiko(ConnectionPlugin):
     relevant connection.
 
     Inventory:
-        advanced_options: maps to argument passed to ``ConnectHandler``.
+        connection_options: maps to argument passed to ``ConnectHandler``.
     """
 
     def open(
@@ -23,10 +23,10 @@ class Paramiko(ConnectionPlugin):
         password: Optional[str],
         port: Optional[int],
         platform: Optional[str],
-        advanced_options: Optional[Dict[str, Any]] = None,
+        connection_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
-        advanced_options = advanced_options or {}
+        connection_options = connection_options or {}
 
         client = paramiko.SSHClient()
         client._policy = paramiko.WarningPolicy()
@@ -60,8 +60,8 @@ class Paramiko(ConnectionPlugin):
         if "identityfile" in user_config:
             parameters["key_filename"] = user_config["identityfile"]
 
-        advanced_options.update(parameters)
-        client.connect(**advanced_options)
+        connection_options.update(parameters)
+        client.connect(**connection_options)
         self.connection = client
 
     def close(self) -> None:

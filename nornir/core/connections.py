@@ -30,7 +30,7 @@ class ConnectionPlugin(ABC):
         password: Optional[str],
         port: Optional[int],
         platform: Optional[str],
-        advanced_options: Optional[Dict[str, Any]] = None,
+        connection_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
         """
