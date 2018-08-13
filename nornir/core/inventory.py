@@ -345,7 +345,9 @@ class Host(object):
         self.connections.pop(connection).close()
 
     def close_connections(self) -> None:
-        for connection in self.connections:
+        # Decouple deleting dictionary elements from iterating over connections dict
+        existing_conns = list(self.connections.keys())
+        for connection in existing_conns:
             self.close_connection(connection)
 
 
