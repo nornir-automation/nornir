@@ -25,13 +25,11 @@ class ConnectionPlugin(ABC):
     @abstractmethod
     def open(
         self,
-        hostname: str,
-        username: str,
-        password: str,
-        ssh_port: int,
-        network_api_port: int,
-        operating_system: str,
-        nos: str,
+        hostname: Optional[str],
+        username: Optional[str],
+        password: Optional[str],
+        port: Optional[int],
+        platform: Optional[str],
         connection_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:

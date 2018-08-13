@@ -20,19 +20,16 @@ class Netmiko(ConnectionPlugin):
     relevant connection.
 
     Inventory:
-        netmiko_options: maps to argument passed to ``ConnectHandler``.
-        nornir_network_ssh_port: maps to ``port``
+        connection_options: maps to argument passed to ``ConnectHandler``.
     """
 
     def open(
         self,
-        hostname: str,
-        username: str,
-        password: str,
-        ssh_port: int,
-        network_api_port: int,
-        operating_system: str,
-        nos: str,
+        hostname: Optional[str],
+        username: Optional[str],
+        password: Optional[str],
+        port: Optional[int],
+        platform: Optional[str],
         connection_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
@@ -40,17 +37,17 @@ class Netmiko(ConnectionPlugin):
             "host": hostname,
             "username": username,
             "password": password,
-            "port": ssh_port,
+            "port": port,
         }
 
-        if nos is not None:
-            # Look device_type up in corresponding map, if no entry return the host.nos unmodified
-            device_type = napalm_to_netmiko_map.get(nos, nos)
-            parameters["device_type"] = device_type
+        if platform is not None:
+            # Look platform up in corresponding map, if no entry return the host.nos unmodified
+            platform = napalm_to_netmiko_map.get(platform, platform)
+            parameters["device_type"] = platform
 
-        netmiko_connection_args = connection_options or {}
-        netmiko_connection_args.update(parameters)
-        self.connection = ConnectHandler(**netmiko_connection_args)
+        connection_options = connection_options or {}
+        parameters.update(connection_options)
+        self.connection = ConnectHandler(**parameters)
 
     def close(self) -> None:
         self.connection.disconnect()

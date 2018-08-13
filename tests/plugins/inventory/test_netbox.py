@@ -22,7 +22,7 @@ def get_inv(requests_mock, case, **kwargs):
 
 def transform_function(host):
     vendor_map = {"Cisco": "ios", "Juniper": "junos"}
-    host["nornir_nos"] = vendor_map[host["vendor"]]
+    host["platform"] = vendor_map[host["vendor"]]
 
 
 class Test(object):

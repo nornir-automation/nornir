@@ -12,37 +12,33 @@ class Napalm(ConnectionPlugin):
     relevant connection.
 
     Inventory:
-        napalm_options: maps directly to ``optional_args`` when establishing the connection
-        nornir_network_api_port: maps to ``optional_args["port"]``
-        napalm_options["timeout"]: maps to ``timeout``.
+        connection_options: passed as it is to the napalm driver
     """
 
     def open(
         self,
-        hostname: str,
-        username: str,
-        password: str,
-        ssh_port: int,
-        network_api_port: int,
-        operating_system: str,
-        nos: str,
+        hostname: Optional[str],
+        username: Optional[str],
+        password: Optional[str],
+        port: Optional[int],
+        platform: Optional[str],
         connection_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
         connection_options = connection_options or {}
-        if network_api_port:
-            connection_options["port"] = network_api_port
 
-        parameters = {
+        parameters: Dict[str, Any] = {
             "hostname": hostname,
             "username": username,
             "password": password,
-            "optional_args": connection_options or {},
+            "optional_args": {},
         }
-        if connection_options.get("timeout"):
-            parameters["timeout"] = connection_options["timeout"]
+        parameters.update(connection_options)
 
-        network_driver = get_network_driver(nos)
+        if port and "port" not in connection_options:
+            parameters["optional_args"]["port"] = port
+
+        network_driver = get_network_driver(platform)
         connection = network_driver(**parameters)
         connection.open()
         self.connection = connection

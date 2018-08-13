@@ -1,4 +1,5 @@
 decorator
+nbval
 pytest
 pytest-cov
 pylama

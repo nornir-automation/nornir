@@ -14,7 +14,7 @@ def tcp_ping(
     Arguments:
         ports (list of int): tcp ports to ping
         timeout (int, optional): defaults to 2
-        host (string, optional): defaults to ``nornir_ip``
+        host (string, optional): defaults to ``hostname``
 
 
     Returns:
@@ -32,7 +32,7 @@ def tcp_ping(
     else:
         raise ValueError("Invalid value for 'ports'")
 
-    host = host or task.host.host
+    host = host or task.host.hostname
 
     result = {}
     for port in ports:

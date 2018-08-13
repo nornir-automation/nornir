@@ -13,11 +13,8 @@ def connect(task, connection_options):
         task.host.close_connection("napalm")
     task.host.open_connection(
         "napalm",
-        hostname=task.host.username,
-        password=task.host.password,
-        network_api_port=task.host.network_api_port,
-        nos=task.host.nos,
-        connection_options=connection_options,
+        connection_options={"optional_args": connection_options},
+        default_to_host_attributes=True,
     )
 
 

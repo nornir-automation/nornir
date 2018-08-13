@@ -1,10 +1,10 @@
 ---
 defaults:
     my_var: comes_from_defaults
-    nornir_host: 127.0.0.1
-    nornir_username: root
-    nornir_password: docker
-    nornir_os: linux
+    hostname: 127.0.0.1
+    username: root
+    password: docker
+    platform: linux
 
 parent_group:
     a_var: blah

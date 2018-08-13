@@ -5,8 +5,8 @@ dev1.group_1:
     my_var: comes_from_dev1.group_1
     www_server: nginx
     role: www
-    nornir_ssh_port: 65001
-    nornir_nos: eos
+    port: 65001
+    platform: eos
     nested_data:
         a_dict:
             a: 1
@@ -18,32 +18,36 @@ dev2.group_1:
     groups:
         - group_1
     role: db
-    nornir_ssh_port: 65002
-    nornir_nos: junos
+    port: 65002
+    platform: junos
     nested_data:
         a_dict:
             b: 2
             c: 3
         a_list: [2, 3]
         a_string: "qwe"
+    dummy_options:
+        hostname: overriden_hostname
+        port: null
+        connection_options:
+            awesome_feature: 1
 
 dev3.group_2:
     groups:
         - group_2
     www_server: apache
     role: www
-    nornir_ssh_port: 65003
-    nornir_network_api_port: 12443
-    nornir_os: linux
-    nornir_nos: mock
-    # nornir_username: vagrant
-    # nornir_password: vagrant
+    port: 65003
+    platform: linux
+    napalm_options:
+        platform: mock
 
 dev4.group_2:
     groups:
         - group_2
     my_var: comes_from_dev4.group_2
     role: db
-    nornir_ssh_port: 65004
-    nornir_network_api_port: 65004
-    nornir_nos: linux
+    port: 65004
+    platform: linux
+    napalm_options:
+        platform: mock

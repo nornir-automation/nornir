@@ -13,9 +13,7 @@ CONF = {
     },
     "transform_function": {
         "description": "Path to transform function. The transform_function you provide "
-        "will run against each host in the inventory. This is useful to manipulate host "
-        "data and make it more consumable. For instance, if your inventory has a 'user' "
-        "attribute you could use this function to map it to 'nornir_user'",
+        "will run against each host in the inventory.",
         "type": "str",
         "default": {},
     },

@@ -10,8 +10,8 @@ one.example.com:
   - dbservers
   my_var: from_one.example.com
 three.example.com:
-  nornir_host: 192.0.2.50
-  nornir_ssh_port: 5555
+  hostname: 192.0.2.50
+  port: 5555
   groups:
   - dbservers
 two.example.com:

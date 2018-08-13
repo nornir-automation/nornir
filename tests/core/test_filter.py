@@ -113,7 +113,7 @@ class Test(object):
         assert filtered == ["dev1.group_1"]
 
     def test_filtering_string_in_list(self):
-        f = F(nornir_nos__in=["linux", "mock"])
+        f = F(platform__in=["linux", "mock"])
         filtered = sorted(list((inventory.filter(f).hosts.keys())))
 
         assert filtered == ["dev3.group_2", "dev4.group_2"]

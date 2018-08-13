@@ -19,6 +19,8 @@ matrix:
     env: TOXENV=pylama
   - python: 3.6
     env: TOXENV=mypy
+  - python: 3.6
+    env: TOXENV=nbval
 install:
 - pip install tox tox-travis coveralls
 script:

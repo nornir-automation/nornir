@@ -13,19 +13,16 @@ class Paramiko(ConnectionPlugin):
     relevant connection.
 
     Inventory:
-        paramiko_options: maps to argument passed to ``ConnectHandler``.
-        nornir_network_ssh_port: maps to ``port``
+        connection_options: maps to argument passed to ``ConnectHandler``.
     """
 
     def open(
         self,
-        hostname: str,
-        username: str,
-        password: str,
-        ssh_port: int,
-        network_api_port: int,
-        operating_system: str,
-        nos: str,
+        hostname: Optional[str],
+        username: Optional[str],
+        password: Optional[str],
+        port: Optional[int],
+        platform: Optional[str],
         connection_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
@@ -44,7 +41,7 @@ class Paramiko(ConnectionPlugin):
             "hostname": hostname,
             "username": username,
             "password": password,
-            "port": ssh_port,
+            "port": port,
         }
 
         user_config = ssh_config.lookup(hostname)
