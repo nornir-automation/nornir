@@ -35,7 +35,7 @@ class Napalm(ConnectionPlugin):
         }
         parameters.update(connection_options)
 
-        if port and "port" not in connection_options:
+        if port and "port" not in connection_options["optional_args"]:
             parameters["optional_args"]["port"] = port
 
         network_driver = get_network_driver(platform)
