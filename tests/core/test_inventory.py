@@ -252,8 +252,8 @@ class Test(object):
 
     def test_setters(self):
         """Test explicit setters specified in inventory."""
-        defaults = {"var4": "ALL"}
-        g1 = Group(name="g1", var1="1", var2="2", var3="3")
+        defaults = {}
+        g1 = Group(name="g1")
         h1 = Host(name="host1", groups=[g1], defaults=defaults)
 
         g1.hostname = "group_hostname"
