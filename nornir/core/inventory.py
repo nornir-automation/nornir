@@ -203,7 +203,7 @@ class Host(object):
 
     @hostname.setter
     def hostname(self, value):
-        self.data['hostname'] = value
+        self.data["hostname"] = value
 
     @property
     def port(self):
@@ -212,7 +212,7 @@ class Host(object):
 
     @port.setter
     def port(self, value):
-        self.data['port'] = value
+        self.data["port"] = value
 
     @property
     def username(self):
@@ -221,7 +221,7 @@ class Host(object):
 
     @username.setter
     def username(self, value):
-        self.data['username'] = value
+        self.data["username"] = value
 
     @property
     def password(self):
@@ -230,7 +230,7 @@ class Host(object):
 
     @password.setter
     def password(self, value):
-        self.data['password'] = value
+        self.data["password"] = value
 
     @property
     def platform(self):
@@ -239,7 +239,7 @@ class Host(object):
 
     @platform.setter
     def platform(self, value):
-        self.data['platform'] = value
+        self.data["platform"] = value
 
     def get_connection_parameters(
         self, connection: Optional[str] = None
