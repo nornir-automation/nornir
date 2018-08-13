@@ -70,11 +70,11 @@ class Host(object):
     def __init__(self, name, groups=None, nornir=None, defaults=None, **kwargs):
         self.nornir = nornir
         self.name = name
-        self.groups = groups or []
+        self.groups = groups if groups is not None else []
         self.data = {}
         self.data["name"] = name
         self.connections = Connections()
-        self.defaults = defaults or {}
+        self.defaults = defaults if defaults is not None else {}
 
         if len(self.groups):
             if isinstance(groups[0], str):
