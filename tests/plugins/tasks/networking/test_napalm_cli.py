@@ -11,12 +11,12 @@ from nornir.plugins.tasks import networking
 THIS_DIR = os.path.dirname(os.path.realpath(__file__)) + "/mocked/napalm_cli"
 
 
-def connect(task, advanced_options):
+def connect(task, connection_options):
     if "napalm" in task.host.connections:
         task.host.close_connection("napalm")
     task.host.open_connection(
         "napalm",
-        advanced_options={"optional_args": advanced_options},
+        connection_options={"optional_args": connection_options},
         default_to_host_attributes=True,
     )
 
@@ -25,7 +25,7 @@ class Test(object):
     def test_napalm_cli(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_cli"}
         d = nornir.filter(name="dev3.group_2")
-        d.run(connect, advanced_options=opt)
+        d.run(connect, connection_options=opt)
         result = d.run(
             networking.napalm_cli, commands=["show version", "show interfaces"]
         )

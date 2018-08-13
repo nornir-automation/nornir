@@ -29,7 +29,7 @@ dev2.group_1:
     dummy_options:
         hostname: overriden_hostname
         port: null
-        advanced_options:
+        connection_options:
             awesome_feature: 1
 
 dev3.group_2:

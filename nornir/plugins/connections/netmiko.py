@@ -20,7 +20,7 @@ class Netmiko(ConnectionPlugin):
     relevant connection.
 
     Inventory:
-        advanced_options: maps to argument passed to ``ConnectHandler``.
+        connection_options: maps to argument passed to ``ConnectHandler``.
     """
 
     def open(
@@ -30,7 +30,7 @@ class Netmiko(ConnectionPlugin):
         password: Optional[str],
         port: Optional[int],
         platform: Optional[str],
-        advanced_options: Optional[Dict[str, Any]] = None,
+        connection_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
         parameters = {
@@ -45,8 +45,8 @@ class Netmiko(ConnectionPlugin):
             platform = napalm_to_netmiko_map.get(platform, platform)
             parameters["device_type"] = platform
 
-        advanced_options = advanced_options or {}
-        parameters.update(advanced_options)
+        connection_options = connection_options or {}
+        parameters.update(connection_options)
         self.connection = ConnectHandler(**parameters)
 
     def close(self) -> None:

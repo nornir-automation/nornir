@@ -13,7 +13,7 @@ class DummyConnectionPlugin(ConnectionPlugin):
         password: Optional[str],
         port: Optional[int],
         platform: Optional[str],
-        advanced_options: Optional[Dict[str, Any]] = None,
+        connection_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
         self.connection = True
@@ -23,7 +23,7 @@ class DummyConnectionPlugin(ConnectionPlugin):
         self.password = password
         self.port = port
         self.platform = platform
-        self.advanced_options = advanced_options
+        self.connection_options = connection_options
         self.configuration = configuration
 
     def close(self) -> None:
@@ -105,7 +105,7 @@ class Test(object):
             "password": "docker",
             "port": 65002,
             "platform": "junos",
-            "advanced_options": {},
+            "connection_options": {},
         }
         nr = nornir.filter(name="dev2.group_1")
         r = nr.run(
@@ -125,7 +125,7 @@ class Test(object):
             "password": "docker",
             "port": None,
             "platform": "junos",
-            "advanced_options": {"awesome_feature": 1},
+            "connection_options": {"awesome_feature": 1},
         }
         nr = nornir.filter(name="dev2.group_1")
         r = nr.run(task=validate_params, conn="dummy", params=params, num_workers=1)

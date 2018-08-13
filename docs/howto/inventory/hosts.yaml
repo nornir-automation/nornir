@@ -2,6 +2,6 @@
 rtr00:  # Used for the "handling connections" how to
     platform: mock
     napalm_options:
-        advanced_options:
+        connection_options:
             optional_args:
                 path: handling_connections

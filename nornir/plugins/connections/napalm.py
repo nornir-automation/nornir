@@ -12,8 +12,7 @@ class Napalm(ConnectionPlugin):
     relevant connection.
 
     Inventory:
-        advanced_options: passed as it is to the napalm driver
-        advanced_options["timeout"]: maps to ``timeout``.
+        connection_options: passed as it is to the napalm driver
     """
 
     def open(
@@ -23,10 +22,10 @@ class Napalm(ConnectionPlugin):
         password: Optional[str],
         port: Optional[int],
         platform: Optional[str],
-        advanced_options: Optional[Dict[str, Any]] = None,
+        connection_options: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
-        advanced_options = advanced_options or {}
+        connection_options = connection_options or {}
 
         parameters: Dict[str, Any] = {
             "hostname": hostname,
@@ -34,13 +33,10 @@ class Napalm(ConnectionPlugin):
             "password": password,
             "optional_args": {},
         }
-        parameters.update(advanced_options)
+        parameters.update(connection_options)
 
-        if port and "port" not in advanced_options:
+        if port and "port" not in connection_options:
             parameters["optional_args"]["port"] = port
-
-        if advanced_options.get("timeout"):
-            parameters["timeout"] = advanced_options["timeout"]
 
         network_driver = get_network_driver(platform)
         connection = network_driver(**parameters)
