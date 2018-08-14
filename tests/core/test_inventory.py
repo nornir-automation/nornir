@@ -249,3 +249,31 @@ class Test(object):
             },
         }
         assert inventory.filter(role="www").to_dict() == expected
+
+    def test_setters(self):
+        """Test explicit setters specified in inventory."""
+        defaults = {}
+        g1 = Group(name="g1")
+        h1 = Host(name="host1", groups=[g1], defaults=defaults)
+
+        g1.hostname = "group_hostname"
+        assert h1.hostname == "group_hostname"
+        g1.platform = "group_platform"
+        assert h1.platform == "group_platform"
+        g1.username = "group_username"
+        assert h1.username == "group_username"
+        g1.password = "group_password"
+        assert h1.password == "group_password"
+        g1.port = 9999
+        assert h1.port == 9999
+
+        h1.hostname = "alt_hostname"
+        assert h1.hostname == "alt_hostname"
+        h1.platform = "alt_platform"
+        assert h1.platform == "alt_platform"
+        h1.username = "alt_username"
+        assert h1.username == "alt_username"
+        h1.password = "alt_password"
+        assert h1.password == "alt_password"
+        h1.port = 9998
+        assert h1.port == 9998
