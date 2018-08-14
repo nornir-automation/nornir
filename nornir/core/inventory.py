@@ -201,25 +201,45 @@ class Host(object):
         """String used to connect to the device. Either ``hostname`` or ``self.name``"""
         return self.get("hostname", self.name)
 
+    @hostname.setter
+    def hostname(self, value):
+        self.data["hostname"] = value
+
     @property
     def port(self):
         """Either ``port`` or ``None``."""
         return self.get("port")
+
+    @port.setter
+    def port(self, value):
+        self.data["port"] = value
 
     @property
     def username(self):
         """Either ``username`` or user running the script."""
         return self.get("username", getpass.getuser())
 
+    @username.setter
+    def username(self, value):
+        self.data["username"] = value
+
     @property
     def password(self):
         """Either ``password`` or empty string."""
         return self.get("password", "")
 
+    @password.setter
+    def password(self, value):
+        self.data["password"] = value
+
     @property
     def platform(self):
         """OS the device is running. Defaults to ``platform``."""
         return self.get("platform")
+
+    @platform.setter
+    def platform(self, value):
+        self.data["platform"] = value
 
     def get_connection_parameters(
         self, connection: Optional[str] = None
