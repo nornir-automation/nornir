@@ -1,6 +1,6 @@
 import copy
 
-from nornir.core.task import Result
+from nornir.core.result import Result
 
 
 def napalm_get(task, getters, getters_options=None, **kwargs):

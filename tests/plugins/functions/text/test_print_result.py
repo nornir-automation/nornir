@@ -3,7 +3,7 @@ import logging
 
 from nornir.plugins.functions.text import print_result
 from nornir.plugins.functions.text import print_title
-from nornir.core.task import Result
+from nornir.core.result import Result
 from tests.wrapper import wrap_cli_test
 
 output_dir = "{}/output_data".format(os.path.dirname(os.path.realpath(__file__)))

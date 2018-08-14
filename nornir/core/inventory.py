@@ -7,13 +7,13 @@ class Host(object):
 
     Arguments:
         name (str): Name of the host
-        group (:obj:`Group`, optional): Group the host belongs to
+        group (:obj:`nornir.core.inventory.Group`, optional): Group the host belongs to
         nornir (:obj:`nornir.core.Nornir`): Reference to the parent nornir object
         **kwargs: Host data
 
     Attributes:
         name (str): Name of the host
-        groups (list of :obj:`Group`): Groups the host belongs to
+        groups (list of :obj:`nornir.core.inventory.Group`): Groups the host belongs to
         defaults (``dict``): Default values for host/group data
         data (dict): data about the device
         connections (``dict``): Already established connections
@@ -24,10 +24,10 @@ class Host(object):
 
         1. Via the ``data`` attribute - In this case you will get access
            **only** to the data that belongs to the host.
-           2. Via the host itself as a dict - :obj:`Host` behaves like a
+           2. Via the host itself as a dict - :obj:`nornir.core.inventory.Host` behaves like a
            dict. The difference between accessing data via the ``data`` attribute
            and directly via the host itself is that the latter will also
-           return the data if it's available via a parent :obj:`Group`.
+           return the data if it's available via a parent :obj:`nornir.core.inventory.Group`.
 
         For instance::
 
@@ -112,7 +112,10 @@ class Host(object):
         return self.data
 
     def has_parent_group(self, group):
-        """Retuns whether the object is a child of the :obj:`Group` ``group``"""
+        """
+        Retuns whether the object is a child of the :obj:`nornir.core.inventory.Group`
+        ``group``
+        """
         for g in self.groups:
             if g is group or g.has_parent_group(group):
                 return True
@@ -253,7 +256,7 @@ class Host(object):
 
 
 class Group(Host):
-    """Same as :obj:`Host`"""
+    """Same as :obj:`nornir.core.inventory.Host`"""
 
     def children(self):
         return {
@@ -268,17 +271,17 @@ class Inventory(object):
     An inventory contains information about hosts and groups.
 
     Arguments:
-        hosts (dict): keys are hostnames and values are either :obj:`Host` or a dict
-            representing the host data.
-        groups (dict): keys are group names and values are either :obj:`Group` or a dict
-            representing the group data.
+        hosts (dict): keys are hostnames and values are either :obj:`nornir.core.inventory.Host`
+            or a dict representing the host data.
+        groups (dict): keys are group names and values are either :obj:`nornir.core.inventory.Group`
+            or a dict representing the group data.
         transform_function (callable): we will call this function for each host. This is useful
             to manipulate host data and make it more consumable. For instance, if your inventory
             has a "user" attribute you could use this function to map it to "nornir_user"
 
     Attributes:
-        hosts (dict): keys are hostnames and values are :obj:`Host`.
-        groups (dict): keys are group names and the values are :obj:`Group`.
+        hosts (dict): keys are hostnames and values are :obj:`nornir.core.inventory.Host`.
+        groups (dict): keys are group names and the values are :obj:`nornir.core.inventory.Group`.
     """
 
     def __init__(

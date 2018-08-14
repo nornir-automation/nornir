@@ -1,4 +1,4 @@
-from nornir.core.task import Result
+from nornir.core.result import Result
 
 
 def napalm_validate(task, src=None, validation_source=None):

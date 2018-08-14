@@ -1,7 +1,4 @@
 Inventory
-#########
-
-Inventory
 =========
 
 .. autoclass:: nornir.core.inventory.Inventory

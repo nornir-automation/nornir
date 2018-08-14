@@ -1,7 +1,7 @@
 import socket
 
 
-from nornir.core.task import Result
+from nornir.core.result import Result
 
 
 def tcp_ping(task, ports, timeout=2, host=None):

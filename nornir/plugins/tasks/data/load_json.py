@@ -1,6 +1,6 @@
 import json
 
-from nornir.core.task import Result
+from nornir.core.result import Result
 
 
 def load_json(task, file):
