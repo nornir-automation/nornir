@@ -1,0 +1,16 @@
+---
+defaults: {}
+mammal:
+    reproduction: birth
+    fly: false
+
+bird:
+    reproduction: eggs
+    fly: true
+
+invertebrate:
+    reproduction: mitosis
+    fly: false
+
+terrestrial: {}
+marine: {}
