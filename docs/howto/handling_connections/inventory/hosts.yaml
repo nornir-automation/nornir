@@ -1,7 +1,7 @@
 ---
-rtr00:  # Used for the "handling connections" how to
+rtr00:
     platform: mock
     napalm_options:
         connection_options:
             optional_args:
-                path: handling_connections
+                path: handling_connections/mocked_data
