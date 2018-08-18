@@ -40,10 +40,9 @@ class NBInventory(Inventory):
                 # Find interface name using additional API call
                 i = requests.get(
                     "{}/api/ipam/ip-addresses/?address={}".format(
-                        nb_url, temp["nornir_host"]
-                    ),
-                    headers=headers,
-                ).json()
+                        nb_url, temp["nornir_host"]),headers=headers)
+                i.raise_for_status()
+                i = i.json()
 
                 # Strip extraneous information and add it to the dictionary
                 temp["primary_interface"] = i["results"][0]["interface"]["name"]

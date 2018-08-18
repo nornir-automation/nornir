@@ -1,0 +1,37 @@
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 3,
+      "family": 4,
+      "address": "192.168.3.1/32",
+      "vrf": null,
+      "tenant": null,
+      "status": {
+        "value": 1,
+        "label": "Active"
+      },
+      "role": null,
+      "interface": {
+        "id": 3,
+        "url": "http://netbox.local:8080/api/dcim/interfaces/3/",
+        "device": {
+          "id": 3,
+          "url": "http://netbox.local:8080/api/dcim/devices/3/",
+          "name": "3-Access",
+          "display_name": "3-Access"
+        },
+        "virtual_machine": null,
+        "name": "Loopback0"
+      },
+      "description": "",
+      "nat_inside": null,
+      "nat_outside": null,
+      "custom_fields": {},
+      "created": "2018-07-26",
+      "last_updated": "2018-07-26T07:59:42.981450Z"
+    }
+  ]
+}

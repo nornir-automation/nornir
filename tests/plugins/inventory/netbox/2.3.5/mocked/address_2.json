@@ -1,0 +1,37 @@
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 2,
+      "family": 4,
+      "address": "172.16.2.1/32",
+      "vrf": null,
+      "tenant": null,
+      "status": {
+        "value": 1,
+        "label": "Active"
+      },
+      "role": null,
+      "interface": {
+        "id": 2,
+        "url": "http://netbox.local:8080/api/dcim/interfaces/2/",
+        "device": {
+          "id": 2,
+          "url": "http://netbox.local:8080/api/dcim/devices/2/",
+          "name": "2-Distribution",
+          "display_name": "2-Distribution"
+        },
+        "virtual_machine": null,
+        "name": "lo0.0"
+      },
+      "description": "",
+      "nat_inside": null,
+      "nat_outside": null,
+      "custom_fields": {},
+      "created": "2018-07-26",
+      "last_updated": "2018-07-26T07:23:11.518980Z"
+    }
+  ]
+}

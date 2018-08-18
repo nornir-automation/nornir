@@ -1,0 +1,37 @@
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "family": 4,
+      "address": "10.0.1.1/32",
+      "vrf": null,
+      "tenant": null,
+      "status": {
+        "value": 1,
+        "label": "Active"
+      },
+      "role": null,
+      "interface": {
+        "id": 1,
+        "url": "http://netbox.local:8080/api/dcim/interfaces/1/",
+        "device": {
+          "id": 1,
+          "url": "http://netbox.local:8080/api/dcim/devices/1/",
+          "name": "1-Core",
+          "display_name": "1-Core"
+        },
+        "virtual_machine": null,
+        "name": "lo0.0"
+      },
+      "description": "",
+      "nat_inside": null,
+      "nat_outside": null,
+      "custom_fields": {},
+      "created": "2018-07-26",
+      "last_updated": "2018-07-26T06:58:35.918980Z"
+    }
+  ]
+}
