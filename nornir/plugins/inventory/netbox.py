@@ -45,10 +45,10 @@ class NBInventory(Inventory):
                     headers=headers,
                 )
                 i.raise_for_status()
-                i = i.json()
+                int_name = i.json()
 
                 # Strip extraneous information and add it to the dictionary
-                temp["primary_interface"] = i["results"][0]["interface"]["name"]
+                temp["primary_interface"] = int_name["results"][0]["interface"]["name"]
 
             # Add values that don't have an option for 'slug'
             temp["serial"] = d["serial"]
