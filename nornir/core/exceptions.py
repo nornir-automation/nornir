@@ -14,6 +14,14 @@ class ConnectionNotOpen(ConnectionException):
     pass
 
 
+class ConnectionPluginAlreadyRegistered(ConnectionException):
+    pass
+
+
+class ConnectionPluginNotRegistered(ConnectionException):
+    pass
+
+
 class CommandError(Exception):
     """
     Raised when there is a command error.

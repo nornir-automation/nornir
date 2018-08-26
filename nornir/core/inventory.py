@@ -329,7 +329,7 @@ class Host(object):
         if connection in self.connections:
             raise ConnectionAlreadyOpen(connection)
 
-        self.connections[connection] = self.nornir.get_connection_type(connection)()
+        self.connections[connection] = self.connections.get_plugin(connection)()
         if default_to_host_attributes:
             conn_params = self.get_connection_parameters(connection)
             self.connections[connection].open(

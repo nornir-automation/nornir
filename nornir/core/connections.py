@@ -1,8 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, NoReturn, Optional
+from typing import Any, Dict, NoReturn, Optional, Type
 
 
 from nornir.core.configuration import Config
+from nornir.core.exceptions import (
+    ConnectionPluginAlreadyRegistered,
+    ConnectionPluginNotRegistered,
+)
 
 
 class ConnectionPlugin(ABC):
@@ -53,4 +57,63 @@ class UnestablishedConnection(object):
 
 
 class Connections(Dict[str, ConnectionPlugin]):
-    pass
+    available: Dict[str, Type[ConnectionPlugin]] = {}
+
+    @classmethod
+    def register(
+        cls, name: str, plugin: Type[ConnectionPlugin], force: bool = False
+    ) -> None:
+        """Registers a connection plugin with a specified name
+
+        Args:
+            name: name of the connection plugin to register
+            plugin: defined connection plugin class
+            force: if set to True, will register a class with the specified name
+                even if a connection plugin with the same name was already
+                registered. Default - False
+
+        Raises:
+            :obj:`nornir.core.exceptions.ConnectionPluginAlreadyRegistered`
+        """
+        if not force and name in cls.available:
+            raise ConnectionPluginAlreadyRegistered(
+                f"Connection {name!r} was already registered"
+            )
+        cls.available[name] = plugin
+
+    @classmethod
+    def deregister(cls, name: str) -> None:
+        """Deregisters a registered connection plugin by its name
+
+        Args:
+            name: name of the connection plugin to deregister
+
+        Raises:
+            :obj:`nornir.core.exceptions.ConnectionPluginNotRegistered`
+        """
+        if name not in cls.available:
+            raise ConnectionPluginNotRegistered(
+                f"Connection {name!r} is not registered"
+            )
+        cls.available.pop(name)
+
+    @classmethod
+    def deregister_all(cls) -> None:
+        """Deregisters all registered connection plugins"""
+        cls.available = {}
+
+    @classmethod
+    def get_plugin(cls, name: str) -> Type[ConnectionPlugin]:
+        """Fetches the connection plugin by name if already registered
+
+        Args:
+            name: name of the connection plugin
+
+        Raises:
+            :obj:`nornir.core.exceptions.ConnectionPluginNotRegistered`
+        """
+        if name not in cls.available:
+            raise ConnectionPluginNotRegistered(
+                f"Connection {name!r} is not registered"
+            )
+        return cls.available[name]
