@@ -22,7 +22,7 @@ def load_yaml(task: Task, file: str):
           * result (``dict``): dictionary with the contents of the file
     """
     with open(file, "r") as f:
-        yml = ruamel.yaml.YAML(pure=True)
+        yml = ruamel.yaml.YAML(typ="safe")
         data = yml.load(f)
 
     return Result(host=task.host, result=data)

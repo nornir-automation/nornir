@@ -3,6 +3,7 @@ import os
 from nornir.plugins.inventory import ansible
 
 import pytest
+
 import ruamel.yaml
 from ruamel.yaml.scanner import ScannerError
 
@@ -11,7 +12,7 @@ BASE_PATH = os.path.join(os.path.dirname(__file__), "ansible")
 
 
 def save(hosts, groups, hosts_file, groups_file):
-    yml = ruamel.yaml.YAML(typ="safe", pure=True)
+    yml = ruamel.yaml.YAML(typ="safe")
     yml.default_flow_style = False
     with open(hosts_file, "w+") as f:
         f.write(yml.dump(hosts))

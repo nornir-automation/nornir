@@ -122,7 +122,7 @@ class SimpleInventory(Inventory):
         group_file: str = "groups.yaml",
         **kwargs: Any
     ) -> None:
-        yml = ruamel.yaml.YAML()
+        yml = ruamel.yaml.YAML(typ="safe")
         with open(host_file, "r") as f:
             hosts: HostsDict = yml.load(f)
 

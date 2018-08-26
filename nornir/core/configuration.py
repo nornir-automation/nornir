@@ -91,7 +91,7 @@ class Config(object):
     def __init__(self, config_file=None, **kwargs):
         if config_file:
             with open(config_file, "r") as f:
-                yml = ruamel.yaml.YAML()
+                yml = ruamel.yaml.YAML(typ="safe")
                 data = yml.load(f) or {}
         else:
             data = {}
