@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional
 
 from nornir.core.configuration import Config
-from nornir.core.connections import ConnectionPlugin
+from nornir.core.connections import ConnectionPlugin, Connections
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
 
 
@@ -68,29 +68,30 @@ def validate_params(task, conn, params):
 
 
 class Test(object):
+    @classmethod
+    def setup_class(cls):
+        Connections.register("dummy", DummyConnectionPlugin)
+        Connections.register("dummy_no_overrides", DummyConnectionPlugin)
+
     def test_open_and_close_connection(self, nornir):
-        nornir.data.available_connections["dummy"] = DummyConnectionPlugin
         nr = nornir.filter(name="dev2.group_1")
         r = nr.run(task=open_and_close_connection, num_workers=1)
         assert len(r) == 1
         assert not r.failed
 
     def test_open_connection_twice(self, nornir):
-        nornir.data.available_connections["dummy"] = DummyConnectionPlugin
         nr = nornir.filter(name="dev2.group_1")
         r = nr.run(task=open_connection_twice, num_workers=1)
         assert len(r) == 1
         assert not r.failed
 
     def test_close_not_opened_connection(self, nornir):
-        nornir.data.available_connections["dummy"] = DummyConnectionPlugin
         nr = nornir.filter(name="dev2.group_1")
         r = nr.run(task=close_not_opened_connection, num_workers=1)
         assert len(r) == 1
         assert not r.failed
 
     def test_context_manager(self, nornir):
-        nornir.data.available_connections["dummy"] = DummyConnectionPlugin
         with nornir.filter(name="dev2.group_1") as nr:
             nr.run(task=a_task)
             assert "dummy" in nr.inventory.hosts["dev2.group_1"].connections
@@ -98,7 +99,6 @@ class Test(object):
         nornir.data.reset_failed_hosts()
 
     def test_validate_params_simple(self, nornir):
-        nornir.data.available_connections["dummy_no_overrides"] = DummyConnectionPlugin
         params = {
             "hostname": "127.0.0.1",
             "username": "root",
@@ -118,7 +118,6 @@ class Test(object):
         assert not r.failed
 
     def test_validate_params_overrides(self, nornir):
-        nornir.data.available_connections["dummy"] = DummyConnectionPlugin
         params = {
             "hostname": "overriden_hostname",
             "username": "root",
