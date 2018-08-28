@@ -82,6 +82,7 @@ def validate_params(task, conn, params):
 class Test(object):
     @classmethod
     def setup_class(cls):
+        Connections.deregister_all()
         Connections.register("dummy", DummyConnectionPlugin)
         Connections.register("dummy_no_overrides", DummyConnectionPlugin)
 
@@ -151,6 +152,7 @@ class TestConnectionPluginsRegistration(object):
         Connections.register("another_dummy", AnotherDummyConnectionPlugin)
 
     def teardown_method(self, method):
+        Connections.deregister_all()
         register_default_connection_plugins()
 
     def test_count(self):
@@ -160,13 +162,13 @@ class TestConnectionPluginsRegistration(object):
         Connections.register("new_dummy", DummyConnectionPlugin)
         assert "new_dummy" in Connections.available
 
-    def test_register_existing(self):
-        with pytest.raises(ConnectionPluginAlreadyRegistered):
-            Connections.register("dummy", DummyConnectionPlugin)
+    def test_register_already_registered_same(self):
+        Connections.register("dummy", DummyConnectionPlugin)
+        assert Connections.available["dummy"] == DummyConnectionPlugin
 
-    def test_register_existing_force(self):
-        Connections.register("dummy", AnotherDummyConnectionPlugin, force=True)
-        assert Connections.available["dummy"] == AnotherDummyConnectionPlugin
+    def test_register_already_registered_new(self):
+        with pytest.raises(ConnectionPluginAlreadyRegistered):
+            Connections.register("dummy", AnotherDummyConnectionPlugin)
 
     def test_deregister_existing(self):
         Connections.deregister("dummy")

@@ -60,26 +60,26 @@ class Connections(Dict[str, ConnectionPlugin]):
     available: Dict[str, Type[ConnectionPlugin]] = {}
 
     @classmethod
-    def register(
-        cls, name: str, plugin: Type[ConnectionPlugin], force: bool = False
-    ) -> None:
+    def register(cls, name: str, plugin: Type[ConnectionPlugin]) -> None:
         """Registers a connection plugin with a specified name
 
         Args:
             name: name of the connection plugin to register
             plugin: defined connection plugin class
-            force: if set to True, will register a class with the specified name
-                even if a connection plugin with the same name was already
-                registered. Default - False
 
         Raises:
-            :obj:`nornir.core.exceptions.ConnectionPluginAlreadyRegistered`
+            :obj:`nornir.core.exceptions.ConnectionPluginAlreadyRegistered` if
+                another plugin with the specified name was already registered
         """
-        if not force and name in cls.available:
+        existing_plugin = cls.available.get(name)
+        if existing_plugin is None:
+            cls.available[name] = plugin
+        elif existing_plugin != plugin:
             raise ConnectionPluginAlreadyRegistered(
-                f"Connection {name!r} was already registered"
+                f"Connection plugin {plugin.__name__} can't be registered as "
+                f"{name!r} because plugin {existing_plugin.__name__} "
+                f"was already registered under this name"
             )
-        cls.available[name] = plugin
 
     @classmethod
     def deregister(cls, name: str) -> None:
