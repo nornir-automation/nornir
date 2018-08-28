@@ -5,7 +5,6 @@ from nornir.core.connections import Connections
 
 
 def register_default_connection_plugins() -> None:
-    Connections.deregister_all()
     Connections.register("napalm", Napalm)
     Connections.register("netmiko", Netmiko)
     Connections.register("paramiko", Paramiko)
