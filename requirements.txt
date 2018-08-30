@@ -7,3 +7,4 @@ future
 requests
 ruamel.yaml
 mypy_extensions
+pydantic

@@ -1,6 +1,7 @@
 ---
 num_workers: 10
 raise_on_error: false
-user_defined: "asdasd"
-my_root:
-    user_defined: "i am nested"
+inventory:
+    plugin: something
+user_defined:
+    asd: qwe
