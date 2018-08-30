@@ -54,23 +54,27 @@ class Logging(BaseSettings):
         env_prefix = "NORNIR_LOGGING_"
 
     def configure(self):
+        rootHandlers: List[Any] = []
+        root = {
+            "level": "CRITICAL" if self.loggers else self.level.upper(),
+            "handlers": rootHandlers,
+            "formatter": "simple",
+        }
+        handlers: Dict[str, Any] = {}
+        loggers: Dict[str, Any] = {}
         dictConfig = {
             "version": 1,
             "disable_existing_loggers": False,
             "formatters": {"simple": {"format": self.format}},
-            "handlers": {},
-            "loggers": {},
-            "root": {
-                "level": "CRITICAL" if self.loggers else self.level.upper(),
-                "handlers": [],
-                "formatter": "simple",
-            },
+            "handlers": handlers,
+            "loggers": loggers,
+            "root": root,
         }
         handlers_list = []
         if self.file:
-            dictConfig["root"]["handlers"].append("info_file_handler")
+            root["handlers"].append("info_file_handler")
             handlers_list.append("info_file_handler")
-            dictConfig["handlers"]["info_file_handler"] = {
+            handlers["info_file_handler"] = {
                 "class": "logging.handlers.RotatingFileHandler",
                 "level": "NOTSET",
                 "formatter": "simple",
@@ -80,9 +84,9 @@ class Logging(BaseSettings):
                 "encoding": "utf8",
             }
         if self.to_console:
-            dictConfig["root"]["handlers"].append("info_console")
+            root["handlers"].append("info_console")
             handlers_list.append("info_console")
-            dictConfig["handlers"]["info_console"] = {
+            handlers["info_console"] = {
                 "class": "logging.StreamHandler",
                 "level": "NOTSET",
                 "formatter": "simple",
@@ -90,12 +94,9 @@ class Logging(BaseSettings):
             }
 
         for logger in self.loggers:
-            dictConfig["loggers"][logger] = {
-                "level": self.level.upper(),
-                "handlers": handlers_list,
-            }
+            loggers[logger] = {"level": self.level.upper(), "handlers": handlers_list}
 
-        if dictConfig["root"]["handlers"]:
+        if rootHandlers:
             logging.config.dictConfig(dictConfig)
 
 
