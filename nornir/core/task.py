@@ -6,6 +6,8 @@ from typing import Optional
 from nornir.core.exceptions import NornirExecutionError
 from nornir.core.exceptions import NornirSubTaskError
 
+logger = logging.getLogger(__name__)
+
 
 class Task(object):
     """
@@ -57,7 +59,6 @@ class Task(object):
         self.host = host
         self.nornir = nornir
 
-        logger = logging.getLogger("nornir")
         try:
             logger.info("{}: {}: running task".format(self.host.name, self.name))
             r = self.task(self, **self.params)

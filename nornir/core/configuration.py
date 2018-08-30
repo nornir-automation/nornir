@@ -1,8 +1,10 @@
 import importlib
+import logging
 import os
 
-
 import ruamel.yaml
+
+logger = logging.getLogger(__name__)
 
 
 CONF = {
@@ -41,16 +43,19 @@ CONF = {
         "default": os.path.join(os.path.expanduser("~"), ".ssh", "config"),
         "default_doc": "~/.ssh/config",
     },
-    "logging_dictConfig": {
-        "description": "Configuration dictionary schema supported by the logging subsystem. "
-        "Overrides rest of logging_* parameters.",
-        "type": "dict",
-        "default": {},
+    "logging_enabled": {
+        "description": (
+            "Whether nornir should configure logging. Manual logging "
+            "configuration using dictConfig overrides these settings. "
+            "Default - True"
+        ),
+        "type": "bool",
+        "default": True,
     },
     "logging_level": {
         "description": "Logging level. Can be any supported level by the logging subsystem",
         "type": "str",
-        "default": "debug",
+        "default": "INFO",
     },
     "logging_file": {
         "description": "Logging file. Empty string disables logging to file.",
@@ -60,20 +65,12 @@ CONF = {
     "logging_format": {
         "description": "Logging format",
         "type": "str",
-        "default": "%(asctime)s - %(name)12s - %(levelname)8s - %(funcName)10s() - %(message)s",
+        "default": "[%(asctime)s] %(levelname)-8s {%(name)s:%(lineno)d} %(message)s",
     },
     "logging_to_console": {
         "description": "Whether to log to stdout or not.",
         "type": "bool",
         "default": False,
-    },
-    "logging_loggers": {
-        "description": "List of loggers to configure. This allows you to enable logging for "
-        "multiple loggers. For instance, you could enable logging for both nornir "
-        "and paramiko or just for paramiko. An empty list will enable logging for "
-        "all loggers.",
-        "type": "list",
-        "default": ["nornir"],
     },
 }
 
@@ -91,6 +88,7 @@ class Config(object):
     def __init__(self, config_file=None, **kwargs):
         if config_file:
             with open(config_file, "r") as f:
+                logging.debug("Reading config from %s", config_file)
                 yml = ruamel.yaml.YAML(typ="safe")
                 data = yml.load(f) or {}
         else:

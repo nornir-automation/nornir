@@ -1,5 +1,6 @@
 import logging
-import logging.config
+import logging.handlers
+import sys
 from multiprocessing.dummy import Pool
 
 from nornir.core.configuration import Config
@@ -7,6 +8,7 @@ from nornir.core.task import AggregatedResult, Task
 from nornir.plugins.connections import register_default_connection_plugins
 
 register_default_connection_plugins()
+logger = logging.getLogger(__name__)
 
 
 class Data(object):
@@ -53,10 +55,7 @@ class Nornir(object):
         config (:obj:`nornir.core.configuration.Config`): Configuration parameters
     """
 
-    def __init__(
-        self, inventory, dry_run, config=None, config_file=None, logger=None, data=None
-    ):
-        self.logger = logger or logging.getLogger("nornir")
+    def __init__(self, inventory, dry_run, config=None, config_file=None, data=None):
 
         self.data = data or Data()
         self.inventory = inventory
@@ -68,8 +67,6 @@ class Nornir(object):
         else:
             self.config = config or Config()
 
-        self.configure_logging()
-
     def __enter__(self):
         return self
 
@@ -79,53 +76,6 @@ class Nornir(object):
     @property
     def dry_run(self):
         return self.data.dry_run
-
-    def configure_logging(self):
-        dictConfig = self.config.logging_dictConfig or {
-            "version": 1,
-            "disable_existing_loggers": False,
-            "formatters": {"simple": {"format": self.config.logging_format}},
-            "handlers": {},
-            "loggers": {},
-            "root": {
-                "level": "CRITICAL"
-                if self.config.logging_loggers
-                else self.config.logging_level.upper(),  # noqa
-                "handlers": [],
-                "formatter": "simple",
-            },
-        }
-        handlers_list = []
-        if self.config.logging_file:
-            dictConfig["root"]["handlers"].append("info_file_handler")
-            handlers_list.append("info_file_handler")
-            dictConfig["handlers"]["info_file_handler"] = {
-                "class": "logging.handlers.RotatingFileHandler",
-                "level": "NOTSET",
-                "formatter": "simple",
-                "filename": self.config.logging_file,
-                "maxBytes": 10485760,
-                "backupCount": 20,
-                "encoding": "utf8",
-            }
-        if self.config.logging_to_console:
-            dictConfig["root"]["handlers"].append("info_console")
-            handlers_list.append("info_console")
-            dictConfig["handlers"]["info_console"] = {
-                "class": "logging.StreamHandler",
-                "level": "NOTSET",
-                "formatter": "simple",
-                "stream": "ext://sys.stdout",
-            }
-
-        for logger in self.config.logging_loggers:
-            dictConfig["loggers"][logger] = {
-                "level": self.config.logging_level.upper(),
-                "handlers": handlers_list,
-            }
-
-        if dictConfig["root"]["handlers"]:
-            logging.config.dictConfig(dictConfig)
 
     def filter(self, *args, **kwargs):
         """
@@ -166,7 +116,7 @@ class Nornir(object):
         raise_on_error=None,
         on_good=True,
         on_failed=False,
-        **kwargs
+        **kwargs,
     ):
         """
         Run task over all the hosts in the inventory.
@@ -199,12 +149,17 @@ class Nornir(object):
                 if name in self.data.failed_hosts:
                     run_on.append(host)
 
-        self.logger.info(
-            "Running task '{}' with num_workers: {}".format(
-                kwargs.get("name") or task.__name__, num_workers
-            )
+        task_name = kwargs.get("name") or task.__name__
+        if num_workers == 1:
+            workers_str = "1 worker"
+        else:
+            workers_str = f"{num_workers} workers"
+        logger.info(
+            "Running task '%s' with %s on %d hosts",
+            task_name,
+            workers_str,
+            len(self.inventory),
         )
-        self.logger.debug(kwargs)
 
         if num_workers == 1:
             result = self._run_serial(task, run_on, **kwargs)
@@ -231,6 +186,37 @@ class Nornir(object):
         self.run(task=close_connections_task, on_good=on_good, on_failed=on_failed)
 
 
+def configure_logging(config: Config) -> None:
+    if not config.logging_enabled:
+        return
+    nornir_logger = logging.getLogger("nornir")
+    # configure logging only if the user didn't touch nornir logger using
+    # dictConfig or via a programmatic way
+    if nornir_logger.level == logging.NOTSET and not nornir_logger.handlers:
+        nornir_logger.propagate = False
+        nornir_logger.setLevel(config.logging_level)
+        formatter = logging.Formatter(config.logging_format)
+        if config.logging_file:
+            handler = logging.handlers.RotatingFileHandler(
+                config.logging_file, maxBytes=1024 * 1024 * 10, backupCount=20
+            )
+            handler.setFormatter(formatter)
+            nornir_logger.addHandler(handler)
+        if config.logging_to_console:
+            # log INFO and DEBUG to stdout
+            h1 = logging.StreamHandler(sys.stdout)
+            h1.setFormatter(formatter)
+            h1.setLevel(logging.DEBUG)
+            h1.addFilter(lambda record: record.levelno <= logging.INFO)
+            nornir_logger.addHandler(h1)
+
+            # log WARNING, ERROR and CRITICAL to stderr
+            h2 = logging.StreamHandler(sys.stderr)
+            h2.setFormatter(formatter)
+            h2.setLevel(logging.WARNING)
+            nornir_logger.addHandler(h2)
+
+
 def InitNornir(config_file="", dry_run=False, **kwargs):
     """
     Arguments:
@@ -244,6 +230,7 @@ def InitNornir(config_file="", dry_run=False, **kwargs):
     """
     conf = Config(config_file=config_file, **kwargs)
 
+    configure_logging(conf)
     inv_class = conf.inventory
     inv_args = getattr(conf, inv_class.__name__, {})
     transform_function = conf.transform_function

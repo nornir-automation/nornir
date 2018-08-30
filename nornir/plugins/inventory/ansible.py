@@ -16,7 +16,7 @@ VARS_FILENAME_EXTENSIONS = ["", ".yml", ".yaml"]
 
 YAML = ruamel.yaml.YAML(typ="safe")
 
-logger = logging.getLogger("nornir")
+logger = logging.getLogger(__name__)
 
 
 AnsibleHostsDict = Dict[str, Optional[VarsDict]]
