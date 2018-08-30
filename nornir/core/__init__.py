@@ -79,8 +79,6 @@ class Nornir(object):
         else:
             self.config = config or Config()
 
-        self.configure_logging()
-
         if available_connections is not None:
             self.data.available_connections = available_connections
 
@@ -93,53 +91,6 @@ class Nornir(object):
     @property
     def dry_run(self):
         return self.data.dry_run
-
-    def configure_logging(self):
-        dictConfig = self.config.logging_dictConfig or {
-            "version": 1,
-            "disable_existing_loggers": False,
-            "formatters": {"simple": {"format": self.config.logging_format}},
-            "handlers": {},
-            "loggers": {},
-            "root": {
-                "level": "CRITICAL"
-                if self.config.logging_loggers
-                else self.config.logging_level.upper(),  # noqa
-                "handlers": [],
-                "formatter": "simple",
-            },
-        }
-        handlers_list = []
-        if self.config.logging_file:
-            dictConfig["root"]["handlers"].append("info_file_handler")
-            handlers_list.append("info_file_handler")
-            dictConfig["handlers"]["info_file_handler"] = {
-                "class": "logging.handlers.RotatingFileHandler",
-                "level": "NOTSET",
-                "formatter": "simple",
-                "filename": self.config.logging_file,
-                "maxBytes": 10485760,
-                "backupCount": 20,
-                "encoding": "utf8",
-            }
-        if self.config.logging_to_console:
-            dictConfig["root"]["handlers"].append("info_console")
-            handlers_list.append("info_console")
-            dictConfig["handlers"]["info_console"] = {
-                "class": "logging.StreamHandler",
-                "level": "NOTSET",
-                "formatter": "simple",
-                "stream": "ext://sys.stdout",
-            }
-
-        for logger in self.config.logging_loggers:
-            dictConfig["loggers"][logger] = {
-                "level": self.config.logging_level.upper(),
-                "handlers": handlers_list,
-            }
-
-        if dictConfig["root"]["handlers"]:
-            logging.config.dictConfig(dictConfig)
 
     def filter(self, *args, **kwargs):
         """
@@ -249,7 +200,7 @@ class Nornir(object):
         self.run(task=close_connections_task, on_good=on_good, on_failed=on_failed)
 
 
-def InitNornir(config_file="", dry_run=False, **kwargs):
+def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
     """
     Arguments:
         config_file(str): Path to the configuration file (optional)
@@ -260,11 +211,12 @@ def InitNornir(config_file="", dry_run=False, **kwargs):
     Returns:
         :obj:`nornir.core.Nornir`: fully instantiated and configured
     """
-    conf = Config(config_file=config_file, **kwargs)
+    conf = Config(path=config_file, **kwargs)
+    if configure_logging:
+        conf.logging.configure()
 
-    inv_class = conf.inventory
-    inv_args = getattr(conf, inv_class.__name__, {})
-    transform_function = conf.transform_function
-    inv = inv_class(transform_function=transform_function, **inv_args)
+    inv_class = conf.inventory.get_plugin()
+    transform_function = conf.inventory.get_transform_function()
+    inv = inv_class(transform_function=transform_function, **conf.inventory.options)
 
     return Nornir(inventory=inv, dry_run=dry_run, config=conf)

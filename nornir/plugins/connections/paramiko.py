@@ -33,7 +33,7 @@ class Paramiko(ConnectionPlugin):
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
         ssh_config = paramiko.SSHConfig()
-        ssh_config_file = configuration.ssh_config_file  # type: ignore
+        ssh_config_file = configuration.ssh.config_file  # type: ignore
         if os.path.exists(ssh_config_file):
             with open(ssh_config_file) as f:
                 ssh_config.parse(f)
