@@ -1,0 +1,8 @@
+---
+port:
+hostname: 127.0.0.1
+username: root
+password: docker
+platform: linux
+data:
+  my_var: comes_from_defaults
