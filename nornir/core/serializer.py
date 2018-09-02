@@ -1,20 +1,28 @@
 from typing import Any, Dict, List, Optional
 
-from nornir.core.inventory import ElementData, Group, Host, Inventory
+from nornir.core.inventory import ElementData, Group, Groups, Host, Inventory
 
 from pydantic import BaseModel
 
 
-class CommonAttributes(BaseModel):
+class BaseAttributes(BaseModel):
     hostname: Optional[str] = None
     port: Optional[int]
     username: Optional[str] = None
     password: Optional[str] = None
     platform: Optional[str] = None
-    data: Dict[str, Any] = {}
 
     class Config:
         ignore_extra = False
+
+
+class ConnectionOptions(BaseAttributes):
+    extras: Dict[str, Any] = {}
+
+
+class CommonAttributes(BaseAttributes):
+    data: Dict[str, Any] = {}
+    connection_options: Dict[str, ConnectionOptions] = {}
 
     @staticmethod
     def serialize(e: ElementData) -> "CommonAttributes":
@@ -25,6 +33,7 @@ class CommonAttributes(BaseModel):
             password=e.password,
             platform=e.platform,
             data=e.data,
+            connection_options=e.connection_options,
         )
 
 
@@ -36,26 +45,28 @@ class HostSerializer(InventoryElement):
     @staticmethod
     def serialize(h: Host) -> "HostSerializer":
         return HostSerializer(
-            hostname=object.__getattribute__(h, "hostname"),
-            port=object.__getattribute__(h, "port"),
-            username=object.__getattribute__(h, "username"),
-            password=object.__getattribute__(h, "password"),
-            platform=object.__getattribute__(h, "platform"),
+            hostname=h.__values__["hostname"],
+            port=h.__values__["port"],
+            username=h.__values__["username"],
+            password=h.__values__["password"],
+            platform=h.__values__["platform"],
             groups=[c.name for c in h.groups],
-            data=object.__getattribute__(h, "data"),
+            data=h.__values__["data"],
+            connection_options=h.__values__["connection_options"],
         )
 
 
 class GroupSerializer(InventoryElement):
     def serialize(g: Group) -> "GroupSerializer":
         return GroupSerializer(
-            hostname=object.__getattribute__(g, "hostname"),
-            port=object.__getattribute__(g, "port"),
-            username=object.__getattribute__(g, "username"),
-            password=object.__getattribute__(g, "password"),
-            platform=object.__getattribute__(g, "platform"),
+            hostname=g.__values__["hostname"],
+            port=g.__values__["port"],
+            username=g.__values__["username"],
+            password=g.__values__["password"],
+            platform=g.__values__["platform"],
             groups=[c.name for c in g.groups],
-            data=object.__getattribute__(g, "data"),
+            data=g.__values__["data"],
+            connection_options=g.__values__["connection_options"],
         )
 
 
@@ -68,7 +79,7 @@ class InventorySerializer(BaseModel):
         ignore_extra = False
 
     @staticmethod
-    def deserialize(i: Dict[str, Any]) -> Inventory:
+    def deserialize(i: Dict[str, Any], *args, **kwargs) -> Inventory:
         serialized = InventorySerializer(**i)
         defaults = ElementData(**serialized.defaults.dict())
 
@@ -81,11 +92,11 @@ class InventorySerializer(BaseModel):
 
         for h in hosts.values():
             h.defaults = defaults
-            h.groups = [groups[n] for n in h.groups]
+            h.groups = Groups([groups[n] for n in h.groups])
         for g in groups.values():
             g.defaults = defaults
-            g.groups = [groups[n] for n in g.groups]
-        return Inventory(hosts, groups, defaults)
+            g.groups = Groups([groups[n] for n in g.groups])
+        return Inventory(hosts, groups, defaults, *args, **kwargs)
 
     @staticmethod
     def serialize(i: Inventory) -> "InventorySerializer":

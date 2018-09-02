@@ -17,6 +17,22 @@ dev1.group_1:
             a_string: asdasd
     groups:
         - group_1
+    connection_options:
+        paramiko:
+            port: 65001
+            hostname: 127.0.0.1
+            username: root
+            password: docker
+            platform: linux
+            extras: {}
+        dummy:
+            hostname: dummy_from_host
+            port:
+            username:
+            password:
+            platform:
+            extras:
+                blah: from_host
 dev2.group_1:
     port: 65002
     hostname:
@@ -33,6 +49,7 @@ dev2.group_1:
             a_string: qwe
     groups:
         - group_1
+    connection_options: {}
 dev3.group_2:
     port: 65003
     hostname:
@@ -44,6 +61,14 @@ dev3.group_2:
         role: www
     groups:
         - group_2
+    connection_options:
+        napalm:
+            platform: mock
+            hostname:
+            port:
+            username:
+            password:
+            extras: {}
 dev4.group_2:
     port: 65004
     hostname:
@@ -55,3 +80,4 @@ dev4.group_2:
         role: db
     groups:
         - group_2
+    connection_options: {}

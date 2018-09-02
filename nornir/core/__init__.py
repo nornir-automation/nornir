@@ -1,12 +1,12 @@
 import logging
 import logging.config
 from multiprocessing.dummy import Pool
-from typing import Type
 
 from nornir.core.configuration import Config
-from nornir.core.connections import ConnectionPlugin
 from nornir.core.task import AggregatedResult, Task
-from nornir.plugins import connections
+from nornir.plugins.connections import register_default_connection_plugins
+
+register_default_connection_plugins()
 
 
 class Data(object):
@@ -16,12 +16,10 @@ class Data(object):
 
     Attributes:
         failed_hosts (list): Hosts that have failed to run a task properly
-        available_connections (dict): Dictionary holding available connection plugins
     """
 
     def __init__(self):
         self.failed_hosts = set()
-        self.available_connections = connections.available_connections
 
     def recover_host(self, host):
         """Remove ``host`` from list of failed hosts."""
@@ -47,8 +45,6 @@ class Nornir(object):
         dry_run(``bool``): Whether if we are testing the changes or not
         config (:obj:`nornir.core.configuration.Config`): Configuration object
         config_file (``str``): Path to Yaml configuration file
-        available_connections (``dict``): dict of connection types that will be made available.
-            Defaults to :obj:`nornir.plugins.tasks.connections.available_connections`
 
     Attributes:
         inventory (:obj:`nornir.core.inventory.Inventory`): Inventory to work with
@@ -58,35 +54,33 @@ class Nornir(object):
     """
 
     def __init__(
-        self,
-        inventory,
-        dry_run,
-        config=None,
-        config_file=None,
-        available_connections=None,
-        logger=None,
-        data=None,
+        self, inventory, dry_run, _config=None, config_file=None, logger=None, data=None
     ):
         self.logger = logger or logging.getLogger("nornir")
 
         self.data = data or Data()
         self.inventory = inventory
-        self.inventory.nornir = self
         self.data.dry_run = dry_run
 
         if config_file:
-            self.config = Config(config_file=config_file)
+            self._config = Config(config_file=config_file)
         else:
-            self.config = config or Config()
-
-        if available_connections is not None:
-            self.data.available_connections = available_connections
+            self._config = _config or Config()
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close_connections(on_good=True, on_failed=True)
+
+    @property
+    def config(self):
+        return self._config
+
+    @config.setter
+    def config(self, value):
+        self._config = value
+        self.inventory.config = value
 
     @property
     def dry_run(self):
@@ -131,7 +125,7 @@ class Nornir(object):
         raise_on_error=None,
         on_good=True,
         on_failed=False,
-        **kwargs
+        **kwargs,
     ):
         """
         Run task over all the hosts in the inventory.
@@ -189,15 +183,21 @@ class Nornir(object):
         """ Return a dictionary representing the object. """
         return {"data": self.data.to_dict(), "inventory": self.inventory.to_dict()}
 
-    def get_connection_type(self, connection: str) -> Type[ConnectionPlugin]:
-        """Returns the class for the given connection type."""
-        return self.data.available_connections[connection]
-
     def close_connections(self, on_good=True, on_failed=False):
         def close_connections_task(task):
             task.host.close_connections()
 
         self.run(task=close_connections_task, on_good=on_good, on_failed=on_failed)
+
+    @classmethod
+    def get_validators(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v):
+        if not isinstance(v, cls):
+            raise ValueError(f"Nornir: Nornir expected not {type(v)}")
+        return v
 
 
 def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
@@ -219,4 +219,4 @@ def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
     transform_function = conf.inventory.get_transform_function()
     inv = inv_class(transform_function=transform_function, **conf.inventory.options)
 
-    return Nornir(inventory=inv, dry_run=dry_run, config=conf)
+    return Nornir(inventory=inv, dry_run=dry_run, _config=conf)

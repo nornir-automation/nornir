@@ -10,7 +10,7 @@ import pytest
 import ruamel.yaml
 
 
-yaml = ruamel.yaml.YAML()
+yaml = ruamel.yaml.YAML(typ="safe")
 dir_path = os.path.dirname(os.path.realpath(__file__))
 with open(f"{dir_path}/../inventory_data/hosts.yaml") as f:
     hosts = yaml.load(f)
@@ -140,4 +140,45 @@ class Test(object):
 
     def test_to_dict(self):
         inv = InventorySerializer.deserialize(inv_dict)
-        assert InventorySerializer.serialize(inv).dict() == inv_dict
+        result = InventorySerializer.serialize(inv).dict()
+        for k, v in inv_dict.items():
+            assert v == result[k]
+
+    def test_get_connection_parameters(self):
+        inv = InventorySerializer.deserialize(inv_dict)
+        p1 = inv.hosts["dev1.group_1"].get_connection_parameters("dummy")
+        assert p1.dict() == {
+            "port": None,
+            "hostname": "dummy_from_host",
+            "username": None,
+            "password": None,
+            "platform": None,
+            "extras": {"blah": "from_host"},
+        }
+        p2 = inv.hosts["dev1.group_1"].get_connection_parameters("asd")
+        assert p2.dict() == {
+            "port": 65001,
+            "hostname": "127.0.0.1",
+            "username": "root",
+            "password": "a_password",
+            "platform": "eos",
+            "extras": {},
+        }
+        p3 = inv.hosts["dev2.group_1"].get_connection_parameters("dummy")
+        assert p3.dict() == {
+            "port": None,
+            "hostname": "dummy_from_parent_group",
+            "username": None,
+            "password": None,
+            "platform": None,
+            "extras": {"blah": "from_group"},
+        }
+        p4 = inv.hosts["dev3.group_2"].get_connection_parameters("dummy")
+        assert p4.dict() == {
+            "port": None,
+            "hostname": "dummy_from_defaults",
+            "username": None,
+            "password": None,
+            "platform": None,
+            "extras": {"blah": "from_defaults"},
+        }

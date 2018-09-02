@@ -12,7 +12,7 @@ class Napalm(ConnectionPlugin):
     relevant connection.
 
     Inventory:
-        connection_options: passed as it is to the napalm driver
+        extras: passed as it is to the napalm driver
     """
 
     def open(
@@ -22,10 +22,10 @@ class Napalm(ConnectionPlugin):
         password: Optional[str],
         port: Optional[int],
         platform: Optional[str],
-        connection_options: Optional[Dict[str, Any]] = None,
+        extras: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
-        connection_options = connection_options or {}
+        extras = extras or {}
 
         parameters: Dict[str, Any] = {
             "hostname": hostname,
@@ -33,7 +33,7 @@ class Napalm(ConnectionPlugin):
             "password": password,
             "optional_args": {},
         }
-        parameters.update(connection_options)
+        parameters.update(extras)
 
         if port and "port" not in parameters["optional_args"]:
             parameters["optional_args"]["port"] = port
