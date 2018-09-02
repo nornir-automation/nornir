@@ -54,25 +54,33 @@ class Nornir(object):
     """
 
     def __init__(
-        self, inventory, dry_run, config=None, config_file=None, logger=None, data=None
+        self, inventory, dry_run, _config=None, config_file=None, logger=None, data=None
     ):
         self.logger = logger or logging.getLogger("nornir")
 
         self.data = data or Data()
         self.inventory = inventory
-        self.inventory.nornir = self
         self.data.dry_run = dry_run
 
         if config_file:
-            self.config = Config(config_file=config_file)
+            self._config = Config(config_file=config_file)
         else:
-            self.config = config or Config()
+            self._config = _config or Config()
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close_connections(on_good=True, on_failed=True)
+
+    @property
+    def config(self):
+        return self._config
+
+    @config.setter
+    def config(self, value):
+        self._config = value
+        self.inventory.config = value
 
     @property
     def dry_run(self):
@@ -117,7 +125,7 @@ class Nornir(object):
         raise_on_error=None,
         on_good=True,
         on_failed=False,
-        **kwargs
+        **kwargs,
     ):
         """
         Run task over all the hosts in the inventory.
@@ -181,6 +189,16 @@ class Nornir(object):
 
         self.run(task=close_connections_task, on_good=on_good, on_failed=on_failed)
 
+    @classmethod
+    def get_validators(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v):
+        if not isinstance(v, cls):
+            raise ValueError(f"Nornir: Nornir expected not {type(v)}")
+        return v
+
 
 def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
     """
@@ -201,4 +219,4 @@ def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
     transform_function = conf.inventory.get_transform_function()
     inv = inv_class(transform_function=transform_function, **conf.inventory.options)
 
-    return Nornir(inventory=inv, dry_run=dry_run, config=conf)
+    return Nornir(inventory=inv, dry_run=dry_run, _config=conf)

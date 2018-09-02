@@ -3,10 +3,19 @@ from typing import Any, List
 
 import requests
 
-from nornir.core.inventory import Inventory, VarsDict, HostsDict
+from nornir.core.inventory import Inventory, VarsDict, HostsDict, ElementData
+from nornir.core.serializer import InventorySerializer
 
 
-class NSOTInventory(Inventory):
+def NSOTInventory(
+    nsot_url: str = "",
+    nsot_email: str = "",
+    nsot_secret_key: str = "",
+    nsot_auth_header: str = "",
+    flatten_attributes: bool = True,
+    *args: Any,
+    **kwargs: Any
+) -> Inventory:
     """
     Inventory plugin that uses `nsot <https://github.com/dropbox/nsot>`_ as backend.
 
@@ -30,58 +39,55 @@ class NSOTInventory(Inventory):
             will be used as auth_method.
     """
 
-    def __init__(
-        self,
-        nsot_url: str = "",
-        nsot_email: str = "",
-        nsot_secret_key: str = "",
-        nsot_auth_header: str = "",
-        flatten_attributes: bool = True,
-        **kwargs: Any
-    ) -> None:
-        nsot_url = nsot_url or os.environ.get("NSOT_URL", "http://localhost:8990/api")
-        nsot_email = nsot_email or os.environ.get("NSOT_EMAIL", "admin@acme.com")
-        secret_key = nsot_secret_key or os.environ.get("NSOT_SECRET_KEY")
+    nsot_url = nsot_url or os.environ.get("NSOT_URL", "http://localhost:8990/api")
+    nsot_email = nsot_email or os.environ.get("NSOT_EMAIL", "admin@acme.com")
+    secret_key = nsot_secret_key or os.environ.get("NSOT_SECRET_KEY")
 
-        if secret_key:
-            data = {"email": nsot_email, "secret_key": secret_key}
-            res = requests.post("{}/authenticate/".format(nsot_url), data=data)
-            auth_token = res.json().get("auth_token")
-            headers = {
-                "Authorization": "AuthToken {}:{}".format(nsot_email, auth_token)
-            }
+    if secret_key:
+        data = {"email": nsot_email, "secret_key": secret_key}
+        res = requests.post("{}/authenticate/".format(nsot_url), data=data)
+        auth_token = res.json().get("auth_token")
+        headers = {"Authorization": "AuthToken {}:{}".format(nsot_email, auth_token)}
 
-        else:
-            nsot_auth_header = nsot_auth_header or os.environ.get(
-                "NSOT_AUTH_HEADER", "X-NSoT-Email"
-            )
-            headers = {nsot_auth_header: nsot_email}
+    else:
+        nsot_auth_header = nsot_auth_header or os.environ.get(
+            "NSOT_AUTH_HEADER", "X-NSoT-Email"
+        )
+        headers = {nsot_auth_header: nsot_email}
 
-        devices: List[VarsDict] = requests.get(
-            "{}/devices".format(nsot_url), headers=headers
-        ).json()
-        sites: List[VarsDict] = requests.get(
-            "{}/sites".format(nsot_url), headers=headers
-        ).json()
-        interfaces: List[VarsDict] = requests.get(
-            "{}/interfaces".format(nsot_url), headers=headers
-        ).json()
+    devices: List[VarsDict] = requests.get(
+        "{}/devices".format(nsot_url), headers=headers
+    ).json()
+    sites: List[VarsDict] = requests.get(
+        "{}/sites".format(nsot_url), headers=headers
+    ).json()
+    interfaces: List[VarsDict] = requests.get(
+        "{}/interfaces".format(nsot_url), headers=headers
+    ).json()
 
-        # We resolve site_id and assign "site" variable with the name of the site
-        for d in devices:
-            d["site"] = sites[d["site_id"] - 1]["name"]
-            d["interfaces"] = {}
+    # We resolve site_id and assign "site" variable with the name of the site
+    for d in devices:
+        d["data"] = {"site": sites[d["site_id"] - 1]["name"], "interfaces": {}}
 
-            if flatten_attributes:
-                # We assign attributes to the root
-                for k, v in d.pop("attributes").items():
-                    d[k] = v
+        remove_keys = []
+        for k, v in d.items():
+            if k not in ElementData().fields:
+                remove_keys.append(k)
+                d["data"][k] = v
+        for r in remove_keys:
+            d.pop(r)
 
-        # We assign the interfaces to the hosts
-        for i in interfaces:
-            devices[i["device"] - 1]["interfaces"][i["name"]] = i
+        if flatten_attributes:
+            # We assign attributes to the root
+            for k, v in d["data"].pop("attributes").items():
+                d["data"][k] = v
 
-        # Finally the inventory expects a dict of hosts where the key is the hostname
-        hosts: HostsDict = {d["hostname"]: d for d in devices}
+    # We assign the interfaces to the hosts
+    for i in interfaces:
+        devices[i["device"] - 1]["data"]["interfaces"][i["name"]] = i
 
-        super().__init__(hosts, None, **kwargs)
+    # Finally the inventory expects a dict of hosts where the key is the hostname
+    hosts: HostsDict = {d["hostname"]: d for d in devices}
+
+    inv_dict = {"hosts": hosts, "groups": {}, "defaults": {}}
+    return InventorySerializer.deserialize(inv_dict, *args, **kwargs)

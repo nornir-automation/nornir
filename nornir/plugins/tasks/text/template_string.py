@@ -1,6 +1,6 @@
 from typing import Any, Optional, Dict, Callable
 
-from nornir.core.helpers import jinja_helper, merge_two_dicts
+from nornir.core.helpers import jinja_helper
 from nornir.core.task import Result, Task
 
 FiltersDict = Optional[Dict[str, Callable[..., str]]]
@@ -22,8 +22,7 @@ def template_string(
           * result (``string``): rendered string
     """
     jinja_filters = jinja_filters or {} or task.nornir.config.jinja_filters
-    merged = merge_two_dicts(task.host, kwargs)
     text = jinja_helper.render_from_string(
-        template=template, host=task.host, jinja_filters=jinja_filters, **merged
+        template=template, host=task.host, jinja_filters=jinja_filters, **kwargs
     )
     return Result(host=task.host, result=text)

@@ -8,6 +8,15 @@ parent_group:
     data:
         a_var: blah
     groups: []
+    connection_options:
+        dummy:
+            hostname: dummy_from_parent_group
+            port:
+            username:
+            password:
+            platform:
+            extras:
+                blah: from_group
 group_1:
     port:
     hostname:
@@ -19,6 +28,7 @@ group_1:
         site: site1
     groups:
     - parent_group
+    connection_options: {}
 group_2:
     port:
     hostname:
@@ -28,3 +38,4 @@ group_2:
     data:
         site: site2
     groups: []
+    connection_options: {}

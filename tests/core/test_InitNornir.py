@@ -1,22 +1,20 @@
 import os
-from builtins import super
 
 
 from nornir.core import InitNornir
-from nornir.core.inventory import Inventory
+from nornir.core.serializer import InventorySerializer
 
 
 dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_InitNornir")
 
 
 def transform_func(host):
-    host.processed_by_transform_function = True
+    host["processed_by_transform_function"] = True
 
 
-class StringInventory(Inventory):
-    def __init__(self, *args, **kwargs):
-        hosts = {"host1": {}, "host2": {}}
-        super().__init__(hosts, *args, **kwargs)
+def StringInventory(**kwargs):
+    inv_dict = {"hosts": {"host1": {}, "host2": {}}, "groups": {}, "defaults": {}}
+    return InventorySerializer.deserialize(inv_dict, **kwargs)
 
 
 class Test(object):
@@ -68,14 +66,14 @@ class Test(object):
             config_file=os.path.join(dir_path, "a_config.yaml"),
             inventory={"plugin": "tests.core.test_InitNornir.StringInventory"},
         )
-        assert isinstance(nr.inventory, StringInventory)
+        assert "host1" in nr.inventory.hosts
 
     def test_InitNornir_different_inventory_imported(self):
         nr = InitNornir(
             config_file=os.path.join(dir_path, "a_config.yaml"),
             inventory={"plugin": StringInventory},
         )
-        assert isinstance(nr.inventory, StringInventory)
+        assert "host1" in nr.inventory.hosts
 
     def test_InitNornir_different_transform_function_by_string(self):
         nr = InitNornir(
@@ -89,8 +87,8 @@ class Test(object):
                 },
             },
         )
-        for value in nr.inventory.hosts.values():
-            assert value.processed_by_transform_function
+        for host in nr.inventory.hosts.values():
+            assert host["processed_by_transform_function"]
 
     def test_InitNornir_different_transform_function_imported(self):
         nr = InitNornir(
@@ -104,5 +102,5 @@ class Test(object):
                 },
             },
         )
-        for value in nr.inventory.hosts.values():
-            assert value.processed_by_transform_function
+        for host in nr.inventory.hosts.values():
+            assert host["processed_by_transform_function"]

@@ -18,6 +18,7 @@ class SSHConfig(BaseSettings):
 
     class Config:
         env_prefix = "NORNIR_SSH_"
+        ignore_extra = False
 
 
 class Inventory(BaseSettings):
@@ -41,6 +42,7 @@ class Inventory(BaseSettings):
 
     class Config:
         env_prefix = "NORNIR_INVENTORY_"
+        ignore_extra = False
 
 
 class Logging(BaseSettings):
@@ -52,6 +54,7 @@ class Logging(BaseSettings):
 
     class Config:
         env_prefix = "NORNIR_LOGGING_"
+        ignore_extra = False
 
     def configure(self):
         rootHandlers: List[Any] = []
@@ -123,6 +126,7 @@ class Config(BaseSettings):
 
     class Config:
         env_prefix = "NORNIR_"
+        ignore_extra = False
 
     def __init__(self, path: str = "", **kwargs) -> None:
         if path:

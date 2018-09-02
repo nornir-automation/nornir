@@ -4,52 +4,44 @@ from nornir.core.configuration import Config
 from nornir.core.connections import Connections
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
 
+from pydantic import BaseModel
+
 GroupsDict = None  # DELETEME
 HostsDict = None  # DELETEME
 VarsDict = None  # DELETEME
 
 
-class ElementData(object):
-    __slots__ = (
-        "hostname",
-        "port",
-        "username",
-        "password",
-        "platform",
-        "groups",
-        "data",
-        "connections",
-    )
+class ConnectionOptions(BaseModel):
+    hostname: Optional[str] = None
+    port: Optional[int] = None
+    username: Optional[str] = None
+    password: Optional[str] = None
+    platform: Optional[str] = None
+    extras: Dict[str, Any] = {}
 
-    def __init__(
-        self,
-        hostname: Optional[str] = None,
-        port: Optional[str] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-        platform: Optional[str] = None,
-        groups: Optional[List["Group"]] = None,
-        data: Optional[Dict[str, Any]] = None,
-    ) -> None:
-        self.hostname = hostname
-        self.port = port
-        self.username = username
-        self.password = password
-        self.platform = platform
-        self.groups = groups or []
-        self.data = data or {}
-        self.connections = Connections()
+    class Config:
+        ignore_extra = False
+
+
+class Groups(List["Group"]):
+    def __contains__(self, value) -> bool:
+        if isinstance(value, str):
+            return any([g.name == value for g in self])
+        else:
+            return any([g is value for g in self])
+
+
+class ElementData(ConnectionOptions):
+    groups: Groups = Groups()
+    data: Dict[str, Any] = {}
+    connection_options: Dict[str, ConnectionOptions] = {}
 
 
 class Host(ElementData):
-    __slots__ = ("name", "defaults")
-
-    def __init__(
-        self, name: str, defaults: Optional[ElementData] = None, *args, **kwargs
-    ) -> None:
-        self.name = name
-        self.defaults = defaults or ElementData()
-        super().__init__(*args, **kwargs)
+    name: str
+    defaults: ElementData = {}
+    connections: Connections = Connections()
+    _config: Config = Config()
 
     def _resolve_data(self):
         processed = []
@@ -124,14 +116,14 @@ class Host(ElementData):
     def __getattribute__(self, name):
         if name not in ("hostname", "port", "username", "password", "platform"):
             return object.__getattribute__(self, name)
-        v = object.__getattribute__(self, name)
+        v = self.__values__[name]
         if v is None:
             for g in self.groups:
-                r = object.__getattribute__(g, name)
+                r = g.__values__[name]
                 if r is not None:
                     return r
 
-            return getattr(self.defaults, name)
+            return self.defaults.__values__[name]
         else:
             return v
 
@@ -158,46 +150,52 @@ class Host(ElementData):
             item(``str``): The variable to get
             default(``any``): Return value if item not found
         """
+        if hasattr(self, item):
+            return getattr(self, item)
         try:
             return self.__getitem__(item)
 
         except KeyError:
             return default
 
-    @property
-    def nornir(self):
-        """Reference to the parent :obj:`nornir.core.Nornir` object"""
-        return self._nornir
-
-    @nornir.setter
-    def nornir(self, value):
-        # If it's already set we don't want to set it again
-        # because we may lose valuable information
-        if not getattr(self, "_nornir", None):
-            self._nornir = value
-
     def get_connection_parameters(
         self, connection: Optional[str] = None
     ) -> Dict[str, Any]:
         if not connection:
-            return {
+            d = {
                 "hostname": self.hostname,
                 "port": self.port,
                 "username": self.username,
                 "password": self.password,
                 "platform": self.platform,
-                "connection_options": {},
+                "extras": {},
             }
         else:
-            conn_params = self.get(f"{connection}_options", {})
-            return {
-                "hostname": conn_params.get("hostname", self.hostname),
-                "port": conn_params.get("port", self.port),
-                "username": conn_params.get("username", self.username),
-                "password": conn_params.get("password", self.password),
-                "platform": conn_params.get("platform", self.platform),
-                "connection_options": conn_params.get("connection_options", {}),
-            }
+            d = self._get_connection_options_recursively(connection)
+            if d is not None:
+                return d
+            else:
+                d = {
+                    "hostname": self.hostname,
+                    "port": self.port,
+                    "username": self.username,
+                    "password": self.password,
+                    "platform": self.platform,
+                    "extras": {},
+                }
+        return ConnectionOptions(**d)
+
+    def _get_connection_options_recursively(self, connection: str) -> Dict[str, Any]:
+        p = self.connection_options.get(connection)
+        if p is None:
+            for g in self.groups:
+                p = g._get_connection_options_recursively(connection)
+                if p is not None:
+                    return p
+
+            return self.defaults.connection_options.get(connection, None)
+        else:
+            return p
 
     def get_connection(self, connection: str) -> Any:
         """
@@ -216,15 +214,11 @@ class Host(ElementData):
         Returns:
             An already established connection
         """
-        if self.nornir:
-            config = self.nornir.config
-        else:
-            config = None
         if connection not in self.connections:
             self.open_connection(
                 connection,
-                **self.get_connection_parameters(connection),
-                configuration=config,
+                **self.get_connection_parameters(connection).dict(),
+                configuration=self.config,
             )
         return self.connections[connection].connection
 
@@ -245,7 +239,7 @@ class Host(ElementData):
         password: Optional[str] = None,
         port: Optional[int] = None,
         platform: Optional[str] = None,
-        connection_options: Optional[Dict[str, Any]] = None,
+        extras: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
         default_to_host_attributes: bool = True,
     ) -> None:
@@ -264,21 +258,19 @@ class Host(ElementData):
         if connection in self.connections:
             raise ConnectionAlreadyOpen(connection)
 
-        self.connections[connection] = self.nornir.get_connection_type(connection)()
+        self.connections[connection] = self.connections.get_plugin(connection)()
         if default_to_host_attributes:
             conn_params = self.get_connection_parameters(connection)
             self.connections[connection].open(
-                hostname=hostname if hostname is not None else conn_params["hostname"],
-                username=username if username is not None else conn_params["username"],
-                password=password if password is not None else conn_params["password"],
-                port=port if port is not None else conn_params["port"],
-                platform=platform if platform is not None else conn_params["platform"],
-                connection_options=connection_options
-                if connection_options is not None
-                else conn_params["connection_options"],
+                hostname=hostname if hostname is not None else conn_params.hostname,
+                username=username if username is not None else conn_params.username,
+                password=password if password is not None else conn_params.password,
+                port=port if port is not None else conn_params.port,
+                platform=platform if platform is not None else conn_params.platform,
+                extras=extras if extras is not None else conn_params.extras,
                 configuration=configuration
                 if configuration is not None
-                else self.nornir.config,
+                else self.config,
             )
         else:
             self.connections[connection].open(
@@ -287,7 +279,7 @@ class Host(ElementData):
                 password=password,
                 port=port,
                 platform=platform,
-                connection_options=connection_options,
+                extras=extras,
                 configuration=configuration,
             )
         return self.connections[connection]
@@ -305,23 +297,39 @@ class Host(ElementData):
         for connection in existing_conns:
             self.close_connection(connection)
 
+    @property
+    def config(self):
+        return self._config
+
+    @config.setter
+    def config(self, value):
+        self._config = value
+
 
 class Group(Host):
     pass
 
 
+# TODO use basemodel
 class Inventory(object):
-    __slots__ = ("hosts", "groups", "defaults")
+    __slots__ = ("hosts", "groups", "defaults", "_nornir", "_config")
 
     def __init__(
         self,
         hosts: List[Host],
         groups: Optional[List[Group]] = None,
         defaults: Optional[ElementData] = None,
+        config: Optional[Config] = None,
+        transform_function=None,
     ):
+        self._config = config
         self.hosts = hosts
-        self.groups = groups or []
+        self.groups = groups or {}
         self.defaults = defaults or ElementData()
+
+        if transform_function:
+            for h in self.hosts.values():
+                transform_function(h)
 
     def filter(self, filter_obj=None, filter_func=None, *args, **kwargs):
         filter_func = filter_obj or filter_func
@@ -337,3 +345,13 @@ class Inventory(object):
 
     def __len__(self):
         return self.hosts.__len__()
+
+    @property
+    def config(self):
+        return self._config
+
+    @config.setter
+    def config(self, value):
+        self._config = value
+        for host in self.hosts.values():
+            host._config = value
