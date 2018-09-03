@@ -36,7 +36,6 @@ class Test(object):
             processed = True
             assert isinstance(result.exception, KeyError)
         assert processed
-        nornir.data.reset_failed_hosts()
 
     def test_napalm_getters_with_options_error(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_getters_single_with_options"}
@@ -49,7 +48,6 @@ class Test(object):
         assert result.failed
         for h, r in result.items():
             assert "unexpected keyword argument 'nonexistent'" in r.result
-        nornir.data.reset_failed_hosts()
 
     def test_napalm_getters_with_options_error_optional_args(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_getters_single_with_options"}
@@ -64,7 +62,6 @@ class Test(object):
         assert result.failed
         for h, r in result.items():
             assert "unexpected keyword argument 'nonexistent'" in r.result
-        nornir.data.reset_failed_hosts()
 
     def test_napalm_getters_single_with_options(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_getters_single_with_options"}

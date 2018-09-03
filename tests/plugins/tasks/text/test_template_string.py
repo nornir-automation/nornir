@@ -44,4 +44,3 @@ class Test(object):
             processed = True
             assert isinstance(result.exception, TemplateSyntaxError)
         assert processed
-        nornir.data.reset_failed_hosts()
