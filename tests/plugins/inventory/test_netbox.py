@@ -2,7 +2,6 @@ import json
 import os
 
 from nornir.plugins.inventory import netbox
-from nornir.core.serializer import InventorySerializer
 
 # We need import below to load fixtures
 import pytest  # noqa
@@ -33,7 +32,7 @@ class Test(object):
         #      f.write(InventorySerializer.serialize(inv).json())
         with open("{}/{}/expected.json".format(BASE_PATH, "2.3.5"), "r") as f:
             expected = json.load(f)
-        assert expected == InventorySerializer.serialize(inv).dict()
+        assert expected == inv.dict()
 
     def test_transform_function(self, requests_mock):
         inv = get_inv(requests_mock, "2.3.5", transform_function=transform_function)
@@ -45,4 +44,4 @@ class Test(object):
             "{}/{}/expected_transform_function.json".format(BASE_PATH, "2.3.5"), "r"
         ) as f:
             expected = json.load(f)
-        assert expected == InventorySerializer.serialize(inv).dict()
+        assert expected == inv.dict()

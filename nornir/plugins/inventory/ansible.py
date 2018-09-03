@@ -11,7 +11,6 @@ from ruamel.yaml.scanner import ScannerError
 from ruamel.yaml.composer import ComposerError
 
 from nornir.core.inventory import Inventory, VarsDict, GroupsDict, HostsDict
-from nornir.core.serializer import InventorySerializer
 
 VARS_FILENAME_EXTENSIONS = ["", ".yml", ".yaml"]
 
@@ -235,8 +234,10 @@ def parse(hostsfile: str) -> Tuple[HostsDict, GroupsDict]:
     return parser.hosts, parser.groups
 
 
-def AnsibleInventory(hostsfile: str = "hosts", *args: Any, **kwargs: Any) -> Inventory:
-    host_vars, group_vars = parse(hostsfile)
-    defaults = group_vars.pop("defaults")
-    inv_dict = {"hosts": host_vars, "groups": group_vars, "defaults": defaults}
-    return InventorySerializer.deserialize(inv_dict, *args, **kwargs)
+class AnsibleInventory(Inventory):
+    def __init__(self, hostsfile: str = "hosts", *args: Any, **kwargs: Any) -> None:
+        host_vars, group_vars = parse(hostsfile)
+        defaults = group_vars.pop("defaults")
+        super().__init__(
+            hosts=host_vars, groups=group_vars, defaults=defaults, *args, **kwargs
+        )
