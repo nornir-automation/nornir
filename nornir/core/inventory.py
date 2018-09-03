@@ -361,26 +361,28 @@ class Inventory(BaseModel):
         **kwargs,
     ):
         groups = groups or {}
-        defaults = defaults or {}
-        defaults = Defaults(**defaults)
+
+        if defaults is None:
+            defaults = Defaults()
 
         parsed_hosts = {}
         for n, h in hosts.items():
             if isinstance(h, Host):
                 parsed_hosts[n] = h
             else:
-                parsed_hosts[n] = Host(name=n, defaults=defaults, **h)
+                parsed_hosts[n] = Host(name=n, **h)
         parsed_groups = {}
         for n, g in groups.items():
             if isinstance(h, Host):
                 parsed_groups[n] = g
             else:
-                parsed_groups[n] = Group(name=n, defaults=defaults, **g)
+                parsed_groups[n] = Group(name=n, **g)
         super().__init__(
             hosts=parsed_hosts, groups=parsed_groups, defaults=defaults, *args, **kwargs
         )
 
         for n, h in parsed_hosts.items():
+            h.defaults = self.defaults
             for p in h.groups:
                 h.groups.refs.append(parsed_groups[p])
         for n, g in parsed_groups.items():
@@ -388,6 +390,7 @@ class Inventory(BaseModel):
                 g.groups.refs.append(parsed_groups[p])
 
         if transform_function:
+            h.defaults = self.defaults
             for h in self.hosts.values():
                 transform_function(h)
 
@@ -401,7 +404,7 @@ class Inventory(BaseModel):
                 for n, h in self.hosts.items()
                 if all(h.get(k) == v for k, v in kwargs.items())
             }
-        return Inventory(hosts=filtered, groups=self.groups)
+        return Inventory(hosts=filtered, groups=self.groups, defaults=self.defaults)
 
     def __len__(self):
         return self.hosts.__len__()
