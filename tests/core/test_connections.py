@@ -109,7 +109,6 @@ class Test(object):
             nr.run(task=a_task)
             assert "dummy" in nr.inventory.hosts["dev2.group_1"].connections
         assert "dummy" not in nr.inventory.hosts["dev2.group_1"].connections
-        nornir.data.reset_failed_hosts()
 
     def test_validate_params_simple(self, nornir):
         params = {

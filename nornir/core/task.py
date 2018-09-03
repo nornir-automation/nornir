@@ -1,8 +1,8 @@
 import logging
 import traceback
-
 from typing import Optional
 
+from nornir.core.state import GlobalState
 from nornir.core.exceptions import NornirExecutionError
 from nornir.core.exceptions import NornirSubTaskError
 
@@ -118,7 +118,7 @@ class Task(object):
         Arguments:
             override (bool): Override for current task
         """
-        return override if override is not None else self.nornir.dry_run
+        return override if override is not None else GlobalState.dry_run
 
 
 class Result(object):
