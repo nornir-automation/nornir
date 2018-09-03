@@ -25,7 +25,6 @@ class Test(object):
             processed = True
             assert isinstance(result.exception, ValueError)
         assert processed
-        nornir.data.reset_failed_hosts()
 
     def test_load_json_error_missing_file(self, nornir):
         test_file = "{}/missing.json".format(data_dir)
@@ -35,4 +34,3 @@ class Test(object):
             processed = True
             assert isinstance(result.exception, FileNotFoundError)
         assert processed
-        nornir.data.reset_failed_hosts()

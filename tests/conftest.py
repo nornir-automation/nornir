@@ -3,6 +3,7 @@ import os
 import subprocess
 
 from nornir.core import InitNornir
+from nornir.core.state import GlobalState
 
 import pytest
 
@@ -55,3 +56,8 @@ def nornir(request):
         dry_run=True,
     )
     return nornir
+
+
+@pytest.fixture(scope="function", autouse=True)
+def reset_failed_hosts():
+    return GlobalState.reset_failed_hosts()

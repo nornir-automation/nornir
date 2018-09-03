@@ -22,7 +22,9 @@ class Test(object):
         configuration = "hostname changed-hostname"
         d = nornir.filter(name="dev3.group_2")
         d.run(connect, extras=opt)
-        result = d.run(networking.napalm_configure, configuration=configuration)
+        result = d.run(
+            networking.napalm_configure, dry_run=True, configuration=configuration
+        )
         assert result
         for h, r in result.items():
             assert "+hostname changed-hostname" in r.diff
@@ -62,4 +64,3 @@ class Test(object):
             processed = True
             assert isinstance(result.exception, exceptions.MergeConfigException)
         assert processed
-        nornir.data.reset_failed_hosts()
