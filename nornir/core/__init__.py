@@ -17,7 +17,7 @@ class Nornir(object):
 
     Arguments:
         inventory (:obj:`nornir.core.inventory.Inventory`): Inventory to work with
-        data(:obj:`nornir.core.GlobalState`): shared data amongst different iterations of nornir
+        data(GlobalState): shared data amongst different iterations of nornir
         dry_run(``bool``): Whether if we are testing the changes or not
         config (:obj:`nornir.core.configuration.Config`): Configuration object
         config_file (``str``): Path to Yaml configuration file
@@ -32,6 +32,7 @@ class Nornir(object):
     def __init__(
         self, inventory, _config=None, config_file=None, logger=None, data=None
     ):
+        self.data = data if data is not None else GlobalState()
         self.logger = logger or logging.getLogger("nornir")
 
         self.inventory = inventory
@@ -121,11 +122,11 @@ class Nornir(object):
         run_on = []
         if on_good:
             for name, host in self.inventory.hosts.items():
-                if name not in GlobalState.failed_hosts:
+                if name not in self.data.failed_hosts:
                     run_on.append(host)
         if on_failed:
             for name, host in self.inventory.hosts.items():
-                if name in GlobalState.failed_hosts:
+                if name in self.data.failed_hosts:
                     run_on.append(host)
 
         self.logger.info(
@@ -146,12 +147,12 @@ class Nornir(object):
         if raise_on_error:
             result.raise_on_error()
         else:
-            GlobalState.failed_hosts.update(result.failed_hosts.keys())
+            self.data.failed_hosts.update(result.failed_hosts.keys())
         return result
 
-    def to_dict(self):
+    def dict(self):
         """ Return a dictionary representing the object. """
-        return {"data": GlobalState.to_dict(), "inventory": self.inventory.to_dict()}
+        return {"data": self.data.dict(), "inventory": self.inventory.dict()}
 
     def close_connections(self, on_good=True, on_failed=False):
         def close_connections_task(task):

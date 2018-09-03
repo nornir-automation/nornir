@@ -8,6 +8,9 @@ from nornir.core.state import GlobalState
 import pytest
 
 
+global_data = GlobalState()
+
+
 logging.basicConfig(
     filename="tests.log",
     filemode="w",
@@ -55,9 +58,10 @@ def nornir(request):
         },
         dry_run=True,
     )
+    nornir.data = global_data
     return nornir
 
 
 @pytest.fixture(scope="function", autouse=True)
 def reset_failed_hosts():
-    return GlobalState.reset_failed_hosts()
+    global_data.reset_failed_hosts()
