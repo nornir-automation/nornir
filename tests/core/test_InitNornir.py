@@ -2,7 +2,7 @@ import os
 
 
 from nornir.core import InitNornir
-from nornir.core.serializer import InventorySerializer
+from nornir.core.inventory import Inventory
 
 
 dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_InitNornir")
@@ -14,7 +14,7 @@ def transform_func(host):
 
 def StringInventory(**kwargs):
     inv_dict = {"hosts": {"host1": {}, "host2": {}}, "groups": {}, "defaults": {}}
-    return InventorySerializer.deserialize(inv_dict, **kwargs)
+    return Inventory(**inv_dict, **kwargs)
 
 
 class Test(object):

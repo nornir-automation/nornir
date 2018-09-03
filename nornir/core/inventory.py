@@ -1,3 +1,4 @@
+from collections import Sequence, UserList
 from typing import Any, Dict, List, Optional
 
 from nornir.core.configuration import Config
@@ -11,37 +12,71 @@ HostsDict = None  # DELETEME
 VarsDict = None  # DELETEME
 
 
-class ConnectionOptions(BaseModel):
+class BaseAttributes(BaseModel):
     hostname: Optional[str] = None
     port: Optional[int] = None
     username: Optional[str] = None
     password: Optional[str] = None
     platform: Optional[str] = None
-    extras: Dict[str, Any] = {}
 
     class Config:
         ignore_extra = False
 
 
-class Groups(List["Group"]):
+class ConnectionOptions(BaseAttributes):
+    extras: Dict[str, Any] = {}
+
+
+class ParentGroups(UserList):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.refs: Optional[List["Group"]] = []
+
+    @classmethod
+    def get_validators(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v):
+        if not isinstance(v, Sequence):
+            raise ValueError(f"expected a list, got a {type(v)}")
+
+        return ParentGroups(v)
+
     def __contains__(self, value) -> bool:
         if isinstance(value, str):
-            return any([g.name == value for g in self])
+            return value in self.data
         else:
-            return any([g is value for g in self])
+            return value in self.refs
 
 
-class ElementData(ConnectionOptions):
-    groups: Groups = Groups()
+class InventoryElement(BaseAttributes):
+    groups: ParentGroups = ParentGroups()
     data: Dict[str, Any] = {}
     connection_options: Dict[str, ConnectionOptions] = {}
 
 
-class Host(ElementData):
-    name: str
-    defaults: ElementData = {}
+class Defaults(BaseAttributes):
+    data: Dict[str, Any] = {}
+    connection_options: Dict[str, ConnectionOptions] = {}
+
+
+class Host(InventoryElement):
+    name: str = ""
     connections: Connections = Connections()
-    _config: Config = Config()
+    defaults: InventoryElement = InventoryElement()
+    config: Config = Config()
+
+    class Config:
+        ignore_extra = False
+
+    def dict(self, *args, **kwargs):
+        d = super().dict(*args, **kwargs)
+        d.pop("name")
+        d.pop("connections")
+        d.pop("defaults")
+        d.pop("config")
+        return d
 
     def _resolve_data(self):
         processed = []
@@ -49,7 +84,7 @@ class Host(ElementData):
         for k, v in self.data.items():
             processed.append(k)
             result[k] = v
-        for g in self.groups:
+        for g in self.groups.refs:
             for k, v in g.items():
                 if k not in processed:
                     processed.append(k)
@@ -88,12 +123,12 @@ class Host(ElementData):
             return self._has_parent_group_by_object(group)
 
     def _has_parent_group_by_name(self, group):
-        for g in self.groups:
+        for g in self.groups.refs:
             if g.name == group or g.has_parent_group(group):
                 return True
 
     def _has_parent_group_by_object(self, group):
-        for g in self.groups:
+        for g in self.groups.refs:
             if g is group or g.has_parent_group(group):
                 return True
 
@@ -102,7 +137,7 @@ class Host(ElementData):
             return self.data[item]
 
         except KeyError:
-            for g in self.groups:
+            for g in self.groups.refs:
                 r = g.get(item)
                 if r:
                     return r
@@ -118,7 +153,7 @@ class Host(ElementData):
             return object.__getattribute__(self, name)
         v = self.__values__[name]
         if v is None:
-            for g in self.groups:
+            for g in self.groups.refs:
                 r = g.__values__[name]
                 if r is not None:
                     return r
@@ -188,7 +223,7 @@ class Host(ElementData):
     def _get_connection_options_recursively(self, connection: str) -> Dict[str, Any]:
         p = self.connection_options.get(connection)
         if p is None:
-            for g in self.groups:
+            for g in self.groups.refs:
                 p = g._get_connection_options_recursively(connection)
                 if p is not None:
                     return p
@@ -297,35 +332,60 @@ class Host(ElementData):
         for connection in existing_conns:
             self.close_connection(connection)
 
-    @property
-    def config(self):
-        return self._config
-
-    @config.setter
-    def config(self, value):
-        self._config = value
-
 
 class Group(Host):
     pass
 
 
-# TODO use basemodel
-class Inventory(object):
-    __slots__ = ("hosts", "groups", "defaults", "_nornir", "_config")
+class Hosts(Dict[str, Host]):
+    pass
+
+
+class Groups(Dict[str, Group]):
+    pass
+
+
+class Inventory(BaseModel):
+    hosts: Hosts
+    groups: Groups = Groups()
+    defaults: Defaults = Defaults()
+    _config: Optional[Config] = None
 
     def __init__(
         self,
-        hosts: List[Host],
-        groups: Optional[List[Group]] = None,
-        defaults: Optional[ElementData] = None,
-        config: Optional[Config] = None,
+        hosts: Dict[str, Dict[str, Any]],
+        groups: Optional[Dict[str, Dict[str, Any]]] = None,
+        defaults: Optional[Dict[str, Any]] = None,
         transform_function=None,
+        *args,
+        **kwargs,
     ):
-        self._config = config
-        self.hosts = hosts
-        self.groups = groups or {}
-        self.defaults = defaults or ElementData()
+        groups = groups or {}
+        defaults = defaults or {}
+        defaults = Defaults(**defaults)
+
+        parsed_hosts = {}
+        for n, h in hosts.items():
+            if isinstance(h, Host):
+                parsed_hosts[n] = h
+            else:
+                parsed_hosts[n] = Host(name=n, defaults=defaults, **h)
+        parsed_groups = {}
+        for n, g in groups.items():
+            if isinstance(h, Host):
+                parsed_groups[n] = g
+            else:
+                parsed_groups[n] = Group(name=n, defaults=defaults, **g)
+        super().__init__(
+            hosts=parsed_hosts, groups=parsed_groups, defaults=defaults, *args, **kwargs
+        )
+
+        for n, h in parsed_hosts.items():
+            for p in h.groups:
+                h.groups.refs.append(parsed_groups[p])
+        for n, g in parsed_groups.items():
+            for p in g.groups:
+                g.groups.refs.append(parsed_groups[p])
 
         if transform_function:
             for h in self.hosts.values():
