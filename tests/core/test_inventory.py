@@ -178,3 +178,9 @@ class Test(object):
             "platform": None,
             "extras": {"blah": "from_defaults"},
         }
+
+    def test_defaults(self):
+        inv = Inventory(**inv_dict)
+        inv.defaults.password = "asd"
+        assert inv.defaults.password == "asd"
+        assert inv.hosts["dev2.group_1"].password == "asd"
