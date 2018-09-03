@@ -3,35 +3,11 @@ import logging.config
 from multiprocessing.dummy import Pool
 
 from nornir.core.configuration import Config
+from nornir.core.state import GlobalState
 from nornir.core.task import AggregatedResult, Task
 from nornir.plugins.connections import register_default_connection_plugins
 
 register_default_connection_plugins()
-
-
-class Data(object):
-    """
-    This class is just a placeholder to share data amongst different
-    versions of Nornir after running ``filter`` multiple times.
-
-    Attributes:
-        failed_hosts (list): Hosts that have failed to run a task properly
-    """
-
-    def __init__(self):
-        self.failed_hosts = set()
-
-    def recover_host(self, host):
-        """Remove ``host`` from list of failed hosts."""
-        self.failed_hosts.discard(host)
-
-    def reset_failed_hosts(self):
-        """Reset failed hosts and make all hosts available for future tasks."""
-        self.failed_hosts = set()
-
-    def to_dict(self):
-        """ Return a dictionary representing the object. """
-        return self.__dict__
 
 
 class Nornir(object):
@@ -41,26 +17,24 @@ class Nornir(object):
 
     Arguments:
         inventory (:obj:`nornir.core.inventory.Inventory`): Inventory to work with
-        data(:obj:`nornir.core.Data`): shared data amongst different iterations of nornir
+        data(:obj:`nornir.core.GlobalState`): shared data amongst different iterations of nornir
         dry_run(``bool``): Whether if we are testing the changes or not
         config (:obj:`nornir.core.configuration.Config`): Configuration object
         config_file (``str``): Path to Yaml configuration file
 
     Attributes:
         inventory (:obj:`nornir.core.inventory.Inventory`): Inventory to work with
-        data(:obj:`nornir.core.Data`): shared data amongst different iterations of nornir
+        data(:obj:`nornir.core.GlobalState`): shared data amongst different iterations of nornir
         dry_run(``bool``): Whether if we are testing the changes or not
         config (:obj:`nornir.core.configuration.Config`): Configuration parameters
     """
 
     def __init__(
-        self, inventory, dry_run, _config=None, config_file=None, logger=None, data=None
+        self, inventory, _config=None, config_file=None, logger=None, data=None
     ):
         self.logger = logger or logging.getLogger("nornir")
 
-        self.data = data or Data()
         self.inventory = inventory
-        self.data.dry_run = dry_run
 
         if config_file:
             self._config = Config(config_file=config_file)
@@ -82,10 +56,6 @@ class Nornir(object):
         self._config = value
         self.inventory.config = value
 
-    @property
-    def dry_run(self):
-        return self.data.dry_run
-
     def filter(self, *args, **kwargs):
         """
         See :py:meth:`nornir.core.inventory.Inventory.filter`
@@ -93,7 +63,7 @@ class Nornir(object):
         Returns:
             :obj:`Nornir`: A new object with same configuration as ``self`` but filtered inventory.
         """
-        b = Nornir(dry_run=self.dry_run, **self.__dict__)
+        b = Nornir(**self.__dict__)
         b.inventory = self.inventory.filter(*args, **kwargs)
         return b
 
@@ -151,11 +121,11 @@ class Nornir(object):
         run_on = []
         if on_good:
             for name, host in self.inventory.hosts.items():
-                if name not in self.data.failed_hosts:
+                if name not in GlobalState.failed_hosts:
                     run_on.append(host)
         if on_failed:
             for name, host in self.inventory.hosts.items():
-                if name in self.data.failed_hosts:
+                if name in GlobalState.failed_hosts:
                     run_on.append(host)
 
         self.logger.info(
@@ -176,12 +146,12 @@ class Nornir(object):
         if raise_on_error:
             result.raise_on_error()
         else:
-            self.data.failed_hosts.update(result.failed_hosts.keys())
+            GlobalState.failed_hosts.update(result.failed_hosts.keys())
         return result
 
     def to_dict(self):
         """ Return a dictionary representing the object. """
-        return {"data": self.data.to_dict(), "inventory": self.inventory.to_dict()}
+        return {"data": GlobalState.to_dict(), "inventory": self.inventory.to_dict()}
 
     def close_connections(self, on_good=True, on_failed=False):
         def close_connections_task(task):
@@ -199,6 +169,10 @@ class Nornir(object):
             raise ValueError(f"Nornir: Nornir expected not {type(v)}")
         return v
 
+    @property
+    def state(self):
+        return GlobalState
+
 
 def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
     """
@@ -212,6 +186,8 @@ def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
         :obj:`nornir.core.Nornir`: fully instantiated and configured
     """
     conf = Config(path=config_file, **kwargs)
+    GlobalState.dry_run = dry_run
+
     if configure_logging:
         conf.logging.configure()
 
@@ -219,4 +195,4 @@ def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
     transform_function = conf.inventory.get_transform_function()
     inv = inv_class(transform_function=transform_function, **conf.inventory.options)
 
-    return Nornir(inventory=inv, dry_run=dry_run, _config=conf)
+    return Nornir(inventory=inv, _config=conf)
