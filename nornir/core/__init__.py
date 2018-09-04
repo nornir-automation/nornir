@@ -194,6 +194,8 @@ def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
 
     inv_class = conf.inventory.get_plugin()
     transform_function = conf.inventory.get_transform_function()
-    inv = inv_class(transform_function=transform_function, **conf.inventory.options)
+    inv = inv_class(
+        transform_function=transform_function, **conf.inventory.options
+    ).deserialize()
 
     return Nornir(inventory=inv, _config=conf)

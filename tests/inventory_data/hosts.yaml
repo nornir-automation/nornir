@@ -80,4 +80,5 @@ dev4.group_2:
         role: db
     groups:
         - group_2
+        - parent_group
     connection_options: {}
