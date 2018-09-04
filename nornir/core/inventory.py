@@ -189,11 +189,14 @@ class Host(InventoryElement):
         else:
             return v
 
+    def __bool__(self):
+        return bool(self.name)
+
     def __setitem__(self, item, value):
         self.data[item] = value
 
     def __len__(self):
-        return len(self.keys())
+        return len(self._resolve_data().keys())
 
     def __iter__(self):
         return self.data.__iter__()
