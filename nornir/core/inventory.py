@@ -63,18 +63,20 @@ class ParentGroups(UserList):
 
 
 class InventoryElement(BaseAttributes):
-    __slots__ = ("groups", "data", "connection_options")
+    __slots__ = ("groups", "data", "connection_options", "config")
 
     def __init__(
         self,
         groups: Optional[ParentGroups] = None,
         data: Optional[Dict[str, Any]] = None,
         connection_options: Optional[Dict[str, ConnectionOptions]] = None,
+        config: Optional[Config] = None,
         **kwargs,
     ):
         self.groups = groups or ParentGroups()
         self.data = data or {}
         self.connection_options = connection_options or {}
+        self.config = config or Config()
         super().__init__(**kwargs)
 
 
@@ -378,6 +380,7 @@ class Inventory(object):
         hosts: Hosts,
         groups: Optional[Groups] = None,
         defaults: Optional[Defaults] = None,
+        config: Optional[Config] = None,
         transform_function=None,
     ):
         self.hosts = hosts
@@ -393,6 +396,8 @@ class Inventory(object):
         if transform_function:
             for h in self.hosts.values():
                 transform_function(h)
+
+        self.config = config or Config()
 
     def filter(self, filter_obj=None, filter_func=None, *args, **kwargs):
         filter_func = filter_obj or filter_func
@@ -417,4 +422,4 @@ class Inventory(object):
     def config(self, value):
         self._config = value
         for host in self.hosts.values():
-            host._config = value
+            host.config = value
