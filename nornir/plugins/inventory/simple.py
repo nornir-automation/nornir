@@ -1,7 +1,7 @@
 import logging
 import os
 
-from nornir.core.inventory import Inventory
+from nornir.core.deserializer.inventory import Inventory
 
 import ruamel.yaml
 

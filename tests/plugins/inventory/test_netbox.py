@@ -1,6 +1,7 @@
 import json
 import os
 
+from nornir.core.deserializer.inventory import Inventory
 from nornir.plugins.inventory import netbox
 
 # We need import below to load fixtures
@@ -32,7 +33,7 @@ class Test(object):
         #      f.write(InventorySerializer.serialize(inv).json())
         with open("{}/{}/expected.json".format(BASE_PATH, "2.3.5"), "r") as f:
             expected = json.load(f)
-        assert expected == inv.dict()
+        assert expected == Inventory.serialize(inv).dict()
 
     def test_transform_function(self, requests_mock):
         inv = get_inv(requests_mock, "2.3.5", transform_function=transform_function)
@@ -44,4 +45,4 @@ class Test(object):
             "{}/{}/expected_transform_function.json".format(BASE_PATH, "2.3.5"), "r"
         ) as f:
             expected = json.load(f)
-        assert expected == inv.dict()
+        assert expected == Inventory.serialize(inv).dict()

@@ -1,9 +1,9 @@
 import os
-from typing import Any, List
+from typing import Any
+
+from nornir.core.deserializer.inventory import Inventory, InventoryElement
 
 import requests
-
-from nornir.core.inventory import Inventory, VarsDict, HostsDict, InventoryElement
 
 
 class NSOTInventory(Inventory):
@@ -58,13 +58,9 @@ class NSOTInventory(Inventory):
             )
             headers = {nsot_auth_header: nsot_email}
 
-        devices: List[VarsDict] = requests.get(
-            "{}/devices".format(nsot_url), headers=headers
-        ).json()
-        sites: List[VarsDict] = requests.get(
-            "{}/sites".format(nsot_url), headers=headers
-        ).json()
-        interfaces: List[VarsDict] = requests.get(
+        devices = requests.get("{}/devices".format(nsot_url), headers=headers).json()
+        sites = requests.get("{}/sites".format(nsot_url), headers=headers).json()
+        interfaces = requests.get(
             "{}/interfaces".format(nsot_url), headers=headers
         ).json()
 
@@ -90,5 +86,5 @@ class NSOTInventory(Inventory):
             devices[i["device"] - 1]["data"]["interfaces"][i["name"]] = i
 
         # Finally the inventory expects a dict of hosts where the key is the hostname
-        hosts: HostsDict = {d["hostname"]: d for d in devices}
+        hosts = {d["hostname"]: d for d in devices}
         return super().__init__(hosts=hosts, groups={}, defaults={}, *args, **kwargs)

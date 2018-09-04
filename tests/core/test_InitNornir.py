@@ -12,9 +12,10 @@ def transform_func(host):
     host["processed_by_transform_function"] = True
 
 
-def StringInventory(**kwargs):
-    inv_dict = {"hosts": {"host1": {}, "host2": {}}, "groups": {}, "defaults": {}}
-    return Inventory.deserialize(**inv_dict, **kwargs)
+class StringInventory(Inventory):
+    def __init__(self, **kwargs):
+        inv_dict = {"hosts": {"host1": {}, "host2": {}}, "groups": {}, "defaults": {}}
+        super().__init__(**inv_dict, **kwargs)
 
 
 class Test(object):
