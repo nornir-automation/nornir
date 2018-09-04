@@ -1,4 +1,4 @@
-from nornir.core.inventory import Inventory
+from nornir.core.deserializer.inventory import Inventory
 
 
 class MyInventory(Inventory):
@@ -28,4 +28,4 @@ class MyInventory(Inventory):
         # passing the data to the parent class so the data is
         # transformed into actual Host/Group objects
         # and set default data for all hosts
-        super().__init__(hosts, groups, defaults, **kwargs)
+        super().__init__(hosts=hosts, groups=groups, defaults=defaults, **kwargs)
