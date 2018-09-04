@@ -1,0 +1,162 @@
+---
+host1.cmh:
+    hostname: 127.0.0.1
+    port: 2201
+    username: vagrant
+    password: vagrant
+    groups:
+        - cmh
+    platform: linux
+    data:
+        site: cmh
+        role: host
+        type: host
+        nested_data:
+            a_dict:
+                a: 1
+                b: 2
+            a_list: [1, 2]
+            a_string: "asdasd"
+
+host2.cmh:
+    hostname: 127.0.0.1
+    port: 2202
+    username: vagrant
+    password: vagrant
+    groups:
+        - cmh
+    platform: linux
+    data:
+        site: cmh
+        role: host
+        type: host
+        nested_data:
+            a_dict:
+                b: 2
+                c: 3
+            a_list: [1, 2]
+            a_string: "qwe"
+
+spine00.cmh:
+    hostname: 127.0.0.1
+    username: vagrant
+    password: vagrant
+    port: 12444
+    platform: eos
+    groups:
+        - cmh
+    data:
+        site: cmh
+        role: spine
+        type: network_device
+
+spine01.cmh:
+    hostname: 127.0.0.1
+    username: vagrant
+    password: ""
+    port: 12204
+    platform: junos
+    groups:
+        - cmh
+    data:
+        site: cmh
+        role: spine
+        type: network_device
+
+leaf00.cmh:
+    hostname: 127.0.0.1
+    username: vagrant
+    password: vagrant
+    port: 12443
+    groups:
+        - cmh
+    platform: eos
+    data:
+        site: cmh
+        role: leaf
+        type: network_device
+        asn: 65100
+
+leaf01.cmh:
+    hostname: 127.0.0.1
+    username: vagrant
+    password: ""
+    port: 12203
+    groups:
+        - cmh
+    platform: junos
+    data:
+        site: cmh
+        role: leaf
+        type: network_device
+        asn: 65101
+
+host1.bma:
+    groups:
+        - bma
+    platform: linux
+    data:
+        type: host
+        site: bma
+        role: host
+
+host2.bma:
+    groups:
+        - bma
+    platform: linux
+    data:
+        type: host
+        site: bma
+        role: host
+
+spine00.bma:
+    hostname: 127.0.0.1
+    username: vagrant
+    password: vagrant
+    port: 12444
+    groups:
+        - bma
+    platform: eos
+    data:
+        site: bma
+        role: spine
+        type: network_device
+
+spine01.bma:
+    hostname: 127.0.0.1
+    username: vagrant
+    password: ""
+    port: 12204
+    groups:
+        - bma
+    platform: junos
+    data:
+        type: network_device
+        site: bma
+        role: spine
+
+leaf00.bma:
+    hostname: 127.0.0.1
+    username: vagrant
+    password: vagrant
+    port: 12443
+    groups:
+        - bma
+    platform: eos
+    data:
+        type: network_device
+        site: bma
+        role: leaf
+
+leaf01.bma:
+    hostname: 127.0.0.1
+    username: vagrant
+    password: wrong_password
+    port: 12203
+    groups:
+        - bma
+    platform: junos
+    data:
+        type: network_device
+        site: bma
+        role: leaf

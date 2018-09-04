@@ -17,7 +17,7 @@ def get_inv(requests_mock, case, **kwargs):
             json=json.load(f),
             headers={"Content-type": "application/json"},
         )
-    return netbox.NBInventory(**kwargs)
+    return netbox.NBInventory.deserialize(**kwargs)
 
 
 def transform_function(host):

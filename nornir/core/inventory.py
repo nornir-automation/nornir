@@ -1,47 +1,59 @@
-from collections import Sequence, UserList
+from collections import UserList
 from typing import Any, Dict, List, Optional
 
 from nornir.core.configuration import Config
 from nornir.core.connections import Connections
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
 
-from pydantic import BaseModel
-
 GroupsDict = None  # DELETEME
 HostsDict = None  # DELETEME
 VarsDict = None  # DELETEME
 
 
-class BaseAttributes(BaseModel):
-    hostname: Optional[str] = None
-    port: Optional[int] = None
-    username: Optional[str] = None
-    password: Optional[str] = None
-    platform: Optional[str] = None
+class BaseAttributes(object):
+    __slots__ = ("hostname", "port", "username", "password", "platform")
 
-    class Config:
-        ignore_extra = False
+    def __init__(
+        self,
+        hostname: Optional[str] = None,
+        port: Optional[int] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        platform: Optional[str] = None,
+    ):
+        self.hostname = hostname
+        self.port = port
+        self.username = username
+        self.password = password
+        self.platform = platform
+
+    def __recursive_slots__(self):
+        s = self.__slots__
+        for b in self.__class__.__bases__:
+            if hasattr(b, "__recursive_slots__"):
+                s += b().__recursive_slots__()
+            elif hasattr(b, "__slots__"):
+                s += b.__slots__
+        return s
+
+    def dict(self):
+        return {k: object.__getattribute__(self, k) for k in self.__recursive_slots__()}
 
 
 class ConnectionOptions(BaseAttributes):
-    extras: Dict[str, Any] = {}
+    __slots__ = ("extras",)
+
+    def __init__(self, extras: Optional[Dict[str, Any]] = None, **kwargs):
+        self.extras = extras or {}
+        super().__init__(**kwargs)
 
 
 class ParentGroups(UserList):
+    __slots__ = "refs"
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.refs: Optional[List["Group"]] = []
-
-    @classmethod
-    def get_validators(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v):
-        if not isinstance(v, Sequence):
-            raise ValueError(f"expected a list, got a {type(v)}")
-
-        return ParentGroups(v)
+        self.refs: List["Group"] = kwargs.get("refs", [])
 
     def __contains__(self, value) -> bool:
         if isinstance(value, str):
@@ -51,32 +63,49 @@ class ParentGroups(UserList):
 
 
 class InventoryElement(BaseAttributes):
-    groups: ParentGroups = ParentGroups()
-    data: Dict[str, Any] = {}
-    connection_options: Dict[str, ConnectionOptions] = {}
+    __slots__ = ("groups", "data", "connection_options")
+
+    def __init__(
+        self,
+        groups: Optional[ParentGroups] = None,
+        data: Optional[Dict[str, Any]] = None,
+        connection_options: Optional[Dict[str, ConnectionOptions]] = None,
+        **kwargs,
+    ):
+        self.groups = groups or ParentGroups()
+        self.data = data or {}
+        self.connection_options = connection_options or {}
+        super().__init__(**kwargs)
 
 
 class Defaults(BaseAttributes):
-    data: Dict[str, Any] = {}
-    connection_options: Dict[str, ConnectionOptions] = {}
+    __slots__ = ("data", "connection_options")
+
+    def __init__(
+        self,
+        data: Optional[Dict[str, Any]] = None,
+        connection_options: Optional[Dict[str, ConnectionOptions]] = None,
+        **kwargs,
+    ):
+        self.data = data or {}
+        self.connection_options = connection_options or {}
+        super().__init__(**kwargs)
 
 
 class Host(InventoryElement):
-    name: str = ""
-    connections: Connections = Connections()
-    defaults: InventoryElement = InventoryElement()
-    config: Config = Config()
+    __slots__ = ("name", "connections", "defaults", "config")
 
-    class Config:
-        ignore_extra = False
-
-    def dict(self, *args, **kwargs):
-        d = super().dict(*args, **kwargs)
-        d.pop("name")
-        d.pop("connections")
-        d.pop("defaults")
-        d.pop("config")
-        return d
+    def __init__(
+        self,
+        name: str,
+        defaults: Optional[InventoryElement] = None,
+        config: Optional[Config] = None,
+        **kwargs,
+    ):
+        self.name = name
+        self.defaults = defaults or Defaults()
+        self.connections: Connections = Connections()
+        super().__init__(**kwargs)
 
     def _resolve_data(self):
         processed = []
@@ -147,14 +176,14 @@ class Host(InventoryElement):
     def __getattribute__(self, name):
         if name not in ("hostname", "port", "username", "password", "platform"):
             return object.__getattribute__(self, name)
-        v = self.__values__[name]
+        v = object.__getattribute__(self, name)
         if v is None:
             for g in self.groups.refs:
-                r = g.__values__[name]
+                r = object.__getattribute__(self, name)
                 if r is not None:
                     return r
 
-            return self.defaults.__values__[name]
+            return object.__getattribute__(self.defaults, name)
         else:
             return v
 
@@ -171,7 +200,7 @@ class Host(InventoryElement):
         return self.name
 
     def __repr__(self):
-        return "{}: {}".format(self.__class__.__name__, self.hostname or "")
+        return "{}: {}".format(self.__class__.__name__, self.name or "")
 
     def get(self, item, default=None):
         """
@@ -204,7 +233,7 @@ class Host(InventoryElement):
         else:
             d = self._get_connection_options_recursively(connection)
             if d is not None:
-                return d
+                return ConnectionOptions(**d)
             else:
                 d = {
                     "hostname": self.hostname,
@@ -341,52 +370,27 @@ class Groups(Dict[str, Group]):
     pass
 
 
-class Inventory(BaseModel):
-    hosts: Hosts
-    groups: Groups = Groups()
-    defaults: Defaults = Defaults()
-    _config: Optional[Config] = None
+class Inventory(object):
+    __slots__ = ("hosts", "groups", "defaults", "_config")
 
     def __init__(
         self,
-        hosts: Dict[str, Dict[str, Any]],
-        groups: Optional[Dict[str, Dict[str, Any]]] = None,
-        defaults: Optional[Dict[str, Any]] = None,
+        hosts: Hosts,
+        groups: Optional[Groups] = None,
+        defaults: Optional[Defaults] = None,
         transform_function=None,
-        *args,
-        **kwargs,
     ):
-        groups = groups or {}
+        self.hosts = hosts
+        self.groups = groups
 
-        if defaults is None:
-            defaults = Defaults()
+        for host in self.hosts.values():
+            host.groups.refs = [self.groups[p] for p in host.groups]
+        for group in self.groups.values():
+            group.groups.refs = [self.groups[p] for p in group.groups]
 
-        parsed_hosts = {}
-        for n, h in hosts.items():
-            if isinstance(h, Host):
-                parsed_hosts[n] = h
-            else:
-                parsed_hosts[n] = Host(name=n, **h)
-        parsed_groups = {}
-        for n, g in groups.items():
-            if isinstance(h, Host):
-                parsed_groups[n] = g
-            else:
-                parsed_groups[n] = Group(name=n, **g)
-        super().__init__(
-            hosts=parsed_hosts, groups=parsed_groups, defaults=defaults, *args, **kwargs
-        )
-
-        for n, h in parsed_hosts.items():
-            h.defaults = self.defaults
-            for p in h.groups:
-                h.groups.refs.append(parsed_groups[p])
-        for n, g in parsed_groups.items():
-            for p in g.groups:
-                g.groups.refs.append(parsed_groups[p])
+        self.defaults = defaults
 
         if transform_function:
-            h.defaults = self.defaults
             for h in self.hosts.values():
                 transform_function(h)
 

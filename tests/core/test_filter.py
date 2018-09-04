@@ -104,7 +104,7 @@ class Test(object):
         f = F(has_parent_group="parent_group")
         filtered = sorted(list((inventory.filter(f).hosts.keys())))
 
-        assert filtered == ["dev1.group_1", "dev2.group_1"]
+        assert filtered == ["dev1.group_1", "dev2.group_1", "dev4.group_2"]
 
     def test_filtering_by_attribute_name(self):
         f = F(name="dev1.group_1")
