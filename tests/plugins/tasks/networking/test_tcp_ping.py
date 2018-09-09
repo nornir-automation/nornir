@@ -1,7 +1,7 @@
 import os
 
 
-from nornir.core import InitNornir
+from nornir import InitNornir
 from nornir.plugins.tasks import networking
 
 

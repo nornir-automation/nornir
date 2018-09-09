@@ -170,29 +170,3 @@ class Nornir(object):
     @property
     def state(self):
         return GlobalState
-
-
-def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
-    """
-    Arguments:
-        config_file(str): Path to the configuration file (optional)
-        dry_run(bool): Whether to simulate changes or not
-        **kwargs: Extra information to pass to the
-            :obj:`nornir.core.configuration.Config` object
-
-    Returns:
-        :obj:`nornir.core.Nornir`: fully instantiated and configured
-    """
-    conf = Config(path=config_file, **kwargs)
-    GlobalState.dry_run = dry_run
-
-    if configure_logging:
-        conf.logging.configure()
-
-    inv_class = conf.inventory.get_plugin()
-    transform_function = conf.inventory.get_transform_function()
-    inv = inv_class.deserialize(
-        transform_function=transform_function, config=conf, **conf.inventory.options
-    )
-
-    return Nornir(inventory=inv, _config=conf)
