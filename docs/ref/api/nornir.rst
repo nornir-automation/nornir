@@ -16,6 +16,6 @@ Nornir
 Data
 ----
 
-.. autoclass:: nornir.core.Data
+.. autoclass:: nornir.core.state.GlobalState
    :members:
    :undoc-members:
