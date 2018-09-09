@@ -4,10 +4,6 @@ from nornir.core import inventory
 
 from pydantic import BaseModel
 
-GroupsDict = None  # DELETEME
-HostsDict = None  # DELETEME
-VarsDict = None  # DELETEME
-
 
 class BaseAttributes(BaseModel):
     hostname: Optional[str] = None
@@ -30,11 +26,56 @@ class InventoryElement(BaseAttributes):
     connection_options: Dict[str, ConnectionOptions] = {}
 
     @classmethod
+    def deserialize(
+        cls,
+        name: str,
+        hostname: Optional[str] = None,
+        port: Optional[int] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        platform: Optional[str] = None,
+        groups: Optional[List[str]] = None,
+        data: Optional[Dict[str, Any]] = None,
+        connection_options: Optional[Dict[str, ConnectionOptions]] = None,
+        defaults: inventory.Defaults = None,
+    ) -> Dict[str, Any]:
+        parent_groups = inventory.ParentGroups(groups)
+        connection_options = connection_options or {}
+        conn_opts = {
+            k: inventory.ConnectionOptions(**v) for k, v in connection_options.items()
+        }
+        return {
+            "name": name,
+            "hostname": hostname,
+            "port": port,
+            "username": username,
+            "password": password,
+            "platform": platform,
+            "groups": parent_groups,
+            "data": data,
+            "connection_options": conn_opts,
+            "defaults": defaults,
+        }
+
+    @classmethod
+    def deserialize_host(cls, **kwargs) -> inventory.Host:
+        return inventory.Host(**cls.deserialize(**kwargs))
+
+    @classmethod
+    def deserialize_group(cls, **kwargs) -> inventory.Group:
+        return inventory.Group(**cls.deserialize(**kwargs))
+
+    @classmethod
     def serialize(cls, e: Union[inventory.Host, inventory.Group]) -> "InventoryElement":
         d = {}
         for f in cls.__fields__:
             d[f] = object.__getattribute__(e, f)
         d["groups"] = list(d["groups"])
+
+        d["connection_options"] = {
+            k: {f: getattr(v, f) for f in v.__recursive_slots__()}
+            for k, v in d["connection_options"].items()
+        }
         return InventoryElement(**d)
 
 
@@ -47,29 +88,38 @@ class Defaults(BaseAttributes):
         d = {}
         for f in cls.__fields__:
             d[f] = getattr(defaults, f)
+
+        d["connection_options"] = {
+            k: {f: getattr(v, f) for f in v.__recursive_slots__()}
+            for k, v in d["connection_options"].items()
+        }
         return Defaults(**d)
 
 
 class Inventory(BaseModel):
     hosts: Dict[str, InventoryElement]
-    groups: Dict[str, InventoryElement] = {}
-    defaults: Defaults = {}
+    groups: Dict[str, InventoryElement]
+    defaults: Defaults
 
     @classmethod
     def deserialize(cls, transform_function=None, *args, **kwargs):
         deserialized = cls(*args, **kwargs)
 
         defaults = inventory.Defaults(**deserialized.defaults.dict())
+        for k, v in defaults.connection_options.items():
+            defaults.connection_options[k] = inventory.ConnectionOptions(**v)
 
         hosts = inventory.Hosts()
         for n, h in deserialized.hosts.items():
-            h.groups = inventory.ParentGroups(h.groups)
-            hosts[n] = inventory.Host(defaults=defaults, name=n, **h.dict())
+            hosts[n] = InventoryElement.deserialize_host(
+                defaults=defaults, name=n, **h.dict()
+            )
 
         groups = inventory.Groups()
         for n, g in deserialized.groups.items():
-            g.groups = inventory.ParentGroups(g.groups)
-            groups[n] = inventory.Group(defaults=defaults, name=n, **g.dict())
+            groups[n] = InventoryElement.deserialize_group(
+                defaults=defaults, name=n, **g.dict()
+            )
 
         return inventory.Inventory(
             hosts=hosts,
