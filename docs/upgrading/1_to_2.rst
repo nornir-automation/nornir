@@ -13,3 +13,14 @@ When specifying connection parameters, in nornir 1.x those parameters where spec
 * ``platform`` (which replaces both ``os`` and ``network_operating_system``)
 
 You can check the following how to for more details on `how to <../howto/handling_connections.rst>`_ use these parameters.
+
+Changed to path importing ``InitNornir``
+----------------------------------------
+
+In order to import ``InitNornir`` correctly you have to change the old path::
+
+    from nornir.core import InitNornir
+
+to::
+
+    from nornir import InitNornir

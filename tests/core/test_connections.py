@@ -8,7 +8,7 @@ from nornir.core.exceptions import (
     ConnectionPluginAlreadyRegistered,
     ConnectionPluginNotRegistered,
 )
-from nornir.plugins.connections import register_default_connection_plugins
+from nornir.init_nornir import register_default_connection_plugins
 
 import pytest
 

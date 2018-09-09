@@ -2,7 +2,7 @@ import logging
 import os
 import subprocess
 
-from nornir.core import InitNornir
+from nornir import InitNornir
 from nornir.core.state import GlobalState
 
 import pytest

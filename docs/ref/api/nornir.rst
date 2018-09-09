@@ -4,7 +4,8 @@ Core
 InitNornir
 ----------
 
-.. automethod:: nornir.core.InitNornir
+.. automethod:: nornir.InitNornir
+   :module: nornir.init_nornir
 
 Nornir
 ------
