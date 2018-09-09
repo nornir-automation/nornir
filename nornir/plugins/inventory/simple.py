@@ -1,7 +1,7 @@
 import logging
 import os
 
-from nornir.core.deserializer.inventory import Inventory
+from nornir.core.deserializer.inventory import Inventory, VarsDict, GroupsDict
 
 import ruamel.yaml
 
@@ -19,7 +19,7 @@ class SimpleInventory(Inventory):
         with open(host_file, "r") as f:
             hosts = yml.load(f)
 
-        groups = {}
+        groups: GroupsDict = {}
         if group_file:
             if os.path.exists(group_file):
                 with open(group_file, "r") as f:
@@ -28,7 +28,7 @@ class SimpleInventory(Inventory):
                 logging.warning("{}: doesn't exist".format(group_file))
                 groups = {}
 
-        defaults = {}
+        defaults: VarsDict = {}
         if defaults_file:
             if os.path.exists(defaults_file):
                 with open(defaults_file, "r") as f:
