@@ -8,3 +8,6 @@ def register_default_connection_plugins() -> None:
     Connections.register("napalm", Napalm)
     Connections.register("netmiko", Netmiko)
     Connections.register("paramiko", Paramiko)
+
+
+register_default_connection_plugins()

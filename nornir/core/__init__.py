@@ -5,9 +5,6 @@ from multiprocessing.dummy import Pool
 from nornir.core.configuration import Config
 from nornir.core.state import GlobalState
 from nornir.core.task import AggregatedResult, Task
-from nornir.plugins.connections import register_default_connection_plugins
-
-register_default_connection_plugins()
 
 
 class Nornir(object):
