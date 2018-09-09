@@ -26,8 +26,6 @@ from jinja2 import FileSystemLoader
 sys.path.insert(0, os.path.abspath("../"))
 
 
-from nornir.core.configuration import CONF  # noqa
-
 # -- General configuration ------------------------------------------------
 BASEPATH = os.path.dirname(__file__)
 
@@ -173,19 +171,6 @@ texinfo_documents = [
 ]
 
 
-def build_configuration_parameters(app):
-    """Create documentation for configuration parameters."""
-
-    env = Environment(loader=FileSystemLoader("{0}/_data_templates".format(BASEPATH)))
-    template_file = env.get_template("configuration-parameters.j2")
-    data = {}
-    data["params"] = CONF
-    rendered_template = template_file.render(**data)
-    output_dir = "{0}/configuration/generated".format(BASEPATH)
-    with open("{}/parameters.rst".format(output_dir), "w") as f:
-        f.write(rendered_template)
-
-
 def skip_slots(app, what, name, obj, skip, options):
     if obj.__class__.__name__ == "member_descriptor":
         return True
@@ -194,9 +179,5 @@ def skip_slots(app, what, name, obj, skip, options):
 
 def setup(app):
     """Map methods to states of the documentation build."""
-    app.connect("builder-inited", build_configuration_parameters)
     app.connect("autodoc-skip-member", skip_slots)
     app.add_stylesheet("css/custom.css")
-
-
-build_configuration_parameters(None)
