@@ -5,6 +5,11 @@ from nornir.core import inventory
 from pydantic import BaseModel
 
 
+VarsDict = Dict[str, Any]
+HostsDict = Dict[str, VarsDict]
+GroupsDict = Dict[str, VarsDict]
+
+
 class BaseAttributes(BaseModel):
     hostname: Optional[str] = None
     port: Optional[int] = None
@@ -105,9 +110,10 @@ class Inventory(BaseModel):
     def deserialize(cls, transform_function=None, *args, **kwargs):
         deserialized = cls(*args, **kwargs)
 
-        defaults = inventory.Defaults(**deserialized.defaults.dict())
-        for k, v in defaults.connection_options.items():
-            defaults.connection_options[k] = inventory.ConnectionOptions(**v)
+        defaults_dict = deserialized.defaults.dict()
+        for k, v in defaults_dict["connection_options"].items():
+            defaults_dict["connection_options"][k] = inventory.ConnectionOptions(**v)
+        defaults = inventory.Defaults(**defaults_dict)
 
         hosts = inventory.Hosts()
         for n, h in deserialized.hosts.items():

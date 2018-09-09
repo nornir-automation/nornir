@@ -13,7 +13,12 @@ from mypy_extensions import TypedDict
 from ruamel.yaml.scanner import ScannerError
 from ruamel.yaml.composer import ComposerError
 
-from nornir.core.inventory import Inventory, VarsDict, GroupsDict, HostsDict
+from nornir.core.deserializer.inventory import (
+    Inventory,
+    VarsDict,
+    GroupsDict,
+    HostsDict,
+)
 
 VARS_FILENAME_EXTENSIONS = ["", ".yml", ".yaml"]
 

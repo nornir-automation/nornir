@@ -5,10 +5,6 @@ from nornir.core.configuration import Config
 from nornir.core.connections import Connections
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
 
-GroupsDict = None  # DELETEME
-HostsDict = None  # DELETEME
-VarsDict = None  # DELETEME
-
 
 class BaseAttributes(object):
     __slots__ = ("hostname", "port", "username", "password", "platform")

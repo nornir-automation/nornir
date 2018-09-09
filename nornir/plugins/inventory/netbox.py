@@ -1,6 +1,7 @@
 import os
 
-from nornir.core.deserializer.inventory import Inventory
+from nornir.core.deserializer.inventory import Inventory, HostsDict
+
 
 import requests
 
@@ -28,7 +29,7 @@ class NBInventory(Inventory):
 
         hosts = {}
         for d in nb_devices["results"]:
-            host = {"data": {}}
+            host: HostsDict = {"data": {}}
 
             # Add value for IP address
             if d.get("primary_ip", {}):
