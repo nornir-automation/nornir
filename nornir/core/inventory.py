@@ -20,7 +20,7 @@ class BaseAttributes(object):
         username: Optional[str] = None,
         password: Optional[str] = None,
         platform: Optional[str] = None,
-    ):
+    ) -> None:
         self.hostname = hostname
         self.port = port
         self.username = username
@@ -43,7 +43,7 @@ class BaseAttributes(object):
 class ConnectionOptions(BaseAttributes):
     __slots__ = ("extras",)
 
-    def __init__(self, extras: Optional[Dict[str, Any]] = None, **kwargs):
+    def __init__(self, extras: Optional[Dict[str, Any]] = None, **kwargs) -> None:
         self.extras = extras or {}
         super().__init__(**kwargs)
 
@@ -51,7 +51,8 @@ class ConnectionOptions(BaseAttributes):
 class ParentGroups(UserList):
     __slots__ = "refs"
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
+        self.data: List[str] = []
         super().__init__(*args, **kwargs)
         self.refs: List["Group"] = kwargs.get("refs", [])
 
@@ -72,7 +73,7 @@ class InventoryElement(BaseAttributes):
         connection_options: Optional[Dict[str, ConnectionOptions]] = None,
         config: Optional[Config] = None,
         **kwargs,
-    ):
+    ) -> None:
         self.groups = groups or ParentGroups()
         self.data = data or {}
         self.connection_options = connection_options or {}
@@ -88,7 +89,7 @@ class Defaults(BaseAttributes):
         data: Optional[Dict[str, Any]] = None,
         connection_options: Optional[Dict[str, ConnectionOptions]] = None,
         **kwargs,
-    ):
+    ) -> None:
         self.data = data or {}
         self.connection_options = connection_options or {}
         super().__init__(**kwargs)
@@ -100,10 +101,10 @@ class Host(InventoryElement):
     def __init__(
         self,
         name: str,
-        defaults: Optional[InventoryElement] = None,
+        defaults: Optional[Defaults] = None,
         config: Optional[Config] = None,
         **kwargs,
-    ):
+    ) -> None:
         self.name = name
         self.defaults = defaults or Defaults()
         self.connections: Connections = Connections()
@@ -225,32 +226,34 @@ class Host(InventoryElement):
 
     def get_connection_parameters(
         self, connection: Optional[str] = None
-    ) -> Dict[str, Any]:
+    ) -> ConnectionOptions:
         if not connection:
-            d = {
-                "hostname": self.hostname,
-                "port": self.port,
-                "username": self.username,
-                "password": self.password,
-                "platform": self.platform,
-                "extras": {},
-            }
+            d = ConnectionOptions(
+                hostname=self.hostname,
+                port=self.port,
+                username=self.username,
+                password=self.password,
+                platform=self.platform,
+                extras={},
+            )
         else:
-            d = self._get_connection_options_recursively(connection)
-            if d is not None:
-                return ConnectionOptions(**d)
+            r = self._get_connection_options_recursively(connection)
+            if r is not None:
+                return r
             else:
-                d = {
-                    "hostname": self.hostname,
-                    "port": self.port,
-                    "username": self.username,
-                    "password": self.password,
-                    "platform": self.platform,
-                    "extras": {},
-                }
-        return ConnectionOptions(**d)
+                d = ConnectionOptions(
+                    hostname=self.hostname,
+                    port=self.port,
+                    username=self.username,
+                    password=self.password,
+                    platform=self.platform,
+                    extras={},
+                )
+        return d
 
-    def _get_connection_options_recursively(self, connection: str) -> Dict[str, Any]:
+    def _get_connection_options_recursively(
+        self, connection: str
+    ) -> Optional[ConnectionOptions]:
         p = self.connection_options.get(connection)
         if p is None:
             for g in self.groups.refs:
@@ -385,16 +388,15 @@ class Inventory(object):
         defaults: Optional[Defaults] = None,
         config: Optional[Config] = None,
         transform_function=None,
-    ):
+    ) -> None:
         self.hosts = hosts
-        self.groups = groups
+        self.groups = groups or Groups()
+        self.defaults = defaults or Defaults()
 
         for host in self.hosts.values():
             host.groups.refs = [self.groups[p] for p in host.groups]
         for group in self.groups.values():
             group.groups.refs = [self.groups[p] for p in group.groups]
-
-        self.defaults = defaults
 
         if transform_function:
             for h in self.hosts.values():
