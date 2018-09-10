@@ -1,6 +1,7 @@
 from typing import List
 
 from nornir.core.task import Result, Task
+from nornir.plugins.connections import Napalm
 
 
 def napalm_cli(task: Task, commands: List[str]) -> Result:
@@ -14,6 +15,6 @@ def napalm_cli(task: Task, commands: List[str]) -> Result:
         Result object with the following attributes set:
           * result (``dict``): result of the commands execution
     """
-    device = task.host.get_connection("napalm")
+    device = task.get_connection(Napalm.default_conn_name)
     result = device.cli(commands)
     return Result(host=task.host, result=result)

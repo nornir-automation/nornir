@@ -31,9 +31,17 @@ class Task(object):
         severity_level (logging.LEVEL): Severity level associated to the task
     """
 
-    def __init__(self, task, name=None, severity_level=logging.INFO, **kwargs):
+    def __init__(
+        self,
+        task,
+        name=None,
+        severity_level=logging.INFO,
+        conn_name: Optional[str] = None,
+        **kwargs
+    ):
         self.name = name or task.__name__
         self.task = task
+        self.conn_name = conn_name
         self.params = kwargs
         self.results = MultiResult(self.name)
         self.severity_level = severity_level
@@ -119,6 +127,16 @@ class Task(object):
             override (bool): Override for current task
         """
         return override if override is not None else self.nornir.dry_run
+
+    def get_connection(self, default_conn_name: str):
+        """
+        Gets or opens a connection using the name specified explicitly during
+        task creation or using the default connection name
+
+        Attributes:
+            default_conn_name: default connection name
+        """
+        return self.host.get_connection(self.conn_name or default_conn_name)
 
 
 class Result(object):

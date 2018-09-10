@@ -15,6 +15,8 @@ class Napalm(ConnectionPlugin):
         connection_options: passed as it is to the napalm driver
     """
 
+    default_conn_name = "napalm"
+
     def open(
         self,
         hostname: Optional[str],

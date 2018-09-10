@@ -242,9 +242,9 @@ class Host(object):
         self.data["platform"] = value
 
     def get_connection_parameters(
-        self, connection: Optional[str] = None
+        self, conn_name: Optional[str] = None
     ) -> Dict[str, Any]:
-        if not connection:
+        if not conn_name:
             return {
                 "hostname": self.hostname,
                 "port": self.port,
@@ -254,17 +254,18 @@ class Host(object):
                 "connection_options": {},
             }
         else:
-            conn_params = self.get(f"{connection}_options", {})
+            conn_params = self.get(f"{conn_name}_options", {})
             return {
                 "hostname": conn_params.get("hostname", self.hostname),
                 "port": conn_params.get("port", self.port),
                 "username": conn_params.get("username", self.username),
                 "password": conn_params.get("password", self.password),
                 "platform": conn_params.get("platform", self.platform),
+                "plugin": conn_params.get("plugin"),
                 "connection_options": conn_params.get("connection_options", {}),
             }
 
-    def get_connection(self, connection: str) -> Any:
+    def get_connection(self, name: str) -> Any:
         """
         The function of this method is twofold:
 
@@ -276,7 +277,7 @@ class Host(object):
             AttributeError: if it's unknown how to establish a connection for the given type
 
         Arguments:
-            connection: Name of the connection, for instance, netmiko, paramiko, napalm...
+            name: Name of the connection, for instance, netmiko, paramiko, napalm...
 
         Returns:
             An already established connection
@@ -285,26 +286,25 @@ class Host(object):
             config = self.nornir.config
         else:
             config = None
-        if connection not in self.connections:
+        if name not in self.connections:
             self.open_connection(
-                connection,
-                **self.get_connection_parameters(connection),
-                configuration=config,
+                name, **self.get_connection_parameters(name), configuration=config
             )
-        return self.connections[connection].connection
+        return self.connections[name].connection
 
-    def get_connection_state(self, connection: str) -> Dict[str, Any]:
+    def get_connection_state(self, name: str) -> Dict[str, Any]:
         """
         For an already established connection return its state.
         """
-        if connection not in self.connections:
-            raise ConnectionNotOpen(connection)
+        if name not in self.connections:
+            raise ConnectionNotOpen(name)
 
-        return self.connections[connection].state
+        return self.connections[name].state
 
     def open_connection(
         self,
-        connection: str,
+        name: str,
+        plugin: Optional[str] = None,
         hostname: Optional[str] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
@@ -326,13 +326,16 @@ class Host(object):
         Returns:
             An already established connection
         """
-        if connection in self.connections:
-            raise ConnectionAlreadyOpen(connection)
+        if plugin is None:
+            plugin = name
 
-        self.connections[connection] = self.connections.get_plugin(connection)()
+        if name in self.connections:
+            raise ConnectionAlreadyOpen(name)
+
+        self.connections[name] = self.connections.get_plugin(plugin)()
         if default_to_host_attributes:
-            conn_params = self.get_connection_parameters(connection)
-            self.connections[connection].open(
+            conn_params = self.get_connection_parameters(name)
+            self.connections[name].open(
                 hostname=hostname if hostname is not None else conn_params["hostname"],
                 username=username if username is not None else conn_params["username"],
                 password=password if password is not None else conn_params["password"],
@@ -346,7 +349,7 @@ class Host(object):
                 else self.nornir.config,
             )
         else:
-            self.connections[connection].open(
+            self.connections[name].open(
                 hostname=hostname,
                 username=username,
                 password=password,
@@ -355,14 +358,14 @@ class Host(object):
                 connection_options=connection_options,
                 configuration=configuration,
             )
-        return self.connections[connection]
+        return self.connections[name]
 
-    def close_connection(self, connection: str) -> None:
+    def close_connection(self, name: str) -> None:
         """ Close the connection"""
-        if connection not in self.connections:
-            raise ConnectionNotOpen(connection)
+        if name not in self.connections:
+            raise ConnectionNotOpen(name)
 
-        self.connections.pop(connection).close()
+        self.connections.pop(name).close()
 
     def close_connections(self) -> None:
         # Decouple deleting dictionary elements from iterating over connections dict

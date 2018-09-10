@@ -1,6 +1,7 @@
 from typing import Any, Dict, Optional
 
 from nornir.core.task import Result, Task
+from nornir.plugins.connections import Napalm
 
 ValidationSourceData = Optional[Dict[str, Dict[str, Any]]]
 
@@ -24,7 +25,7 @@ def napalm_validate(
         * result (``dict``): dictionary with the result of the validation
         * complies (``bool``): Whether the device complies or not
     """
-    device = task.host.get_connection("napalm")
+    device = task.get_connection(Napalm.default_conn_name)
     r = device.compliance_report(
         validation_file=src, validation_source=validation_source
     )

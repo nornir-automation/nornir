@@ -23,6 +23,8 @@ class Netmiko(ConnectionPlugin):
         connection_options: maps to argument passed to ``ConnectHandler``.
     """
 
+    default_conn_name = "netmiko"
+
     def open(
         self,
         hostname: Optional[str],

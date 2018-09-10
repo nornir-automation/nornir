@@ -14,6 +14,8 @@ from nornir.plugins.connections import register_default_connection_plugins
 
 
 class DummyConnectionPlugin(ConnectionPlugin):
+    default_conn_name = "dummy"
+
     def open(
         self,
         hostname: Optional[str],
@@ -39,7 +41,7 @@ class DummyConnectionPlugin(ConnectionPlugin):
 
 
 class AnotherDummyConnectionPlugin(DummyConnectionPlugin):
-    pass
+    default_conn_name = "another_dummy"
 
 
 def open_and_close_connection(task):
@@ -47,6 +49,16 @@ def open_and_close_connection(task):
     assert "dummy" in task.host.connections
     task.host.close_connection("dummy")
     assert "dummy" not in task.host.connections
+
+
+def open_and_close_connection_same_plugin_different_name(task):
+    task.host.open_connection("another-connection-using-dummy-plugin", plugin="dummy")
+    assert isinstance(
+        task.host.connections["another-connection-using-dummy-plugin"],
+        DummyConnectionPlugin,
+    )
+    task.host.close_connection("another-connection-using-dummy-plugin")
+    assert "another-connection-using-dummy-plugin" not in task.host.connections
 
 
 def open_connection_twice(task):
@@ -83,12 +95,20 @@ class Test(object):
     @classmethod
     def setup_class(cls):
         Connections.deregister_all()
-        Connections.register("dummy", DummyConnectionPlugin)
-        Connections.register("dummy_no_overrides", DummyConnectionPlugin)
+        Connections.register(DummyConnectionPlugin, "dummy")
+        Connections.register(DummyConnectionPlugin, "dummy_no_overrides")
 
     def test_open_and_close_connection(self, nornir):
         nr = nornir.filter(name="dev2.group_1")
         r = nr.run(task=open_and_close_connection, num_workers=1)
+        assert len(r) == 1
+        assert not r.failed
+
+    def test_open_and_close_connection_same_plugin_different_name(self, nornir):
+        nr = nornir.filter(name="dev2.group_1")
+        r = nr.run(
+            task=open_and_close_connection_same_plugin_different_name, num_workers=1
+        )
         assert len(r) == 1
         assert not r.failed
 
@@ -148,8 +168,8 @@ class Test(object):
 class TestConnectionPluginsRegistration(object):
     def setup_method(self, method):
         Connections.deregister_all()
-        Connections.register("dummy", DummyConnectionPlugin)
-        Connections.register("another_dummy", AnotherDummyConnectionPlugin)
+        Connections.register(DummyConnectionPlugin)
+        Connections.register(AnotherDummyConnectionPlugin)
 
     def teardown_method(self, method):
         Connections.deregister_all()
@@ -159,16 +179,16 @@ class TestConnectionPluginsRegistration(object):
         assert len(Connections.available) == 2
 
     def test_register_new(self):
-        Connections.register("new_dummy", DummyConnectionPlugin)
+        Connections.register(DummyConnectionPlugin, "new_dummy")
         assert "new_dummy" in Connections.available
 
     def test_register_already_registered_same(self):
-        Connections.register("dummy", DummyConnectionPlugin)
+        Connections.register(DummyConnectionPlugin, "dummy")
         assert Connections.available["dummy"] == DummyConnectionPlugin
 
     def test_register_already_registered_new(self):
         with pytest.raises(ConnectionPluginAlreadyRegistered):
-            Connections.register("dummy", AnotherDummyConnectionPlugin)
+            Connections.register(AnotherDummyConnectionPlugin, "dummy")
 
     def test_deregister_existing(self):
         Connections.deregister("dummy")

@@ -21,6 +21,7 @@ class ConnectionPlugin(ABC):
     """
 
     __slots__ = ("connection", "state")
+    default_conn_name = ""
 
     def __init__(self) -> None:
         self.connection: Any = UnestablishedConnection()
@@ -60,17 +61,21 @@ class Connections(Dict[str, ConnectionPlugin]):
     available: Dict[str, Type[ConnectionPlugin]] = {}
 
     @classmethod
-    def register(cls, name: str, plugin: Type[ConnectionPlugin]) -> None:
+    def register(
+        cls, plugin: Type[ConnectionPlugin], name: Optional[str] = None
+    ) -> None:
         """Registers a connection plugin with a specified name
 
         Args:
-            name: name of the connection plugin to register
             plugin: defined connection plugin class
+            name: name of the connection plugin to register
 
         Raises:
             :obj:`nornir.core.exceptions.ConnectionPluginAlreadyRegistered` if
                 another plugin with the specified name was already registered
         """
+        if name is None:
+            name = plugin.default_conn_name
         existing_plugin = cls.available.get(name)
         if existing_plugin is None:
             cls.available[name] = plugin

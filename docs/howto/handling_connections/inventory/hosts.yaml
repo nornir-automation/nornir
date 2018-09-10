@@ -5,3 +5,8 @@ rtr00:
         connection_options:
             optional_args:
                 path: handling_connections/mocked_data
+    secondary_options:
+        plugin: napalm
+        connection_options:
+            optional_args:
+                path: handling_connections/mocked_data
