@@ -1,0 +1,31 @@
+---
+simple_host:
+    hostname: simple-host.my-lab.com
+    username: simple-user
+    password: simple-password
+    platform: cisco_ios
+
+advanced_host:
+    # standard parameters that will be re-used across different connections
+    username: my_user
+    password: my_password
+    platform: linux
+    napalm_options:
+        # standard parameters override upper level and will be used only for the napalm connection
+        # missing parameters are read from the top level
+        port: 443
+        platform: eos
+        connection_options:
+            # non-standard library-specific options supported by the backend library
+            optional_args:
+                eos_autoComplete: true
+    netmiko_options:
+        platform: arista_eos
+        connection_options:
+            global_delay: 2
+    netmiko_telnet_options: # non-default connection name
+        plugin: netmiko  # in this case plugin option is mandatory
+        # terminal server details
+        hostname: 1.2.3.4
+        port: 3001
+        platform: arista_eos_telnet

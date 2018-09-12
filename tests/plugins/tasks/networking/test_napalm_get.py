@@ -16,6 +16,17 @@ def connect(task, connection_options):
     )
 
 
+def connect_secondary(task, connection_options):
+    if "secondary" in task.host.connections:
+        task.host.close_connection("secondary")
+    task.host.open_connection(
+        "secondary",
+        plugin="napalm",
+        connection_options={"optional_args": connection_options},
+        default_to_host_attributes=True,
+    )
+
+
 class Test(object):
     def test_napalm_getters(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_getters"}
@@ -26,6 +37,15 @@ class Test(object):
         for h, r in result.items():
             assert r.result["facts"]
             assert r.result["interfaces"]
+
+    def test_napalm_getters_alt_conn_name(self, nornir):
+        opt = {"path": THIS_DIR + "/test_napalm_getters_alt_conn_name"}
+        d = nornir.filter(name="dev3.group_2")
+        d.run(task=connect_secondary, connection_options=opt)
+        result = d.run(networking.napalm_get, conn_name="secondary", getters=["facts"])
+        assert result
+        for h, r in result.items():
+            assert r.result["facts"]
 
     def test_napalm_getters_error(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_getters_error"}

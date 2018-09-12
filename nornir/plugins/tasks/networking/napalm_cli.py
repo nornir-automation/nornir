@@ -15,6 +15,6 @@ def napalm_cli(task: Task, commands: List[str]) -> Result:
         Result object with the following attributes set:
           * result (``dict``): result of the commands execution
     """
-    device = task.get_connection(Napalm.default_conn_name)
+    device = task.get_connection(Napalm.name)
     result = device.cli(commands)
     return Result(host=task.host, result=result)

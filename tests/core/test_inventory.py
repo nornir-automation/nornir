@@ -233,6 +233,7 @@ class Test(object):
                     "port": 65003,
                     "platform": "linux",
                     "napalm_options": {"platform": "mock"},
+                    "secondary_options": {"plugin": "napalm", "platform": "mock"},
                 },
             },
             "groups": {

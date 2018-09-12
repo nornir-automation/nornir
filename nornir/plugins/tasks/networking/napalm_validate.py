@@ -25,7 +25,7 @@ def napalm_validate(
         * result (``dict``): dictionary with the result of the validation
         * complies (``bool``): Whether the device complies or not
     """
-    device = task.get_connection(Napalm.default_conn_name)
+    device = task.get_connection(Napalm.name)
     r = device.compliance_report(
         validation_file=src, validation_source=validation_source
     )

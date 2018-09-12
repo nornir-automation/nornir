@@ -21,8 +21,8 @@ def remote_command(task: Task, command: str) -> Result:
     Raises:
         :obj:`nornir.core.exceptions.CommandError`: when there is a command error
     """
-    client = task.host.get_connection(Paramiko.default_conn_name)
-    connection_state = task.host.get_connection_state(Paramiko.default_conn_name)
+    client = task.get_connection(Paramiko.name)
+    connection_state = task.get_connection_state(Paramiko.name)
 
     chan = client.get_transport().open_session()
 

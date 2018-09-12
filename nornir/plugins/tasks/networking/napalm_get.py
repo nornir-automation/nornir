@@ -47,7 +47,7 @@ def napalm_get(
         Result object with the following attributes set:
           * result (``dict``): dictionary with the result of the getter
     """
-    device = task.get_connection(Napalm.default_conn_name)
+    device = task.get_connection(Napalm.name)
     getters_options = getters_options or {}
 
     if isinstance(getters, str):

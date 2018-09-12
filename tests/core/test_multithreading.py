@@ -36,7 +36,7 @@ class Test(object):
         nornir.run(blocking_task, wait=0.5, num_workers=1)
         t2 = datetime.datetime.now()
         delta = t2 - t1
-        assert delta.seconds == 2, delta
+        assert 1.5 <= delta.total_seconds() < 2.5, delta
 
     def test_blocking_task_multithreading(self, nornir):
         t1 = datetime.datetime.now()

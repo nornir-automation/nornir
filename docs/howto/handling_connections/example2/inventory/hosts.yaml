@@ -1,0 +1,12 @@
+---
+rtr00:
+    platform: mock
+    napalm_options:  # uses plugin name "napalm" as a connection name
+        connection_options:
+            optional_args:
+                path: handling_connections/example2/mocked_data
+    secondary_options:  # uses non-default connection name "secondary"
+        plugin: napalm  # the name of a registered plugin is "napalm"
+        connection_options:
+            optional_args:
+                path: handling_connections/example2/mocked_data

@@ -16,7 +16,7 @@ class Paramiko(ConnectionPlugin):
         connection_options: maps to argument passed to ``ConnectHandler``.
     """
 
-    default_conn_name = "paramiko"
+    name = "paramiko"
 
     def open(
         self,

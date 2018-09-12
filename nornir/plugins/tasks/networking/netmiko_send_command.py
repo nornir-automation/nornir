@@ -19,7 +19,7 @@ def netmiko_send_command(
         Result object with the following attributes set:
           * result (``dict``): dictionary with the result of the show command.
     """
-    net_connect = task.get_connection(Netmiko.default_conn_name)
+    net_connect = task.get_connection(Netmiko.name)
     if use_timing:
         result = net_connect.send_command_timing(command_string, **kwargs)
     else:

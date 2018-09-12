@@ -128,15 +128,25 @@ class Task(object):
         """
         return override if override is not None else self.nornir.dry_run
 
-    def get_connection(self, default_conn_name: str):
+    def get_connection(self, plugin_name: str):
         """
         Gets or opens a connection using the name specified explicitly during
-        task creation or using the default connection name
+        task creation or using the plugin name
 
         Attributes:
-            default_conn_name: default connection name
+            plugin_name: default plugin name
         """
-        return self.host.get_connection(self.conn_name or default_conn_name)
+        return self.host.get_connection(self.conn_name or plugin_name)
+
+    def get_connection_state(self, plugin_name: str):
+        """
+        Gets connection state using the name specified explicitly during
+        task creation or using the plugin name
+
+        Attributes:
+            plugin_name: default plugin name
+        """
+        return self.host.get_connection_state(self.conn_name or plugin_name)
 
 
 class Result(object):

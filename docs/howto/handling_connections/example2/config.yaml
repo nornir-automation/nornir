@@ -1,0 +1,6 @@
+---
+inventory: nornir.plugins.inventory.simple.SimpleInventory
+SimpleInventory:
+    host_file: "handling_connections/example2/inventory/hosts.yaml"
+    group_file: "handling_connections/example2/inventory/groups.yaml"
+
