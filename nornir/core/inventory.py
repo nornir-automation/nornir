@@ -2,7 +2,7 @@ from collections import UserList
 from typing import Any, Dict, List, Optional
 
 from nornir.core.configuration import Config
-from nornir.core.connections import Connections
+from nornir.core.connections import Connections, ConnectionPlugin
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
 
 
@@ -280,9 +280,9 @@ class Host(InventoryElement):
         """
         if connection not in self.connections:
             self.open_connection(
-                connection,
-                **self.get_connection_parameters(connection).dict(),
+                connection=connection,
                 configuration=self.config,
+                **self.get_connection_parameters(connection).dict(),
             )
         return self.connections[connection].connection
 
@@ -306,7 +306,7 @@ class Host(InventoryElement):
         extras: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
         default_to_host_attributes: bool = True,
-    ) -> None:
+    ) -> ConnectionPlugin:
         """
         Open a new connection.
 
