@@ -81,6 +81,7 @@ class Test(object):
             "dev2.group_1",
             "dev3.group_2",
             "dev4.group_2",
+            "dev5.no_group",
         ]
 
         www = sorted(list(inv.filter(role="www").hosts.keys()))
@@ -128,8 +129,13 @@ class Test(object):
             inv.hosts["dev3.group_2"].data["my_var"]
         assert inv.hosts["dev4.group_2"].data["my_var"] == "comes_from_dev4.group_2"
 
+    def test_attributes_resolution(self):
+        inv = deserializer.Inventory.deserialize(**inv_dict)
         assert inv.hosts["dev1.group_1"].password == "a_password"
-        assert inv.hosts["dev2.group_1"].password == "docker"
+        assert inv.hosts["dev2.group_1"].password == "from_group1"
+        assert inv.hosts["dev3.group_2"].password == "docker"
+        assert inv.hosts["dev4.group_2"].password == "from_parent_group"
+        assert inv.hosts["dev5.no_group"].password == "docker"
 
     def test_has_parents(self):
         inv = deserializer.Inventory.deserialize(**inv_dict)
@@ -187,4 +193,7 @@ class Test(object):
         inv = deserializer.Inventory.deserialize(**inv_dict)
         inv.defaults.password = "asd"
         assert inv.defaults.password == "asd"
-        assert inv.hosts["dev2.group_1"].password == "asd"
+        assert inv.hosts["dev2.group_1"].password == "from_group1"
+        assert inv.hosts["dev3.group_2"].password == "asd"
+        assert inv.hosts["dev4.group_2"].password == "from_parent_group"
+        assert inv.hosts["dev5.no_group"].password == "asd"

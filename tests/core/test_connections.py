@@ -114,7 +114,7 @@ class Test(object):
         params = {
             "hostname": "127.0.0.1",
             "username": "root",
-            "password": "docker",
+            "password": "from_group1",
             "port": 65002,
             "platform": "junos",
             "extras": {},
