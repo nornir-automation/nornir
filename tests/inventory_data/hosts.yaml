@@ -49,7 +49,14 @@ dev2.group_1:
             a_string: qwe
     groups:
         - group_1
-    connection_options: {}
+    connection_options:
+        paramiko:
+            port: 65002
+            hostname: 127.0.0.1
+            username: root
+            password: docker
+            platform: linux
+            extras: {}
 dev3.group_2:
     port: 65003
     hostname:
@@ -81,4 +88,27 @@ dev4.group_2:
     groups:
         - group_2
         - parent_group
+    connection_options:
+        paramiko:
+            port: 65004
+            hostname: 127.0.0.1
+            username: root
+            password: docker
+            platform: linux
+            extras: {}
+        netmiko:
+            port: 65004
+            hostname: 127.0.0.1
+            username: root
+            password: docker
+            platform: linux
+            extras: {}
+dev5.no_group:
+    port: 65005
+    hostname: localhost
+    username:
+    password:
+    platform: linux
+    data: {}
+    groups: []
     connection_options: {}

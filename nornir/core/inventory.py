@@ -178,7 +178,7 @@ class Host(InventoryElement):
         v = object.__getattribute__(self, name)
         if v is None:
             for g in self.groups.refs:
-                r = object.__getattribute__(self, name)
+                r = getattr(g, name)
                 if r is not None:
                     return r
 

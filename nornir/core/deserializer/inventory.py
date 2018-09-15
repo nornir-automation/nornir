@@ -123,9 +123,7 @@ class Inventory(BaseModel):
 
         groups = inventory.Groups()
         for n, g in deserialized.groups.items():
-            groups[n] = InventoryElement.deserialize_group(
-                defaults=defaults, name=n, **g.dict()
-            )
+            groups[n] = InventoryElement.deserialize_group(name=n, **g.dict())
 
         return inventory.Inventory(
             hosts=hosts,

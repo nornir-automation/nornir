@@ -3,7 +3,7 @@ parent_group:
     port:
     hostname:
     username:
-    password:
+    password: from_parent_group
     platform:
     data:
         a_var: blah
@@ -17,11 +17,19 @@ parent_group:
             platform:
             extras:
                 blah: from_group
+        dummy2:
+            hostname: dummy2_from_parent_group
+            port:
+            username:
+            password:
+            platform:
+            extras:
+                blah: from_group
 group_1:
     port:
     hostname:
     username:
-    password:
+    password: from_group1
     platform:
     data:
         my_var: comes_from_group_1
@@ -38,4 +46,14 @@ group_2:
     data:
         site: site2
     groups: []
+    connection_options: {}
+group_3:
+    port:
+    hostname:
+    username:
+    password:
+    platform:
+    groups: []
+    data:
+        site: site2
     connection_options: {}

@@ -41,7 +41,7 @@ class Test(object):
         f = ~F(groups__contains="group_1")
         filtered = sorted(list((nornir.inventory.filter(f).hosts.keys())))
 
-        assert filtered == ["dev3.group_2", "dev4.group_2"]
+        assert filtered == ["dev3.group_2", "dev4.group_2", "dev5.no_group"]
 
     def test_negate_and_second_negate(self, nornir):
         f = F(site="site1") & ~F(role="www")
@@ -53,7 +53,12 @@ class Test(object):
         f = ~F(site="site1") | ~F(role="www")
         filtered = sorted(list((nornir.inventory.filter(f).hosts.keys())))
 
-        assert filtered == ["dev2.group_1", "dev3.group_2", "dev4.group_2"]
+        assert filtered == [
+            "dev2.group_1",
+            "dev3.group_2",
+            "dev4.group_2",
+            "dev5.no_group",
+        ]
 
     def test_nested_data_a_string(self, nornir):
         f = F(nested_data__a_string="asdasd")
@@ -83,7 +88,12 @@ class Test(object):
         f = ~F(nested_data__a_dict__contains="a")
         filtered = sorted(list((nornir.inventory.filter(f).hosts.keys())))
 
-        assert filtered == ["dev2.group_1", "dev3.group_2", "dev4.group_2"]
+        assert filtered == [
+            "dev2.group_1",
+            "dev3.group_2",
+            "dev4.group_2",
+            "dev5.no_group",
+        ]
 
     def test_nested_data_a_list_contains(self, nornir):
         f = F(nested_data__a_list__contains=2)
@@ -107,7 +117,7 @@ class Test(object):
         f = F(platform__in=["linux", "mock"])
         filtered = sorted(list((nornir.inventory.filter(f).hosts.keys())))
 
-        assert filtered == ["dev3.group_2", "dev4.group_2"]
+        assert filtered == ["dev3.group_2", "dev4.group_2", "dev5.no_group"]
 
     def test_filtering_list_any(self, nornir):
         f = F(nested_data__a_list__any=[1, 3])

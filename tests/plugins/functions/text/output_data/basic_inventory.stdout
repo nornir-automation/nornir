@@ -15,3 +15,7 @@ Hello from Nornir
 [1m[32mvvvv echo_task ** changed : False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv INFO
 Hello from Nornir
 [1m[32m^^^^ END echo_task ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[34m* dev5.no_group ** changed : False *********************************************
+[1m[32mvvvv echo_task ** changed : False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv INFO
+Hello from Nornir
+[1m[32m^^^^ END echo_task ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
