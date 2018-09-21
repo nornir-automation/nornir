@@ -117,7 +117,7 @@ class Task(object):
         Arguments:
             override (bool): Override for current task
         """
-        return override if override is not None else self.nornir.dry_run
+        return override if override is not None else self.nornir.data.dry_run
 
 
 class Result(object):
