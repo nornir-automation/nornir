@@ -57,6 +57,13 @@ dev2.group_1:
             password: docker
             platform: linux
             extras: {}
+        dummy2:
+            hostname:
+            port:
+            username: dummy2_from_host
+            password:
+            platform:
+            extras:
 dev3.group_2:
     port: 65003
     hostname:
