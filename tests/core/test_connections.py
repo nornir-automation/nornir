@@ -131,11 +131,11 @@ class Test(object):
 
     def test_validate_params_overrides(self, nornir):
         params = {
-            "port": None,
+            "port": 65002,
             "hostname": "dummy_from_parent_group",
-            "username": None,
-            "password": None,
-            "platform": None,
+            "username": "root",
+            "password": "from_group1",
+            "platform": "junos",
             "extras": {"blah": "from_group"},
         }
         nr = nornir.filter(name="dev2.group_1")

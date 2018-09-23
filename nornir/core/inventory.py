@@ -235,7 +235,14 @@ class Host(InventoryElement):
         else:
             r = self._get_connection_options_recursively(connection)
             if r is not None:
-                return r
+                d = ConnectionOptions(
+                    hostname=r.hostname if r.hostname is not None else self.hostname,
+                    port=r.port if r.port is not None else self.port,
+                    username=r.username if r.username is not None else self.username,
+                    password=r.password if r.password is not None else self.password,
+                    platform=r.platform if r.platform is not None else self.platform,
+                    extras=r.extras if r.extras is not None else {},
+                )
             else:
                 d = ConnectionOptions(
                     hostname=self.hostname,
