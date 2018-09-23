@@ -22,7 +22,7 @@ class BaseAttributes(BaseModel):
 
 
 class ConnectionOptions(BaseAttributes):
-    extras: Dict[str, Any] = {}
+    extras: Optional[Dict[str, Any]]
 
 
 class InventoryElement(BaseAttributes):

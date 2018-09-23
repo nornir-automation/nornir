@@ -84,6 +84,7 @@ class Test(object):
     def setup_class(cls):
         Connections.deregister_all()
         Connections.register("dummy", DummyConnectionPlugin)
+        Connections.register("dummy2", DummyConnectionPlugin)
         Connections.register("dummy_no_overrides", DummyConnectionPlugin)
 
     def test_open_and_close_connection(self, nornir):
@@ -140,6 +141,20 @@ class Test(object):
         }
         nr = nornir.filter(name="dev2.group_1")
         r = nr.run(task=validate_params, conn="dummy", params=params, num_workers=1)
+        assert len(r) == 1
+        assert not r.failed
+
+    def test_validate_params_overrides_groups(self, nornir):
+        params = {
+            "port": 65002,
+            "hostname": "dummy2_from_parent_group",
+            "username": "dummy2_from_host",
+            "password": "from_group1",
+            "platform": "junos",
+            "extras": {"blah": "from_group"},
+        }
+        nr = nornir.filter(name="dev2.group_1")
+        r = nr.run(task=validate_params, conn="dummy2", params=params, num_workers=1)
         assert len(r) == 1
         assert not r.failed
 

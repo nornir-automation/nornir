@@ -40,7 +40,7 @@ class ConnectionOptions(BaseAttributes):
     __slots__ = ("extras",)
 
     def __init__(self, extras: Optional[Dict[str, Any]] = None, **kwargs) -> None:
-        self.extras = extras or {}
+        self.extras = extras
         super().__init__(**kwargs)
 
 
@@ -259,14 +259,27 @@ class Host(InventoryElement):
     ) -> Optional[ConnectionOptions]:
         p = self.connection_options.get(connection)
         if p is None:
-            for g in self.groups.refs:
-                p = g._get_connection_options_recursively(connection)
-                if p is not None:
-                    return p
+            p = ConnectionOptions()
 
-            return self.defaults.connection_options.get(connection, None)
-        else:
-            return p
+        for g in self.groups.refs:
+            sp = g._get_connection_options_recursively(connection)
+            if sp is not None:
+                p.hostname = p.hostname if p.hostname is not None else sp.hostname
+                p.port = p.port if p.port is not None else sp.port
+                p.username = p.username if p.username is not None else sp.username
+                p.password = p.password if p.password is not None else sp.password
+                p.platform = p.platform if p.platform is not None else sp.platform
+                p.extras = p.extras if p.extras is not None else sp.extras
+
+        sp = self.defaults.connection_options.get(connection, None)
+        if sp is not None:
+            p.hostname = p.hostname if p.hostname is not None else sp.hostname
+            p.port = p.port if p.port is not None else sp.port
+            p.username = p.username if p.username is not None else sp.username
+            p.password = p.password if p.password is not None else sp.password
+            p.platform = p.platform if p.platform is not None else sp.platform
+            p.extras = p.extras if p.extras is not None else sp.extras
+        return p
 
     def get_connection(self, connection: str) -> Any:
         """
