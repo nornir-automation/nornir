@@ -154,11 +154,11 @@ class Test(object):
         inv = deserializer.Inventory.deserialize(**inv_dict)
         p1 = inv.hosts["dev1.group_1"].get_connection_parameters("dummy")
         assert p1.dict() == {
-            "port": None,
+            "port": 65001,
             "hostname": "dummy_from_host",
-            "username": None,
-            "password": None,
-            "platform": None,
+            "username": "root",
+            "password": "a_password",
+            "platform": "eos",
             "extras": {"blah": "from_host"},
         }
         p2 = inv.hosts["dev1.group_1"].get_connection_parameters("asd")
@@ -172,20 +172,20 @@ class Test(object):
         }
         p3 = inv.hosts["dev2.group_1"].get_connection_parameters("dummy")
         assert p3.dict() == {
-            "port": None,
+            "port": 65002,
             "hostname": "dummy_from_parent_group",
-            "username": None,
-            "password": None,
-            "platform": None,
+            "username": "root",
+            "password": "from_group1",
+            "platform": "junos",
             "extras": {"blah": "from_group"},
         }
         p4 = inv.hosts["dev3.group_2"].get_connection_parameters("dummy")
         assert p4.dict() == {
-            "port": None,
+            "port": 65003,
             "hostname": "dummy_from_defaults",
-            "username": None,
-            "password": None,
-            "platform": None,
+            "username": "root",
+            "password": "docker",
+            "platform": "linux",
             "extras": {"blah": "from_defaults"},
         }
 
