@@ -22,6 +22,7 @@ def netmiko_send_config(
           * result (``dict``): dictionary showing the CLI from the configuration changes
     """
     net_connect = task.host.get_connection("netmiko")
+    net_connect.enable()
     if config_commands:
         result = net_connect.send_config_set(config_commands=config_commands, **kwargs)
     elif config_file:
