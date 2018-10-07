@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional, Union
 
 from nornir.core import inventory
+from nornir.core.deserializer.configuration import Config
 
 from pydantic import BaseModel
 
@@ -107,7 +108,7 @@ class Inventory(BaseModel):
     defaults: Defaults
 
     @classmethod
-    def deserialize(cls, transform_function=None, *args, **kwargs):
+    def deserialize(cls, config=None, transform_function=None, *args, **kwargs):
         deserialized = cls(*args, **kwargs)
 
         defaults_dict = deserialized.defaults.dict()
@@ -130,6 +131,7 @@ class Inventory(BaseModel):
             groups=groups,
             defaults=defaults,
             transform_function=transform_function,
+            config=config or Config.deserialize(),
         )
 
     @classmethod
