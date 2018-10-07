@@ -1,5 +1,5 @@
 from nornir.core import Nornir
-from nornir.core.configuration import Config
+from nornir.core.deserializer.configuration import Config
 from nornir.core.state import GlobalState
 from nornir.core.connections import Connections
 
@@ -27,16 +27,17 @@ def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
     """
     register_default_connection_plugins()
 
-    conf = Config(path=config_file, **kwargs)
+    conf = Config.load_from_file(config_file, **kwargs)
+
     GlobalState.dry_run = dry_run
 
     if configure_logging:
         conf.logging.configure()
 
-    inv_class = conf.inventory.get_plugin()
-    transform_function = conf.inventory.get_transform_function()
-    inv = inv_class.deserialize(
-        transform_function=transform_function, config=conf, **conf.inventory.options
+    inv = conf.inventory.plugin.deserialize(
+        transform_function=conf.inventory.transform_function,
+        config=conf,
+        **conf.inventory.options
     )
 
     return Nornir(inventory=inv, _config=conf)
