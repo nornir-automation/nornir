@@ -24,7 +24,7 @@ from jinja2 import Environment, FileSystemLoader
 
 sys.path.insert(0, os.path.abspath("../"))
 
-from nornir.core.deserializer.configuration import Config
+from nornir.core.deserializer.configuration import Config  # noqa
 
 
 # -- General configuration ------------------------------------------------
