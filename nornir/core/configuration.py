@@ -1,6 +1,6 @@
 import logging
 import logging.config
-from typing import Any, Callable, Dict, List, Optional, Type, TYPE_CHECKING
+from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING, Type
 
 
 if TYPE_CHECKING:
@@ -87,31 +87,36 @@ class LoggingConfig(object):
             logging.config.dictConfig(dictConfig)
 
 
+class Jinja2Config(object):
+    __slots__ = "filters"
+
+    def __init__(self, filters: Optional[Dict[str, Callable[..., Any]]]) -> None:
+        self.filters = filters or {}
+
+
+class CoreConfig(object):
+    __slots__ = ("num_workers", "raise_on_error")
+
+    def __init__(self, num_workers: int, raise_on_error: bool) -> None:
+        self.num_workers = num_workers
+        self.raise_on_error = raise_on_error
+
+
 class Config(object):
-    __slots__ = (
-        "inventory",
-        "jinja_filters",
-        "num_workers",
-        "raise_on_error",
-        "ssh",
-        "user_defined",
-        "logging",
-    )
+    __slots__ = ("core", "ssh", "inventory", "jinja2", "logging", "user_defined")
 
     def __init__(
         self,
         inventory: InventoryConfig,
         ssh: SSHConfig,
         logging: LoggingConfig,
-        jinja_filters: Optional[Dict[str, Callable[..., Any]]],
-        num_workers: int,
-        raise_on_error: bool,
+        jinja2: Jinja2Config,
+        core: CoreConfig,
         user_defined: Dict[str, Any],
     ) -> None:
         self.inventory = inventory
         self.ssh = ssh
         self.logging = logging
-        self.jinja_filters = jinja_filters or {}
-        self.num_workers = num_workers
-        self.raise_on_error = raise_on_error
+        self.jinja2 = jinja2
+        self.core = core
         self.user_defined = user_defined

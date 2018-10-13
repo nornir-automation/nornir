@@ -109,12 +109,12 @@ class Nornir(object):
 
         Raises:
             :obj:`nornir.core.exceptions.NornirExecutionError`: if at least a task fails
-              and self.config.raise_on_error is set to ``True``
+              and self.config.core.raise_on_error is set to ``True``
 
         Returns:
             :obj:`nornir.core.task.AggregatedResult`: results of each execution
         """
-        num_workers = num_workers or self.config.num_workers
+        num_workers = num_workers or self.config.core.num_workers
 
         run_on = []
         if on_good:
@@ -139,7 +139,7 @@ class Nornir(object):
             result = self._run_parallel(task, run_on, num_workers, **kwargs)
 
         raise_on_error = (
-            raise_on_error if raise_on_error is not None else self.config.raise_on_error
+            raise_on_error if raise_on_error is not None else self.config.core.raise_on_error
         )  # noqa
         if raise_on_error:
             result.raise_on_error()

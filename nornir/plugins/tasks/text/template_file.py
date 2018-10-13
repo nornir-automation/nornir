@@ -19,14 +19,14 @@ def template_file(
     Arguments:
         template: filename
         path: path to dir with templates
-        jinja_filters: jinja filters to enable. Defaults to nornir.config.jinja_filters
+        jinja_filters: jinja filters to enable. Defaults to nornir.config.jinja2.filters
         **kwargs: additional data to pass to the template
 
     Returns:
         Result object with the following attributes set:
           * result (``string``): rendered string
     """
-    jinja_filters = jinja_filters or {} or task.nornir.config.jinja_filters
+    jinja_filters = jinja_filters or {} or task.nornir.config.jinja2.filters
     text = jinja_helper.render_from_file(
         template=template,
         path=path,
