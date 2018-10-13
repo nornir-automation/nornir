@@ -139,7 +139,9 @@ class Nornir(object):
             result = self._run_parallel(task, run_on, num_workers, **kwargs)
 
         raise_on_error = (
-            raise_on_error if raise_on_error is not None else self.config.core.raise_on_error
+            raise_on_error
+            if raise_on_error is not None
+            else self.config.core.raise_on_error
         )  # noqa
         if raise_on_error:
             result.raise_on_error()
