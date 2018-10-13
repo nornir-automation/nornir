@@ -1,8 +1,9 @@
 import importlib
 import logging
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Type, cast
 
 from nornir.core import configuration
+from nornir.core.inventory import Inventory
 
 from pydantic import BaseSettings, Schema
 
@@ -51,7 +52,7 @@ class InventoryConfig(BaseSettings):
     def deserialize(self, **kwargs) -> configuration.InventoryConfig:
         inv = InventoryConfig(**kwargs)
         return configuration.InventoryConfig(
-            plugin=_resolve_import_from_string(inv.plugin),
+            plugin=cast(Type[Inventory], _resolve_import_from_string(inv.plugin)),
             options=inv.options,
             transform_function=_resolve_import_from_string(inv.transform_function),
         )
@@ -160,7 +161,7 @@ class Config(BaseSettings):
 
     @classmethod
     def load_from_file(cls, config_file: str, **kwargs) -> configuration.Config:
-        config_dict = {}
+        config_dict: Dict[str, Any] = {}
         if config_file:
             yml = ruamel.yaml.YAML(typ="safe")
             with open(config_file, "r") as f:
