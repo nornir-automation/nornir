@@ -1,4 +1,6 @@
 ---
+core:
+    num_workers: 20
 inventory:
     plugin: nornir.plugins.inventory.simple.SimpleInventory
     options:

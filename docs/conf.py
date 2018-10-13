@@ -20,11 +20,15 @@
 import os
 import sys
 
+from jinja2 import Environment, FileSystemLoader
+
 sys.path.insert(0, os.path.abspath("../"))
+
+from nornir.core.deserializer.configuration import Config
 
 
 # -- General configuration ------------------------------------------------
-BASEPATH = os.path.dirname(__file__)
+BASEPATH = os.path.abspath(os.path.dirname(__file__))
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #
@@ -49,7 +53,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "nornir"
-copyright = "2017, David Barroso"
+copyright = "2018, David Barroso"
 author = "David Barroso"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -174,7 +178,20 @@ def skip_slots(app, what, name, obj, skip, options):
     return None
 
 
+def build_configuration_parameters(app):
+    """Create documentation for configuration parameters."""
+    env = Environment(loader=FileSystemLoader("{0}/_data_templates".format(BASEPATH)))
+    template_file = env.get_template("configuration-parameters.j2")
+    data = {}
+    data["schema"] = Config.schema()
+    rendered_template = template_file.render(**data)
+    output_dir = "{0}/configuration/generated".format(BASEPATH)
+    with open("{}/parameters.rst".format(output_dir), "w") as f:
+        f.write(rendered_template)
+
+
 def setup(app):
     """Map methods to states of the documentation build."""
+    app.connect("builder-inited", build_configuration_parameters)
     app.connect("autodoc-skip-member", skip_slots)
     app.add_stylesheet("css/custom.css")
