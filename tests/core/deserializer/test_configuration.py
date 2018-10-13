@@ -37,15 +37,16 @@ class Test(object):
                 "to_console": False,
                 "loggers": ["nornir"],
             },
-            "jinja_filters": "",
-            "num_workers": 20,
-            "raise_on_error": False,
+            "jinja2": {"filters": ""},
+            "core": {"num_workers": 20, "raise_on_error": False},
             "user_defined": {},
         }
 
     def test_config_basic(self):
         c = ConfigDeserializer(
-            num_workers=30, logging={"file": ""}, user_defined={"my_opt": True}
+            core={"num_workers": 30},
+            logging={"file": ""},
+            user_defined={"my_opt": True},
         )
         assert c.dict() == {
             "inventory": {
@@ -61,9 +62,8 @@ class Test(object):
                 "to_console": False,
                 "loggers": ["nornir"],
             },
-            "jinja_filters": "",
-            "num_workers": 30,
-            "raise_on_error": False,
+            "jinja2": {"filters": ""},
+            "core": {"num_workers": 30, "raise_on_error": False},
             "user_defined": {"my_opt": True},
         }
 
@@ -71,8 +71,8 @@ class Test(object):
         c = ConfigDeserializer.deserialize()
         assert isinstance(c, Config)
 
-        assert c.num_workers == 20
-        assert not c.raise_on_error
+        assert c.core.num_workers == 20
+        assert not c.core.raise_on_error
         assert c.user_defined == {}
 
         assert c.logging.level == logging.DEBUG
@@ -89,7 +89,7 @@ class Test(object):
 
     def test_deserialize_basic(self):
         c = ConfigDeserializer.deserialize(
-            num_workers=30,
+            core={"num_workers": 30},
             user_defined={"my_opt": True},
             logging={"file": "", "level": "info"},
             ssh={"config_file": "~/.ssh/alt_config"},
@@ -97,8 +97,8 @@ class Test(object):
         )
         assert isinstance(c, Config)
 
-        assert c.num_workers == 30
-        assert not c.raise_on_error
+        assert c.core.num_workers == 30
+        assert not c.core.raise_on_error
         assert c.user_defined == {"my_opt": True}
 
         assert c.logging.level == logging.INFO
@@ -115,55 +115,56 @@ class Test(object):
 
     def test_jinja_filters(self):
         c = ConfigDeserializer.deserialize(
-            jinja_filters="tests.core.deserializer.my_jinja_filters.jinja_filters"
+            jinja2={"filters": "tests.core.deserializer.my_jinja_filters.jinja_filters"}
         )
-        assert c.jinja_filters == my_jinja_filters.jinja_filters()
+        assert c.jinja2.filters == my_jinja_filters.jinja_filters()
 
     def test_jinja_filters_error(self):
         with pytest.raises(ModuleNotFoundError):
-            ConfigDeserializer.deserialize(jinja_filters="asdasd.asdasd")
+            ConfigDeserializer.deserialize(jinja2={"filters": "asdasd.asdasd"})
 
     def test_configuration_file_empty(self):
         config = ConfigDeserializer.load_from_file(
             os.path.join(dir_path, "empty.yaml"), user_defined={"asd": "qwe"}
         )
         assert config.user_defined["asd"] == "qwe"
-        assert config.num_workers == 20
-        assert not config.raise_on_error
+        assert config.core.num_workers == 20
+        assert not config.core.raise_on_error
         assert config.inventory.plugin == SimpleInventory
 
     def test_configuration_file_normal(self):
         config = ConfigDeserializer.load_from_file(
             os.path.join(dir_path, "config.yaml")
         )
-        assert config.num_workers == 10
-        assert not config.raise_on_error
+        assert config.core.num_workers == 10
+        assert not config.core.raise_on_error
         assert config.inventory.plugin == AnsibleInventory
 
     def test_configuration_file_override_argument(self):
         config = ConfigDeserializer.load_from_file(
-            os.path.join(dir_path, "config.yaml"), num_workers=20, raise_on_error=True
+            os.path.join(dir_path, "config.yaml"),
+            core={"num_workers": 20, "raise_on_error": True},
         )
-        assert config.num_workers == 20
-        assert config.raise_on_error
+        assert config.core.num_workers == 20
+        assert config.core.raise_on_error
 
     def test_configuration_file_override_env(self):
-        os.environ["NORNIR_NUM_WORKERS"] = "30"
-        os.environ["NORNIR_RAISE_ON_ERROR"] = "1"
+        os.environ["NORNIR_CORE_NUM_WORKERS"] = "30"
+        os.environ["NORNIR_CORE_RAISE_ON_ERROR"] = "1"
         os.environ["NORNIR_SSH_CONFIG_FILE"] = "/user/ssh_config"
         config = ConfigDeserializer.deserialize()
-        assert config.num_workers == 30
-        assert config.raise_on_error
+        assert config.core.num_workers == 30
+        assert config.core.raise_on_error
         assert config.ssh.config_file == "/user/ssh_config"
-        os.environ.pop("NORNIR_NUM_WORKERS")
-        os.environ.pop("NORNIR_RAISE_ON_ERROR")
+        os.environ.pop("NORNIR_CORE_NUM_WORKERS")
+        os.environ.pop("NORNIR_CORE_RAISE_ON_ERROR")
         os.environ.pop("NORNIR_SSH_CONFIG_FILE")
 
     def test_configuration_bool_env(self):
-        os.environ["NORNIR_RAISE_ON_ERROR"] = "0"
+        os.environ["NORNIR_CORE_RAISE_ON_ERROR"] = "0"
         config = ConfigDeserializer.deserialize()
-        assert config.num_workers == 20
-        assert not config.raise_on_error
+        assert config.core.num_workers == 20
+        assert not config.core.raise_on_error
 
     def test_get_user_defined_from_file(self):
         config = ConfigDeserializer.load_from_file(

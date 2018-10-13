@@ -1,11 +1,10 @@
-from typing import Any, Callable, Dict, List, Optional
-
 import importlib
 import logging
+from typing import Any, Callable, Dict, List, Optional
 
 from nornir.core import configuration
 
-from pydantic import BaseSettings
+from pydantic import BaseSettings, Schema
 
 import ruamel.yaml
 
@@ -14,12 +13,9 @@ logger = logging.getLogger("nornir")
 
 
 class SSHConfig(BaseSettings):
-    """
-    Args:
-        config_file: User ssh_config_file
-    """
-
-    config_file: str = "~/.ssh/config"
+    config_file: str = Schema(
+        default="~/.ssh/config", description="Path to ssh configuration file"
+    )
 
     class Config:
         env_prefix = "NORNIR_SSH_"
@@ -28,21 +24,24 @@ class SSHConfig(BaseSettings):
     @classmethod
     def deserialize(self, **kwargs) -> configuration.SSHConfig:
         s = SSHConfig(**kwargs)
-        return configuration.SSHConfig(config_file=s.config_file)
+        return configuration.SSHConfig(**s.dict())
 
 
 class InventoryConfig(BaseSettings):
-    """
-    Args:
-        plugin: Path to inventory modules.
-        transform_function: Path to transform function. The transform_function you provide
-            will run against each host in the inventory
-        options: Arguments to pass to the inventory plugin
-    """
-
-    plugin: Any = "nornir.plugins.inventory.simple.SimpleInventory"
-    options: Dict[str, Any] = {}
-    transform_function: Any = ""
+    plugin: Any = Schema(
+        default="nornir.plugins.inventory.simple.SimpleInventory",
+        description="Import path to inventory plugin",
+    )
+    options: Dict[str, Any] = Schema(
+        default={}, description="kwargs to pass to the inventory plugin"
+    )
+    transform_function: Any = Schema(
+        default="",
+        description=(
+            "Path to transform function. The transform_function "
+            "you provide will run against each host in the inventory"
+        ),
+    )
 
     class Config:
         env_prefix = "NORNIR_INVENTORY_"
@@ -59,11 +58,16 @@ class InventoryConfig(BaseSettings):
 
 
 class LoggingConfig(BaseSettings):
-    level: str = "debug"
-    file: str = "nornir.log"
-    format: str = "%(asctime)s - %(name)12s - %(levelname)8s - %(funcName)10s() - %(message)s"
-    to_console: bool = False
-    loggers: List[str] = ["nornir"]
+    level: str = Schema(default="debug", description="Logging level")
+    file: str = Schema(default="nornir.log", descritpion="Logging file")
+    format: str = Schema(
+        default="%(asctime)s - %(name)12s - %(levelname)8s - %(funcName)10s() - %(message)s",
+        description="Logging format",
+    )
+    to_console: bool = Schema(
+        default=False, description="Whether to log to console or not"
+    )
+    loggers: List[str] = Schema(default=["nornir"], description="Loggers to configure")
 
     class Config:
         env_prefix = "NORNIR_LOGGING_"
@@ -81,24 +85,55 @@ class LoggingConfig(BaseSettings):
         )
 
 
-class Config(BaseSettings):
-    """
-    Args:
-        inventory: Dictionary with Inventory options
-        jinja_filters: Path to callable returning jinja filters to be used
-        raise_on_error: If set to ``True``, (:obj:`nornir.core.Nornir.run`) method of
-            will raise an exception if at least a host failed
-        num_workers: Number of Nornir worker processes that are run at the same time
-            configuration can be overridden on individual tasks by using the
-    """
+class Jinja2Config(BaseSettings):
+    filters: str = Schema(
+        default="", description="Path to callable returning jinja filters to be used"
+    )
 
+    class Config:
+        env_prefix = "NORNIR_JINJA2_"
+        ignore_extra = False
+
+    @classmethod
+    def deserialize(self, **kwargs) -> configuration.Jinja2Config:
+        c = Jinja2Config(**kwargs)
+        jinja_filter_func = _resolve_import_from_string(c.filters)
+        jinja_filters = jinja_filter_func() if jinja_filter_func else {}
+        return configuration.Jinja2Config(filters=jinja_filters)
+
+
+class CoreConfig(BaseSettings):
+    num_workers: int = Schema(
+        default=20,
+        description="Number of Nornir worker threads that are run at the same time by default",
+    )
+    raise_on_error: bool = Schema(
+        default=False,
+        description=(
+            "If set to ``True``, (:obj:`nornir.core.Nornir.run`) method of "
+            "will raise an exception if at least a host failed"
+        ),
+    )
+
+    class Config:
+        env_prefix = "NORNIR_CORE_"
+        ignore_extra = False
+
+    @classmethod
+    def deserialize(self, **kwargs) -> configuration.CoreConfig:
+        c = CoreConfig(**kwargs)
+        return configuration.CoreConfig(**c.dict())
+
+
+class Config(BaseSettings):
+    core: CoreConfig = CoreConfig()
     inventory: InventoryConfig = InventoryConfig()
     ssh: SSHConfig = SSHConfig()
     logging: LoggingConfig = LoggingConfig()
-    jinja_filters: str = ""
-    num_workers: int = 20
-    raise_on_error: bool = False
-    user_defined: Dict[str, Any] = {}
+    jinja2: Jinja2Config = Jinja2Config()
+    user_defined: Dict[str, Any] = Schema(
+        default={}, description="User-defined <k, v> pairs"
+    )
 
     class Config:
         env_prefix = "NORNIR_"
@@ -107,21 +142,19 @@ class Config(BaseSettings):
     @classmethod
     def deserialize(cls, **kwargs) -> configuration.Config:
         c = Config(
+            core=CoreConfig(**kwargs.pop("core", {})),
             ssh=SSHConfig(**kwargs.pop("ssh", {})),
             inventory=InventoryConfig(**kwargs.pop("inventory", {})),
             logging=LoggingConfig(**kwargs.pop("logging", {})),
+            jinja2=Jinja2Config(**kwargs.pop("jinja2", {})),
             **kwargs,
         )
-
-        jinja_filter_func = _resolve_import_from_string(c.jinja_filters)
-        jinja_filters = jinja_filter_func() if jinja_filter_func else {}
         return configuration.Config(
+            core=CoreConfig.deserialize(**c.core.dict()),
             inventory=InventoryConfig.deserialize(**c.inventory.dict()),
             ssh=SSHConfig.deserialize(**c.ssh.dict()),
             logging=LoggingConfig.deserialize(**c.logging.dict()),
-            jinja_filters=jinja_filters,
-            num_workers=c.num_workers,
-            raise_on_error=c.raise_on_error,
+            jinja2=Jinja2Config.deserialize(**c.jinja2.dict()),
             user_defined=c.user_defined,
         )
 

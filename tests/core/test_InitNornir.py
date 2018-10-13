@@ -26,20 +26,20 @@ class Test(object):
         finally:
             os.chdir("../../")
         assert not nr.state.dry_run
-        assert nr.config.num_workers == 20
+        assert nr.config.core.num_workers == 20
         assert len(nr.inventory.hosts)
         assert len(nr.inventory.groups)
 
     def test_InitNornir_file(self):
         nr = InitNornir(config_file=os.path.join(dir_path, "a_config.yaml"))
         assert not nr.state.dry_run
-        assert nr.config.num_workers == 100
+        assert nr.config.core.num_workers == 100
         assert len(nr.inventory.hosts)
         assert len(nr.inventory.groups)
 
     def test_InitNornir_programmatically(self):
         nr = InitNornir(
-            num_workers=100,
+            core={"num_workers": 100},
             inventory={
                 "plugin": "nornir.plugins.inventory.simple.SimpleInventory",
                 "options": {
@@ -49,16 +49,17 @@ class Test(object):
             },
         )
         assert not nr.state.dry_run
-        assert nr.config.num_workers == 100
+        assert nr.config.core.num_workers == 100
         assert len(nr.inventory.hosts)
         assert len(nr.inventory.groups)
 
     def test_InitNornir_combined(self):
         nr = InitNornir(
-            config_file=os.path.join(dir_path, "a_config.yaml"), num_workers=200
+            config_file=os.path.join(dir_path, "a_config.yaml"),
+            core={"num_workers": 200},
         )
         assert not nr.state.dry_run
-        assert nr.config.num_workers == 200
+        assert nr.config.core.num_workers == 200
         assert len(nr.inventory.hosts)
         assert len(nr.inventory.groups)
 
