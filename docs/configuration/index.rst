@@ -15,7 +15,7 @@ A similar example using a ``yaml`` file:
 .. include:: ../howto/advanced_filtering/config.yaml
    :code: yaml
 
-A continuation you can find each section and their corresponding options.
+Next, you can find each section and their corresponding options.
 
 .. include:: generated/parameters.rst
 
