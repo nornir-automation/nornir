@@ -29,14 +29,14 @@ class SSHConfig(BaseSettings):
 
 
 class InventoryConfig(BaseSettings):
-    plugin: Any = Schema(
+    plugin: str = Schema(
         default="nornir.plugins.inventory.simple.SimpleInventory",
         description="Import path to inventory plugin",
     )
     options: Dict[str, Any] = Schema(
         default={}, description="kwargs to pass to the inventory plugin"
     )
-    transform_function: Any = Schema(
+    transform_function: str = Schema(
         default="",
         description=(
             "Path to transform function. The transform_function "
