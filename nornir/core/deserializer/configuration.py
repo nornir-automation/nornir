@@ -23,7 +23,7 @@ class SSHConfig(BaseSettings):
         ignore_extra = False
 
     @classmethod
-    def deserialize(self, **kwargs) -> configuration.SSHConfig:
+    def deserialize(cls, **kwargs) -> configuration.SSHConfig:
         s = SSHConfig(**kwargs)
         return configuration.SSHConfig(**s.dict())
 
@@ -49,7 +49,7 @@ class InventoryConfig(BaseSettings):
         ignore_extra = False
 
     @classmethod
-    def deserialize(self, **kwargs) -> configuration.InventoryConfig:
+    def deserialize(cls, **kwargs) -> configuration.InventoryConfig:
         inv = InventoryConfig(**kwargs)
         return configuration.InventoryConfig(
             plugin=cast(Type[Inventory], _resolve_import_from_string(inv.plugin)),
@@ -75,7 +75,7 @@ class LoggingConfig(BaseSettings):
         ignore_extra = False
 
     @classmethod
-    def deserialize(self, **kwargs) -> configuration.LoggingConfig:
+    def deserialize(cls, **kwargs) -> configuration.LoggingConfig:
         logging_config = LoggingConfig(**kwargs)
         return configuration.LoggingConfig(
             level=getattr(logging, logging_config.level.upper()),
@@ -96,7 +96,7 @@ class Jinja2Config(BaseSettings):
         ignore_extra = False
 
     @classmethod
-    def deserialize(self, **kwargs) -> configuration.Jinja2Config:
+    def deserialize(cls, **kwargs) -> configuration.Jinja2Config:
         c = Jinja2Config(**kwargs)
         jinja_filter_func = _resolve_import_from_string(c.filters)
         jinja_filters = jinja_filter_func() if jinja_filter_func else {}
@@ -121,7 +121,7 @@ class CoreConfig(BaseSettings):
         ignore_extra = False
 
     @classmethod
-    def deserialize(self, **kwargs) -> configuration.CoreConfig:
+    def deserialize(cls, **kwargs) -> configuration.CoreConfig:
         c = CoreConfig(**kwargs)
         return configuration.CoreConfig(**c.dict())
 
