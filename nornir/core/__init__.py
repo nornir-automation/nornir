@@ -30,7 +30,7 @@ class Nornir(object):
         self, inventory, _config=None, config_file=None, logger=None, data=None
     ):
         self.data = data if data is not None else GlobalState()
-        self.logger = logger or logging.getLogger("nornir")
+        self.logger = logger or logging.getLogger(__name__)
 
         self.inventory = inventory
 

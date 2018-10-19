@@ -10,7 +10,7 @@ from pydantic import BaseSettings, Schema
 import ruamel.yaml
 
 
-logger = logging.getLogger("nornir")
+logger = logging.getLogger(__name__)
 
 
 class SSHConfig(BaseSettings):
