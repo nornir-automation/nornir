@@ -112,7 +112,8 @@ class CoreConfig(BaseSettings):
         default=False,
         description=(
             "If set to ``True``, (:obj:`nornir.core.Nornir.run`) method of "
-            "will raise an exception if at least a host failed"
+            "will raise exception :obj:`nornir.core.exceptions.NornirExecutionError` "
+            "if at least a host failed"
         ),
     )
 
@@ -175,8 +176,7 @@ def _resolve_import_from_string(import_path: Any) -> Optional[Callable[..., Any]
             return None
         elif callable(import_path):
             return import_path
-        module_name = ".".join(import_path.split(".")[:-1])
-        obj_name = import_path.split(".")[-1]
+        module_name, obj_name = import_path.rsplit(".", 1)
         module = importlib.import_module(module_name)
         return getattr(module, obj_name)
     except Exception as e:
