@@ -14,14 +14,14 @@ def template_string(
 
     Arguments:
         template (string): template string
-        jinja_filters (dict): jinja filters to enable. Defaults to nornir.config.jinja_filters
+        jinja_filters (dict): jinja filters to enable. Defaults to nornir.config.jinja2.filters
         **kwargs: additional data to pass to the template
 
     Returns:
         Result object with the following attributes set:
           * result (``string``): rendered string
     """
-    jinja_filters = jinja_filters or {} or task.nornir.config.jinja_filters
+    jinja_filters = jinja_filters or {} or task.nornir.config.jinja2.filters
     text = jinja_helper.render_from_string(
         template=template, host=task.host, jinja_filters=jinja_filters, **kwargs
     )

@@ -1,60 +1,44 @@
-import importlib
 import logging
 import logging.config
-from typing import Any, Callable, Dict, List, Optional
-
-from pydantic import BaseSettings
-
-import ruamel.yaml
+from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING, Type
 
 
-class SSHConfig(BaseSettings):
-    """
-    Args:
-        config_file: User ssh_config_file
-    """
-
-    config_file: str = "~/.ssh/config"
-
-    class Config:
-        env_prefix = "NORNIR_SSH_"
-        ignore_extra = False
+if TYPE_CHECKING:
+    from nornir.core.inventory import Inventory  # noqa
 
 
-class Inventory(BaseSettings):
-    """
-    Args:
-        plugin: Path to inventory modules.
-        transform_function: Path to transform function. The transform_function you provide
-            will run against each host in the inventory
-        options: Arguments to pass to the inventory plugin
-    """
+class SSHConfig(object):
+    __slots__ = "config_file"
 
-    plugin: Any = "nornir.plugins.inventory.simple.SimpleInventory"
-    options: Dict[str, Any] = {}
-    transform_function: Any = ""
-
-    def get_plugin(self) -> Optional[Callable[..., Any]]:
-        return _resolve_import_from_string(self.plugin)
-
-    def get_transform_function(self) -> Optional[Callable[..., Any]]:
-        return _resolve_import_from_string(self.transform_function)
-
-    class Config:
-        env_prefix = "NORNIR_INVENTORY_"
-        ignore_extra = False
+    def __init__(self, config_file: str) -> None:
+        self.config_file = config_file
 
 
-class Logging(BaseSettings):
-    level: str = "debug"
-    file: str = "nornir.log"
-    format: str = "%(asctime)s - %(name)12s - %(levelname)8s - %(funcName)10s() - %(message)s"
-    to_console: bool = False
-    loggers: List[str] = ["nornir"]
+class InventoryConfig(object):
+    __slots__ = "plugin", "options", "transform_function"
 
-    class Config:
-        env_prefix = "NORNIR_LOGGING_"
-        ignore_extra = False
+    def __init__(
+        self,
+        plugin: Type["Inventory"],
+        options: Dict[str, Any],
+        transform_function: Optional[Callable[..., Any]],
+    ) -> None:
+        self.plugin = plugin
+        self.options = options
+        self.transform_function = transform_function
+
+
+class LoggingConfig(object):
+    __slots__ = "level", "file", "format", "to_console", "loggers"
+
+    def __init__(
+        self, level: int, file_: str, format_: str, to_console: bool, loggers: List[str]
+    ) -> None:
+        self.level = level
+        self.file = file_
+        self.format = format_
+        self.to_console = to_console
+        self.loggers = loggers
 
     def configure(self):
         rootHandlers: List[Any] = []
@@ -97,57 +81,42 @@ class Logging(BaseSettings):
             }
 
         for logger in self.loggers:
-            loggers[logger] = {"level": self.level.upper(), "handlers": handlers_list}
+            loggers[logger] = {"level": self.level, "handlers": handlers_list}
 
         if rootHandlers:
             logging.config.dictConfig(dictConfig)
 
 
-class Config(BaseSettings):
-    """
-    Args:
-        inventory: Dictionary with Inventory options
-        jinja_filters: Path to callable returning jinja filters to be used
-        raise_on_error: If set to ``True``, (:obj:`nornir.core.Nornir.run`) method of
-            will raise an exception if at least a host failed
-        num_workers: Number of Nornir worker processes that are run at the same time
-            configuration can be overridden on individual tasks by using the
+class Jinja2Config(object):
+    __slots__ = "filters"
+
+    def __init__(self, filters: Optional[Dict[str, Callable[..., Any]]]) -> None:
+        self.filters = filters or {}
 
 
-    """
+class CoreConfig(object):
+    __slots__ = ("num_workers", "raise_on_error")
 
-    inventory: Inventory = Inventory()
-    jinja_filters: str = ""
-    num_workers: int = 20
-    raise_on_error: bool = False
-    ssh: SSHConfig = SSHConfig()
-    user_defined: Dict[str, Any] = {}
-    logging: Logging = Logging()
-
-    class Config:
-        env_prefix = "NORNIR_"
-        ignore_extra = False
-
-    def __init__(self, path: str = "", **kwargs) -> None:
-        if path:
-            with open(path, "r") as f:
-                yml = ruamel.yaml.YAML(typ="safe")
-                data = yml.load(f) or {}
-            data.update(kwargs)
-        else:
-            data = kwargs
-        data["ssh"] = SSHConfig(**data.pop("ssh", {}))
-        data["inventory"] = Inventory(**data.pop("inventory", {}))
-        data["logging"] = Logging(**data.pop("logging", {}))
-        super().__init__(**data)
+    def __init__(self, num_workers: int, raise_on_error: bool) -> None:
+        self.num_workers = num_workers
+        self.raise_on_error = raise_on_error
 
 
-def _resolve_import_from_string(import_path: Any) -> Optional[Callable[..., Any]]:
-    if not import_path:
-        return None
-    elif callable(import_path):
-        return import_path
-    module_name = ".".join(import_path.split(".")[:-1])
-    obj_name = import_path.split(".")[-1]
-    module = importlib.import_module(module_name)
-    return getattr(module, obj_name)
+class Config(object):
+    __slots__ = ("core", "ssh", "inventory", "jinja2", "logging", "user_defined")
+
+    def __init__(
+        self,
+        inventory: InventoryConfig,
+        ssh: SSHConfig,
+        logging: LoggingConfig,
+        jinja2: Jinja2Config,
+        core: CoreConfig,
+        user_defined: Dict[str, Any],
+    ) -> None:
+        self.inventory = inventory
+        self.ssh = ssh
+        self.logging = logging
+        self.jinja2 = jinja2
+        self.core = core
+        self.user_defined = user_defined

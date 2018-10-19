@@ -73,7 +73,7 @@ class InventoryElement(BaseAttributes):
         self.groups = groups or ParentGroups()
         self.data = data or {}
         self.connection_options = connection_options or {}
-        self.config = config or Config()
+        self.config = config
         super().__init__(**kwargs)
 
 
@@ -418,7 +418,7 @@ class Inventory(object):
             for h in self.hosts.values():
                 transform_function(h)
 
-        self.config = config or Config()
+        self.config = config
 
     def filter(self, filter_obj=None, filter_func=None, *args, **kwargs):
         filter_func = filter_obj or filter_func
@@ -430,7 +430,12 @@ class Inventory(object):
                 for n, h in self.hosts.items()
                 if all(h.get(k) == v for k, v in kwargs.items())
             }
-        return Inventory(hosts=filtered, groups=self.groups, defaults=self.defaults)
+        return Inventory(
+            hosts=filtered,
+            groups=self.groups,
+            defaults=self.defaults,
+            config=self.config,
+        )
 
     def __len__(self):
         return self.hosts.__len__()

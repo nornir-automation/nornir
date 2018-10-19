@@ -56,7 +56,7 @@ class Task(object):
         self.host = host
         self.nornir = nornir
 
-        logger = logging.getLogger("nornir")
+        logger = logging.getLogger(__name__)
         try:
             logger.info("{}: {}: running task".format(self.host.name, self.name))
             r = self.task(self, **self.params)

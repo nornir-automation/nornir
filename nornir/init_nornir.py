@@ -1,8 +1,9 @@
-from nornir.core import Nornir
-from nornir.core.configuration import Config
-from nornir.core.state import GlobalState
-from nornir.core.connections import Connections
+from typing import Any, Callable
 
+from nornir.core import Nornir
+from nornir.core.connections import Connections
+from nornir.core.deserializer.configuration import Config
+from nornir.core.state import GlobalState
 from nornir.plugins.connections.napalm import Napalm
 from nornir.plugins.connections.netmiko import Netmiko
 from nornir.plugins.connections.paramiko import Paramiko
@@ -12,6 +13,10 @@ def register_default_connection_plugins() -> None:
     Connections.register("napalm", Napalm)
     Connections.register("netmiko", Netmiko)
     Connections.register("paramiko", Paramiko)
+
+
+def cls_to_string(cls: Callable[..., Any]) -> str:
+    return f"{cls.__module__}.{cls.__name__}"
 
 
 def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
@@ -27,16 +32,25 @@ def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
     """
     register_default_connection_plugins()
 
-    conf = Config(path=config_file, **kwargs)
+    if callable(kwargs.get("inventory", {}).get("plugin", "")):
+        kwargs["inventory"]["plugin"] = cls_to_string(kwargs["inventory"]["plugin"])
+
+    if callable(kwargs.get("inventory", {}).get("transform_function", "")):
+        kwargs["inventory"]["transform_function"] = cls_to_string(
+            kwargs["inventory"]["transform_function"]
+        )
+
+    conf = Config.load_from_file(config_file, **kwargs)
+
     GlobalState.dry_run = dry_run
 
     if configure_logging:
         conf.logging.configure()
 
-    inv_class = conf.inventory.get_plugin()
-    transform_function = conf.inventory.get_transform_function()
-    inv = inv_class.deserialize(
-        transform_function=transform_function, config=conf, **conf.inventory.options
+    inv = conf.inventory.plugin.deserialize(
+        transform_function=conf.inventory.transform_function,
+        config=conf,
+        **conf.inventory.options,
     )
 
     return Nornir(inventory=inv, _config=conf)
