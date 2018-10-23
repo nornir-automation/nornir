@@ -1,16 +1,18 @@
 ---
-defaults: {}
 mammal:
-    reproduction: birth
-    fly: false
+    data:
+        reproduction: birth
+        fly: false
 
 bird:
-    reproduction: eggs
-    fly: true
+    data:
+        reproduction: eggs
+        fly: true
 
 invertebrate:
-    reproduction: mitosis
-    fly: false
+    data:
+        reproduction: mitosis
+        fly: false
 
 terrestrial: {}
 marine: {}

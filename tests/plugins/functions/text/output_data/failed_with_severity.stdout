@@ -19,3 +19,11 @@ Hello from CRITICAL
 [1m[31m---- parse_data ** changed : False --------------------------------------------- ERROR
 Exception('Unknown Error -> Contact your system administrator',)
 [1m[31m^^^^ END read_data ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[34m* dev5.no_group ** changed : False *********************************************
+[1m[31mvvvv read_data ** changed : False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv ERROR
+NornirSubTaskError()
+[1m[32m---- echo_task ** changed : False ---------------------------------------------- CRITICAL
+Hello from CRITICAL
+[1m[31m---- parse_data ** changed : False --------------------------------------------- ERROR
+KeyError('values',)
+[1m[31m^^^^ END read_data ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

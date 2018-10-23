@@ -6,17 +6,26 @@ from pathlib import Path
 from typing import Dict, Any, Tuple, Optional, cast, Union, MutableMapping, DefaultDict
 
 import ruamel.yaml
+
+
 from mypy_extensions import TypedDict
+
 from ruamel.yaml.scanner import ScannerError
 from ruamel.yaml.composer import ComposerError
 
-from nornir.core.inventory import Inventory, VarsDict, GroupsDict, HostsDict
+from nornir.core.deserializer.inventory import (
+    Inventory,
+    VarsDict,
+    GroupsDict,
+    HostsDict,
+)
 
 VARS_FILENAME_EXTENSIONS = ["", ".yml", ".yaml"]
 
+
 YAML = ruamel.yaml.YAML(typ="safe")
 
-logger = logging.getLogger("nornir")
+logger = logging.getLogger(__name__)
 
 
 AnsibleHostsDict = Dict[str, Optional[VarsDict]]
@@ -235,14 +244,9 @@ def parse(hostsfile: str) -> Tuple[HostsDict, GroupsDict]:
 
 
 class AnsibleInventory(Inventory):
-    """
-    Inventory plugin that is capable of reading an ansible inventory.
-
-    Arguments:
-        hostsfile (string): Ansible inventory file to load
-    """
-
-    def __init__(self, hostsfile: str = "hosts", **kwargs: Any) -> None:
+    def __init__(self, hostsfile: str = "hosts", *args: Any, **kwargs: Any) -> None:
         host_vars, group_vars = parse(hostsfile)
         defaults = group_vars.pop("defaults")
-        super().__init__(host_vars, group_vars, defaults, **kwargs)
+        super().__init__(
+            hosts=host_vars, groups=group_vars, defaults=defaults, *args, **kwargs
+        )

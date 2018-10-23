@@ -1,72 +1,78 @@
 ---
 cat:
-    domestic: true
-    diet: omnivore
     groups:
         - terrestrial
         - mammal
-    additional_data:
-        lifespan: 17
-        famous_members:
-            - garfield
-            - felix
-            - grumpy
+    data:
+        domestic: true
+        diet: omnivore
+        additional_data:
+            lifespan: 17
+            famous_members:
+                - garfield
+                - felix
+                - grumpy
 
 bat:
-    domestic: false
-    fly: true
-    diet: carnivore
     groups:
         - terrestrial
         - mammal
-    additional_data:
-        lifespan: 15
-        famous_members:
-            - batman
-            - count chocula
-            - nosferatu
+    data:
+        domestic: false
+        fly: true
+        diet: carnivore
+        additional_data:
+            lifespan: 15
+            famous_members:
+                - batman
+                - count chocula
+                - nosferatu
 
 eagle:
-    domestic: false
-    diet: carnivore
     groups:
         - terrestrial
         - bird
-    additional_data:
-        lifespan: 50
-        famous_members:
-            - thorondor
-            - sam
+    data:
+        domestic: false
+        diet: carnivore
+        additional_data:
+            lifespan: 50
+            famous_members:
+                - thorondor
+                - sam
 
 canary:
-    domestic: true
-    diet: herbivore
     groups:
         - terrestrial
         - bird
-    additional_data:
-        lifespan: 15
-        famous_members:
-            - tweetie
+    data:
+        domestic: true
+        diet: herbivore
+        additional_data:
+            lifespan: 15
+            famous_members:
+                - tweetie
 
 caterpillaer:
-    domestic: false
-    diet: herbivore
     groups:
         - terrestrial
         - invertebrate
-    additional_data:
-        lifespan: 1
-        famous_members:
-            - Hookah-Smoking
+    data:
+        domestic: false
+        diet: herbivore
+        additional_data:
+            lifespan: 1
+            famous_members:
+                - Hookah-Smoking
 
 octopus:
-    domestic: false
-    diet: carnivore
     groups:
         - marine
         - invertebrate
-    additional_data:
-        lifespan: 1
-        famous_members:
-            - sharktopus
+    data:
+        domestic: false
+        diet: carnivore
+        additional_data:
+            lifespan: 1
+            famous_members:
+                - sharktopus

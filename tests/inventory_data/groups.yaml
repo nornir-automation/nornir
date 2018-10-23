@@ -1,21 +1,59 @@
 ---
-defaults:
-    my_var: comes_from_defaults
-    hostname: 127.0.0.1
-    username: root
-    password: docker
-    platform: linux
-
 parent_group:
-    a_var: blah
-
+    port:
+    hostname:
+    username:
+    password: from_parent_group
+    platform:
+    data:
+        a_var: blah
+    groups: []
+    connection_options:
+        dummy:
+            hostname: dummy_from_parent_group
+            port:
+            username:
+            password:
+            platform:
+            extras:
+                blah: from_group
+        dummy2:
+            hostname: dummy2_from_parent_group
+            port:
+            username:
+            password:
+            platform:
+            extras:
+                blah: from_group
 group_1:
-    my_var: comes_from_group_1
-    site: site1
+    port:
+    hostname:
+    username:
+    password: from_group1
+    platform:
+    data:
+        my_var: comes_from_group_1
+        site: site1
     groups:
-        - parent_group
-
+    - parent_group
+    connection_options: {}
 group_2:
-    site: site2
-
-empty_group:
+    port:
+    hostname:
+    username:
+    password:
+    platform:
+    data:
+        site: site2
+    groups: []
+    connection_options: {}
+group_3:
+    port:
+    hostname:
+    username:
+    password:
+    platform:
+    groups: []
+    data:
+        site: site2
+    connection_options: {}

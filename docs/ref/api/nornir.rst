@@ -4,7 +4,7 @@ Core
 InitNornir
 ----------
 
-.. automethod:: nornir.core.InitNornir
+.. automethod:: nornir.init_nornir.InitNornir
 
 Nornir
 ------
@@ -16,6 +16,6 @@ Nornir
 Data
 ----
 
-.. autoclass:: nornir.core.Data
+.. autoclass:: nornir.core.state.GlobalState
    :members:
    :undoc-members:

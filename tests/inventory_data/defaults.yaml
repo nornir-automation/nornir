@@ -1,0 +1,17 @@
+---
+port:
+hostname: 127.0.0.1
+username: root
+password: docker
+platform: linux
+data:
+    my_var: comes_from_defaults
+connection_options:
+    dummy:
+        hostname: dummy_from_defaults
+        port:
+        username:
+        password:
+        platform:
+        extras:
+            blah: from_defaults

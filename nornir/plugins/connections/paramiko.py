@@ -13,7 +13,7 @@ class Paramiko(ConnectionPlugin):
     relevant connection.
 
     Inventory:
-        connection_options: maps to argument passed to ``ConnectHandler``.
+        extras: maps to argument passed to ``ConnectHandler``.
     """
 
     def open(
@@ -23,17 +23,17 @@ class Paramiko(ConnectionPlugin):
         password: Optional[str],
         port: Optional[int],
         platform: Optional[str],
-        connection_options: Optional[Dict[str, Any]] = None,
+        extras: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
-        connection_options = connection_options or {}
+        extras = extras or {}
 
         client = paramiko.SSHClient()
         client._policy = paramiko.WarningPolicy()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
         ssh_config = paramiko.SSHConfig()
-        ssh_config_file = configuration.ssh_config_file  # type: ignore
+        ssh_config_file = configuration.ssh.config_file  # type: ignore
         if os.path.exists(ssh_config_file):
             with open(ssh_config_file) as f:
                 ssh_config.parse(f)
@@ -60,8 +60,8 @@ class Paramiko(ConnectionPlugin):
         if "identityfile" in user_config:
             parameters["key_filename"] = user_config["identityfile"]
 
-        connection_options.update(parameters)
-        client.connect(**connection_options)
+        extras.update(parameters)
+        client.connect(**extras)
         self.connection = client
 
     def close(self) -> None:

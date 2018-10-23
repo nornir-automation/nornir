@@ -1,171 +1,104 @@
 import os
 
-from nornir.core.inventory import Group, Host
-from nornir.plugins.inventory.simple import SimpleInventory
+from nornir.core import inventory
+from nornir.core.deserializer import inventory as deserializer
+
+from pydantic import ValidationError
 
 import pytest
 
+import ruamel.yaml
 
+
+yaml = ruamel.yaml.YAML(typ="safe")
 dir_path = os.path.dirname(os.path.realpath(__file__))
-inventory = SimpleInventory(
-    "{}/../inventory_data/hosts.yaml".format(dir_path),
-    "{}/../inventory_data/groups.yaml".format(dir_path),
-)
-
-
-def compare_lists(left, right):
-    result = len(left) == len(right)
-    if not result:
-        return result
-
-    def to_sets(l):
-        if isinstance(l, str):
-            return l
-
-        r = set()
-        for x in l:
-            if isinstance(x, list) or isinstance(x, tuple):
-                x = frozenset(to_sets(x))
-            r.add(x)
-        return r
-
-    left = to_sets(left)
-    right = to_sets(right)
-    return left == right
+with open(f"{dir_path}/../inventory_data/hosts.yaml") as f:
+    hosts = yaml.load(f)
+with open(f"{dir_path}/../inventory_data/groups.yaml") as f:
+    groups = yaml.load(f)
+with open(f"{dir_path}/../inventory_data/defaults.yaml") as f:
+    defaults = yaml.load(f)
+inv_dict = {"hosts": hosts, "groups": groups, "defaults": defaults}
 
 
 class Test(object):
-    def test_hosts(self):
-        defaults = {"var4": "ALL"}
-        g1 = Group(name="g1", var1="1", var2="2", var3="3")
-        g2 = Group(name="g2", var1="a", var2="b")
-        g3 = Group(name="g3", var1="A", var4="Z")
-        g4 = Group(name="g4", groups=[g2, g1], var3="q")
+    def test_host(self):
+        h = inventory.Host(name="host1", hostname="host1")
+        assert h.hostname == "host1"
+        assert h.port is None
+        assert h.username is None
+        assert h.password is None
+        assert h.platform is None
+        assert h.data == {}
 
-        h1 = Host(name="host1", groups=[g1, g2], defaults=defaults)
-        assert h1["var1"] == "1"
-        assert h1["var2"] == "2"
-        assert h1["var3"] == "3"
-        assert h1["var4"] == "ALL"
-        assert compare_lists(
-            list(h1.keys()), ["name", "groups", "var1", "var2", "var3", "var4"]
+        data = {"asn": 65100, "router_id": "1.1.1.1"}
+        h = inventory.Host(
+            name="host2",
+            hostname="host2",
+            username="user",
+            port=123,
+            password="",
+            platform="fake",
+            data=data,
         )
-        assert compare_lists(
-            list(h1.values()), ["host1", ["g1", "g2"], "1", "2", "3", "ALL"]
-        )
-        assert compare_lists(
-            list(h1.items()),
-            [
-                ("name", "host1"),
-                ("groups", ["g1", "g2"]),
-                ("var1", "1"),
-                ("var2", "2"),
-                ("var3", "3"),
-                ("var4", "ALL"),
-            ],
-        )
+        assert h.hostname == "host2"
+        assert h.port == 123
+        assert h.username == "user"
+        assert h.password == ""
+        assert h.platform == "fake"
+        assert h.data == data
 
-        h2 = Host(name="host2", groups=[g2, g1], defaults=defaults)
-        assert h2["var1"] == "a"
-        assert h2["var2"] == "b"
-        assert h2["var3"] == "3"
-        assert h2["var4"] == "ALL"
-        assert compare_lists(
-            list(h2.keys()), ["name", "groups", "var1", "var2", "var3", "var4"]
-        )
-        assert compare_lists(
-            list(h2.values()), ["host2", ["g2", "g1"], "a", "b", "3", "ALL"]
-        )
-        assert compare_lists(
-            list(h2.items()),
-            [
-                ("name", "host2"),
-                ("groups", ["g2", "g1"]),
-                ("var1", "a"),
-                ("var2", "b"),
-                ("var3", "3"),
-                ("var4", "ALL"),
-            ],
-        )
+    def test_inventory(self):
+        g1 = inventory.Group(name="g1")
+        g2 = inventory.Group(name="g2", groups=inventory.ParentGroups(["g1"]))
+        h1 = inventory.Host(name="h1", groups=inventory.ParentGroups(["g1", "g2"]))
+        h2 = inventory.Host(name="h2")
+        hosts = {"h1": h1, "h2": h2}
+        groups = {"g1": g1, "g2": g2}
+        inv = inventory.Inventory(hosts=hosts, groups=groups)
+        assert "h1" in inv.hosts
+        assert "h2" in inv.hosts
+        assert "g1" in inv.groups
+        assert "g2" in inv.groups
+        assert inv.groups["g1"] in inv.hosts["h1"].groups
+        assert inv.groups["g1"] in inv.groups["g2"].groups
 
-        h3 = Host(name="host3", groups=[g4, g3], defaults=defaults)
-        assert h3["var1"] == "a"
-        assert h3["var2"] == "b"
-        assert h3["var3"] == "q"
-        assert h3["var4"] == "Z"
-        assert compare_lists(
-            list(h3.keys()), ["name", "groups", "var3", "var1", "var2", "var4"]
-        )
-        assert compare_lists(
-            list(h3.values()), ["host3", ["g4", "g3"], "q", "a", "b", "Z"]
-        )
-        assert compare_lists(
-            list(h3.items()),
-            [
-                ("name", "host3"),
-                ("groups", ["g4", "g3"]),
-                ("var3", "q"),
-                ("var1", "a"),
-                ("var2", "b"),
-                ("var4", "Z"),
-            ],
-        )
+    def test_inventory_deserializer_wrong(self):
+        with pytest.raises(ValidationError):
+            deserializer.Inventory.deserialize(
+                **{"hosts": {"wrong": {"host": "should_be_hostname"}}}
+            )
 
-        h4 = Host(name="host4", groups=[g3, g4], defaults=defaults)
-        assert h4["var1"] == "A"
-        assert h4["var2"] == "b"
-        assert h4["var3"] == "q"
-        assert h4["var4"] == "Z"
-        assert compare_lists(
-            list(h4.keys()), ["name", "groups", "var1", "var4", "var3", "var2"]
-        )
-        assert compare_lists(
-            list(h4.values()), ["host4", ["g3", "g4"], "A", "Z", "q", "b"]
-        )
-        assert compare_lists(
-            list(h4.items()),
-            [
-                ("name", "host4"),
-                ("groups", ["g3", "g4"]),
-                ("var1", "A"),
-                ("var4", "Z"),
-                ("var3", "q"),
-                ("var2", "b"),
-            ],
-        )
-
-        with pytest.raises(KeyError):
-            assert h2["asdasd"]
+    def test_inventory_deserializer(self):
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        assert inv.groups["group_1"] in inv.hosts["dev1.group_1"].groups
 
     def test_filtering(self):
-        unfiltered = sorted(list(inventory.hosts.keys()))
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        unfiltered = sorted(list(inv.hosts.keys()))
         assert unfiltered == [
             "dev1.group_1",
             "dev2.group_1",
             "dev3.group_2",
             "dev4.group_2",
+            "dev5.no_group",
         ]
 
-        www = sorted(list(inventory.filter(role="www").hosts.keys()))
+        www = sorted(list(inv.filter(role="www").hosts.keys()))
         assert www == ["dev1.group_1", "dev3.group_2"]
 
-        www_site1 = sorted(
-            list(inventory.filter(role="www", site="site1").hosts.keys())
-        )
+        www_site1 = sorted(list(inv.filter(role="www", site="site1").hosts.keys()))
         assert www_site1 == ["dev1.group_1"]
 
         www_site1 = sorted(
-            list(inventory.filter(role="www").filter(site="site1").hosts.keys())
+            list(inv.filter(role="www").filter(site="site1").hosts.keys())
         )
         assert www_site1 == ["dev1.group_1"]
 
     def test_filtering_func(self):
+        inv = deserializer.Inventory.deserialize(**inv_dict)
         long_names = sorted(
-            list(
-                inventory.filter(
-                    filter_func=lambda x: len(x["my_var"]) > 20
-                ).hosts.keys()
-            )
+            list(inv.filter(filter_func=lambda x: len(x["my_var"]) > 20).hosts.keys())
         )
         assert long_names == ["dev1.group_1", "dev4.group_2"]
 
@@ -173,107 +106,94 @@ class Test(object):
             return len(dev["my_var"]) > length
 
         long_names = sorted(
-            list(inventory.filter(filter_func=longer_than, length=20).hosts.keys())
+            list(inv.filter(filter_func=longer_than, length=20).hosts.keys())
         )
         assert long_names == ["dev1.group_1", "dev4.group_2"]
 
     def test_filter_unique_keys(self):
-        filtered = sorted(list(inventory.filter(www_server="nginx").hosts.keys()))
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        filtered = sorted(list(inv.filter(www_server="nginx").hosts.keys()))
         assert filtered == ["dev1.group_1"]
 
     def test_var_resolution(self):
-        assert inventory.hosts["dev1.group_1"]["my_var"] == "comes_from_dev1.group_1"
-        assert inventory.hosts["dev2.group_1"]["my_var"] == "comes_from_group_1"
-        assert inventory.hosts["dev3.group_2"]["my_var"] == "comes_from_defaults"
-        assert inventory.hosts["dev4.group_2"]["my_var"] == "comes_from_dev4.group_2"
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        assert inv.hosts["dev1.group_1"]["my_var"] == "comes_from_dev1.group_1"
+        assert inv.hosts["dev2.group_1"]["my_var"] == "comes_from_group_1"
+        assert inv.hosts["dev3.group_2"]["my_var"] == "comes_from_defaults"
+        assert inv.hosts["dev4.group_2"]["my_var"] == "comes_from_dev4.group_2"
 
-        assert (
-            inventory.hosts["dev1.group_1"].data["my_var"] == "comes_from_dev1.group_1"
-        )
+        assert inv.hosts["dev1.group_1"].data["my_var"] == "comes_from_dev1.group_1"
         with pytest.raises(KeyError):
-            inventory.hosts["dev2.group_1"].data["my_var"]
+            inv.hosts["dev2.group_1"].data["my_var"]
         with pytest.raises(KeyError):
-            inventory.hosts["dev3.group_2"].data["my_var"]
-        assert (
-            inventory.hosts["dev4.group_2"].data["my_var"] == "comes_from_dev4.group_2"
-        )
+            inv.hosts["dev3.group_2"].data["my_var"]
+        assert inv.hosts["dev4.group_2"].data["my_var"] == "comes_from_dev4.group_2"
+
+    def test_attributes_resolution(self):
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        assert inv.hosts["dev1.group_1"].password == "a_password"
+        assert inv.hosts["dev2.group_1"].password == "from_group1"
+        assert inv.hosts["dev3.group_2"].password == "docker"
+        assert inv.hosts["dev4.group_2"].password == "from_parent_group"
+        assert inv.hosts["dev5.no_group"].password == "docker"
 
     def test_has_parents(self):
-        assert inventory.hosts["dev1.group_1"].has_parent_group(
-            inventory.groups["group_1"]
-        )
-        assert not inventory.hosts["dev1.group_1"].has_parent_group(
-            inventory.groups["group_2"]
-        )
-        assert inventory.hosts["dev1.group_1"].has_parent_group("group_1")
-        assert not inventory.hosts["dev1.group_1"].has_parent_group("group_2")
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        assert inv.hosts["dev1.group_1"].has_parent_group(inv.groups["group_1"])
+        assert not inv.hosts["dev1.group_1"].has_parent_group(inv.groups["group_2"])
+        assert inv.hosts["dev1.group_1"].has_parent_group("group_1")
+        assert not inv.hosts["dev1.group_1"].has_parent_group("group_2")
 
     def test_to_dict(self):
-        expected = {
-            "hosts": {
-                "dev1.group_1": {
-                    "name": "dev1.group_1",
-                    "nested_data": {
-                        "a_dict": {"a": 1, "b": 2},
-                        "a_list": [1, 2],
-                        "a_string": "asdasd",
-                    },
-                    "groups": ["group_1"],
-                    "my_var": "comes_from_dev1.group_1",
-                    "www_server": "nginx",
-                    "role": "www",
-                    "port": 65001,
-                    "platform": "eos",
-                },
-                "dev3.group_2": {
-                    "name": "dev3.group_2",
-                    "groups": ["group_2"],
-                    "www_server": "apache",
-                    "role": "www",
-                    "port": 65003,
-                    "platform": "linux",
-                    "napalm_options": {"platform": "mock"},
-                },
-            },
-            "groups": {
-                "defaults": {},
-                "parent_group": {"a_var": "blah", "name": "parent_group"},
-                "group_1": {
-                    "name": "group_1",
-                    "my_var": "comes_from_group_1",
-                    "site": "site1",
-                    "groups": ["parent_group"],
-                },
-                "group_2": {"name": "group_2", "site": "site2"},
-                "empty_group": {"name": "empty_group"},
-            },
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        inv_serialized = deserializer.Inventory.serialize(inv).dict()
+        for k, v in inv_dict.items():
+            assert v == inv_serialized[k]
+
+    def test_get_connection_parameters(self):
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        p1 = inv.hosts["dev1.group_1"].get_connection_parameters("dummy")
+        assert p1.dict() == {
+            "port": 65001,
+            "hostname": "dummy_from_host",
+            "username": "root",
+            "password": "a_password",
+            "platform": "eos",
+            "extras": {"blah": "from_host"},
         }
-        assert inventory.filter(role="www").to_dict() == expected
+        p2 = inv.hosts["dev1.group_1"].get_connection_parameters("asd")
+        assert p2.dict() == {
+            "port": 65001,
+            "hostname": "127.0.0.1",
+            "username": "root",
+            "password": "a_password",
+            "platform": "eos",
+            "extras": {},
+        }
+        p3 = inv.hosts["dev2.group_1"].get_connection_parameters("dummy")
+        assert p3.dict() == {
+            "port": 65002,
+            "hostname": "dummy_from_parent_group",
+            "username": "root",
+            "password": "from_group1",
+            "platform": "junos",
+            "extras": {"blah": "from_group"},
+        }
+        p4 = inv.hosts["dev3.group_2"].get_connection_parameters("dummy")
+        assert p4.dict() == {
+            "port": 65003,
+            "hostname": "dummy_from_defaults",
+            "username": "root",
+            "password": "docker",
+            "platform": "linux",
+            "extras": {"blah": "from_defaults"},
+        }
 
-    def test_setters(self):
-        """Test explicit setters specified in inventory."""
-        defaults = {}
-        g1 = Group(name="g1")
-        h1 = Host(name="host1", groups=[g1], defaults=defaults)
-
-        g1.hostname = "group_hostname"
-        assert h1.hostname == "group_hostname"
-        g1.platform = "group_platform"
-        assert h1.platform == "group_platform"
-        g1.username = "group_username"
-        assert h1.username == "group_username"
-        g1.password = "group_password"
-        assert h1.password == "group_password"
-        g1.port = 9999
-        assert h1.port == 9999
-
-        h1.hostname = "alt_hostname"
-        assert h1.hostname == "alt_hostname"
-        h1.platform = "alt_platform"
-        assert h1.platform == "alt_platform"
-        h1.username = "alt_username"
-        assert h1.username == "alt_username"
-        h1.password = "alt_password"
-        assert h1.password == "alt_password"
-        h1.port = 9998
-        assert h1.port == 9998
+    def test_defaults(self):
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        inv.defaults.password = "asd"
+        assert inv.defaults.password == "asd"
+        assert inv.hosts["dev2.group_1"].password == "from_group1"
+        assert inv.hosts["dev3.group_2"].password == "asd"
+        assert inv.hosts["dev4.group_2"].password == "from_parent_group"
+        assert inv.hosts["dev5.no_group"].password == "asd"

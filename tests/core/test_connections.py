@@ -1,16 +1,16 @@
 from typing import Any, Dict, Optional
 
-import pytest
-
 from nornir.core.configuration import Config
 from nornir.core.connections import ConnectionPlugin, Connections
 from nornir.core.exceptions import (
     ConnectionAlreadyOpen,
     ConnectionNotOpen,
-    ConnectionPluginNotRegistered,
     ConnectionPluginAlreadyRegistered,
+    ConnectionPluginNotRegistered,
 )
-from nornir.plugins.connections import register_default_connection_plugins
+from nornir.init_nornir import register_default_connection_plugins
+
+import pytest
 
 
 class DummyConnectionPlugin(ConnectionPlugin):
@@ -21,7 +21,7 @@ class DummyConnectionPlugin(ConnectionPlugin):
         password: Optional[str],
         port: Optional[int],
         platform: Optional[str],
-        connection_options: Optional[Dict[str, Any]] = None,
+        extras: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
         self.connection = True
@@ -31,7 +31,7 @@ class DummyConnectionPlugin(ConnectionPlugin):
         self.password = password
         self.port = port
         self.platform = platform
-        self.connection_options = connection_options
+        self.extras = extras
         self.configuration = configuration
 
     def close(self) -> None:
@@ -84,6 +84,7 @@ class Test(object):
     def setup_class(cls):
         Connections.deregister_all()
         Connections.register("dummy", DummyConnectionPlugin)
+        Connections.register("dummy2", DummyConnectionPlugin)
         Connections.register("dummy_no_overrides", DummyConnectionPlugin)
 
     def test_open_and_close_connection(self, nornir):
@@ -109,16 +110,15 @@ class Test(object):
             nr.run(task=a_task)
             assert "dummy" in nr.inventory.hosts["dev2.group_1"].connections
         assert "dummy" not in nr.inventory.hosts["dev2.group_1"].connections
-        nornir.data.reset_failed_hosts()
 
     def test_validate_params_simple(self, nornir):
         params = {
             "hostname": "127.0.0.1",
             "username": "root",
-            "password": "docker",
+            "password": "from_group1",
             "port": 65002,
             "platform": "junos",
-            "connection_options": {},
+            "extras": {},
         }
         nr = nornir.filter(name="dev2.group_1")
         r = nr.run(
@@ -132,15 +132,29 @@ class Test(object):
 
     def test_validate_params_overrides(self, nornir):
         params = {
-            "hostname": "overriden_hostname",
+            "port": 65002,
+            "hostname": "dummy_from_parent_group",
             "username": "root",
-            "password": "docker",
-            "port": None,
+            "password": "from_group1",
             "platform": "junos",
-            "connection_options": {"awesome_feature": 1},
+            "extras": {"blah": "from_group"},
         }
         nr = nornir.filter(name="dev2.group_1")
         r = nr.run(task=validate_params, conn="dummy", params=params, num_workers=1)
+        assert len(r) == 1
+        assert not r.failed
+
+    def test_validate_params_overrides_groups(self, nornir):
+        params = {
+            "port": 65002,
+            "hostname": "dummy2_from_parent_group",
+            "username": "dummy2_from_host",
+            "password": "from_group1",
+            "platform": "junos",
+            "extras": {"blah": "from_group"},
+        }
+        nr = nornir.filter(name="dev2.group_1")
+        r = nr.run(task=validate_params, conn="dummy2", params=params, num_workers=1)
         assert len(r) == 1
         assert not r.failed
 

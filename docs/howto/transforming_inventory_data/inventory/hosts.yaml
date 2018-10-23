@@ -1,5 +1,7 @@
 ---
 rtr00:
-    user: automation_user
+    data:
+        user: automation_user
 rtr01:
-    user: automation_user
+    data:
+        user: automation_user

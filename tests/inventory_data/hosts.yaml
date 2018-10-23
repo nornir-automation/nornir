@@ -1,53 +1,121 @@
 ---
 dev1.group_1:
-    groups:
-        - group_1
-    my_var: comes_from_dev1.group_1
-    www_server: nginx
-    role: www
     port: 65001
+    hostname:
+    username:
+    password: a_password
     platform: eos
-    nested_data:
-        a_dict:
-            a: 1
-            b: 2
-        a_list: [1, 2]
-        a_string: "asdasd"
-
-dev2.group_1:
+    data:
+        my_var: comes_from_dev1.group_1
+        www_server: nginx
+        role: www
+        nested_data:
+            a_dict:
+                a: 1
+                b: 2
+            a_list: [1, 2]
+            a_string: asdasd
     groups:
         - group_1
-    role: db
+    connection_options:
+        paramiko:
+            port: 65001
+            hostname: 127.0.0.1
+            username: root
+            password: docker
+            platform: linux
+            extras: {}
+        dummy:
+            hostname: dummy_from_host
+            port:
+            username:
+            password:
+            platform:
+            extras:
+                blah: from_host
+dev2.group_1:
     port: 65002
+    hostname:
+    username:
+    password:
     platform: junos
-    nested_data:
-        a_dict:
-            b: 2
-            c: 3
-        a_list: [2, 3]
-        a_string: "qwe"
-    dummy_options:
-        hostname: overriden_hostname
-        port: null
-        connection_options:
-            awesome_feature: 1
-
+    data:
+        role: db
+        nested_data:
+            a_dict:
+                b: 2
+                c: 3
+            a_list: [2, 3]
+            a_string: qwe
+    groups:
+        - group_1
+    connection_options:
+        paramiko:
+            port: 65002
+            hostname: 127.0.0.1
+            username: root
+            password: docker
+            platform: linux
+            extras: {}
+        dummy2:
+            hostname:
+            port:
+            username: dummy2_from_host
+            password:
+            platform:
+            extras:
 dev3.group_2:
-    groups:
-        - group_2
-    www_server: apache
-    role: www
     port: 65003
+    hostname:
+    username:
+    password:
     platform: linux
-    napalm_options:
-        platform: mock
-
-dev4.group_2:
+    data:
+        www_server: apache
+        role: www
     groups:
         - group_2
-    my_var: comes_from_dev4.group_2
-    role: db
+    connection_options:
+        napalm:
+            platform: mock
+            hostname:
+            port:
+            username:
+            password:
+            extras: {}
+dev4.group_2:
     port: 65004
+    hostname:
+    username:
+    password:
     platform: linux
-    napalm_options:
-        platform: mock
+    data:
+        my_var: comes_from_dev4.group_2
+        role: db
+    groups:
+        - group_2
+        - parent_group
+    connection_options:
+        paramiko:
+            port: 65004
+            hostname: 127.0.0.1
+            username: root
+            password: docker
+            platform: linux
+            extras: {}
+        netmiko:
+            port: 65004
+            hostname: 127.0.0.1
+            username: root
+            password: docker
+            platform: linux
+            extras: {}
+dev5.no_group:
+    port: 65005
+    hostname: localhost
+    username:
+    password:
+    platform: linux
+    data: {}
+    groups: []
+    connection_options: {}
