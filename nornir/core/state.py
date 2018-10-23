@@ -4,7 +4,7 @@ class GlobalState(object):
     versions of Nornir after running ``filter`` multiple times.
 
     Attributes:
-        failed_hosts (list): Hosts that have failed to run a task properly
+        failed_hosts: Hosts that have failed to run a task properly
     """
 
     def __init__(self):
