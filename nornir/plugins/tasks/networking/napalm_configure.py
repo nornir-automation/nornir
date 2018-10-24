@@ -24,7 +24,7 @@ def napalm_configure(
           * changed (``bool``): whether the task is changing the system or not
           * diff (``string``): change in the system
     """
-    device = task.host.get_connection("napalm")
+    device = task.host.get_connection("napalm", task.nornir.config)
 
     if replace:
         device.load_replace_candidate(filename=filename, config=configuration)

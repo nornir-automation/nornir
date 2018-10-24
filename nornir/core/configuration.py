@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING, Type
 
 
 if TYPE_CHECKING:
-    from nornir.core.inventory import Inventory  # noqa
+    from nornir.core.deserializer.inventory import Inventory  # noqa
 
 
 class SSHConfig(object):
