@@ -53,4 +53,4 @@ def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
         **conf.inventory.options,
     )
 
-    return Nornir(inventory=inv, _config=conf)
+    return Nornir(inventory=inv, config=conf)

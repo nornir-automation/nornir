@@ -10,7 +10,10 @@ def connect(task, extras):
     if "napalm" in task.host.connections:
         task.host.close_connection("napalm")
     task.host.open_connection(
-        "napalm", extras={"optional_args": extras}, default_to_host_attributes=True
+        "napalm",
+        task.nornir.config,
+        extras={"optional_args": extras},
+        default_to_host_attributes=True,
     )
 
 

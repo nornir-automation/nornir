@@ -3,7 +3,7 @@ import logging
 from typing import Any, Callable, Dict, List, Optional, Type, cast
 
 from nornir.core import configuration
-from nornir.core.inventory import Inventory
+from nornir.core.deserializer.inventory import Inventory
 
 from pydantic import BaseSettings, Schema
 

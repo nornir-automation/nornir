@@ -43,17 +43,17 @@ class AnotherDummyConnectionPlugin(DummyConnectionPlugin):
 
 
 def open_and_close_connection(task):
-    task.host.open_connection("dummy")
+    task.host.open_connection("dummy", task.nornir.config)
     assert "dummy" in task.host.connections
     task.host.close_connection("dummy")
     assert "dummy" not in task.host.connections
 
 
 def open_connection_twice(task):
-    task.host.open_connection("dummy")
+    task.host.open_connection("dummy", task.nornir.config)
     assert "dummy" in task.host.connections
     try:
-        task.host.open_connection("dummy")
+        task.host.open_connection("dummy", task.nornir.config)
         raise Exception("I shouldn't make it here")
     except ConnectionAlreadyOpen:
         task.host.close_connection("dummy")
@@ -70,11 +70,11 @@ def close_not_opened_connection(task):
 
 
 def a_task(task):
-    task.host.get_connection("dummy")
+    task.host.get_connection("dummy", task.nornir.config)
 
 
 def validate_params(task, conn, params):
-    task.host.get_connection(conn)
+    task.host.get_connection(conn, task.nornir.config)
     for k, v in params.items():
         assert getattr(task.host.connections[conn], k) == v
 
