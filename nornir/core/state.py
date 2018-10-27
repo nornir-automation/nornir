@@ -7,9 +7,11 @@ class GlobalState(object):
         failed_hosts: Hosts that have failed to run a task properly
     """
 
-    def __init__(self):
-        self.dry_run = None
-        self.failed_hosts = set()
+    __slots__ = "dry_run", "failed_hosts"
+
+    def __init__(self, dry_run=None, failed_hosts=None):
+        self.dry_run = dry_run
+        self.failed_hosts = failed_hosts or set()
 
     def recover_host(self, host):
         """Remove ``host`` from list of failed hosts."""

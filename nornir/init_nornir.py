@@ -42,7 +42,7 @@ def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
 
     conf = Config.load_from_file(config_file, **kwargs)
 
-    GlobalState.dry_run = dry_run
+    data = GlobalState(dry_run=dry_run)
 
     if configure_logging:
         conf.logging.configure()
@@ -53,4 +53,4 @@ def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
         **conf.inventory.options,
     )
 
-    return Nornir(inventory=inv, config=conf)
+    return Nornir(inventory=inv, config=conf, data=data)
