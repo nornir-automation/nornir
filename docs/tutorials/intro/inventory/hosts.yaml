@@ -4,147 +4,159 @@ host1.cmh:
     port: 2201
     username: vagrant
     password: vagrant
-    site: cmh
-    role: host
+    platform: linux
     groups:
         - cmh
-    platform: linux
-    type: host
-    nested_data:
-        a_dict:
-            a: 1
-            b: 2
-        a_list: [1, 2]
-        a_string: "asdasd"
+    data:
+        site: cmh
+        role: host
+        type: host
+        nested_data:
+            a_dict:
+                a: 1
+                b: 2
+            a_list: [1, 2]
+            a_string: "asdasd"
 
 host2.cmh:
     hostname: 127.0.0.1
     port: 2202
     username: vagrant
     password: vagrant
-    site: cmh
-    role: host
+    platform: linux
     groups:
         - cmh
-    platform: linux
-    type: host
-    nested_data:
-        a_dict:
-            b: 2
-            c: 3
-        a_list: [1, 2]
-        a_string: "qwe"
+    data:
+        site: cmh
+        role: host
+        type: host
+        nested_data:
+            a_dict:
+                b: 2
+                c: 3
+            a_list: [1, 2]
+            a_string: "qwe"
 
 spine00.cmh:
     hostname: 127.0.0.1
     username: vagrant
     password: vagrant
     port: 12444
-    site: cmh
-    role: spine
+    platform: eos
     groups:
         - cmh
-    platform: eos
-    type: network_device
+    data:
+        site: cmh
+        role: spine
+        type: network_device
 
 spine01.cmh:
     hostname: 127.0.0.1
     username: vagrant
     password: ""
+    platform: junos
     port: 12204
-    site: cmh
-    role: spine
     groups:
         - cmh
-    platform: junos
-    type: network_device
+    data:
+        site: cmh
+        role: spine
+        type: network_device
 
 leaf00.cmh:
     hostname: 127.0.0.1
     username: vagrant
     password: vagrant
     port: 12443
-    site: cmh
-    role: leaf
+    platform: eos
     groups:
         - cmh
-    platform: eos
-    type: network_device
-    asn: 65100
+    data:
+        site: cmh
+        role: leaf
+        type: network_device
+        asn: 65100
 
 leaf01.cmh:
     hostname: 127.0.0.1
     username: vagrant
     password: ""
     port: 12203
-    site: cmh
-    role: leaf
+    platform: junos
     groups:
         - cmh
-    platform: junos
-    type: network_device
-    asn: 65101
+    data:
+        site: cmh
+        role: leaf
+        type: network_device
+        asn: 65101
 
 host1.bma:
-    site: bma
-    role: host
     groups:
         - bma
     platform: linux
-    type: host
+    data:
+        site: bma
+        role: host
+        type: host
 
 host2.bma:
-    site: bma
-    role: host
     groups:
         - bma
     platform: linux
-    type: host
+    data:
+        site: bma
+        role: host
+        type: host
 
 spine00.bma:
     hostname: 127.0.0.1
     username: vagrant
     password: vagrant
     port: 12444
-    site: bma
-    role: spine
+    platform: eos
     groups:
         - bma
-    platform: eos
-    type: network_device
+    data:
+        site: bma
+        role: spine
+        type: network_device
 
 spine01.bma:
     hostname: 127.0.0.1
     username: vagrant
     password: ""
     port: 12204
-    site: bma
-    role: spine
+    platform: junos
     groups:
         - bma
-    platform: junos
-    type: network_device
+    data:
+        site: bma
+        role: spine
+        type: network_device
 
 leaf00.bma:
     hostname: 127.0.0.1
     username: vagrant
     password: vagrant
     port: 12443
-    site: bma
-    role: leaf
+    platform: eos
     groups:
         - bma
-    platform: eos
-    type: network_device
+    data:
+        site: bma
+        role: leaf
+        type: network_device
 
 leaf01.bma:
     hostname: 127.0.0.1
     username: vagrant
     password: wrong_password
     port: 12203
-    site: bma
-    role: leaf
+    platform: junos
     groups:
         - bma
-    platform: junos
-    type: network_device
+    data:
+        site: bma
+        role: leaf
+        type: network_device
