@@ -17,7 +17,6 @@ class Nornir(object):
         data(GlobalState): shared data amongst different iterations of nornir
         dry_run(``bool``): Whether if we are testing the changes or not
         config (:obj:`nornir.core.configuration.Config`): Configuration object
-        config_file (``str``): Path to Yaml configuration file
 
     Attributes:
         inventory (:obj:`nornir.core.inventory.Inventory`): Inventory to work with
@@ -26,33 +25,19 @@ class Nornir(object):
         config (:obj:`nornir.core.configuration.Config`): Configuration parameters
     """
 
-    def __init__(
-        self, inventory, _config=None, config_file=None, logger=None, data=None
-    ):
+    def __init__(self, inventory, config=None, logger=None, data=None):
         self.data = data if data is not None else GlobalState()
         self.logger = logger or logging.getLogger(__name__)
 
         self.inventory = inventory
 
-        if config_file:
-            self._config = Config(config_file=config_file)
-        else:
-            self._config = _config or Config()
+        self.config = config or Config()
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close_connections(on_good=True, on_failed=True)
-
-    @property
-    def config(self):
-        return self._config
-
-    @config.setter
-    def config(self, value):
-        self._config = value
-        self.inventory.config = value
 
     def filter(self, *args, **kwargs):
         """

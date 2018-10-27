@@ -2,7 +2,7 @@ from collections import UserList
 from typing import Any, Dict, List, Optional
 
 from nornir.core.configuration import Config
-from nornir.core.connections import Connections, ConnectionPlugin
+from nornir.core.connections import ConnectionPlugin, Connections
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
 
 
@@ -60,20 +60,18 @@ class ParentGroups(UserList):
 
 
 class InventoryElement(BaseAttributes):
-    __slots__ = ("groups", "data", "connection_options", "config")
+    __slots__ = ("groups", "data", "connection_options")
 
     def __init__(
         self,
         groups: Optional[ParentGroups] = None,
         data: Optional[Dict[str, Any]] = None,
         connection_options: Optional[Dict[str, ConnectionOptions]] = None,
-        config: Optional[Config] = None,
         **kwargs,
     ) -> None:
         self.groups = groups or ParentGroups()
         self.data = data or {}
         self.connection_options = connection_options or {}
-        self.config = config
         super().__init__(**kwargs)
 
 
@@ -92,14 +90,10 @@ class Defaults(BaseAttributes):
 
 
 class Host(InventoryElement):
-    __slots__ = ("name", "connections", "defaults", "config")
+    __slots__ = ("name", "connections", "defaults")
 
     def __init__(
-        self,
-        name: str,
-        defaults: Optional[Defaults] = None,
-        config: Optional[Config] = None,
-        **kwargs,
+        self, name: str, defaults: Optional[Defaults] = None, **kwargs
     ) -> None:
         self.name = name
         self.defaults = defaults or Defaults()
@@ -281,7 +275,7 @@ class Host(InventoryElement):
             p.extras = p.extras if p.extras is not None else sp.extras
         return p
 
-    def get_connection(self, connection: str) -> Any:
+    def get_connection(self, connection: str, configuration: Config) -> Any:
         """
         The function of this method is twofold:
 
@@ -301,7 +295,7 @@ class Host(InventoryElement):
         if connection not in self.connections:
             self.open_connection(
                 connection=connection,
-                configuration=self.config,
+                configuration=configuration,
                 **self.get_connection_parameters(connection).dict(),
             )
         return self.connections[connection].connection
@@ -318,13 +312,13 @@ class Host(InventoryElement):
     def open_connection(
         self,
         connection: str,
+        configuration: Config,
         hostname: Optional[str] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
         port: Optional[int] = None,
         platform: Optional[str] = None,
         extras: Optional[Dict[str, Any]] = None,
-        configuration: Optional[Config] = None,
         default_to_host_attributes: bool = True,
     ) -> ConnectionPlugin:
         """
@@ -352,9 +346,7 @@ class Host(InventoryElement):
                 port=port if port is not None else conn_params.port,
                 platform=platform if platform is not None else conn_params.platform,
                 extras=extras if extras is not None else conn_params.extras,
-                configuration=configuration
-                if configuration is not None
-                else self.config,
+                configuration=configuration,
             )
         else:
             self.connections[connection].open(
@@ -395,14 +387,13 @@ class Groups(Dict[str, Group]):
 
 
 class Inventory(object):
-    __slots__ = ("hosts", "groups", "defaults", "_config")
+    __slots__ = ("hosts", "groups", "defaults")
 
     def __init__(
         self,
         hosts: Hosts,
         groups: Optional[Groups] = None,
         defaults: Optional[Defaults] = None,
-        config: Optional[Config] = None,
         transform_function=None,
     ) -> None:
         self.hosts = hosts
@@ -418,8 +409,6 @@ class Inventory(object):
             for h in self.hosts.values():
                 transform_function(h)
 
-        self.config = config
-
     def filter(self, filter_obj=None, filter_func=None, *args, **kwargs):
         filter_func = filter_obj or filter_func
         if filter_func:
@@ -430,22 +419,7 @@ class Inventory(object):
                 for n, h in self.hosts.items()
                 if all(h.get(k) == v for k, v in kwargs.items())
             }
-        return Inventory(
-            hosts=filtered,
-            groups=self.groups,
-            defaults=self.defaults,
-            config=self.config,
-        )
+        return Inventory(hosts=filtered, groups=self.groups, defaults=self.defaults)
 
     def __len__(self):
         return self.hosts.__len__()
-
-    @property
-    def config(self):
-        return self._config
-
-    @config.setter
-    def config(self, value):
-        self._config = value
-        for host in self.hosts.values():
-            host.config = value
