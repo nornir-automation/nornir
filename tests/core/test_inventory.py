@@ -197,3 +197,41 @@ class Test(object):
         assert inv.hosts["dev3.group_2"].password == "asd"
         assert inv.hosts["dev4.group_2"].password == "from_parent_group"
         assert inv.hosts["dev5.no_group"].password == "asd"
+
+    def test_children_of_str(self):
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        assert inv.children_of_group("parent_group") == {
+            inv.hosts["dev1.group_1"],
+            inv.hosts["dev2.group_1"],
+            inv.hosts["dev4.group_2"],
+        }
+
+        assert inv.children_of_group("group_1") == {
+            inv.hosts["dev1.group_1"],
+            inv.hosts["dev2.group_1"],
+        }
+
+        assert inv.children_of_group("group_2") == {
+            inv.hosts["dev4.group_2"],
+            inv.hosts["dev3.group_2"],
+        }
+
+        assert inv.children_of_group("blah") == set()
+
+    def test_children_of_obj(self):
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        assert inv.children_of_group(inv.groups["parent_group"]) == {
+            inv.hosts["dev1.group_1"],
+            inv.hosts["dev2.group_1"],
+            inv.hosts["dev4.group_2"],
+        }
+
+        assert inv.children_of_group(inv.groups["group_1"]) == {
+            inv.hosts["dev1.group_1"],
+            inv.hosts["dev2.group_1"],
+        }
+
+        assert inv.children_of_group(inv.groups["group_2"]) == {
+            inv.hosts["dev4.group_2"],
+            inv.hosts["dev3.group_2"],
+        }

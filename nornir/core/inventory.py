@@ -1,5 +1,5 @@
 from collections import UserList
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set, Union
 
 from nornir.core.configuration import Config
 from nornir.core.connections import ConnectionPlugin, Connections
@@ -53,10 +53,7 @@ class ParentGroups(UserList):
         self.refs: List["Group"] = kwargs.get("refs", [])
 
     def __contains__(self, value) -> bool:
-        if isinstance(value, str):
-            return value in self.data
-        else:
-            return value in self.refs
+        return value in self.data or value in self.refs
 
 
 class InventoryElement(BaseAttributes):
@@ -423,3 +420,14 @@ class Inventory(object):
 
     def __len__(self):
         return self.hosts.__len__()
+
+    def children_of_group(self, group: Union[str, Group]) -> Set[Host]:
+        """
+        Returns set of hosts that belongs to a group including those that belong
+        indirectly via inheritance
+        """
+        hosts: List[Host] = set()
+        for host in self.hosts.values():
+            if host.has_parent_group(group):
+                hosts.add(host)
+        return hosts
