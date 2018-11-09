@@ -47,7 +47,10 @@ class F(object):
     @staticmethod
     def _verify_rules(data, rule, value):
         if len(rule) > 1:
-            return F._verify_rules(data.get(rule[0], {}), rule[1:], value)
+            try:
+                return F._verify_rules(data.get(rule[0], {}), rule[1:], value)
+            except AttributeError:
+                return False
 
         elif len(rule) == 1:
             operator = "__{}__".format(rule[0])
