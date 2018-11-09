@@ -16,6 +16,7 @@ def netmiko_send_command(
     Arguments:
         command_string: Command to execute on the remote network device.
         use_timing: Set to True to switch to send_command_timing method.
+        enable: Set to True to force Netmiko .enable() call.
         kwargs: Additional arguments to pass to send_command method.
 
     Returns:
