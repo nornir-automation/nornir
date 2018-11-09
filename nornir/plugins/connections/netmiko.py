@@ -8,6 +8,7 @@ from nornir.core.connections import ConnectionPlugin
 napalm_to_netmiko_map = {
     "ios": "cisco_ios",
     "nxos": "cisco_nxos",
+    "nxos_ssh": "cisco_nxos",
     "eos": "arista_eos",
     "junos": "juniper_junos",
     "iosxr": "cisco_xr",
