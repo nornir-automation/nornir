@@ -130,3 +130,9 @@ class Test(object):
         filtered = sorted(list((nornir.inventory.filter(f).hosts.keys())))
 
         assert filtered == ["dev1.group_1"]
+
+    def test_filter_wrong_attribute_for_type(self, nornir):
+        f = F(port__startswith="a")
+        filtered = sorted(list((nornir.inventory.filter(f).hosts.keys())))
+
+        assert filtered == []
