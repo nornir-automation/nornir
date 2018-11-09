@@ -21,7 +21,7 @@ def netmiko_send_command(
 
     Returns:
         Result object with the following attributes set:
-          * result (``dict``): dictionary with the result of the show command.
+          * result: Result of the show command (generally a string, but depends on use of TextFSM).
     """
     net_connect = task.host.get_connection("netmiko", task.nornir.config)
     if enable:
