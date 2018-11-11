@@ -1,19 +1,44 @@
 dbservers:
+  connection_options: {}
+  data:
+    my_var: from_dbservers
+    my_yet_another_var: from_dbservers
   groups:
   - servers
-  my_var: from_dbservers
-  my_yet_another_var: from_dbservers
-defaults:
-  my_other_var: from_all
-  my_var: from_all
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null
 frontend:
+  connection_options: {}
+  data: {}
   groups: []
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null
 servers:
-  escape_pods: 2
+  connection_options: {}
+  data:
+    escape_pods: 2
+    halon_system_timeout: 30
+    self_destruct_countdown: 60
+    some_server: foo.southeast.example.com
   groups: []
-  halon_system_timeout: 30
-  self_destruct_countdown: 60
-  some_server: foo.southeast.example.com
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null
 webservers:
+  connection_options: {}
+  data: {}
   groups:
   - servers
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null

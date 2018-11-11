@@ -1,52 +1,65 @@
-bar.example.com:
+access:
   connection_options: {}
   data: {}
   groups:
-  - webservers
+  - ios
   hostname: null
   password: null
   platform: null
   port: null
   username: null
-foo.example.com:
-  connection_options: {}
-  data: {}
-  groups:
-  - frontend
-  - webservers
-  hostname: null
-  password: null
-  platform: null
-  port: null
-  username: null
-one.example.com:
+asa:
   connection_options: {}
   data:
-    my_var: from_one.example.com
+    ansible_become: yes
+    ansible_become_method: enable
+    ansible_network_os: asa
+    ansible_persistent_command_timeout: 30
+    cisco_asa: true
+    network_os: asa
   groups:
-  - dbservers
+  - virl
   hostname: null
   password: null
   platform: null
   port: null
   username: null
-three.example.com:
+dist:
   connection_options: {}
   data: {}
   groups:
-  - dbservers
-  hostname: 192.0.2.50
+  - ios
+  hostname: null
   password: null
   platform: null
-  port: 5555
+  port: null
   username: null
-two.example.com:
+ios:
   connection_options: {}
   data:
-    my_var: from_hostfile
-    whatever: asdasd
+    network_os: ios
+    nornir_nos: ios
   groups:
-  - dbservers
+  - virl
+  hostname: null
+  password: null
+  platform: ios
+  port: null
+  username: null
+routers:
+  connection_options: {}
+  data: {}
+  groups:
+  - ios
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null
+virl:
+  connection_options: {}
+  data: {}
+  groups: []
   hostname: null
   password: null
   platform: null
