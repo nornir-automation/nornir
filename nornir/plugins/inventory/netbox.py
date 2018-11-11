@@ -42,7 +42,7 @@ class NBInventory(Inventory):
 
             if flatten_custom_fields:
                 for cf, value in d["custom_fields"].items():
-                    host[cf] = value
+                    host["data"][cf] = value
             else:
                 host["data"]["custom_fields"] = d["custom_fields"]
 
