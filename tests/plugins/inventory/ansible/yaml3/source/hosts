@@ -1,0 +1,45 @@
+---
+all:
+  vars:
+    ansible_python_interpreter: python
+    ansible_connection: network_cli
+    ansible_network_os: ios
+    ansible_ssh_common_args: '-o ProxyCommand="ssh -W %h:%p -p 10000 guest@10.105.152.50"'  # install ssh public key on proxy host !!!
+    env: staging
+  children:
+    virl:
+      children:
+        asa:
+          vars:
+            cisco_asa: True
+            network_os: asa
+            ansible_network_os: asa
+            ansible_become: yes
+            ansible_become_method: enable
+            ansible_persistent_command_timeout: 30
+          hosts:
+            asa1:
+              ansible_host: 10.255.0.2
+              dot1x: True
+        ios:
+          vars:
+            network_os: ios
+            nornir_nos: ios
+            platform: ios
+          children:
+            routers:
+              hosts:
+                iosv-1:
+                  ansible_host: 10.255.0.12
+                iosv-2:
+                  ansible_host: 10.255.0.13
+            access:
+              hosts:
+                access1:
+                  ansible_host: 10.255.0.6
+            dist:
+              hosts:
+                dist1:
+                  ansible_host: 10.255.0.5
+                dist2:
+                  ansible_host: 10.255.0.11

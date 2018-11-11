@@ -8,6 +8,7 @@ from pydantic import BaseModel
 VarsDict = Dict[str, Any]
 HostsDict = Dict[str, VarsDict]
 GroupsDict = Dict[str, VarsDict]
+DefaultsDict = VarsDict
 
 
 class BaseAttributes(BaseModel):
