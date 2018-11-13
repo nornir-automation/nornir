@@ -13,8 +13,21 @@ class NBInventory(Inventory):
         nb_token=None,
         use_slugs=True,
         flatten_custom_fields=True,
-        **kwargs
+        filter_parameters=None,
+        **kwargs,
     ) -> None:
+        """
+        Netbox plugin
+
+        Arguments:
+            nb_url: Netbox url, defaults to http://localhost:8080.
+                You can also use env variable NB_URL
+            nb_token: Netbokx token. You can also use env variable NB_TOKEN
+            use_slugs: Whether to use slugs or not
+            flatten_custom_fields: Whether to assign custom fields directly to the host or not
+            filter_parameters: Key-value pairs to filter down hosts
+        """
+        filter_parameters = filter_parameters or {}
 
         nb_url = nb_url or os.environ.get("NB_URL", "http://localhost:8080")
         nb_token = nb_token or os.environ.get(
@@ -23,7 +36,11 @@ class NBInventory(Inventory):
         headers = {"Authorization": "Token {}".format(nb_token)}
 
         # Create dict of hosts using 'devices' from NetBox
-        r = requests.get("{}/api/dcim/devices/?limit=0".format(nb_url), headers=headers)
+        r = requests.get(
+            "{}/api/dcim/devices/?limit=0".format(nb_url),
+            headers=headers,
+            params=filter_parameters,
+        )
         r.raise_for_status()
         nb_devices = r.json()
 
@@ -42,7 +59,7 @@ class NBInventory(Inventory):
 
             if flatten_custom_fields:
                 for cf, value in d["custom_fields"].items():
-                    host[cf] = value
+                    host["data"][cf] = value
             else:
                 host["data"]["custom_fields"] = d["custom_fields"]
 
