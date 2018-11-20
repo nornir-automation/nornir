@@ -121,6 +121,7 @@ class Test(object):
         assert inv.hosts["dev2.group_1"]["my_var"] == "comes_from_group_1"
         assert inv.hosts["dev3.group_2"]["my_var"] == "comes_from_defaults"
         assert inv.hosts["dev4.group_2"]["my_var"] == "comes_from_dev4.group_2"
+        assert inv.hosts["dev1.group_1"]["a_false_var"] is False
 
         assert inv.hosts["dev1.group_1"].data["my_var"] == "comes_from_dev1.group_1"
         with pytest.raises(KeyError):
