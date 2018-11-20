@@ -153,9 +153,11 @@ class Host(InventoryElement):
 
         except KeyError:
             for g in self.groups.refs:
-                r = g.get(item)
-                if r:
+                try:
+                    r = g[item]
                     return r
+                except KeyError:
+                    continue
 
             r = self.defaults.data.get(item)
             if r:
