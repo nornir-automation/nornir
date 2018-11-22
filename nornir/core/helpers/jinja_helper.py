@@ -11,9 +11,12 @@ def render_from_file(path, template, jinja_filters=None, **kwargs):
     return template.render(**kwargs)
 
 
-def render_from_string(template, jinja_filters=None, **kwargs):
+def render_from_string(template, path=None, jinja_filters=None, **kwargs):
     jinja_filters = jinja_filters or {}
-    env = Environment(undefined=StrictUndefined, trim_blocks=True)
+    if path:
+        env = Environment(undefined=StrictUndefined, trim_blocks=True, loader=FileSystemLoader(path))
+    else:
+        env = Environment(undefined=StrictUndefined, trim_blocks=True)
     env.filters.update(jinja_filters)
     template = env.from_string(template)
     return template.render(**kwargs)
