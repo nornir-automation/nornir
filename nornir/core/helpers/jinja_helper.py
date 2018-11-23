@@ -13,8 +13,10 @@ def render_from_file(path, template, jinja_filters=None, **kwargs):
 
 def render_from_string(template, path=None, jinja_filters=None, **kwargs):
     jinja_filters = jinja_filters or {}
-    if path:
-        env = Environment(undefined=StrictUndefined, trim_blocks=True, loader=FileSystemLoader(path))
+    if path is not None:
+        env = Environment(
+            undefined=StrictUndefined, trim_blocks=True, loader=FileSystemLoader(path)
+        )
     else:
         env = Environment(undefined=StrictUndefined, trim_blocks=True)
     env.filters.update(jinja_filters)
