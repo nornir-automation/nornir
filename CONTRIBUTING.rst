@@ -70,7 +70,7 @@ In order to run tests locally you need to have `Docker <https://docs.docker.com/
 
 .. code-block:: bash
 
-	pip -r requirements-dev.txt
+	pip install -r requirements-dev.txt
 
 Running tests
 -------------
