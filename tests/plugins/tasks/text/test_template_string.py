@@ -58,4 +58,3 @@ class Test(object):
                 assert "my_var: comes_from_host1.group_1" in r.result
             if h == "host2.group_1":
                 assert "my_var: comes_from_group_1" in r.result
-
