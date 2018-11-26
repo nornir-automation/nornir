@@ -4,7 +4,6 @@ from nornir.plugins.tasks import text
 
 from jinja2 import TemplateSyntaxError
 
-
 data_dir = "{}/test_data".format(os.path.dirname(os.path.realpath(__file__)))
 
 simple_j2 = """
@@ -46,3 +45,17 @@ class Test(object):
             assert isinstance(result.exception, TemplateSyntaxError)
         assert processed
         nornir.data.reset_failed_hosts()
+
+    def test_template_extends_string(self, nornir):
+        with open(data_dir + "/extends_simple.j2") as f:
+            template = f.read()
+
+        result = nornir.run(text.template_string, template=template, path=data_dir)
+        assert result
+        for h, r in result.items():
+            assert "host-name: {}".format(h) in r.result
+            if h == "host1.group_1":
+                assert "my_var: comes_from_host1.group_1" in r.result
+            if h == "host2.group_1":
+                assert "my_var: comes_from_group_1" in r.result
+
