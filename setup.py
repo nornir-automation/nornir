@@ -10,7 +10,7 @@ with open("README.md", "r") as fs:
 __author__ = "dbarrosop@dravetech.com"
 __license__ = "Apache License, version 2"
 
-__version__ = "2.0.0b2"
+__version__ = "2.0.0"
 
 setup(
     name="nornir",

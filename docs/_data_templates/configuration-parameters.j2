@@ -17,7 +17,7 @@
    * - **Default**
      - {{ "``{}``".format(v["default"]) if v["default"] else "" }}
    * - **Required**
-     - ``{{ v["required"] }}``
+     - ``{{ v["required"] or false }}``
    * - **Environment Variable**
      - ``{{ "NORNIR_{}_{}".format(section, k).upper() }}``
 

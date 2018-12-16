@@ -48,7 +48,6 @@ class ParentGroups(UserList):
     __slots__ = "refs"
 
     def __init__(self, *args, **kwargs) -> None:
-        self.data: List[str] = []
         super().__init__(*args, **kwargs)
         self.refs: List["Group"] = kwargs.get("refs", [])
 
