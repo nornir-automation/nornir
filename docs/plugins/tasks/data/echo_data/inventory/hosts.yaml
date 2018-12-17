@@ -1,0 +1,78 @@
+---
+cat:
+    groups:
+        - terrestrial
+        - mammal
+    data:
+        domestic: true
+        diet: omnivore
+        additional_data:
+            lifespan: 17
+            famous_members:
+                - garfield
+                - felix
+                - grumpy
+
+bat:
+    groups:
+        - terrestrial
+        - mammal
+    data:
+        domestic: false
+        fly: true
+        diet: carnivore
+        additional_data:
+            lifespan: 15
+            famous_members:
+                - batman
+                - count chocula
+                - nosferatu
+
+eagle:
+    groups:
+        - terrestrial
+        - bird
+    data:
+        domestic: false
+        diet: carnivore
+        additional_data:
+            lifespan: 50
+            famous_members:
+                - thorondor
+                - sam
+
+canary:
+    groups:
+        - terrestrial
+        - bird
+    data:
+        domestic: true
+        diet: herbivore
+        additional_data:
+            lifespan: 15
+            famous_members:
+                - tweetie
+
+caterpillaer:
+    groups:
+        - terrestrial
+        - invertebrate
+    data:
+        domestic: false
+        diet: herbivore
+        additional_data:
+            lifespan: 1
+            famous_members:
+                - Hookah-Smoking
+
+octopus:
+    groups:
+        - marine
+        - invertebrate
+    data:
+        domestic: false
+        diet: carnivore
+        additional_data:
+            lifespan: 1
+            famous_members:
+                - sharktopus
