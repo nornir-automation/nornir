@@ -1,0 +1,7 @@
+---
+inventory:
+    plugin: nornir.plugins.inventory.simple.SimpleInventory
+    options:
+        host_file: "transforming_inventory_data/inventory/hosts.yaml"
+        group_file: "transforming_inventory_data/inventory/groups.yaml"
+    transform_function: "transforming_inventory_data.helpers.adapt_host_data"

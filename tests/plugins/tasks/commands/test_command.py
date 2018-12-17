@@ -8,7 +8,6 @@ def echo_hostname(task):
 
 
 class Test(object):
-
     def test_command(self, nornir):
         result = nornir.run(echo_hostname)
         assert result
@@ -22,7 +21,6 @@ class Test(object):
             processed = True
             assert isinstance(r.exception, OSError)
         assert processed
-        nornir.data.reset_failed_hosts()
 
     def test_command_error_generic(self, nornir):
         result = nornir.run(commands.command, command="ls /asdadsd")
@@ -31,4 +29,3 @@ class Test(object):
             processed = True
             assert isinstance(r.exception, CommandError)
         assert processed
-        nornir.data.reset_failed_hosts()

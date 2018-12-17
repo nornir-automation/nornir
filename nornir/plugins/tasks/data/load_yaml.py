@@ -1,21 +1,28 @@
-from nornir.core.task import Result
+from nornir.core.task import Result, Task
+
+import ruamel.yaml
 
 
-import yaml
-
-
-def load_yaml(task, file):
+def load_yaml(task: Task, file: str):
     """
     Loads a yaml file.
 
     Arguments:
-        file (str): path to the file containing the yaml file to load
+        file: path to the file containing the yaml file to load
+
+    Examples:
+
+        Simple example with ``ordered_dict``::
+
+            > nr.run(task=load_yaml,
+                     file="mydata.yaml")
 
     Returns:
-        :obj:`nornir.core.task.Result`:
+        Result object with the following attributes set:
           * result (``dict``): dictionary with the contents of the file
     """
     with open(file, "r") as f:
-        data = yaml.load(f.read())
+        yml = ruamel.yaml.YAML(typ="safe")
+        data = yml.load(f)
 
     return Result(host=task.host, result=data)

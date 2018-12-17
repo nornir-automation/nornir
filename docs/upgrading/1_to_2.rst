@@ -1,0 +1,31 @@
+Upgrading to nornir 2.x from 1.x
+================================
+
+Changes in the inventory
+------------------------
+
+When specifying connection parameters, in nornir 1.x those parameters where specified with attributes like ``nornir_username``, ``nornir_password``, etc. All of those have been removed and now the only supported parameters are:
+
+* ``hostname``
+* ``username``
+* ``password``
+* ``port`` (which replaces both ``nornir_ssh_port`` and ``nornir_network_api_port``)
+* ``platform`` (which replaces both ``os`` and ``network_operating_system``)
+
+You can check the following how to for more details on `how to <../howto/handling_connections.rst>`_ use these parameters.
+
+Changed to path importing ``InitNornir``
+----------------------------------------
+
+In order to import ``InitNornir`` correctly you have to change the old path::
+
+    from nornir.core import InitNornir
+
+to::
+
+    from nornir import InitNornir
+
+Changes to the configuration
+----------------------------
+
+The format of the configuration has slightly changed. Some of the options that used to be under the root object, for instance ``num_workers``, ``jinja_filters`` and ``raise_on_error`` are now under ``core`` and ``jinja2`` sections. For details, go to the `configuration section <../configuration/index.rst>`_

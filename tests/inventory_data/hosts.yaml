@@ -1,37 +1,121 @@
 ---
 dev1.group_1:
+    port: 65001
+    hostname:
+    username:
+    password: a_password
+    platform: eos
+    data:
+        my_var: comes_from_dev1.group_1
+        www_server: nginx
+        role: www
+        nested_data:
+            a_dict:
+                a: 1
+                b: 2
+            a_list: [1, 2]
+            a_string: asdasd
     groups:
         - group_1
-    my_var: comes_from_dev1.group_1
-    www_server: nginx
-    role: www
-    nornir_ssh_port: 65001
-    nornir_nos: eos
-
+    connection_options:
+        paramiko:
+            port: 65001
+            hostname: 127.0.0.1
+            username: root
+            password: docker
+            platform: linux
+            extras: {}
+        dummy:
+            hostname: dummy_from_host
+            port:
+            username:
+            password:
+            platform:
+            extras:
+                blah: from_host
 dev2.group_1:
+    port: 65002
+    hostname:
+    username:
+    password:
+    platform: junos
+    data:
+        role: db
+        nested_data:
+            a_dict:
+                b: 2
+                c: 3
+            a_list: [2, 3]
+            a_string: qwe
     groups:
         - group_1
-    role: db
-    nornir_ssh_port: 65002
-    nornir_nos: junos
-
+    connection_options:
+        paramiko:
+            port: 65002
+            hostname: 127.0.0.1
+            username: root
+            password: docker
+            platform: linux
+            extras: {}
+        dummy2:
+            hostname:
+            port:
+            username: dummy2_from_host
+            password:
+            platform:
+            extras:
 dev3.group_2:
+    port: 65003
+    hostname:
+    username:
+    password:
+    platform: linux
+    data:
+        www_server: apache
+        role: www
     groups:
         - group_2
-    www_server: apache
-    role: www
-    nornir_ssh_port: 65003
-    nornir_network_api_port: 12443
-    nornir_os: linux
-    nornir_nos: mock
-    # nornir_username: vagrant
-    # nornir_password: vagrant
-
+    connection_options:
+        napalm:
+            platform: mock
+            hostname:
+            port:
+            username:
+            password:
+            extras: {}
 dev4.group_2:
+    port: 65004
+    hostname:
+    username:
+    password:
+    platform: linux
+    data:
+        my_var: comes_from_dev4.group_2
+        role: db
     groups:
         - group_2
-    my_var: comes_from_dev4.group_2
-    role: db
-    nornir_ssh_port: 65004
-    nornir_network_api_port: 65004
-    nornir_nos: linux
+        - parent_group
+    connection_options:
+        paramiko:
+            port: 65004
+            hostname: 127.0.0.1
+            username: root
+            password: docker
+            platform: linux
+            extras: {}
+        netmiko:
+            port: 65004
+            hostname: 127.0.0.1
+            username: root
+            password: docker
+            platform: linux
+            extras: {}
+dev5.no_group:
+    port: 65005
+    hostname: localhost
+    username:
+    password:
+    platform: linux
+    data: {}
+    groups: []
+    connection_options: {}

@@ -1,22 +1,24 @@
 import socket
+from typing import Optional, List
+
+from nornir.core.task import Result, Task
 
 
-from nornir.core.task import Result
-
-
-def tcp_ping(task, ports, timeout=2, host=None):
+def tcp_ping(
+    task: Task, ports: List[int], timeout: int = 2, host: Optional[str] = None
+) -> Result:
     """
     Tests connection to a tcp port and tries to establish a three way
     handshake. To be used for network discovery or testing.
 
     Arguments:
-        ports (list of int): tcp port to ping
-        timeout (int, optional): defaults to 0.5
-        host (string, optional): defaults to ``nornir_ip``
+        ports (list of int): tcp ports to ping
+        timeout (int, optional): defaults to 2
+        host (string, optional): defaults to ``hostname``
 
 
     Returns:
-        :obj:`nornir.core.task.Result`:
+        Result object with the following attributes set:
           * result (``dict``): Contains port numbers as keys with True/False as values
     """
 
@@ -30,7 +32,7 @@ def tcp_ping(task, ports, timeout=2, host=None):
     else:
         raise ValueError("Invalid value for 'ports'")
 
-    host = host or task.host.host
+    host = host or task.host.hostname
 
     result = {}
     for port in ports:

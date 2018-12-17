@@ -1,79 +1,100 @@
-import getpass
+from collections import UserList
+from typing import Any, Dict, List, Optional, Set, Union
+
+from nornir.core.configuration import Config
+from nornir.core.connections import ConnectionPlugin, Connections
+from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
 
 
-class Host(object):
-    """
-    Represents a host.
+class BaseAttributes(object):
+    __slots__ = ("hostname", "port", "username", "password", "platform")
 
-    Arguments:
-        name (str): Name of the host
-        group (:obj:`Group`, optional): Group the host belongs to
-        nornir (:obj:`nornir.core.Nornir`): Reference to the parent nornir object
-        **kwargs: Host data
+    def __init__(
+        self,
+        hostname: Optional[str] = None,
+        port: Optional[int] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        platform: Optional[str] = None,
+    ) -> None:
+        self.hostname = hostname
+        self.port = port
+        self.username = username
+        self.password = password
+        self.platform = platform
 
-    Attributes:
-        name (str): Name of the host
-        groups (list of :obj:`Group`): Groups the host belongs to
-        defaults (``dict``): Default values for host/group data
-        data (dict): data about the device
-        connections (``dict``): Already established connections
+    def __recursive_slots__(self):
+        s = self.__slots__
+        for b in self.__class__.__bases__:
+            if hasattr(b, "__recursive_slots__"):
+                s += b().__recursive_slots__()
+            elif hasattr(b, "__slots__"):
+                s += b.__slots__
+        return s
 
-    Note:
+    def dict(self):
+        return {k: object.__getattribute__(self, k) for k in self.__recursive_slots__()}
 
-        You can access the host data in two ways:
 
-        1. Via the ``data`` attribute - In this case you will get access
-           **only** to the data that belongs to the host.
-           2. Via the host itself as a dict - :obj:`Host` behaves like a
-           dict. The difference between accessing data via the ``data`` attribute
-           and directly via the host itself is that the latter will also
-           return the data if it's available via a parent :obj:`Group`.
+class ConnectionOptions(BaseAttributes):
+    __slots__ = ("extras",)
 
-        For instance::
+    def __init__(self, extras: Optional[Dict[str, Any]] = None, **kwargs) -> None:
+        self.extras = extras
+        super().__init__(**kwargs)
 
-            ---
-            # hosts
-            my_host:
-                ip: 1.2.3.4
-                groups: [bma]
 
-            ---
-            # groups
-            bma:
-                site: bma
+class ParentGroups(UserList):
+    __slots__ = "refs"
 
-            defaults:
-                domain: acme.com
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.refs: List["Group"] = kwargs.get("refs", [])
 
-        * ``my_host.data["ip"]`` will return ``1.2.3.4``
-        * ``my_host["ip"]`` will return ``1.2.3.4``
-        * ``my_host.data["site"]`` will ``fail``
-        * ``my_host["site"]`` will return ``bma``
-        * ``my_host.data["domain"]`` will ``fail``
-        * ``my_host.group.data["domain"]`` will ``fail``
-        * ``my_host["domain"]`` will return ``acme.com``
-        * ``my_host.group["domain"]`` will return ``acme.com``
-        * ``my_host.group.group.data["domain"]`` will return ``acme.com``
-    """
+    def __contains__(self, value) -> bool:
+        return value in self.data or value in self.refs
 
-    def __init__(self, name, groups=None, nornir=None, defaults=None, **kwargs):
-        self.nornir = nornir
+
+class InventoryElement(BaseAttributes):
+    __slots__ = ("groups", "data", "connection_options")
+
+    def __init__(
+        self,
+        groups: Optional[ParentGroups] = None,
+        data: Optional[Dict[str, Any]] = None,
+        connection_options: Optional[Dict[str, ConnectionOptions]] = None,
+        **kwargs,
+    ) -> None:
+        self.groups = groups or ParentGroups()
+        self.data = data or {}
+        self.connection_options = connection_options or {}
+        super().__init__(**kwargs)
+
+
+class Defaults(BaseAttributes):
+    __slots__ = ("data", "connection_options")
+
+    def __init__(
+        self,
+        data: Optional[Dict[str, Any]] = None,
+        connection_options: Optional[Dict[str, ConnectionOptions]] = None,
+        **kwargs,
+    ) -> None:
+        self.data = data or {}
+        self.connection_options = connection_options or {}
+        super().__init__(**kwargs)
+
+
+class Host(InventoryElement):
+    __slots__ = ("name", "connections", "defaults")
+
+    def __init__(
+        self, name: str, defaults: Optional[Defaults] = None, **kwargs
+    ) -> None:
         self.name = name
-        self.groups = groups or []
-        self.data = {}
-        self.data["name"] = name
-        self.connections = {}
-        self.defaults = defaults or {}
-        self._ssh_forward_agent = False
-
-        if len(self.groups):
-            if isinstance(groups[0], str):
-                self.data["groups"] = groups
-            else:
-                self.data["groups"] = [g.name for g in groups]
-
-        for k, v in kwargs.items():
-            self.data[k] = v
+        self.defaults = defaults or Defaults()
+        self.connections: Connections = Connections()
+        super().__init__(**kwargs)
 
     def _resolve_data(self):
         processed = []
@@ -81,12 +102,12 @@ class Host(object):
         for k, v in self.data.items():
             processed.append(k)
             result[k] = v
-        for g in self.groups:
+        for g in self.groups.refs:
             for k, v in g.items():
                 if k not in processed:
                     processed.append(k)
                     result[k] = v
-        for k, v in self.defaults.items():
+        for k, v in self.defaults.data.items():
             if k not in processed:
                 processed.append(k)
                 result[k] = v
@@ -107,39 +128,64 @@ class Host(object):
         """
         return self._resolve_data().items()
 
-    def to_dict(self):
-        """ Return a dictionary representing the object. """
-        return self.data
-
     def has_parent_group(self, group):
         """Retuns whether the object is a child of the :obj:`Group` ``group``"""
-        for g in self.groups:
-            if g is group or g.has_parent_group(group):
+        if isinstance(group, str):
+            return self._has_parent_group_by_name(group)
+
+        else:
+            return self._has_parent_group_by_object(group)
+
+    def _has_parent_group_by_name(self, group):
+        for g in self.groups.refs:
+            if g.name == group or g.has_parent_group(group):
                 return True
 
-        return False
+    def _has_parent_group_by_object(self, group):
+        for g in self.groups.refs:
+            if g is group or g.has_parent_group(group):
+                return True
 
     def __getitem__(self, item):
         try:
             return self.data[item]
 
         except KeyError:
-            for g in self.groups:
-                r = g.get(item)
-                if r:
+            for g in self.groups.refs:
+                try:
+                    r = g[item]
                     return r
+                except KeyError:
+                    continue
 
-            r = self.defaults.get(item)
+            r = self.defaults.data.get(item)
             if r:
                 return r
 
             raise
 
+    def __getattribute__(self, name):
+        if name not in ("hostname", "port", "username", "password", "platform"):
+            return object.__getattribute__(self, name)
+        v = object.__getattribute__(self, name)
+        if v is None:
+            for g in self.groups.refs:
+                r = getattr(g, name)
+                if r is not None:
+                    return r
+
+            return object.__getattribute__(self.defaults, name)
+        else:
+            return v
+
+    def __bool__(self):
+        return bool(self.name)
+
     def __setitem__(self, item, value):
         self.data[item] = value
 
     def __len__(self):
-        return len(self.keys())
+        return len(self._resolve_data().keys())
 
     def __iter__(self):
         return self.data.__iter__()
@@ -148,7 +194,7 @@ class Host(object):
         return self.name
 
     def __repr__(self):
-        return "{}: {}".format(self.__class__.__name__, self.name)
+        return "{}: {}".format(self.__class__.__name__, self.name or "")
 
     def get(self, item, default=None):
         """
@@ -158,188 +204,211 @@ class Host(object):
             item(``str``): The variable to get
             default(``any``): Return value if item not found
         """
+        if hasattr(self, item):
+            return getattr(self, item)
         try:
             return self.__getitem__(item)
 
         except KeyError:
             return default
 
-    @property
-    def nornir(self):
-        """Reference to the parent :obj:`nornir.core.Nornir` object"""
-        return self._nornir
+    def get_connection_parameters(
+        self, connection: Optional[str] = None
+    ) -> ConnectionOptions:
+        if not connection:
+            d = ConnectionOptions(
+                hostname=self.hostname,
+                port=self.port,
+                username=self.username,
+                password=self.password,
+                platform=self.platform,
+                extras={},
+            )
+        else:
+            r = self._get_connection_options_recursively(connection)
+            if r is not None:
+                d = ConnectionOptions(
+                    hostname=r.hostname if r.hostname is not None else self.hostname,
+                    port=r.port if r.port is not None else self.port,
+                    username=r.username if r.username is not None else self.username,
+                    password=r.password if r.password is not None else self.password,
+                    platform=r.platform if r.platform is not None else self.platform,
+                    extras=r.extras if r.extras is not None else {},
+                )
+            else:
+                d = ConnectionOptions(
+                    hostname=self.hostname,
+                    port=self.port,
+                    username=self.username,
+                    password=self.password,
+                    platform=self.platform,
+                    extras={},
+                )
+        return d
 
-    @nornir.setter
-    def nornir(self, value):
-        # If it's already set we don't want to set it again
-        # because we may lose valuable information
-        if not getattr(self, "_nornir", None):
-            self._nornir = value
+    def _get_connection_options_recursively(
+        self, connection: str
+    ) -> Optional[ConnectionOptions]:
+        p = self.connection_options.get(connection)
+        if p is None:
+            p = ConnectionOptions()
 
-    @property
-    def host(self):
-        """String used to connect to the device. Either ``nornir_host`` or ``self.name``"""
-        return self.get("nornir_host", self.name)
+        for g in self.groups.refs:
+            sp = g._get_connection_options_recursively(connection)
+            if sp is not None:
+                p.hostname = p.hostname if p.hostname is not None else sp.hostname
+                p.port = p.port if p.port is not None else sp.port
+                p.username = p.username if p.username is not None else sp.username
+                p.password = p.password if p.password is not None else sp.password
+                p.platform = p.platform if p.platform is not None else sp.platform
+                p.extras = p.extras if p.extras is not None else sp.extras
 
-    @property
-    def username(self):
-        """Either ``nornir_username`` or user running the script."""
-        return self.get("nornir_username", getpass.getuser())
+        sp = self.defaults.connection_options.get(connection, None)
+        if sp is not None:
+            p.hostname = p.hostname if p.hostname is not None else sp.hostname
+            p.port = p.port if p.port is not None else sp.port
+            p.username = p.username if p.username is not None else sp.username
+            p.password = p.password if p.password is not None else sp.password
+            p.platform = p.platform if p.platform is not None else sp.platform
+            p.extras = p.extras if p.extras is not None else sp.extras
+        return p
 
-    @property
-    def password(self):
-        """Either ``nornir_password`` or empty string."""
-        return self.get("nornir_password", "")
-
-    @property
-    def ssh_port(self):
-        """Either ``nornir_ssh_port`` or ``None``."""
-        return self.get("nornir_ssh_port")
-
-    @property
-    def network_api_port(self):
-        """
-        For network equipment this is the port where the device's API is listening to.
-        Either ``nornir_network_api_port`` or ``None``.
-        """
-        return self.get("nornir_network_api_port")
-
-    @property
-    def os(self):
-        """OS the device is running. Defaults to ``nornir_os``."""
-        return self.get("nornir_os")
-
-    @property
-    def nos(self):
-        """Network OS the device is running. Defaults to ``nornir_nos``."""
-        return self.get("nornir_nos")
-
-    def get_connection(self, connection):
+    def get_connection(self, connection: str, configuration: Config) -> Any:
         """
         The function of this method is twofold:
 
             1. If an existing connection is already established for the given type return it
-            2. If non exists, establish a new connection of that type with default parameters
-                and return it
+            2. If none exists, establish a new connection of that type with default parameters
+               and return it
 
         Raises:
-            AttributeError: if it's unknown how to establish a connection for the given
-                type
+            AttributeError: if it's unknown how to establish a connection for the given type
 
         Arguments:
-            connection_name (str): Name of the connection, for instance, netmiko, paramiko,
-                napalm...
+            connection: Name of the connection, for instance, netmiko, paramiko, napalm...
 
         Returns:
-            An already established connection of type ``connection``
+            An already established connection
         """
         if connection not in self.connections:
-            try:
-                conn_task = self.nornir.available_connections[connection]
-            except KeyError:
-                raise AttributeError(
-                    "not sure how to establish a connection for {}".format(connection)
-                )
+            self.open_connection(
+                connection=connection,
+                configuration=configuration,
+                **self.get_connection_parameters(connection).dict(),
+            )
+        return self.connections[connection].connection
 
-            # We use `filter(name=self.name)` to call the connection task for only
-            # the given host. We also have to set `num_workers=1` because chances are
-            # we are already inside a thread
-            # Task should establish a connection and populate self.connection[connection]
-            r = self.nornir.filter(name=self.name).run(conn_task, num_workers=1)
-            if r[self.name].exception:
-                raise r[self.name].exception
+    def get_connection_state(self, connection: str) -> Dict[str, Any]:
+        """
+        For an already established connection return its state.
+        """
+        if connection not in self.connections:
+            raise ConnectionNotOpen(connection)
 
+        return self.connections[connection].state
+
+    def open_connection(
+        self,
+        connection: str,
+        configuration: Config,
+        hostname: Optional[str] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        port: Optional[int] = None,
+        platform: Optional[str] = None,
+        extras: Optional[Dict[str, Any]] = None,
+        default_to_host_attributes: bool = True,
+    ) -> ConnectionPlugin:
+        """
+        Open a new connection.
+
+        If ``default_to_host_attributes`` is set to ``True`` arguments will default to host
+        attributes if not specified.
+
+        Raises:
+            AttributeError: if it's unknown how to establish a connection for the given type
+
+        Returns:
+            An already established connection
+        """
+        if connection in self.connections:
+            raise ConnectionAlreadyOpen(connection)
+
+        self.connections[connection] = self.connections.get_plugin(connection)()
+        if default_to_host_attributes:
+            conn_params = self.get_connection_parameters(connection)
+            self.connections[connection].open(
+                hostname=hostname if hostname is not None else conn_params.hostname,
+                username=username if username is not None else conn_params.username,
+                password=password if password is not None else conn_params.password,
+                port=port if port is not None else conn_params.port,
+                platform=platform if platform is not None else conn_params.platform,
+                extras=extras if extras is not None else conn_params.extras,
+                configuration=configuration,
+            )
+        else:
+            self.connections[connection].open(
+                hostname=hostname,
+                username=username,
+                password=password,
+                port=port,
+                platform=platform,
+                extras=extras,
+                configuration=configuration,
+            )
         return self.connections[connection]
+
+    def close_connection(self, connection: str) -> None:
+        """ Close the connection"""
+        if connection not in self.connections:
+            raise ConnectionNotOpen(connection)
+
+        self.connections.pop(connection).close()
+
+    def close_connections(self) -> None:
+        # Decouple deleting dictionary elements from iterating over connections dict
+        existing_conns = list(self.connections.keys())
+        for connection in existing_conns:
+            self.close_connection(connection)
 
 
 class Group(Host):
-    """Same as :obj:`Host`"""
+    pass
 
-    def children(self):
-        return {
-            n: h
-            for n, h in self.nornir.inventory.hosts.items()
-            if h.has_parent_group(self)
-        }
+
+class Hosts(Dict[str, Host]):
+    pass
+
+
+class Groups(Dict[str, Group]):
+    pass
 
 
 class Inventory(object):
-    """
-    An inventory contains information about hosts and groups.
-
-    Arguments:
-        hosts (dict): keys are hostnames and values are either :obj:`Host` or a dict
-            representing the host data.
-        groups (dict): keys are group names and values are either :obj:`Group` or a dict
-            representing the group data.
-        transform_function (callable): we will call this function for each host. This is useful
-            to manipulate host data and make it more consumable. For instance, if your inventory
-            has a "user" attribute you could use this function to map it to "nornir_user"
-
-    Attributes:
-        hosts (dict): keys are hostnames and values are :obj:`Host`.
-        groups (dict): keys are group names and the values are :obj:`Group`.
-    """
+    __slots__ = ("hosts", "groups", "defaults")
 
     def __init__(
-        self, hosts, groups=None, defaults=None, transform_function=None, nornir=None
-    ):
-        self._nornir = nornir
+        self,
+        hosts: Hosts,
+        groups: Optional[Groups] = None,
+        defaults: Optional[Defaults] = None,
+        transform_function=None,
+    ) -> None:
+        self.hosts = hosts
+        self.groups = groups or Groups()
+        self.defaults = defaults or Defaults()
 
-        self.defaults = defaults or {}
-
-        self.groups = groups or {}
-        for n, g in self.groups.items():
-            if isinstance(g, dict):
-                g = Group(name=n, nornir=nornir, **g)
-            self.groups[n] = g
-
+        for host in self.hosts.values():
+            host.groups.refs = [self.groups[p] for p in host.groups]
         for group in self.groups.values():
-            group.groups = self._resolve_groups(group.groups)
+            group.groups.refs = [self.groups[p] for p in group.groups]
 
-        self.hosts = {}
-        for n, h in hosts.items():
-            if isinstance(h, dict):
-                h = Host(name=n, nornir=nornir, defaults=self.defaults, **h)
-
-            if transform_function:
+        if transform_function:
+            for h in self.hosts.values():
                 transform_function(h)
 
-            h.groups = self._resolve_groups(h.groups)
-            self.hosts[n] = h
-
-    def _resolve_groups(self, groups):
-        r = []
-        if len(groups):
-            if not isinstance(groups[0], Group):
-                r = [self.groups[g] for g in groups]
-            else:
-                r = groups
-        return r
-
-    def filter(self, filter_func=None, **kwargs):
-        """
-        Returns a new inventory after filtering the hosts by matching the data passed to the
-        function. For instance, assume an inventory with::
-
-            ---
-            host1:
-                site: bma
-                role: http
-            host2:
-                site: cmh
-                role: http
-            host3:
-                site: bma
-                role: db
-
-        * ``my_inventory.filter(site="bma")`` will result in ``host1`` and ``host3``
-        * ``my_inventory.filter(site="bma", role="db")`` will result in ``host3`` only
-
-        Arguments:
-            filter_func (callable): if filter_func is passed it will be called against each
-              device. If the call returns ``True`` the device will be kept in the inventory
-        """
+    def filter(self, filter_obj=None, filter_func=None, *args, **kwargs):
+        filter_func = filter_obj or filter_func
         if filter_func:
             filtered = {n: h for n, h in self.hosts.items() if filter_func(h, **kwargs)}
         else:
@@ -348,31 +417,18 @@ class Inventory(object):
                 for n, h in self.hosts.items()
                 if all(h.get(k) == v for k, v in kwargs.items())
             }
-        return Inventory(hosts=filtered, groups=self.groups, nornir=self.nornir)
+        return Inventory(hosts=filtered, groups=self.groups, defaults=self.defaults)
 
     def __len__(self):
         return self.hosts.__len__()
 
-    @property
-    def nornir(self):
-        """Reference to the parent :obj:`nornir.core.Nornir` object"""
-        return self._nornir
-
-    @nornir.setter
-    def nornir(self, value):
-        if not getattr(self, "_nornir", None):
-            self._nornir = value
-
-        for h in self.hosts.values():
-            h.nornir = value
-
-        for g in self.groups.values():
-            g.nornir = value
-
-    def to_dict(self):
-        """ Return a dictionary representing the object. """
-        groups = {k: v.to_dict() for k, v in self.groups.items()}
-        groups["defaults"] = self.defaults
-        return {
-            "hosts": {k: v.to_dict() for k, v in self.hosts.items()}, "groups": groups
-        }
+    def children_of_group(self, group: Union[str, Group]) -> Set[Host]:
+        """
+        Returns set of hosts that belongs to a group including those that belong
+        indirectly via inheritance
+        """
+        hosts: List[Host] = set()
+        for host in self.hosts.values():
+            if host.has_parent_group(group):
+                hosts.add(host)
+        return hosts

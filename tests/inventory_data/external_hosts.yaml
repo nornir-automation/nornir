@@ -1,6 +1,6 @@
 ---
 www.github.com:
-    nornir_ip: www.github.com
+    hostname: www.github.com
 
 dummy:
-    nornir_ip: 1.1.1.1
+    hostname: 1.1.1.1

@@ -1,21 +1,33 @@
 import os
-from builtins import super
 
-from nornir.core.inventory import Inventory
+from nornir.core.deserializer.inventory import Inventory, HostsDict
+
 
 import requests
 
 
 class NBInventory(Inventory):
-
     def __init__(
         self,
         nb_url=None,
         nb_token=None,
         use_slugs=True,
         flatten_custom_fields=True,
-        **kwargs
-    ):
+        filter_parameters=None,
+        **kwargs,
+    ) -> None:
+        """
+        Netbox plugin
+
+        Arguments:
+            nb_url: Netbox url, defaults to http://localhost:8080.
+                You can also use env variable NB_URL
+            nb_token: Netbokx token. You can also use env variable NB_TOKEN
+            use_slugs: Whether to use slugs or not
+            flatten_custom_fields: Whether to assign custom fields directly to the host or not
+            filter_parameters: Key-value pairs to filter down hosts
+        """
+        filter_parameters = filter_parameters or {}
 
         nb_url = nb_url or os.environ.get("NB_URL", "http://localhost:8080")
         nb_token = nb_token or os.environ.get(
@@ -24,48 +36,50 @@ class NBInventory(Inventory):
         headers = {"Authorization": "Token {}".format(nb_token)}
 
         # Create dict of hosts using 'devices' from NetBox
-        r = requests.get("{}/api/dcim/devices/?limit=0".format(nb_url), headers=headers)
+        r = requests.get(
+            "{}/api/dcim/devices/?limit=0".format(nb_url),
+            headers=headers,
+            params=filter_parameters,
+        )
         r.raise_for_status()
         nb_devices = r.json()
 
-        devices = {}
+        hosts = {}
         for d in nb_devices["results"]:
-
-            # Create temporary dict
-            temp = {}
+            host: HostsDict = {"data": {}}
 
             # Add value for IP address
             if d.get("primary_ip", {}):
-                temp["nornir_host"] = d["primary_ip"]["address"].split("/")[0]
+                host["hostname"] = d["primary_ip"]["address"].split("/")[0]
 
             # Add values that don't have an option for 'slug'
-            temp["serial"] = d["serial"]
-            temp["vendor"] = d["device_type"]["manufacturer"]["name"]
-            temp["asset_tag"] = d["asset_tag"]
+            host["data"]["serial"] = d["serial"]
+            host["data"]["vendor"] = d["device_type"]["manufacturer"]["name"]
+            host["data"]["asset_tag"] = d["asset_tag"]
 
             if flatten_custom_fields:
                 for cf, value in d["custom_fields"].items():
-                    temp[cf] = value
+                    host["data"][cf] = value
             else:
-                temp["custom_fields"] = d["custom_fields"]
+                host["data"]["custom_fields"] = d["custom_fields"]
 
             # Add values that do have an option for 'slug'
             if use_slugs:
-                temp["site"] = d["site"]["slug"]
-                temp["role"] = d["device_role"]["slug"]
-                temp["model"] = d["device_type"]["slug"]
+                host["data"]["site"] = d["site"]["slug"]
+                host["data"]["role"] = d["device_role"]["slug"]
+                host["data"]["model"] = d["device_type"]["slug"]
 
                 # Attempt to add 'platform' based of value in 'slug'
-                temp["nornir_nos"] = d["platform"]["slug"] if d["platform"] else None
+                host["platform"] = d["platform"]["slug"] if d["platform"] else None
 
             else:
-                temp["site"] = d["site"]["name"]
-                temp["role"] = d["device_role"]
-                temp["model"] = d["device_type"]
-                temp["nornir_nos"] = d["platform"]
+                host["data"]["site"] = d["site"]["name"]
+                host["data"]["role"] = d["device_role"]
+                host["data"]["model"] = d["device_type"]
+                host["platform"] = d["platform"]
 
             # Assign temporary dict to outer dict
-            devices[d["name"]] = temp
+            hosts[d["name"]] = host
 
         # Pass the data back to the parent class
-        super().__init__(devices, None, **kwargs)
+        super().__init__(hosts=hosts, groups={}, defaults={}, **kwargs)

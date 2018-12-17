@@ -1,0 +1,4 @@
+---
+defaults:
+    data:
+        a_default_attribute: my_default

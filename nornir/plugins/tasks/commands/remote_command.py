@@ -1,30 +1,31 @@
 from nornir.core.exceptions import CommandError
-from nornir.core.task import Result
+from nornir.core.task import Result, Task
 
 from paramiko.agent import AgentRequestHandler
 
 
-def remote_command(task, command):
+def remote_command(task: Task, command: str) -> Result:
     """
-    Executes a command locally
+    Executes a command remotely on the host
 
     Arguments:
         command (``str``): command to execute
 
     Returns:
-        :obj:`nornir.core.task.Result`:
+        Result object with the following attributes set:
           * result (``str``): stderr or stdout
           * stdout (``str``): stdout
-          * stderr (``srr``): stderr
+          * stderr (``str``): stderr
 
     Raises:
         :obj:`nornir.core.exceptions.CommandError`: when there is a command error
     """
-    client = task.host.get_connection("paramiko")
+    client = task.host.get_connection("paramiko", task.nornir.config)
+    connection_state = task.host.get_connection_state("paramiko")
 
     chan = client.get_transport().open_session()
 
-    if task.host._ssh_forward_agent:
+    if connection_state["ssh_forward_agent"]:
         AgentRequestHandler(chan)
 
     chan.exec_command(command)

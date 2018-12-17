@@ -34,7 +34,7 @@ A first glance
 
 Here is an example on how to quickly build a runbook leveraging Nornir to retrieve information from the network::
 
-    from nornir.core import InitNornir
+    from nornir import InitNornir
     from nornir.plugins.functions.text import print_result
     from nornir.plugins.tasks.networking import napalm_get
 
@@ -61,6 +61,7 @@ Contents
    configuration/index
    plugins/index
    ref/index
+   upgrading/index
    Contribute <contributing/index>
 
 

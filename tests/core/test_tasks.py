@@ -3,6 +3,10 @@ import logging
 from nornir.plugins.tasks import commands
 
 
+def a_task_to_test_dry_run(task, expected_dry_run_value, dry_run=None):
+    assert task.is_dry_run(dry_run) is expected_dry_run_value
+
+
 def task_fails_for_some(task):
     if task.host.name == "dev3.group_2":
         # let's hardcode a failure
@@ -20,7 +24,6 @@ def sub_task(task):
 
 
 class Test(object):
-
     def test_task(self, nornir):
         result = nornir.run(commands.command, command="echo hi")
         assert result
@@ -51,8 +54,6 @@ class Test(object):
         assert not result.failed
         assert "dev3.group_2" not in result
 
-        nornir.data.reset_failed_hosts()
-
     def test_run_on(self, nornir):
         result = nornir.run(task_fails_for_some)
         assert result.failed
@@ -73,8 +74,6 @@ class Test(object):
         assert not result.failed
         assert "dev3.group_2" not in result
         assert "dev1.group_1" in result
-
-        nornir.data.reset_failed_hosts()
 
     def test_severity(self, nornir):
         r = nornir.run(commands.command, command="echo blah")
@@ -100,4 +99,20 @@ class Test(object):
                 assert result[0].severity_level == logging.WARN
                 assert result[1].severity_level == logging.DEBUG
 
-        nornir.data.reset_failed_hosts()
+    def test_dry_run(self, nornir):
+        host = nornir.filter(name="dev3.group_2")
+        r = host.run(a_task_to_test_dry_run, expected_dry_run_value=True)
+        assert not r["dev3.group_2"].failed
+
+        r = host.run(
+            a_task_to_test_dry_run, dry_run=False, expected_dry_run_value=False
+        )
+        assert not r["dev3.group_2"].failed
+
+        nornir.data.dry_run = False
+        r = host.run(a_task_to_test_dry_run, expected_dry_run_value=False)
+        assert not r["dev3.group_2"].failed
+
+        nornir.data.dry_run = True
+        r = host.run(a_task_to_test_dry_run, expected_dry_run_value=False)
+        assert r["dev3.group_2"].failed

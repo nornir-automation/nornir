@@ -1,14 +1,22 @@
 import copy
+from typing import Any, Dict, List, Optional
 
-from nornir.core.task import Result
+from nornir.core.task import Result, Task
+
+GetterOptionsDict = Optional[Dict[str, Dict[str, Any]]]
 
 
-def napalm_get(task, getters, getters_options=None, **kwargs):
+def napalm_get(
+    task: Task,
+    getters: List[str],
+    getters_options: GetterOptionsDict = None,
+    **kwargs: Any
+) -> Result:
     """
     Gather information from network devices using napalm
 
     Arguments:
-        getters (list of str): getters to use
+        getters: getters to use
         getters_options (dict of dicts): When passing multiple getters you
             pass a dictionary where the outer key is the getter name
             and the included dictionary represents the options to pass
@@ -35,10 +43,10 @@ def napalm_get(task, getters, getters_options=None, **kwargs):
             >        getters_options={"config": {"retrieve": "all"}})
 
     Returns:
-        :obj:`nornir.core.task.Result`:
+        Result object with the following attributes set:
           * result (``dict``): dictionary with the result of the getter
     """
-    device = task.host.get_connection("napalm")
+    device = task.host.get_connection("napalm", task.nornir.config)
     getters_options = getters_options or {}
 
     if isinstance(getters, str):

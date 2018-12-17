@@ -1,0 +1,18 @@
+---
+mammal:
+    data:
+        reproduction: birth
+        fly: false
+
+bird:
+    data:
+        reproduction: eggs
+        fly: true
+
+invertebrate:
+    data:
+        reproduction: mitosis
+        fly: false
+
+terrestrial: {}
+marine: {}

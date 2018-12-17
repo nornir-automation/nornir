@@ -3,7 +3,6 @@ from nornir.plugins.tasks import commands
 
 
 class Test(object):
-
     def test_remote_command(self, nornir):
         result = nornir.run(commands.remote_command, command="hostname")
         assert result
@@ -17,4 +16,3 @@ class Test(object):
             processed = True
             assert isinstance(r.exception, CommandError)
         assert processed
-        nornir.data.reset_failed_hosts()

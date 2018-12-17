@@ -1,21 +1,28 @@
-from __future__ import unicode_literals
+from typing import Any, List, Optional
 
-from nornir.core.task import Result
+from nornir.core.task import Result, Task
 
 
-def netmiko_send_config(task, config_commands=None, config_file=None, **kwargs):
+def netmiko_send_config(
+    task: Task,
+    config_commands: Optional[List[str]] = None,
+    config_file: Optional[str] = None,
+    **kwargs: Any
+) -> Result:
     """
     Execute Netmiko send_config_set method (or send_config_from_file)
+
     Arguments:
-        config_commands(list, optional): Commands to configure on the remote network device.
-        config_file(str, optional): File to read configuration commands from.
-        kwargs (dict, optional): Additional arguments to pass to method.
+        config_commands: Commands to configure on the remote network device.
+        config_file: File to read configuration commands from.
+        kwargs: Additional arguments to pass to method.
 
     Returns:
-        :obj:`nornir.core.task.Result`:
-          * result (``dict``): dictionary showing the CLI from the configuration changes.
+        Result object with the following attributes set:
+          * result (``str``): string showing the CLI from the configuration changes.
     """
-    net_connect = task.host.get_connection("netmiko")
+    net_connect = task.host.get_connection("netmiko", task.nornir.config)
+    net_connect.enable()
     if config_commands:
         result = net_connect.send_config_set(config_commands=config_commands, **kwargs)
     elif config_file:

@@ -10,9 +10,10 @@ data_dir = "{}/test_data".format(os.path.dirname(os.path.realpath(__file__)))
 
 
 class Test(object):
-
     def test_template_file(self, nornir):
-        result = nornir.run(text.template_file, template="simple.j2", path=data_dir)
+        result = nornir.run(
+            text.template_file, template="simple.j2", my_var="asd", path=data_dir
+        )
 
         assert result
         for h, r in result.items():
@@ -29,4 +30,3 @@ class Test(object):
             processed = True
             assert isinstance(result.exception, TemplateSyntaxError)
         assert processed
-        nornir.data.reset_failed_hosts()

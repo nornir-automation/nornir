@@ -31,7 +31,6 @@ def verify_data_change(task):
 
 
 class Test(object):
-
     def test_blocking_task_single_thread(self, nornir):
         t1 = datetime.datetime.now()
         nornir.run(blocking_task, wait=0.5, num_workers=1)
@@ -54,7 +53,6 @@ class Test(object):
             assert isinstance(k, str), k
             assert isinstance(v.exception, Exception), v
         assert processed
-        nornir.data.reset_failed_hosts()
 
     def test_failing_task_simple_multithread(self, nornir):
         result = nornir.run(failing_task_simple, num_workers=NUM_WORKERS)
@@ -64,7 +62,6 @@ class Test(object):
             assert isinstance(k, str), k
             assert isinstance(v.exception, Exception), v
         assert processed
-        nornir.data.reset_failed_hosts()
 
     def test_failing_task_complex_singlethread(self, nornir):
         result = nornir.run(failing_task_complex, num_workers=1)
@@ -74,7 +71,6 @@ class Test(object):
             assert isinstance(k, str), k
             assert isinstance(v.exception, CommandError), v
         assert processed
-        nornir.data.reset_failed_hosts()
 
     def test_failing_task_complex_multithread(self, nornir):
         result = nornir.run(failing_task_complex, num_workers=NUM_WORKERS)
@@ -84,7 +80,6 @@ class Test(object):
             assert isinstance(k, str), k
             assert isinstance(v.exception, CommandError), v
         assert processed
-        nornir.data.reset_failed_hosts()
 
     def test_failing_task_complex_multithread_raise_on_error(self, nornir):
         with pytest.raises(NornirExecutionError) as e:

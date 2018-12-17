@@ -25,10 +25,9 @@ my_var: {{ my_var}}
 
 
 class Test(object):
-
     def test_template_string(self, nornir):
 
-        result = nornir.run(text.template_string, template=simple_j2)
+        result = nornir.run(text.template_string, template=simple_j2, my_var="asd")
 
         assert result
         for h, r in result.items():
@@ -45,4 +44,3 @@ class Test(object):
             processed = True
             assert isinstance(result.exception, TemplateSyntaxError)
         assert processed
-        nornir.data.reset_failed_hosts()

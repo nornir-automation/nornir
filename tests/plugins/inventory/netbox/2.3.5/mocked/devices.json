@@ -185,7 +185,7 @@
       "vc_position": null,
       "vc_priority": null,
       "comments": "",
-      "custom_fields": {},
+      "custom_fields": {"user_defined": 1},
       "created": "2018-07-12",
       "last_updated": "2018-07-12T11:53:54.866133Z"
     }

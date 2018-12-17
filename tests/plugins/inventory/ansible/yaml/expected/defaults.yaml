@@ -1,0 +1,9 @@
+connection_options: {}
+data:
+  my_other_var: from_all
+  my_var: from_all
+hostname: null
+password: null
+platform: null
+port: null
+username: null

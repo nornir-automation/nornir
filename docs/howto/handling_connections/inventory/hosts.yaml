@@ -1,0 +1,8 @@
+---
+rtr00:
+    connection_options:
+        napalm:
+            platform: mock
+            extras:
+                optional_args:
+                    path: handling_connections/mocked_data
