@@ -1,6 +1,6 @@
 import logging
 import traceback
-from builtins import super
+from typing import Optional
 
 from nornir.core.exceptions import NornirExecutionError
 from nornir.core.exceptions import NornirSubTaskError
@@ -56,7 +56,7 @@ class Task(object):
         self.host = host
         self.nornir = nornir
 
-        logger = logging.getLogger("nornir")
+        logger = logging.getLogger(__name__)
         try:
             logger.info("{}: {}: running task".format(self.host.name, self.name))
             r = self.task(self, **self.params)
@@ -117,7 +117,7 @@ class Task(object):
         Arguments:
             override (bool): Override for current task
         """
-        return override if override is not None else self.nornir.dry_run
+        return override if override is not None else self.nornir.data.dry_run
 
 
 class Result(object):
@@ -162,6 +162,9 @@ class Result(object):
         self.exception = exception
         self.name = None
         self.severity_level = severity_level
+
+        self.stdout: Optional[str] = None
+        self.stderr: Optional[str] = None
 
         for k, v in kwargs.items():
             setattr(self, k, v)

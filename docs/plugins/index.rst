@@ -3,9 +3,8 @@ Plugins
 
 .. toctree::
    :maxdepth: 2
-   :caption: Plugins
 
-   tasks/index
+   connections/index
    functions/index
    inventory/index
-
+   tasks/index

@@ -1,9 +1,10 @@
-import os
 import logging
+import os
 
+from nornir.core.task import Result
 from nornir.plugins.functions.text import print_result
 from nornir.plugins.functions.text import print_title
-from nornir.core.task import Result
+
 from tests.wrapper import wrap_cli_test
 
 output_dir = "{}/output_data".format(os.path.dirname(os.path.realpath(__file__)))
@@ -61,7 +62,6 @@ def read_data(task):
 
 
 class Test(object):
-
     @wrap_cli_test(output="{}/basic_single".format(output_dir))
     def test_print_basic(self, nornir):
         filter = nornir.filter(name="dev1.group_1")

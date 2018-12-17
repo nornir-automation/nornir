@@ -1,0 +1,66 @@
+{
+	"hosts": {
+		"1-Core": {
+			"port": null,
+			"hostname": "10.0.1.1",
+			"username": null,
+			"password": null,
+			"platform": null,
+			"data": {
+				"serial": "",
+				"vendor": "Juniper",
+				"asset_tag": null,
+				"site": "sunnyvale-ca",
+				"role": "rt",
+				"model": "mx480"
+			},
+			"connection_options": {},
+			"groups": []
+		},
+		"2-Distribution": {
+			"port": null,
+			"hostname": "172.16.2.1",
+			"username": null,
+			"password": null,
+			"platform": null,
+			"data": {
+				"serial": "",
+				"vendor": "Juniper",
+				"asset_tag": null,
+				"site": "sunnyvale-ca",
+				"role": "rt",
+				"model": "ex4550-32f"
+			},
+			"connection_options": {},
+			"groups": []
+		},
+		"3-Access": {
+			"port": null,
+			"hostname": "192.168.3.1",
+			"username": null,
+			"password": null,
+			"platform": null,
+			"data": {
+                "user_defined": 1,
+				"serial": "",
+				"vendor": "Cisco",
+				"asset_tag": null,
+				"site": "san-jose-ca",
+				"role": "sw",
+				"model": "3650-48tq-l"
+			},
+			"connection_options": {},
+			"groups": []
+		}
+	},
+	"groups": {},
+	"defaults": {
+		"port": null,
+		"hostname": null,
+		"username": null,
+		"password": null,
+		"platform": null,
+		"data": {},
+		"connection_options": {}
+	}
+}

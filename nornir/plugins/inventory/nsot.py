@@ -1,7 +1,7 @@
 import os
-from builtins import super
+from typing import Any
 
-from nornir.core.inventory import Inventory
+from nornir.core.deserializer.inventory import Inventory, InventoryElement
 
 import requests
 
@@ -21,31 +21,31 @@ class NSOTInventory(Inventory):
         * ``NSOT_SECRET_KEY``: Corresponds to nsot_secret_key argument
 
     Arguments:
-        flatten_attributes (bool): Assign host attributes to the root object. Useful
+        flatten_attributes: Assign host attributes to the root object. Useful
             for filtering hosts.
-        nsot_url (string): URL to nsot's API (defaults to ``http://localhost:8990/api``)
-        nsot_email (string): email for authtication (defaults to admin@acme.com)
-        nsot_auth_header (string): String for auth_header authentication (defaults to X-NSoT-Email)
-        nsot_secret_key (string): Secret Key for auth_token method. If given auth_token
+        nsot_url: URL to nsot's API (defaults to ``http://localhost:8990/api``)
+        nsot_email: email for authtication (defaults to admin@acme.com)
+        nsot_auth_header: String for auth_header authentication (defaults to X-NSoT-Email)
+        nsot_secret_key: Secret Key for auth_token method. If given auth_token
             will be used as auth_method.
     """
 
     def __init__(
         self,
-        nsot_url="",
-        nsot_email="",
-        nsot_auth_method="",
-        nsot_secret_key="",
-        nsot_auth_header="",
-        flatten_attributes=True,
-        **kwargs
-    ):
+        nsot_url: str = "",
+        nsot_email: str = "",
+        nsot_secret_key: str = "",
+        nsot_auth_header: str = "",
+        flatten_attributes: bool = True,
+        *args: Any,
+        **kwargs: Any
+    ) -> None:
         nsot_url = nsot_url or os.environ.get("NSOT_URL", "http://localhost:8990/api")
         nsot_email = nsot_email or os.environ.get("NSOT_EMAIL", "admin@acme.com")
-        nsot_secret_key = nsot_secret_key or os.environ.get("NSOT_SECRET_KEY")
+        secret_key = nsot_secret_key or os.environ.get("NSOT_SECRET_KEY")
 
-        if nsot_secret_key:
-            data = {"email": nsot_email, "secret_key": nsot_secret_key}
+        if secret_key:
+            data = {"email": nsot_email, "secret_key": secret_key}
             res = requests.post("{}/authenticate/".format(nsot_url), data=data)
             auth_token = res.json().get("auth_token")
             headers = {
@@ -66,19 +66,25 @@ class NSOTInventory(Inventory):
 
         # We resolve site_id and assign "site" variable with the name of the site
         for d in devices:
-            d["site"] = sites[d["site_id"] - 1]["name"]
-            d["interfaces"] = {}
+            d["data"] = {"site": sites[d["site_id"] - 1]["name"], "interfaces": {}}
+
+            remove_keys = []
+            for k, v in d.items():
+                if k not in InventoryElement().fields:
+                    remove_keys.append(k)
+                    d["data"][k] = v
+            for r in remove_keys:
+                d.pop(r)
 
             if flatten_attributes:
                 # We assign attributes to the root
-                for k, v in d.pop("attributes").items():
-                    d[k] = v
+                for k, v in d["data"].pop("attributes").items():
+                    d["data"][k] = v
 
         # We assign the interfaces to the hosts
         for i in interfaces:
-            devices[i["device"] - 1]["interfaces"][i["name"]] = i
+            devices[i["device"] - 1]["data"]["interfaces"][i["name"]] = i
 
         # Finally the inventory expects a dict of hosts where the key is the hostname
-        devices = {d["hostname"]: d for d in devices}
-
-        super().__init__(devices, None, **kwargs)
+        hosts = {d["hostname"]: d for d in devices}
+        return super().__init__(hosts=hosts, groups={}, defaults={}, *args, **kwargs)

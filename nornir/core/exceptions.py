@@ -1,4 +1,42 @@
-from builtins import super
+class ConnectionException(Exception):
+    """
+    Superclass for all the Connection* Exceptions
+    """
+
+    def __init__(self, connection):
+        self.connection = connection
+
+
+class ConnectionAlreadyOpen(ConnectionException):
+    """
+    Raised when opening an already opened connection
+    """
+
+    pass
+
+
+class ConnectionNotOpen(ConnectionException):
+    """
+    Raised when trying to close a connection that isn't open
+    """
+
+    pass
+
+
+class ConnectionPluginAlreadyRegistered(ConnectionException):
+    """
+    Raised when trying to register an already registered plugin
+    """
+
+    pass
+
+
+class ConnectionPluginNotRegistered(ConnectionException):
+    """
+    Raised when trying to access a plugin that is not registered
+    """
+
+    pass
 
 
 class CommandError(Exception):
@@ -36,6 +74,9 @@ class NornirExecutionError(Exception):
 
     @property
     def failed_hosts(self):
+        """
+        Hosts that failed to complete the task
+        """
         return {k: v for k, v in self.result.items() if v.failed}
 
     def __str__(self):

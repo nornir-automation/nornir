@@ -1,6 +1,0 @@
----
-num_workers: 10
-raise_on_error: no
-user_defined: "asdasd"
-my_root:
-    user_defined: "i am nested"

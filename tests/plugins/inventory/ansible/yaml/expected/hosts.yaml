@@ -1,21 +1,54 @@
 bar.example.com:
+  connection_options: {}
+  data: {}
   groups:
   - webservers
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null
 foo.example.com:
+  connection_options: {}
+  data: {}
   groups:
   - frontend
   - webservers
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null
 one.example.com:
+  connection_options: {}
+  data:
+    my_var: from_one.example.com
   groups:
   - dbservers
-  my_var: from_one.example.com
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null
 three.example.com:
-  nornir_host: 192.0.2.50
-  nornir_ssh_port: 5555
+  connection_options: {}
+  data: {}
   groups:
   - dbservers
+  hostname: 192.0.2.50
+  password: null
+  platform: null
+  port: 5555
+  username: null
 two.example.com:
+  connection_options: {}
+  data:
+    my_var: from_hostfile
+    whatever: asdasd
   groups:
   - dbservers
-  my_var: from_hostfile
-  whatever: asdasd
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null

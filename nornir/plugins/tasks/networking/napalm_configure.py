@@ -1,24 +1,30 @@
-from nornir.core.task import Result
+from typing import Optional
+
+from nornir.core.task import Result, Task
 
 
 def napalm_configure(
-    task, dry_run=None, filename=None, configuration=None, replace=False
-):
+    task: Task,
+    dry_run: Optional[bool] = None,
+    filename: Optional[str] = None,
+    configuration: Optional[str] = None,
+    replace: bool = False,
+) -> Result:
     """
     Loads configuration into a network devices using napalm
 
     Arguments:
-        dry_run (bool): Whether to apply changes or not
-        configuration (str): configuration to load into the device
-        filename (str): filename containing the configuration to load into the device
-        replace (bool): whether to replace or merge the configuration
+        dry_run: Whether to apply changes or not
+        filename: filename containing the configuration to load into the device
+        configuration: configuration to load into the device
+        replace: whether to replace or merge the configuration
 
     Returns:
-        :obj:`nornir.core.task.Result`:
-          * changed (``bool``): whether if the task is changing the system or not
+        Result object with the following attributes set:
+          * changed (``bool``): whether the task is changing the system or not
           * diff (``string``): change in the system
     """
-    device = task.host.get_connection("napalm")
+    device = task.host.get_connection("napalm", task.nornir.config)
 
     if replace:
         device.load_replace_candidate(filename=filename, config=configuration)

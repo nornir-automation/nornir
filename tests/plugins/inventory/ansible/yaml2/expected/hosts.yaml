@@ -1,9 +1,28 @@
 one.example.com:
+  connection_options: {}
+  data: {}
   groups: []
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null
 three.example.com:
-  nornir_host: 192.0.2.50
-  nornir_ssh_port: 5555
+  connection_options: {}
+  data: {}
   groups: []
+  hostname: 192.0.2.50
+  password: null
+  platform: null
+  port: 5555
+  username: null
 two.example.com:
+  connection_options: {}
+  data:
+    my_var: from_hostfile
   groups: []
-  my_var: from_hostfile
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null

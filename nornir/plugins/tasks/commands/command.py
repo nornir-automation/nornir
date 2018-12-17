@@ -3,21 +3,22 @@ import subprocess
 
 
 from nornir.core.exceptions import CommandError
-from nornir.core.task import Result
+from nornir.core.task import Result, Task
 
 
-def command(task, command):
+def command(task: Task, command: str) -> Result:
     """
     Executes a command locally
 
     Arguments:
-        command (``str``): command to execute
+        command: command to execute
 
     Returns:
-        :obj:`nornir.core.task.Result`:
+        Result object with the following attributes set:
           * result (``str``): stderr or stdout
           * stdout (``str``): stdout
-          * stderr (``srr``): stderr
+          * stderr (``str``): stderr
+
     Raises:
         :obj:`nornir.core.exceptions.CommandError`: when there is a command error
     """

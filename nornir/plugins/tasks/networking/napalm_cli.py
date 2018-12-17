@@ -1,17 +1,19 @@
-from nornir.core.task import Result
+from typing import List
+
+from nornir.core.task import Result, Task
 
 
-def napalm_cli(task, commands):
+def napalm_cli(task: Task, commands: List[str]) -> Result:
     """
     Run commands on remote devices using napalm
 
     Arguments:
-        commands (``list``): List of commands to execute
+        commands: commands to execute
 
     Returns:
-        :obj:`nornir.core.task.Result`:
-          * result (``dict``): dictionary with the result of the commands
+        Result object with the following attributes set:
+          * result (``dict``): result of the commands execution
     """
-    device = task.host.get_connection("napalm")
+    device = task.host.get_connection("napalm", task.nornir.config)
     result = device.cli(commands)
     return Result(host=task.host, result=result)

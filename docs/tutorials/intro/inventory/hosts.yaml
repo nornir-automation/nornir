@@ -1,138 +1,162 @@
 ---
 host1.cmh:
-    nornir_host: 127.0.0.1
-    nornir_ssh_port: 2201
-    nornir_username: vagrant
-    nornir_password: vagrant
-    site: cmh
-    role: host
+    hostname: 127.0.0.1
+    port: 2201
+    username: vagrant
+    password: vagrant
+    platform: linux
     groups:
         - cmh
-    nornir_nos: linux
-    type: host
+    data:
+        site: cmh
+        role: host
+        type: host
+        nested_data:
+            a_dict:
+                a: 1
+                b: 2
+            a_list: [1, 2]
+            a_string: "asdasd"
 
 host2.cmh:
-    nornir_host: 127.0.0.1
-    nornir_ssh_port: 2202
-    nornir_username: vagrant
-    nornir_password: vagrant
-    site: cmh
-    role: host
+    hostname: 127.0.0.1
+    port: 2202
+    username: vagrant
+    password: vagrant
+    platform: linux
     groups:
         - cmh
-    nornir_nos: linux
-    type: host
+    data:
+        site: cmh
+        role: host
+        type: host
+        nested_data:
+            a_dict:
+                b: 2
+                c: 3
+            a_list: [1, 2]
+            a_string: "qwe"
 
 spine00.cmh:
-    nornir_host: 127.0.0.1
-    nornir_username: vagrant
-    nornir_password: vagrant
-    nornir_network_api_port: 12444
-    site: cmh
-    role: spine
+    hostname: 127.0.0.1
+    username: vagrant
+    password: vagrant
+    port: 12444
+    platform: eos
     groups:
         - cmh
-    nornir_nos: eos
-    type: network_device
+    data:
+        site: cmh
+        role: spine
+        type: network_device
 
 spine01.cmh:
-    nornir_host: 127.0.0.1
-    nornir_username: vagrant
-    nornir_password: ""
-    nornir_network_api_port: 12204
-    site: cmh
-    role: spine
+    hostname: 127.0.0.1
+    username: vagrant
+    password: ""
+    platform: junos
+    port: 12204
     groups:
         - cmh
-    nornir_nos: junos
-    type: network_device
+    data:
+        site: cmh
+        role: spine
+        type: network_device
 
 leaf00.cmh:
-    nornir_host: 127.0.0.1
-    nornir_username: vagrant
-    nornir_password: vagrant
-    nornir_network_api_port: 12443
-    site: cmh
-    role: leaf
+    hostname: 127.0.0.1
+    username: vagrant
+    password: vagrant
+    port: 12443
+    platform: eos
     groups:
         - cmh
-    nornir_nos: eos
-    type: network_device
-    asn: 65100
+    data:
+        site: cmh
+        role: leaf
+        type: network_device
+        asn: 65100
 
 leaf01.cmh:
-    nornir_host: 127.0.0.1
-    nornir_username: vagrant
-    nornir_password: ""
-    nornir_network_api_port: 12203
-    site: cmh
-    role: leaf
+    hostname: 127.0.0.1
+    username: vagrant
+    password: ""
+    port: 12203
+    platform: junos
     groups:
         - cmh
-    nornir_nos: junos
-    type: network_device
-    asn: 65101
+    data:
+        site: cmh
+        role: leaf
+        type: network_device
+        asn: 65101
 
 host1.bma:
-    site: bma
-    role: host
     groups:
         - bma
-    nornir_nos: linux
-    type: host
+    platform: linux
+    data:
+        site: bma
+        role: host
+        type: host
 
 host2.bma:
-    site: bma
-    role: host
     groups:
         - bma
-    nornir_nos: linux
-    type: host
+    platform: linux
+    data:
+        site: bma
+        role: host
+        type: host
 
 spine00.bma:
-    nornir_host: 127.0.0.1
-    nornir_username: vagrant
-    nornir_password: vagrant
-    nornir_network_api_port: 12444
-    site: bma
-    role: spine
+    hostname: 127.0.0.1
+    username: vagrant
+    password: vagrant
+    port: 12444
+    platform: eos
     groups:
         - bma
-    nornir_nos: eos
-    type: network_device
+    data:
+        site: bma
+        role: spine
+        type: network_device
 
 spine01.bma:
-    nornir_host: 127.0.0.1
-    nornir_username: vagrant
-    nornir_password: ""
-    nornir_network_api_port: 12204
-    site: bma
-    role: spine
+    hostname: 127.0.0.1
+    username: vagrant
+    password: ""
+    port: 12204
+    platform: junos
     groups:
         - bma
-    nornir_nos: junos
-    type: network_device
+    data:
+        site: bma
+        role: spine
+        type: network_device
 
 leaf00.bma:
-    nornir_host: 127.0.0.1
-    nornir_username: vagrant
-    nornir_password: vagrant
-    nornir_network_api_port: 12443
-    site: bma
-    role: leaf
+    hostname: 127.0.0.1
+    username: vagrant
+    password: vagrant
+    port: 12443
+    platform: eos
     groups:
         - bma
-    nornir_nos: eos
-    type: network_device
+    data:
+        site: bma
+        role: leaf
+        type: network_device
 
 leaf01.bma:
-    nornir_host: 127.0.0.1
-    nornir_username: vagrant
-    nornir_password: wrong_password
-    nornir_network_api_port: 12203
-    site: bma
-    role: leaf
+    hostname: 127.0.0.1
+    username: vagrant
+    password: wrong_password
+    port: 12203
+    platform: junos
     groups:
         - bma
-    nornir_nos: junos
-    type: network_device
+    data:
+        site: bma
+        role: leaf
+        type: network_device

@@ -1,0 +1,8 @@
+---
+core:
+    num_workers: 10
+    raise_on_error: false
+inventory:
+    plugin: nornir.plugins.inventory.ansible.AnsibleInventory
+user_defined:
+    asd: qwe

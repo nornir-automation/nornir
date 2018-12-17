@@ -28,3 +28,10 @@ Hello from Nornir
 [1m[32m---- load_data ** changed : False ---------------------------------------------- INFO
 {'os': 'Linux', 'services': ['http', 'smtp', 'dns']}
 [1m[32m^^^^ END data_with_greeting ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[34m* dev5.no_group ** changed : False *********************************************
+[1m[32mvvvv data_with_greeting ** changed : False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv INFO
+[1m[32m---- echo_task ** changed : False ---------------------------------------------- INFO
+Hello from Nornir
+[1m[32m---- load_data ** changed : False ---------------------------------------------- INFO
+{'os': 'Linux', 'services': ['http', 'smtp', 'dns']}
+[1m[32m^^^^ END data_with_greeting ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

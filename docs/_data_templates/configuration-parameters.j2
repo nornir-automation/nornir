@@ -1,29 +1,29 @@
-The configuration parameters will be set by the :doc:`Nornir.core.configuration.Config </ref/api/configuration>` class.
+{% macro document_section(section, schema) %}
+{{ section }}
+{{ "-" * section|length }}
 
-{% for k, v in params|dictsort %}
-----------
+{% for k, v in schema["properties"].items() -%}
 
-{{ k }}
-----------------------------------
+``{{ k }}``
+{{ "_" * (k|length + 4) }}
 
+.. list-table::
+   :widths: 15 85
 
-.. raw:: html
+   * - **Description**
+     - {{ v["description"] }}
+   * - **Type**
+     - ``{{ v["type"] }}``
+   * - **Default**
+     - {{ "``{}``".format(v["default"]) if v["default"] else "" }}
+   * - **Required**
+     - ``{{ v["required"] or false }}``
+   * - **Environment Variable**
+     - ``{{ "NORNIR_{}_{}".format(section, k).upper() }}``
 
-	<table border="1" class="docutils">
-		<th>Environment variable</th>
-		<th>Type</th>
-		<th>Default</th>
-			<tr>
-			{% if v['type'] in ('str', 'int', 'bool') %}
-				<td>{{ v['env'] or 'BRIGADE_' + k|upper }}</td>
-			{% else %}
-				<td>N/A</td>
-			{% endif %}
-				<td>{{ v['type'] }}</td>
-				<td>{{ v['default_doc'] or v['default'] }}</td>
-			</tr>
-	</table>
+{% endfor %}
+{%- endmacro %}
 
-{{ v['description'] }}
-
+{% for k, v in schema["properties"].items() if k not in ["user_defined"] %}
+{{ document_section(k, v) }}
 {% endfor %}

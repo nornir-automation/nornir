@@ -18,18 +18,17 @@ def get_inv(requests_mock, case, **kwargs):
                 json=json.load(f),
                 headers={"Content-type": "application/json"},
             )
-    return nsot.NSOTInventory(**kwargs)
+    return nsot.NSOTInventory.deserialize(**kwargs)
 
 
 def transform_function(host):
     attrs = ["user", "password"]
     for a in attrs:
         if a in host.data:
-            host["nornir_{}".format(a)] = host.data[a]
+            host["modified_{}".format(a)] = host.data[a]
 
 
 class Test(object):
-
     def test_inventory(self, requests_mock):
         inv = get_inv(requests_mock, "1.3.0", transform_function=transform_function)
         assert len(inv.hosts) == 4
@@ -40,5 +39,5 @@ class Test(object):
     def test_transform_function(self, requests_mock):
         inv = get_inv(requests_mock, "1.3.0", transform_function=transform_function)
         for host in inv.hosts.values():
-            assert host["user"] == host["nornir_user"]
-            assert host["password"] == host["nornir_password"]
+            assert host["user"] == host["modified_user"]
+            assert host["password"] == host["modified_password"]
