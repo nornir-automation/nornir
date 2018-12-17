@@ -7,10 +7,10 @@ def echo_data(task: Task, **kwargs):
     to debug data passed to tasks.
 
     Arguments:
-        **kwargs: Any <key,value> pair you want
+        ``**kwargs``: Any <key,value> pair you want
 
     Returns:
         Result object with the following attributes set:
-          * result (``dict``): **kwargs passed to the task
+          * result (``dict``): ``**kwargs`` passed to the task
     """
     return Result(host=task.host, result=kwargs)
