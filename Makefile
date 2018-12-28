@@ -22,38 +22,38 @@ build_test_container:
 		build nornir
 
 .PHONY: enter-container
-enter-container: build_test_container
+enter-container:
 	${DOCKER_COMPOSE} \
 		run nornir bash
 
 .PHONY: pytest
-pytest: build_test_container
+pytest:
 	${DOCKER_COMPOSE} \
 		run nornir py.test --cov=nornir --cov-report=term-missing -vs ${ARGS}
 
 .PHONY: black
-black: build_test_container
+black:
 	${DOCKER_COMPOSE} \
 		run nornir black --check .
 
 .PHONY: sphinx
-sphinx: build_test_container
+sphinx:
 	# TODO REPLACE with: sphinx-build -n -E -q -N -b dummy -d docs/_build/doctrees docs asd
 	${DOCKER_COMPOSE} \
 		run nornir sphinx-build -W -b html -d docs/_build/doctrees docs docs/_build/html
 
 .PHONY: pylama
-pylama: build_test_container
+pylama:
 	${DOCKER_COMPOSE} \
 		run nornir pylama .
 
 .PHONY: mypy
-mypy: build_test_container
+mypy:
 	${DOCKER_COMPOSE} \
 		run nornir mypy .
 
 .PHONY: nbval
-nbval: build_test_container
+nbval:
 	${DOCKER_COMPOSE} \
 		run nornir \
 			pytest --nbval \
@@ -61,3 +61,8 @@ nbval: build_test_container
 				docs/howto \
 				docs/tutorials/intro/initializing_nornir.ipynb \
 				docs/tutorials/intro/inventory.ipynb \
+
+PHONY: tests
+tests: build_test_container black sphinx pylama mypy nbval
+	make pytest PYTEST=3.6
+	make pytest PYTEST=3.7
