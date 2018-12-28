@@ -1,26 +1,25 @@
 sudo: required
 services:
 - docker
-addons:
-  apt_packages:
-  - pandoc
 language: python
 python:
 - 3.6
 matrix:
   include:
   - python: 3.6
-    env: TESTS=pytest
+    env: TESTS=pytest PYTHON=3.6
   - python: 3.6
-    env: TESTS=sphinx
+    env: TESTS=pytest PYTHON=3.7
   - python: 3.6
-    env: TESTS=black
+    env: TESTS=sphinx PYTHON=3.6
   - python: 3.6
-    env: TESTS=pylama
+    env: TESTS=black PYTHON=3.6
   - python: 3.6
-    env: TESTS=mypy
+    env: TESTS=pylama PYTHON=3.6
   - python: 3.6
-    env: TESTS=nbval
+    env: TESTS=mypy PYTHON=3.6
+  - python: 3.6
+    env: TESTS=nbval PYTHON=3.6
 install:
 - pip install tox tox-travis coveralls
 script:

@@ -6,6 +6,8 @@ services:
         build:
             context: .
             dockerfile: Dockerfile.tests
+            args:
+                PYTHON: ${PYTHON}
     dev1.group_1:
         image: dbarroso/stupid_ssh_container
         ports:

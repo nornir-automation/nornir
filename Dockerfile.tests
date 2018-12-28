@@ -1,4 +1,6 @@
-FROM python:3.6-stretch
+ARG PYTHON
+
+FROM python:${PYTHON}-stretch
 
 RUN apt-get update && apt-get install -y pandoc
 
