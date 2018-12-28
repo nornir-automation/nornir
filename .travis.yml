@@ -1,25 +1,16 @@
 sudo: required
+dist: xenial
 services:
 - docker
-language: python
-python:
-- 3.6
 matrix:
   include:
-  - python: 3.6
-    env: TESTS=pytest PYTHON=3.6
-  - python: 3.6
-    env: TESTS=pytest PYTHON=3.7
-  - python: 3.6
-    env: TESTS=sphinx PYTHON=3.6
-  - python: 3.6
-    env: TESTS=black PYTHON=3.6
-  - python: 3.6
-    env: TESTS=pylama PYTHON=3.6
-  - python: 3.6
-    env: TESTS=mypy PYTHON=3.6
-  - python: 3.6
-    env: TESTS=nbval PYTHON=3.6
+  - env: PYTHON=3.6 TESTS=pytest
+  - env: PYTHON=3.7 TESTS=pytest
+  - env: PYTHON=3.6 TESTS=sphinx
+  - env: PYTHON=3.6 TESTS=black
+  - env: PYTHON=3.6 TESTS=pylama
+  - env: PYTHON=3.6 TESTS=mypy
+  - env: PYTHON=3.6 TESTS=nbval
 install:
 - pip install tox tox-travis coveralls
 script:
