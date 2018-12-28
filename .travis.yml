@@ -12,6 +12,7 @@ matrix:
   - env: PYTHON=3.6 TESTS=mypy
   - env: PYTHON=3.6 TESTS=nbval
 script:
+- make start_dev_env
 - make $TESTS
 deploy:
   provider: pypi
