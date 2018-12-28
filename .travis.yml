@@ -11,8 +11,6 @@ matrix:
   - env: PYTHON=3.6 TESTS=pylama
   - env: PYTHON=3.6 TESTS=mypy
   - env: PYTHON=3.6 TESTS=nbval
-install:
-- pip install tox tox-travis coveralls
 script:
 - make $TESTS
 deploy:

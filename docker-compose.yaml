@@ -8,27 +8,62 @@ services:
             dockerfile: Dockerfile.tests
             args:
                 PYTHON: ${PYTHON}
+        extra_hosts:
+            dev1.group_1: 10.21.33.101
+            dev2.group_1: 10.21.33.102
+            dev3.group_2: 10.21.33.103
+            dev4.group_2: 10.21.33.104
+            dev5.no_group: 10.21.33.105
+            httpbin: 10.21.33.201
+        networks:
+            net1:
+                ipv4_address: 10.21.33.2
+
     dev1.group_1:
+        hostname: dev1.group_1
         image: dbarroso/stupid_ssh_container
-        ports:
-            - "65001:22"
+        networks:
+            net1:
+                ipv4_address: 10.21.33.101
+
     dev2.group_1:
+        hostname: dev2.group_1
         image: dbarroso/stupid_ssh_container
-        ports:
-            - "65002:22"
+        networks:
+            net1:
+                ipv4_address: 10.21.33.102
+
     dev3.group_2:
+        hostname: dev3.group_2
         image: dbarroso/stupid_ssh_container
-        ports:
-            - "65003:22"
+        networks:
+            net1:
+                ipv4_address: 10.21.33.103
+
     dev4.group_2:
+        hostname: dev4.group_2
         image: dbarroso/stupid_ssh_container
-        ports:
-            - "65004:22"
+        networks:
+            net1:
+                ipv4_address: 10.21.33.104
+
     dev5.no_group:
+        hostname: dev5.no_group
         image: dbarroso/stupid_ssh_container
-        ports:
-            - "65005:22"
+        networks:
+            net1:
+                ipv4_address: 10.21.33.105
+
     httpbin:
+        hostname: httpbin
         image: bungoume/httpbin-container
-        ports:
-            - "65080:80"
+        networks:
+            net1:
+                ipv4_address: 10.21.33.201
+
+networks:
+    net1:
+        driver: bridge
+        ipam:
+            config:
+            - subnet: 10.21.33.0/24

@@ -1,7 +1,7 @@
 ---
 dev1.group_1:
-    port: 65001
-    hostname:
+    port: 22
+    hostname: dev1.group_1
     username:
     password: a_password
     platform: eos
@@ -19,8 +19,8 @@ dev1.group_1:
         - group_1
     connection_options:
         paramiko:
-            port: 65001
-            hostname: 127.0.0.1
+            port: 22
+            hostname:
             username: root
             password: docker
             platform: linux
@@ -34,8 +34,8 @@ dev1.group_1:
             extras:
                 blah: from_host
 dev2.group_1:
-    port: 65002
-    hostname:
+    port: 22
+    hostname: dev2.group_1
     username:
     password:
     platform: junos
@@ -51,8 +51,8 @@ dev2.group_1:
         - group_1
     connection_options:
         paramiko:
-            port: 65002
-            hostname: 127.0.0.1
+            port:
+            hostname:
             username: root
             password: docker
             platform: linux
@@ -65,8 +65,8 @@ dev2.group_1:
             platform:
             extras:
 dev3.group_2:
-    port: 65003
-    hostname:
+    port: 22
+    hostname: dev3.group_2
     username:
     password:
     platform: linux
@@ -84,8 +84,8 @@ dev3.group_2:
             password:
             extras: {}
 dev4.group_2:
-    port: 65004
-    hostname:
+    port: 22
+    hostname: dev4.group_2
     username:
     password:
     platform: linux
@@ -97,22 +97,22 @@ dev4.group_2:
         - parent_group
     connection_options:
         paramiko:
-            port: 65004
-            hostname: 127.0.0.1
+            port:
+            hostname: dev4.group_2
             username: root
             password: docker
             platform: linux
             extras: {}
         netmiko:
-            port: 65004
-            hostname: 127.0.0.1
+            port:
+            hostname: dev4.group_2
             username: root
             password: docker
             platform: linux
             extras: {}
 dev5.no_group:
-    port: 65005
-    hostname: localhost
+    port: 22
+    hostname: dev5.no_group
     username:
     password:
     platform: linux

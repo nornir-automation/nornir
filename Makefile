@@ -21,10 +21,15 @@ build_test_container:
 	${DOCKER_COMPOSE} \
 		build nornir
 
+.PHONY: enter-container
+enter-container: build_test_container
+	${DOCKER_COMPOSE} \
+		run nornir bash
+
 .PHONY: pytest
 pytest: build_test_container
 	${DOCKER_COMPOSE} \
-		run nornir py.test --cov=nornir --cov-report=term-missing -vs
+		run nornir py.test --cov=nornir --cov-report=term-missing -vs ${ARGS}
 
 .PHONY: black
 black: build_test_container
