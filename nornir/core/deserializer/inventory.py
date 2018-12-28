@@ -108,7 +108,9 @@ class Inventory(BaseModel):
     defaults: Defaults
 
     @classmethod
-    def deserialize(cls, transform_function=None, *args, **kwargs):
+    def deserialize(
+        cls, transform_function=None, transform_function_options={}, *args, **kwargs
+    ):
         deserialized = cls(*args, **kwargs)
 
         defaults_dict = deserialized.defaults.dict()
@@ -131,6 +133,7 @@ class Inventory(BaseModel):
             groups=groups,
             defaults=defaults,
             transform_function=transform_function,
+            transform_function_options=transform_function_options,
         )
 
     @classmethod

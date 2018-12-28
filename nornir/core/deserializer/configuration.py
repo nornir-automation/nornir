@@ -43,6 +43,9 @@ class InventoryConfig(BaseSettings):
             "you provide will run against each host in the inventory"
         ),
     )
+    transform_function_options: Dict[str, Any] = Schema(
+        default={}, description="kwargs to pass to the transform_function"
+    )
 
     class Config:
         env_prefix = "NORNIR_INVENTORY_"
@@ -55,6 +58,7 @@ class InventoryConfig(BaseSettings):
             plugin=cast(Type[Inventory], _resolve_import_from_string(inv.plugin)),
             options=inv.options,
             transform_function=_resolve_import_from_string(inv.transform_function),
+            transform_function_options=inv.transform_function_options,
         )
 
 
