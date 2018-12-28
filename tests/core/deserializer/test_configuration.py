@@ -165,6 +165,16 @@ class Test(object):
         os.environ.pop("NORNIR_CORE_RAISE_ON_ERROR")
         os.environ.pop("NORNIR_SSH_CONFIG_FILE")
 
+    def test_deep_merge_overrides(self):
+        os.environ["NORNIR_CORE_NUM_WORKERS"] = "30"
+        config = ConfigDeserializer.deserialize(
+            deep_merge=True, core={"raise_on_error": True}, user_defined={"foo": "bar"}
+        )
+        assert config.core.num_workers == 30
+        os.environ.pop("NORNIR_CORE_NUM_WORKERS")
+        assert config.core.raise_on_error
+        assert config.user_defined["foo"] == "bar"
+
     def test_configuration_bool_env(self):
         os.environ["NORNIR_CORE_RAISE_ON_ERROR"] = "0"
         config = ConfigDeserializer.deserialize()

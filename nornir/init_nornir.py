@@ -21,6 +21,7 @@ def cls_to_string(cls: Callable[..., Any]) -> str:
 
 def InitNornir(
     config_file: str = "",
+    deep_merge: bool = False,
     dry_run: bool = False,
     configure_logging: bool = True,
     **kwargs: Dict[str, Any],
@@ -28,6 +29,9 @@ def InitNornir(
     """
     Arguments:
         config_file(str): Path to the configuration file (optional)
+        deep_merge(bool): Whether to merge config file settings and
+            `kwarg` parameters (true) or replace config file with
+            `kwarg` patameters (false, default)
         dry_run(bool): Whether to simulate changes or not
         **kwargs: Extra information to pass to the
             :obj:`nornir.core.configuration.Config` object
@@ -45,7 +49,7 @@ def InitNornir(
             kwargs["inventory"]["transform_function"]
         )
 
-    conf = Config.load_from_file(config_file, **kwargs)
+    conf = Config.load_from_file(config_file, deep_merge=deep_merge, **kwargs)
 
     data = GlobalState(dry_run=dry_run)
 
