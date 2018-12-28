@@ -1,0 +1,32 @@
+---
+version: '2.1'
+
+services:
+    nornir:
+        build:
+            context: .
+            dockerfile: Dockerfile.tests
+    dev1.group_1:
+        image: dbarroso/stupid_ssh_container
+        ports:
+            - "65001:22"
+    dev2.group_1:
+        image: dbarroso/stupid_ssh_container
+        ports:
+            - "65002:22"
+    dev3.group_2:
+        image: dbarroso/stupid_ssh_container
+        ports:
+            - "65003:22"
+    dev4.group_2:
+        image: dbarroso/stupid_ssh_container
+        ports:
+            - "65004:22"
+    dev5.no_group:
+        image: dbarroso/stupid_ssh_container
+        ports:
+            - "65005:22"
+    httpbin:
+        image: bungoume/httpbin-container
+        ports:
+            - "65080:80"

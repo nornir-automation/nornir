@@ -1,6 +1,5 @@
 import logging
 import os
-import subprocess
 
 from nornir import InitNornir
 from nornir.core.state import GlobalState
@@ -17,30 +16,6 @@ logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s - %(name)s - %(levelname)s - %(funcName)20s() - %(message)s",
 )
-
-
-@pytest.fixture(scope="session", autouse=True)
-def containers(request):
-    """Start/Stop containers needed for the tests."""
-
-    def fin():
-        logging.info("Stopping containers")
-        subprocess.check_call(
-            ["./tests/inventory_data/containers.sh", "stop"],
-            stderr=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-        )
-
-    request.addfinalizer(fin)
-
-    try:
-        fin()
-    except Exception:
-        pass
-    logging.info("Starting containers")
-    subprocess.check_call(
-        ["./tests/inventory_data/containers.sh", "start"], stdout=subprocess.PIPE
-    )
 
 
 @pytest.fixture(scope="session", autouse=True)

@@ -10,21 +10,21 @@ python:
 matrix:
   include:
   - python: 3.6
-    env: TOXENV=py36
+    env: TESTS=pytest
   - python: 3.6
-    env: TOXENV=sphinx
+    env: TESTS=sphinx
   - python: 3.6
-    env: TOXENV=black
+    env: TESTS=black
   - python: 3.6
-    env: TOXENV=pylama
+    env: TESTS=pylama
   - python: 3.6
-    env: TOXENV=mypy
+    env: TESTS=mypy
   - python: 3.6
-    env: TOXENV=nbval
+    env: TESTS=nbval
 install:
 - pip install tox tox-travis coveralls
 script:
-- tox
+- make $TESTS
 deploy:
   provider: pypi
   user: dbarroso

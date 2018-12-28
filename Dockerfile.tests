@@ -1,0 +1,16 @@
+FROM python:3.6-stretch
+
+RUN apt-get update && apt-get install -y pandoc
+
+ADD docs/requirements.txt /tmp/requirements-docs.txt
+RUN pip install -r /tmp/requirements-docs.txt
+
+ADD requirements.txt /tmp/
+ADD requirements-dev.txt /tmp/
+RUN pip install -r /tmp/requirements-dev.txt
+
+ADD . /nornir
+
+RUN pip install /nornir
+
+WORKDIR "/nornir"
