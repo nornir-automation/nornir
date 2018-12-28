@@ -1,11 +1,6 @@
-import os
 
 
 from nornir.plugins.tasks import networking
-
-
-cur_dir = os.path.dirname(os.path.realpath(__file__))
-ext_inv_file = "{}/../../../inventory_data/external_hosts.yaml".format(cur_dir)
 
 
 class Test(object):
