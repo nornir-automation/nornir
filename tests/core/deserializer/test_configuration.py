@@ -28,6 +28,7 @@ class Test(object):
                 "plugin": "nornir.plugins.inventory.simple.SimpleInventory",
                 "options": {},
                 "transform_function": "",
+                "transform_function_options": {},
             },
             "ssh": {"config_file": "~/.ssh/config"},
             "logging": {
@@ -53,6 +54,7 @@ class Test(object):
                 "plugin": "nornir.plugins.inventory.simple.SimpleInventory",
                 "options": {},
                 "transform_function": "",
+                "transform_function_options": {},
             },
             "ssh": {"config_file": "~/.ssh/config"},
             "logging": {
@@ -86,6 +88,7 @@ class Test(object):
         assert c.inventory.plugin == SimpleInventory
         assert c.inventory.options == {}
         assert c.inventory.transform_function is None
+        assert c.inventory.transform_function_options == {}
 
     def test_deserialize_basic(self):
         c = ConfigDeserializer.deserialize(
@@ -112,6 +115,7 @@ class Test(object):
         assert c.inventory.plugin == AnsibleInventory
         assert c.inventory.options == {}
         assert c.inventory.transform_function is None
+        assert c.inventory.transform_function_options == {}
 
     def test_jinja_filters(self):
         c = ConfigDeserializer.deserialize(

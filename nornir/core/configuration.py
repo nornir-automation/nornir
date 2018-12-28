@@ -15,17 +15,19 @@ class SSHConfig(object):
 
 
 class InventoryConfig(object):
-    __slots__ = "plugin", "options", "transform_function"
+    __slots__ = "plugin", "options", "transform_function", "transform_function_options"
 
     def __init__(
         self,
         plugin: Type["Inventory"],
         options: Dict[str, Any],
         transform_function: Optional[Callable[..., Any]],
+        transform_function_options: Optional[Dict[str, Any]],
     ) -> None:
         self.plugin = plugin
         self.options = options
         self.transform_function = transform_function
+        self.transform_function_options = transform_function_options
 
 
 class LoggingConfig(object):
