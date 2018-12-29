@@ -1,6 +1,6 @@
 import importlib
 import logging
-from typing import Any, Callable, Dict, List, Optional, Type, cast
+from typing import Any, Callable, Dict, List, Optional, Type, Union, cast
 
 from nornir.core import configuration
 from nornir.core.deserializer.inventory import Inventory
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class BaseNornirSettings(BaseSettings):
-    def _build_values(self, init_kwargs):
+    def _build_values(self, init_kwargs: Dict[str, Any]) -> Dict[str, Any]:
         config_settings = init_kwargs.pop("__config_settings__", {})
         return {**config_settings, **self._build_environ(), **init_kwargs}
 
@@ -29,7 +29,7 @@ class SSHConfig(BaseNornirSettings):
         ignore_extra = False
 
     @classmethod
-    def deserialize(cls, **kwargs) -> configuration.SSHConfig:
+    def deserialize(cls, **kwargs: Any) -> configuration.SSHConfig:
         s = SSHConfig(**kwargs)
         return configuration.SSHConfig(**s.dict())
 
@@ -58,7 +58,7 @@ class InventoryConfig(BaseNornirSettings):
         ignore_extra = False
 
     @classmethod
-    def deserialize(cls, **kwargs) -> configuration.InventoryConfig:
+    def deserialize(cls, **kwargs: Any) -> configuration.InventoryConfig:
         inv = InventoryConfig(**kwargs)
         return configuration.InventoryConfig(
             plugin=cast(Type[Inventory], _resolve_import_from_string(inv.plugin)),
@@ -85,7 +85,7 @@ class LoggingConfig(BaseNornirSettings):
         ignore_extra = False
 
     @classmethod
-    def deserialize(cls, **kwargs) -> configuration.LoggingConfig:
+    def deserialize(cls, **kwargs: Any) -> configuration.LoggingConfig:
         logging_config = LoggingConfig(**kwargs)
         return configuration.LoggingConfig(
             level=getattr(logging, logging_config.level.upper()),
@@ -106,7 +106,7 @@ class Jinja2Config(BaseNornirSettings):
         ignore_extra = False
 
     @classmethod
-    def deserialize(cls, **kwargs) -> configuration.Jinja2Config:
+    def deserialize(cls, **kwargs: Any) -> configuration.Jinja2Config:
         c = Jinja2Config(**kwargs)
         jinja_filter_func = _resolve_import_from_string(c.filters)
         jinja_filters = jinja_filter_func() if jinja_filter_func else {}
@@ -132,7 +132,7 @@ class CoreConfig(BaseNornirSettings):
         ignore_extra = False
 
     @classmethod
-    def deserialize(cls, **kwargs) -> configuration.CoreConfig:
+    def deserialize(cls, **kwargs: Any) -> configuration.CoreConfig:
         c = CoreConfig(**kwargs)
         return configuration.CoreConfig(**c.dict())
 
@@ -153,7 +153,7 @@ class Config(BaseNornirSettings):
 
     @classmethod
     def deserialize(
-        cls, __config_settings__: Optional[Dict[str, Any]] = None, **kwargs
+        cls, __config_settings__: Optional[Dict[str, Any]] = None, **kwargs: Any
     ) -> configuration.Config:
         __config_settings__ = __config_settings__ or {}
         c = Config(
@@ -190,7 +190,7 @@ class Config(BaseNornirSettings):
         )
 
     @classmethod
-    def load_from_file(cls, config_file: str, **kwargs) -> configuration.Config:
+    def load_from_file(cls, config_file: str, **kwargs: Any) -> configuration.Config:
         config_dict: Dict[str, Any] = {}
         if config_file:
             yml = ruamel.yaml.YAML(typ="safe")
@@ -199,7 +199,9 @@ class Config(BaseNornirSettings):
         return Config.deserialize(__config_settings__=config_dict, **kwargs)
 
 
-def _resolve_import_from_string(import_path: Any) -> Optional[Callable[..., Any]]:
+def _resolve_import_from_string(
+    import_path: Union[Callable[..., Any], str]
+) -> Optional[Callable[..., Any]]:
     try:
         if not import_path:
             return None
@@ -207,7 +209,7 @@ def _resolve_import_from_string(import_path: Any) -> Optional[Callable[..., Any]
             return import_path
         module_name, obj_name = import_path.rsplit(".", 1)
         module = importlib.import_module(module_name)
-        return getattr(module, obj_name)
+        return cast(Callable[..., Any], getattr(module, obj_name))
     except Exception as e:
         logger.error(f"failed to load import_path '{import_path}'\n{e}")
         raise
