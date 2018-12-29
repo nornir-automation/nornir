@@ -1,4 +1,4 @@
-from typing import Any, Callable
+from typing import Any, Callable, Dict
 
 from nornir.core import Nornir
 from nornir.core.connections import Connections
@@ -19,7 +19,12 @@ def cls_to_string(cls: Callable[..., Any]) -> str:
     return f"{cls.__module__}.{cls.__name__}"
 
 
-def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
+def InitNornir(
+    config_file: str = "",
+    dry_run: bool = False,
+    configure_logging: bool = True,
+    **kwargs: Dict[str, Any],
+) -> Nornir:
     """
     Arguments:
         config_file(str): Path to the configuration file (optional)

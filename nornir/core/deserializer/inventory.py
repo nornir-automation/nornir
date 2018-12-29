@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from nornir.core import inventory
 
@@ -110,7 +110,7 @@ class Inventory(BaseModel):
     @classmethod
     def deserialize(
         cls,
-        transform_function: Optional[str] = None,
+        transform_function: Optional[Callable[..., Any]],
         transform_function_options: Optional[Dict[str, Any]] = None,
         *args: Any,
         **kwargs: Any
