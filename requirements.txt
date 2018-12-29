@@ -7,4 +7,4 @@ future
 requests
 ruamel.yaml
 mypy_extensions
-pydantic
+-e git+git@github.com:samuelcolvin/pydantic.git@0b4f10f483b59e1a1e19a9208ebde36822ebee16#egg=pydantic

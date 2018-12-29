@@ -13,7 +13,13 @@ import ruamel.yaml
 logger = logging.getLogger(__name__)
 
 
-class SSHConfig(BaseSettings):
+class BaseNornirSettings(BaseSettings):
+    def _build_values(self, init_kwargs):
+        config_settings = init_kwargs.pop("__config_settings__", {})
+        return {**config_settings, **self._build_environ(), **init_kwargs}
+
+
+class SSHConfig(BaseNornirSettings):
     config_file: str = Schema(
         default="~/.ssh/config", description="Path to ssh configuration file"
     )
@@ -28,7 +34,7 @@ class SSHConfig(BaseSettings):
         return configuration.SSHConfig(**s.dict())
 
 
-class InventoryConfig(BaseSettings):
+class InventoryConfig(BaseNornirSettings):
     plugin: str = Schema(
         default="nornir.plugins.inventory.simple.SimpleInventory",
         description="Import path to inventory plugin",
@@ -62,7 +68,7 @@ class InventoryConfig(BaseSettings):
         )
 
 
-class LoggingConfig(BaseSettings):
+class LoggingConfig(BaseNornirSettings):
     level: str = Schema(default="debug", description="Logging level")
     file: str = Schema(default="nornir.log", descritpion="Logging file")
     format: str = Schema(
@@ -90,7 +96,7 @@ class LoggingConfig(BaseSettings):
         )
 
 
-class Jinja2Config(BaseSettings):
+class Jinja2Config(BaseNornirSettings):
     filters: str = Schema(
         default="", description="Path to callable returning jinja filters to be used"
     )
@@ -107,7 +113,7 @@ class Jinja2Config(BaseSettings):
         return configuration.Jinja2Config(filters=jinja_filters)
 
 
-class CoreConfig(BaseSettings):
+class CoreConfig(BaseNornirSettings):
     num_workers: int = Schema(
         default=20,
         description="Number of Nornir worker threads that are run at the same time by default",
@@ -131,7 +137,7 @@ class CoreConfig(BaseSettings):
         return configuration.CoreConfig(**c.dict())
 
 
-class Config(BaseSettings):
+class Config(BaseNornirSettings):
     core: CoreConfig = CoreConfig()
     inventory: InventoryConfig = InventoryConfig()
     ssh: SSHConfig = SSHConfig()
@@ -146,13 +152,32 @@ class Config(BaseSettings):
         ignore_extra = False
 
     @classmethod
-    def deserialize(cls, **kwargs) -> configuration.Config:
+    def deserialize(
+        cls, __config_settings__: Optional[Dict[str, Any]] = None, **kwargs
+    ) -> configuration.Config:
+        __config_settings__ = __config_settings__ or {}
         c = Config(
-            core=CoreConfig(**kwargs.pop("core", {})),
-            ssh=SSHConfig(**kwargs.pop("ssh", {})),
-            inventory=InventoryConfig(**kwargs.pop("inventory", {})),
-            logging=LoggingConfig(**kwargs.pop("logging", {})),
-            jinja2=Jinja2Config(**kwargs.pop("jinja2", {})),
+            core=CoreConfig(
+                __config_settings__=__config_settings__.pop("core", {}),
+                **kwargs.pop("core", {}),
+            ),
+            ssh=SSHConfig(
+                __config_settings__=__config_settings__.pop("ssh", {}),
+                **kwargs.pop("ssh", {}),
+            ),
+            inventory=InventoryConfig(
+                __config_settings__=__config_settings__.pop("inventory", {}),
+                **kwargs.pop("inventory", {}),
+            ),
+            logging=LoggingConfig(
+                __config_settings__=__config_settings__.pop("logging", {}),
+                **kwargs.pop("logging", {}),
+            ),
+            jinja2=Jinja2Config(
+                __config_settings__=__config_settings__.pop("jinja2", {}),
+                **kwargs.pop("jinja2", {}),
+            ),
+            __config_settings__=__config_settings__,
             **kwargs,
         )
         return configuration.Config(
@@ -171,7 +196,7 @@ class Config(BaseSettings):
             yml = ruamel.yaml.YAML(typ="safe")
             with open(config_file, "r") as f:
                 config_dict = yml.load(f) or {}
-        return Config.deserialize(**{**config_dict, **kwargs})
+        return Config.deserialize(__config_settings__=config_dict, **kwargs)
 
 
 def _resolve_import_from_string(import_path: Any) -> Optional[Callable[..., Any]]:
