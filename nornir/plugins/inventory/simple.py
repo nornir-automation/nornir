@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Any
 
 from nornir.core.deserializer.inventory import GroupsDict, Inventory, VarsDict
 
@@ -12,8 +13,8 @@ class SimpleInventory(Inventory):
         host_file: str = "hosts.yaml",
         group_file: str = "groups.yaml",
         defaults_file: str = "defaults.yaml",
-        *args,
-        **kwargs
+        *args: Any,
+        **kwargs: Any
     ) -> None:
         yml = ruamel.yaml.YAML(typ="safe")
         with open(host_file, "r") as f:

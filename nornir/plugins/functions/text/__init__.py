@@ -1,7 +1,7 @@
 import logging
 import pprint
 import threading
-from typing import List, Optional
+from typing import List, Optional, cast
 
 from colorama import Fore, Style, init
 
@@ -29,7 +29,7 @@ def _get_color(result: Result, failed: bool) -> str:
         color = Fore.YELLOW
     else:
         color = Fore.GREEN
-    return color
+    return cast(str, color)
 
 
 def _print_individual_result(

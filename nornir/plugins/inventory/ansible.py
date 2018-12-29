@@ -137,7 +137,7 @@ class AnsibleParser(object):
                         logger.debug(
                             "AnsibleInventory: reading var file: %s", vars_file
                         )
-                        return YAML.load(f)
+                        return cast(Dict[str, Any], YAML.load(f))
             logger.debug(
                 "AnsibleInventory: no vars file was found with the path %s "
                 "and one of the supported extensions: %s",
@@ -147,7 +147,7 @@ class AnsibleParser(object):
         return {}
 
     @staticmethod
-    def map_nornir_vars(obj: VarsDict):
+    def map_nornir_vars(obj: VarsDict) -> None:
         mappings = {
             "ansible_host": "hostname",
             "ansible_port": "port",
