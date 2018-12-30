@@ -33,6 +33,14 @@ class Napalm(ConnectionPlugin):
             "password": password,
             "optional_args": {},
         }
+
+        try:
+            parameters["optional_args"][
+                "ssh_config_file"
+            ] = configuration.ssh.config_file  # type: ignore
+        except AttributeError:
+            pass
+
         parameters.update(extras)
 
         if port and "port" not in parameters["optional_args"]:

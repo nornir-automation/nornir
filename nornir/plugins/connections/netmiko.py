@@ -41,6 +41,13 @@ class Netmiko(ConnectionPlugin):
             "port": port,
         }
 
+        try:
+            parameters[
+                "ssh_config_file"
+            ] = configuration.ssh.config_file  # type: ignore
+        except AttributeError:
+            pass
+
         if platform is not None:
             # Look platform up in corresponding map, if no entry return the host.nos unmodified
             platform = napalm_to_netmiko_map.get(platform, platform)
