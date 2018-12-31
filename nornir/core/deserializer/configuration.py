@@ -1,5 +1,6 @@
 import importlib
 import logging
+import os
 from typing import Any, Callable, Dict, List, Optional, Type, cast
 
 from nornir.core import configuration
@@ -15,7 +16,8 @@ logger = logging.getLogger(__name__)
 
 class SSHConfig(BaseSettings):
     config_file: str = Schema(
-        default="~/.ssh/config", description="Path to ssh configuration file"
+        default=os.path.join(os.path.expanduser("~"), ".ssh", "config"),
+        description="Path to ssh configuration file",
     )
 
     class Config:

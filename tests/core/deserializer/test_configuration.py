@@ -30,7 +30,9 @@ class Test(object):
                 "transform_function": "",
                 "transform_function_options": {},
             },
-            "ssh": {"config_file": "~/.ssh/config"},
+            "ssh": {
+                "config_file": os.path.join(os.path.expanduser("~"), ".ssh", "config")
+            },
             "logging": {
                 "level": "debug",
                 "file": "nornir.log",
@@ -56,7 +58,9 @@ class Test(object):
                 "transform_function": "",
                 "transform_function_options": {},
             },
-            "ssh": {"config_file": "~/.ssh/config"},
+            "ssh": {
+                "config_file": os.path.join(os.path.expanduser("~"), ".ssh", "config")
+            },
             "logging": {
                 "level": "debug",
                 "file": "",
@@ -83,7 +87,9 @@ class Test(object):
         assert not c.logging.to_console
         assert c.logging.loggers == ["nornir"]
 
-        assert c.ssh.config_file == "~/.ssh/config"
+        assert c.ssh.config_file == os.path.join(
+            os.path.expanduser("~"), ".ssh", "config"
+        )
 
         assert c.inventory.plugin == SimpleInventory
         assert c.inventory.options == {}
