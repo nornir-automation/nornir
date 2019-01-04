@@ -66,22 +66,46 @@ Before you make any significant code changes to the core it's recommended that y
 Setting up your environment
 ---------------------------
 
-In order to run tests locally you need to have `Docker <https://docs.docker.com/install/>`_ and `Pandoc <https://pandoc.org/installing.html>`_ installed. Docker is used to test the Nornir plugins and Pandoc is required for building the documentation provided by `Sphinx <http://www.sphinx-doc.org/>`_. After those are installed you can go ahead and install the needed Python dependencies.
+In order to run tests locally you need to have `Docker <https://docs.docker.com/install/>`_ and `docker-compose <https://docs.docker.com/compose/>`_ installed.
+
+Starting development environment
+--------------------------------
+
+You need some services to run the tests. Those are managed with ``docker-compose``. In order to start them you can execute:
 
 .. code-block:: bash
 
-	pip install -r requirements-dev.txt
+   make start_dev_env
+
+You can then stop it with:
+
+.. code-block:: bash
+
+   make stop_dev_env
 
 Running tests
 -------------
 
-While the automated tests will be triggered when you submit a new pull request it can still save you time to run the tests locally first. 
+While the automated tests will be triggered when you submit a new pull request it can still save you time to run the tests locally first.
 
 .. code-block:: bash
 
-	make tests
+   make tests
 
-The test above will run the tests against the Nornir code and documentation.
+That will run the entire test suite, if you want to target some specific test you can do:
+
+.. code-block:: bash
+
+   make build_test_container && make nbval
+
+To run only ``nbval`` environment or:
+
+
+.. code-block:: bash
+
+   make build_test_container && make pytest ARGS="tests/plugins/tasks/networking/test_tcp_ping.py"
+
+To run a specific test.
 
 
 Coding style
@@ -91,6 +115,6 @@ Nornir uses `Black <https://github.com/ambv/black>`_, the the uncompromising Pyt
 
 .. code-block:: bash
 
-	make format
+   black .
 
 The Black GitHub repo has information about how you can integrate Black in your editor.
