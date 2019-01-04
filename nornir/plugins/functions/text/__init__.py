@@ -57,7 +57,10 @@ def _print_individual_result(
     )
     for attribute in attrs:
         x = getattr(result, attribute, "")
-        if x and not isinstance(x, str):
+        if isinstance(x, BaseException):
+            # for consistency between py3.6 and py3.7
+            print(f"{x.__class__.__name__}{x.args}")
+        elif x and not isinstance(x, str):
             pprint.pprint(x, indent=2)
         elif x:
             print(x)
