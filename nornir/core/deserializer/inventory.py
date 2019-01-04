@@ -110,7 +110,7 @@ class Inventory(BaseModel):
     @classmethod
     def deserialize(
         cls,
-        transform_function: Optional[Callable[..., Any]],
+        transform_function: Optional[Callable[..., Any]] = None,
         transform_function_options: Optional[Dict[str, Any]] = None,
         *args: Any,
         **kwargs: Any

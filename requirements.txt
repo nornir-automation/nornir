@@ -7,4 +7,4 @@ future
 requests
 ruamel.yaml
 mypy_extensions
--e git+git@github.com:samuelcolvin/pydantic.git@settings-priority#egg=pydantic
+-e git+https://github.com/samuelcolvin/pydantic.git@19320bf77540c79d10d5a3a81faa3051361f915a#egg=pydantic
