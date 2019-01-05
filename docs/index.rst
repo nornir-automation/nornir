@@ -39,7 +39,7 @@ Here is an example on how to quickly build a runbook leveraging Nornir to retrie
     from nornir.plugins.tasks.networking import napalm_get
 
     nr = InitNornir(
-        config_file="nornir.yaml", dry_run=True, num_workers=20
+        config_file="nornir.yaml", dry_run=True
     )
 
     results = nr.run(
