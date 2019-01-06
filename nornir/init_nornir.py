@@ -49,6 +49,7 @@ def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
 
     inv = conf.inventory.plugin.deserialize(
         transform_function=conf.inventory.transform_function,
+        transform_function_options=conf.inventory.transform_function_options,
         config=conf,
         **conf.inventory.options,
     )

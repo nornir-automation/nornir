@@ -393,6 +393,7 @@ class Inventory(object):
         groups: Optional[Groups] = None,
         defaults: Optional[Defaults] = None,
         transform_function=None,
+        transform_function_options=None,
     ) -> None:
         self.hosts = hosts
         self.groups = groups or Groups()
@@ -405,7 +406,7 @@ class Inventory(object):
 
         if transform_function:
             for h in self.hosts.values():
-                transform_function(h)
+                transform_function(h, **transform_function_options)
 
     def filter(self, filter_obj=None, filter_func=None, *args, **kwargs):
         filter_func = filter_obj or filter_func
