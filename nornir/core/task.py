@@ -246,4 +246,3 @@ class MultiResult(list):
         """
         if self.failed:
             raise NornirExecutionError(self)
-

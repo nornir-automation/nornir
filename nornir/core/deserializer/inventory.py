@@ -151,4 +151,3 @@ class Inventory(BaseModel):
             groups[n] = InventoryElement.serialize(g)
         defaults = Defaults.serialize(inv.defaults)
         return Inventory(hosts=hosts, groups=groups, defaults=defaults)
-
