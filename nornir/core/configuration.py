@@ -34,7 +34,7 @@ class LoggingConfig(object):
     __slots__ = "level", "file", "format", "to_console", "loggers"
 
     def __init__(
-        self, level: int, file_: str, format_: str, to_console: bool, loggers: List[str]
+        self, level: str, file_: str, format_: str, to_console: bool, loggers: List[str]
     ) -> None:
         self.level = level
         self.file = file_
@@ -42,8 +42,8 @@ class LoggingConfig(object):
         self.to_console = to_console
         self.loggers = loggers
 
-    def configure(self):
-        rootHandlers: List[Any] = []
+    def configure(self) -> None:
+        rootHandlers: List[str] = []
         root = {
             "level": "CRITICAL" if self.loggers else self.level.upper(),
             "handlers": rootHandlers,
@@ -61,7 +61,7 @@ class LoggingConfig(object):
         }
         handlers_list = []
         if self.file:
-            root["handlers"].append("info_file_handler")
+            rootHandlers.append("info_file_handler")
             handlers_list.append("info_file_handler")
             handlers["info_file_handler"] = {
                 "class": "logging.handlers.RotatingFileHandler",
@@ -73,7 +73,7 @@ class LoggingConfig(object):
                 "encoding": "utf8",
             }
         if self.to_console:
-            root["handlers"].append("info_console")
+            rootHandlers.append("info_console")
             handlers_list.append("info_console")
             handlers["info_console"] = {
                 "class": "logging.StreamHandler",

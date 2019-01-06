@@ -1,3 +1,6 @@
+from typing import Any, Dict, Set
+
+
 class GlobalState(object):
     """
     This class is just a placeholder to share data amongst different
@@ -9,18 +12,18 @@ class GlobalState(object):
 
     __slots__ = "dry_run", "failed_hosts"
 
-    def __init__(self, dry_run=None, failed_hosts=None):
+    def __init__(self, dry_run: bool = None, failed_hosts: Set[str] = None) -> None:
         self.dry_run = dry_run
         self.failed_hosts = failed_hosts or set()
 
-    def recover_host(self, host):
+    def recover_host(self, host: str) -> None:
         """Remove ``host`` from list of failed hosts."""
         self.failed_hosts.discard(host)
 
-    def reset_failed_hosts(self):
+    def reset_failed_hosts(self) -> None:
         """Reset failed hosts and make all hosts available for future tasks."""
         self.failed_hosts = set()
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         """ Return a dictionary representing the object. """
         return self.__dict__

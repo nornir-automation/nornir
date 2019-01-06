@@ -3,7 +3,7 @@ from nornir.core.task import Result, Task
 import ruamel.yaml
 
 
-def load_yaml(task: Task, file: str):
+def load_yaml(task: Task, file: str) -> Result:
     """
     Loads a yaml file.
 

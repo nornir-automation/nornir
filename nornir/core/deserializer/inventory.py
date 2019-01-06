@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from nornir.core import inventory
 
@@ -64,11 +64,11 @@ class InventoryElement(BaseAttributes):
         }
 
     @classmethod
-    def deserialize_host(cls, **kwargs) -> inventory.Host:
+    def deserialize_host(cls, **kwargs: Any) -> inventory.Host:
         return inventory.Host(**cls.deserialize(**kwargs))
 
     @classmethod
-    def deserialize_group(cls, **kwargs) -> inventory.Group:
+    def deserialize_group(cls, **kwargs: Any) -> inventory.Group:
         return inventory.Group(**cls.deserialize(**kwargs))
 
     @classmethod
@@ -109,8 +109,13 @@ class Inventory(BaseModel):
 
     @classmethod
     def deserialize(
-        cls, transform_function=None, transform_function_options={}, *args, **kwargs
-    ):
+        cls,
+        transform_function: Optional[Callable[..., Any]] = None,
+        transform_function_options: Optional[Dict[str, Any]] = None,
+        *args: Any,
+        **kwargs: Any
+    ) -> inventory.Inventory:
+        transform_function_options = transform_function_options or {}
         deserialized = cls(*args, **kwargs)
 
         defaults_dict = deserialized.defaults.dict()
@@ -137,7 +142,7 @@ class Inventory(BaseModel):
         )
 
     @classmethod
-    def serialize(cls, inv: inventory.Inventory):
+    def serialize(cls, inv: inventory.Inventory) -> "Inventory":
         hosts = {}
         for n, h in inv.hosts.items():
             hosts[n] = InventoryElement.serialize(h)
@@ -146,3 +151,4 @@ class Inventory(BaseModel):
             groups[n] = InventoryElement.serialize(g)
         defaults = Defaults.serialize(inv.defaults)
         return Inventory(hosts=hosts, groups=groups, defaults=defaults)
+

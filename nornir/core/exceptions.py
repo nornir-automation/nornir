@@ -1,9 +1,17 @@
+from typing import Dict, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from nornir.core.connection import Connection
+    from nornir.core.result import AggregatedResult, MultiResult, Result  # noqa
+    from nornir.core.tasks import Task
+
+
 class ConnectionException(Exception):
     """
     Superclass for all the Connection* Exceptions
     """
 
-    def __init__(self, connection):
+    def __init__(self, connection: "Connection") -> None:
         self.connection = connection
 
 
@@ -42,15 +50,11 @@ class ConnectionPluginNotRegistered(ConnectionException):
 class CommandError(Exception):
     """
     Raised when there is a command error.
-
-    Attributes:
-        status_code (int): status code returned by the command
-        stdout (str): stdout
-        stderr (str): stderr
-        command (str): command that triggered the error
     """
 
-    def __init__(self, command, status_code, stdout, stderr):
+    def __init__(
+        self, command: str, status_code: int, stdout: str, stderr: str
+    ) -> None:
         self.status_code = status_code
         self.stdout = stdout
         self.stderr = stderr
@@ -62,24 +66,19 @@ class NornirExecutionError(Exception):
     """
     Raised by nornir when any of the tasks managed by :meth:`nornir.core.Nornir.run`
     when any of the tasks fail.
-
-    Arguments:
-        result (:obj:`nornir.core.task.AggregatedResult`):
-    Attributes:
-        result (:obj:`nornir.core.task.AggregatedResult`):
     """
 
-    def __init__(self, result):
+    def __init__(self, result: "AggregatedResult") -> None:
         self.result = result
 
     @property
-    def failed_hosts(self):
+    def failed_hosts(self) -> Dict[str, "MultiResult"]:
         """
         Hosts that failed to complete the task
         """
         return {k: v for k, v in self.result.items() if v.failed}
 
-    def __str__(self):
+    def __str__(self) -> str:
         text = "\n"
         for k, r in self.result.items():
             text += "{}\n".format("#" * 40)
@@ -96,20 +95,13 @@ class NornirExecutionError(Exception):
 
 class NornirSubTaskError(Exception):
     """
-    Raised by nornir when a sub task managed by :meth:`nornir.core.Task.run`
-    has failed
-
-    Arguments:
-        task (:obj:`nornir.core.task.Task`): The subtask that failed
-        result (:obj:`nornir.core.task.Result`): The result of the failed task
-    Attributes:
-        task (:obj:`nornir.core.task.Task`): The subtask that failed
-        result (:obj:`nornir.core.task.Result`): The result of the failed task
+    Raised by nornir when a sub task managed by :meth:`nornir.core.Task.run` has failed
     """
 
-    def __init__(self, task, result):
+    def __init__(self, task: "Task", result: "Result"):
         self.task = task
         self.result = result
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Subtask: {} (failed)\n".format(self.task)
+
