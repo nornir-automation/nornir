@@ -1,5 +1,7 @@
 import logging
 
+from nornir.core.exceptions import CommandError, NornirSubTaskError
+
 from nornir.plugins.tasks import commands
 
 
@@ -21,6 +23,20 @@ def task_fails_for_some(task):
 
 def sub_task(task):
     task.run(commands.command, command="echo {}".format(task.host))
+
+
+def fail_command_subtask_no_capture(task):
+    command = "ls -la /tmp1"
+    task.run(task=commands.command, command=command)
+    return "I shouldn't be here"
+
+
+def fail_command_subtask_capture(task):
+    command = "ls -la /tmp1"
+    try:
+        task.run(task=commands.command, command=command)
+    except Exception:
+        return "I captured this succcessfully"
 
 
 class Test(object):
@@ -116,3 +132,18 @@ class Test(object):
         nornir.data.dry_run = True
         r = host.run(a_task_to_test_dry_run, expected_dry_run_value=False)
         assert r["dev3.group_2"].failed
+
+    def test_subtask_exception_no_capture(self, nornir):
+        host = nornir.filter(name="dev1.group_1")
+        r = host.run(task=fail_command_subtask_no_capture)
+        assert r.failed
+        assert r["dev1.group_1"][0].exception.__class__ is NornirSubTaskError
+        assert r["dev1.group_1"][1].exception.__class__ is CommandError
+
+    def test_subtask_exception_capture(self, nornir):
+        host = nornir.filter(name="dev1.group_1")
+        r = host.run(task=fail_command_subtask_capture)
+        assert r.failed
+        assert not r["dev1.group_1"][0].exception
+        assert r["dev1.group_1"][0].result == "I captured this succcessfully"
+        assert r["dev1.group_1"][1].exception.__class__ is CommandError
