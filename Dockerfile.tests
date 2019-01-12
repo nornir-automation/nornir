@@ -11,8 +11,4 @@ ADD requirements.txt /tmp/
 ADD requirements-dev.txt /tmp/
 RUN pip install -r /tmp/requirements-dev.txt
 
-ADD . /nornir
-
-RUN pip install -e /nornir
-
 WORKDIR "/nornir"
