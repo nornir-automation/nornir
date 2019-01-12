@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 
 from nornir.core.configuration import Config
 from nornir.plugins.inventory.simple import SimpleInventory
@@ -83,7 +84,7 @@ class Test(object):
         assert not c.logging.to_console
         assert c.logging.loggers == ["nornir"]
 
-        assert c.ssh.config_file == "~/.ssh/config"
+        assert c.ssh.config_file == str(Path("~/.ssh/config").expanduser())
 
         assert c.inventory.plugin == SimpleInventory
         assert c.inventory.options == {}
@@ -110,7 +111,7 @@ class Test(object):
         assert not c.logging.to_console
         assert c.logging.loggers == ["nornir"]
 
-        assert c.ssh.config_file == "~/.ssh/alt_config"
+        assert c.ssh.config_file == str(Path("~/.ssh/alt_config").expanduser())
 
         assert c.inventory.plugin == AnsibleInventory
         assert c.inventory.options == {}
