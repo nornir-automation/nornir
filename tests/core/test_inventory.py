@@ -154,7 +154,7 @@ class Test(object):
     def test_get_connection_parameters(self):
         inv = deserializer.Inventory.deserialize(**inv_dict)
         p1 = inv.hosts["dev1.group_1"].get_connection_parameters("dummy")
-        assert p1.dict() == {
+        assert deserializer.ConnectionOptions.serialize(p1).dict() == {
             "port": 22,
             "hostname": "dummy_from_host",
             "username": "root",
@@ -163,7 +163,7 @@ class Test(object):
             "extras": {"blah": "from_host"},
         }
         p2 = inv.hosts["dev1.group_1"].get_connection_parameters("asd")
-        assert p2.dict() == {
+        assert deserializer.ConnectionOptions.serialize(p2).dict() == {
             "port": 22,
             "hostname": "dev1.group_1",
             "username": "root",
@@ -172,7 +172,7 @@ class Test(object):
             "extras": {},
         }
         p3 = inv.hosts["dev2.group_1"].get_connection_parameters("dummy")
-        assert p3.dict() == {
+        assert deserializer.ConnectionOptions.serialize(p3).dict() == {
             "port": 22,
             "hostname": "dummy_from_parent_group",
             "username": "root",
@@ -181,7 +181,7 @@ class Test(object):
             "extras": {"blah": "from_group"},
         }
         p4 = inv.hosts["dev3.group_2"].get_connection_parameters("dummy")
-        assert p4.dict() == {
+        assert deserializer.ConnectionOptions.serialize(p4).dict() == {
             "port": 22,
             "hostname": "dummy_from_defaults",
             "username": "root",
