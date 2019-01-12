@@ -290,10 +290,16 @@ class Host(InventoryElement):
             An already established connection
         """
         if connection not in self.connections:
+            conn = self.get_connection_parameters(connection)
             self.open_connection(
                 connection=connection,
                 configuration=configuration,
-                **self.get_connection_parameters(connection).dict(),
+                hostname=conn.hostname,
+                port=conn.port,
+                username=conn.username,
+                password=conn.password,
+                platform=conn.platform,
+                extras=conn.extras,
             )
         return self.connections[connection].connection
 
