@@ -52,15 +52,20 @@ mypy:
 	${DOCKER_COMPOSE} \
 		run nornir mypy .
 
+.PHONY: _nbval_docker
+_nbval_docker:
+	pip install .
+	pytest --nbval \
+		docs/plugins \
+		docs/howto \
+		docs/tutorials/intro/initializing_nornir.ipynb \
+		docs/tutorials/intro/inventory.ipynb \
+
 .PHONY: nbval
 nbval:
 	${DOCKER_COMPOSE} \
 		run nornir \
-			pytest --nbval \
-				docs/plugins \
-				docs/howto \
-				docs/tutorials/intro/initializing_nornir.ipynb \
-				docs/tutorials/intro/inventory.ipynb \
+			make _nbval_docker
 
 PHONY: tests
 tests: build_test_container black sphinx pylama mypy nbval

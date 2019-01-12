@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from nornir.version import __version__
+
 from setuptools import find_packages, setup
 
 with open("requirements.txt", "r") as fs:
@@ -10,7 +12,6 @@ with open("README.md", "r") as fs:
 __author__ = "dbarrosop@dravetech.com"
 __license__ = "Apache License, version 2"
 
-__version__ = "2.0.0"
 
 setup(
     name="nornir",

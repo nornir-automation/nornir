@@ -87,4 +87,4 @@ class NSOTInventory(Inventory):
 
         # Finally the inventory expects a dict of hosts where the key is the hostname
         hosts = {d["hostname"]: d for d in devices}
-        return super().__init__(hosts=hosts, groups={}, defaults={}, *args, **kwargs)
+        super().__init__(hosts=hosts, groups={}, defaults={}, *args, **kwargs)

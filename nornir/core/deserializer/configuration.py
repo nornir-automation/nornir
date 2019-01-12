@@ -1,5 +1,6 @@
 import importlib
 import logging
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Type, cast
 
 from nornir.core import configuration
@@ -25,6 +26,7 @@ class SSHConfig(BaseSettings):
     @classmethod
     def deserialize(cls, **kwargs) -> configuration.SSHConfig:
         s = SSHConfig(**kwargs)
+        s.config_file = str(Path(s.config_file).expanduser())
         return configuration.SSHConfig(**s.dict())
 
 

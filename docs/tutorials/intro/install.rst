@@ -15,7 +15,7 @@ Nornir is published to `PyPI <https://pypi.org/project/nornir/>`_ and can be ins
 
 	pip 9.0.3 from /Users/patrick/nornir/lib/python3.6/site-packages (python 3.6)
 
-It could be that you need to use the pip3 binary instead of pip as pip3 is for Python 3 on some systems. Speaking of Python 3, this tutorial is written with Python 3.6 in mind. This has mostly to do with the use of f-strings, you should however be able to follow along even if you are still at Python 2.7. However, if you are starting something new don't use Python 2.7. You have to make sure that your pip is up to date as you might have trouble installing some of the Nornir dependencies if you have a very old pip. If you are on version 9.0 or later you should be fine.
+It could be that you need to use the pip3 binary instead of pip as pip3 is for Python 3 on some systems.
 
 As you would assume, the installation is then very easy.
 
@@ -26,7 +26,7 @@ As you would assume, the installation is then very easy.
 	Collecting nornir
 	Collecting colorama (from nornir)
 	[...]
-	Successfully installed MarkupSafe-1.0 asn1crypto-0.24.0 bcrypt-3.1.4 nornir-0.0.6
+	Successfully installed MarkupSafe-1.0 asn1crypto-0.24.0 bcrypt-3.1.4 nornir-2.0.0
 
 Please note that the above output has been abbreviated for readability. Your output will be quite a bit longer. You should see that `nornir` is successfully installed. 
 
