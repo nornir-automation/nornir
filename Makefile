@@ -29,7 +29,7 @@ enter-container:
 .PHONY: pytest
 pytest:
 	${DOCKER_COMPOSE} \
-		run nornir py.test --cov=nornir --cov-report=term-missing -vs ${ARGS}
+		run nornir pytest --cov=nornir --cov-report=term-missing -vs ${ARGS}
 
 .PHONY: black
 black:

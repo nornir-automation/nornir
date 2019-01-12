@@ -10,7 +10,7 @@ RUN curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poet
 
 ADD poetry.lock /tmp
 ADD pyproject.toml /tmp
-RUN cd /tmp && /root/.poetry/bin/poetry update --no-dev
+RUN cd /tmp && /root/.poetry/bin/poetry install
 
 ADD docs/requirements.txt /tmp/requirements-docs.txt
 RUN pip install -r /tmp/requirements-docs.txt
