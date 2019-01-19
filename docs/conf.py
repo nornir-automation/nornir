@@ -60,6 +60,8 @@ author = "David Barroso"
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
+
+
 def extract_version():
     with open("../pyproject.toml") as f:
         parsed_toml = toml.loads(f.read())

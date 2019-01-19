@@ -54,7 +54,7 @@ mypy:
 
 .PHONY: _nbval_docker
 _nbval_docker:
-	pip install .
+	/root/.poetry/bin/poetry install
 	pytest --nbval \
 		docs/plugins \
 		docs/howto \
