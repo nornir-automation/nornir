@@ -251,9 +251,7 @@ def parse(hostsfile: str) -> Tuple[HostsDict, GroupsDict, DefaultsDict]:
         try:
             parser = YAMLParser(hostsfile)
         except (ScannerError, ComposerError):
-            logger.error(
-                "couldn't parse '{}' as neither a ini nor yaml file".format(hostsfile)
-            )
+            logger.error("couldn't parse %r as neither a ini nor yaml file", hostsfile)
             raise
 
     parser.parse()

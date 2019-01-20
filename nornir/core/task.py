@@ -9,6 +9,9 @@ if TYPE_CHECKING:
     from nornir.core.inventory import Host
 
 
+logger = logging.getLogger(__name__)
+
+
 class Task(object):
     """
     A task is basically a wrapper around a function that has to be run against multiple devices.
@@ -59,21 +62,30 @@ class Task(object):
         self.host = host
         self.nornir = nornir
 
-        logger = logging.getLogger(__name__)
         try:
-            logger.info("{}: {}: running task".format(self.host.name, self.name))
+            logger.debug("Host %r: running task %r", self.host.name, self.name)
             r = self.task(self, **self.params)
             if not isinstance(r, Result):
                 r = Result(host=host, result=r)
 
         except NornirSubTaskError as e:
             tb = traceback.format_exc()
-            logger.error("{}: {}".format(self.host, tb))
+            logger.error(
+                "Host %r: task %r failed with traceback:\n%s",
+                self.host.name,
+                self.name,
+                tb,
+            )
             r = Result(host, exception=e, result=str(e), failed=True)
 
         except Exception as e:
             tb = traceback.format_exc()
-            logger.error("{}: {}".format(self.host, tb))
+            logger.error(
+                "Host %r: task %r failed with traceback:\n%s",
+                self.host.name,
+                self.name,
+                tb,
+            )
             r = Result(host, exception=e, result=tb, failed=True)
 
         r.name = self.name

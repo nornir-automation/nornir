@@ -1,7 +1,7 @@
 import importlib
 import logging
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Type, Union, cast
+from typing import Any, Callable, Dict, Optional, Type, cast, Union
 
 from nornir.core import configuration
 from nornir.core.deserializer.inventory import Inventory
@@ -70,31 +70,33 @@ class InventoryConfig(BaseNornirSettings):
         )
 
 
-class LoggingConfig(BaseNornirSettings):
-    level: str = Schema(default="debug", description="Logging level")
-    file: str = Schema(default="nornir.log", descritpion="Logging file")
+class LoggingConfig(BaseSettings):
+    enabled: bool = Schema(
+        default=True, description="Whether to configure logging or not"
+    )
+    level: str = Schema(default="DEBUG", description="Logging level")
+    file_path: str = Schema(default="nornir.log", description="Logging file")
     format: str = Schema(
-        default="%(asctime)s - %(name)12s - %(levelname)8s - %(funcName)10s() - %(message)s",
+        default="[%(asctime)s] %(levelname)-8s {%(name)s:%(lineno)d} %(message)s",
         description="Logging format",
     )
     to_console: bool = Schema(
         default=False, description="Whether to log to console or not"
     )
-    loggers: List[str] = Schema(default=["nornir"], description="Loggers to configure")
 
     class Config:
         env_prefix = "NORNIR_LOGGING_"
         ignore_extra = False
 
     @classmethod
-    def deserialize(cls, **kwargs: Any) -> configuration.LoggingConfig:
-        logging_config = LoggingConfig(**kwargs)
+    def deserialize(cls, **kwargs) -> configuration.LoggingConfig:
+        conf = cls(**kwargs)
         return configuration.LoggingConfig(
-            level=getattr(logging, logging_config.level.upper()),
-            file_=logging_config.file,
-            format_=logging_config.format,
-            to_console=logging_config.to_console,
-            loggers=logging_config.loggers,
+            enabled=conf.enabled,
+            level=conf.level.upper(),
+            file_path=conf.file_path,
+            format=conf.format,
+            to_console=conf.to_console,
         )
 
 
@@ -211,7 +213,7 @@ def _resolve_import_from_string(
             return import_path
         module_name, obj_name = import_path.rsplit(".", 1)
         module = importlib.import_module(module_name)
-        return cast(Callable[..., Any], getattr(module, obj_name))
-    except Exception as e:
-        logger.error(f"failed to load import_path '{import_path}'\n{e}")
+        return getattr(module, obj_name)
+    except Exception:
+        logger.error("Failed to import %r", import_path, exc_info=True)
         raise

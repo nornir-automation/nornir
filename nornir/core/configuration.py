@@ -1,6 +1,8 @@
 import logging
-import logging.config
-from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING, Type
+import logging.handlers
+import sys
+from pathlib import Path
+from typing import Any, Callable, Dict, Optional, TYPE_CHECKING, Type
 
 
 if TYPE_CHECKING:
@@ -31,62 +33,59 @@ class InventoryConfig(object):
 
 
 class LoggingConfig(object):
-    __slots__ = "level", "file", "format", "to_console", "loggers"
+    __slots__ = "enabled", "level", "file_path", "format", "to_console"
 
     def __init__(
-        self, level: str, file_: str, format_: str, to_console: bool, loggers: List[str]
+        self, enabled: bool, level: str, file_path: str, format: str, to_console: bool
     ) -> None:
+        self.enabled = enabled
         self.level = level
-        self.file = file_
-        self.format = format_
+        self.file_path = file_path
+        self.format = format
         self.to_console = to_console
-        self.loggers = loggers
 
     def configure(self) -> None:
-        rootHandlers: List[str] = []
-        root = {
-            "level": "CRITICAL" if self.loggers else self.level.upper(),
-            "handlers": rootHandlers,
-            "formatter": "simple",
-        }
-        handlers: Dict[str, Any] = {}
-        loggers: Dict[str, Any] = {}
-        dictConfig = {
-            "version": 1,
-            "disable_existing_loggers": False,
-            "formatters": {"simple": {"format": self.format}},
-            "handlers": handlers,
-            "loggers": loggers,
-            "root": root,
-        }
-        handlers_list = []
-        if self.file:
-            rootHandlers.append("info_file_handler")
-            handlers_list.append("info_file_handler")
-            handlers["info_file_handler"] = {
-                "class": "logging.handlers.RotatingFileHandler",
-                "level": "NOTSET",
-                "formatter": "simple",
-                "filename": self.file,
-                "maxBytes": 10485760,
-                "backupCount": 20,
-                "encoding": "utf8",
-            }
+        nornir_logger = logging.getLogger("nornir")
+        root_logger = logging.getLogger()
+        # don't configure logging when:
+        # 1) enabled equals to False
+        # 2) nornir logger's level is something different than NOTSET
+        # 3) if root logger has some handlers (which means you know how to
+        #    configure logging already)
+        # 4) if root logger's level is something different than WARNING
+        #    (which is default)
+        if (
+            not self.enabled
+            or nornir_logger.level != logging.NOTSET
+            or root_logger.hasHandlers()
+            or root_logger.level != logging.WARNING
+        ):
+            return
+
+        nornir_logger.propagate = False
+        nornir_logger.setLevel(self.level)
+        formatter = logging.Formatter(self.format)
+        if self.file_path:
+            handler = logging.handlers.RotatingFileHandler(
+                str(Path(self.file_path)), maxBytes=1024 * 1024 * 10, backupCount=20
+            )
+            handler.setFormatter(formatter)
+            nornir_logger.addHandler(handler)
+
         if self.to_console:
-            rootHandlers.append("info_console")
-            handlers_list.append("info_console")
-            handlers["info_console"] = {
-                "class": "logging.StreamHandler",
-                "level": "NOTSET",
-                "formatter": "simple",
-                "stream": "ext://sys.stdout",
-            }
+            # log INFO and DEBUG to stdout
+            h1 = logging.StreamHandler(sys.stdout)
+            h1.setFormatter(formatter)
+            h1.setLevel(logging.DEBUG)
+            h1.addFilter(lambda record: record.levelno <= logging.INFO)
+            nornir_logger.addHandler(h1)
 
-        for logger in self.loggers:
-            loggers[logger] = {"level": self.level, "handlers": handlers_list}
+            # log WARNING, ERROR and CRITICAL to stderr
+            h2 = logging.StreamHandler(sys.stderr)
+            h2.setFormatter(formatter)
+            h2.setLevel(logging.WARNING)
 
-        if rootHandlers:
-            logging.config.dictConfig(dictConfig)
+            nornir_logger.addHandler(h2)
 
 
 class Jinja2Config(object):

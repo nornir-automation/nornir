@@ -1,12 +1,48 @@
+import logging
+import logging.config
 import os
 import pytest
-
 
 from nornir import InitNornir
 from nornir.core.deserializer.inventory import Inventory
 
 
 dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_InitNornir")
+
+LOGGING_DICT = {
+    "version": 1,
+    "disable_existing_loggers": True,
+    "formatters": {
+        "standard": {
+            "format": "[%(asctime)s] %(levelname)-8s {%(name)s:%(lineno)d} %(message)s"
+        }
+    },
+    "handlers": {
+        "file": {
+            "level": "INFO",
+            "class": "logging.handlers.RotatingFileHandler",
+            "filename": "app.log",
+            "maxBytes": 1024 * 1024 * 5,
+            "backupCount": 5,
+            "formatter": "standard",
+        },
+        "console": {
+            "level": "INFO",
+            "class": "logging.StreamHandler",
+            "stream": "ext://sys.stdout",
+            "formatter": "standard",
+        },
+    },
+    "loggers": {
+        "app": {"handlers": ["file", "console"], "level": "INFO", "propagate": False}
+        # "": {
+        #     "handlers": ["console", "default"],
+        #     "level": "INFO",
+        #     "propagate": False
+        # }
+    },
+    "root": {"handlers": ["file", "console"], "level": "INFO"},
+}
 
 
 def transform_func(host):
@@ -149,3 +185,75 @@ class Test(object):
                 },
             )
             assert nr
+
+
+class LoggingTest:
+    def setUp(self):
+        root_logger = logging.getLogger()
+        for handler in root_logger.handlers:
+            root_logger.removeHandler(handler)
+        root_logger.setLevel(logging.WARNING)
+
+    def test_InitNornir_logging_defaults(self):
+        InitNornir(
+            config_file=os.path.join(dir_path, "a_config.yaml"),
+            core={"num_workers": 200},
+        )
+        root_logger = logging.getLogger()
+        nornir_logger = logging.getLogger("nornir")
+
+        assert root_logger.level == logging.WARNING
+        assert not root_logger.hasHandlers()
+        assert nornir_logger.level == logging.DEBUG
+        assert len(nornir_logger.handlers) == 1
+        assert isinstance(nornir_logger.handlers[0], logging.FileHandler)
+
+    def test_InitNornir_logging_programmatic_console(self):
+        InitNornir(
+            config_file=os.path.join(dir_path, "a_config.yaml"),
+            logging={"to_console": True},
+        )
+        root_logger = logging.getLogger()
+        nornir_logger = logging.getLogger("nornir")
+
+        assert root_logger.level == logging.WARNING
+        assert not root_logger.hasHandlers()
+        assert nornir_logger.level == logging.DEBUG
+        assert len(nornir_logger.handlers) == 3
+        assert any(
+            isinstance(handler, logging.FileHandler)
+            for handler in nornir_logger.handlers
+        )
+        assert any(
+            isinstance(handler, logging.StreamHandler)
+            for handler in nornir_logger.handlers
+        )
+
+    def test_InitNornir_logging_programmatic_disable(self):
+        InitNornir(
+            config_file=os.path.join(dir_path, "a_config.yaml"),
+            logging={"enabled": False},
+        )
+        root_logger = logging.getLogger()
+        nornir_logger = logging.getLogger("nornir")
+
+        assert root_logger.level == logging.WARNING
+        assert not root_logger.hasHandlers()
+        assert nornir_logger.level == logging.NOTSET
+        assert not nornir_logger.hasHandlers()
+
+    def test_InitNornir_logging_basicConfig(self):
+        logging.basicConfig(level="DEBUG")
+        InitNornir(config_file=os.path.join(dir_path, "a_config.yaml"))
+        nornir_logger = logging.getLogger("nornir")
+
+        assert nornir_logger.level == logging.NOTSET
+        assert not nornir_logger.hasHandlers()
+
+    def test_InitNornir_logging_dictConfig(self):
+        logging.config.dictConfig(LOGGING_DICT)
+        InitNornir(config_file=os.path.join(dir_path, "a_config.yaml"))
+        nornir_logger = logging.getLogger("nornir")
+
+        assert nornir_logger.level == logging.NOTSET
+        assert not nornir_logger.hasHandlers()

@@ -20,10 +20,7 @@ def cls_to_string(cls: Callable[..., Any]) -> str:
 
 
 def InitNornir(
-    config_file: str = "",
-    dry_run: bool = False,
-    configure_logging: bool = True,
-    **kwargs: Dict[str, Any],
+    config_file: str = "", dry_run: bool = False, **kwargs: Dict[str, Any]
 ) -> Nornir:
     """
     Arguments:
@@ -49,8 +46,7 @@ def InitNornir(
 
     data = GlobalState(dry_run=dry_run)
 
-    if configure_logging:
-        conf.logging.configure()
+    conf.logging.configure()
 
     inv = conf.inventory.plugin.deserialize(
         transform_function=conf.inventory.transform_function,
