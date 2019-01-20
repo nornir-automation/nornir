@@ -34,7 +34,7 @@ pytest:
 .PHONY: black
 black:
 	${DOCKER_COMPOSE} \
-		run nornir black --check .
+		run nornir black --check nornir docs tests
 
 .PHONY: sphinx
 sphinx:
@@ -45,7 +45,7 @@ sphinx:
 .PHONY: pylama
 pylama:
 	${DOCKER_COMPOSE} \
-		run nornir pylama .
+		run nornir pylama nornir docs tests
 
 .PHONY: mypy
 mypy:
@@ -67,7 +67,7 @@ nbval:
 		run nornir \
 			make _nbval_docker
 
-PHONY: tests
+.PHONY: tests
 tests: build_test_container black sphinx pylama mypy nbval
 	make pytest PYTEST=3.6
 	make pytest PYTEST=3.7
