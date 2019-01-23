@@ -68,6 +68,25 @@ Setting up your environment
 
 In order to run tests locally you need to have `Docker <https://docs.docker.com/install/>`_ and `docker-compose <https://docs.docker.com/compose/>`_ installed.
 
+Updating dependencies
+---------------------
+
+Nornir dependencies are managed by `poetry <https://github.com/sdispater/poetry>`_. The guidelines to pin dependencies are:
+
+1. For the application dependencies:
+    a. if semver is supported we pin to major release
+    b. if semver is not supported we pin to specific version
+2. For development:
+    a. black is pinned to a specific version
+    b. everything is set to *
+
+Then, to update them:
+
+1. PRs can't update dependencies, if development or application dependencies need to be updated we will have a dedicated PR
+2. Prior to a release we will update dependencies
+
+These guidelines are not set in stone and can be changed or broken if there is a compelling reason.
+
 Starting development environment
 --------------------------------
 

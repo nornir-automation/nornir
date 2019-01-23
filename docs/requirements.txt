@@ -8,3 +8,4 @@ future
 jinja2
 # netaddr
 pyYAML
+toml

@@ -1,4 +1,5 @@
 import os
+from typing import Any, Dict, Optional
 
 from nornir.core.deserializer.inventory import Inventory, HostsDict
 
@@ -9,12 +10,12 @@ import requests
 class NBInventory(Inventory):
     def __init__(
         self,
-        nb_url=None,
-        nb_token=None,
-        use_slugs=True,
-        flatten_custom_fields=True,
-        filter_parameters=None,
-        **kwargs,
+        nb_url: Optional[str] = None,
+        nb_token: Optional[str] = None,
+        use_slugs: bool = True,
+        flatten_custom_fields: bool = True,
+        filter_parameters: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
     ) -> None:
         """
         Netbox plugin

@@ -1,7 +1,9 @@
+from typing import Any
+
 from nornir.core.task import Result, Task
 
 
-def echo_data(task: Task, **kwargs):
+def echo_data(task: Task, **kwargs: Any) -> Result:
     """
     Dummy task that echoes the data passed to it. Useful in grouped_tasks
     to debug data passed to tasks.

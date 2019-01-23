@@ -3,6 +3,7 @@ import logging.config
 from multiprocessing.dummy import Pool
 
 from nornir.core.configuration import Config
+from nornir.core.inventory import Inventory
 from nornir.core.state import GlobalState
 from nornir.core.task import AggregatedResult, Task
 
@@ -25,7 +26,13 @@ class Nornir(object):
         config (:obj:`nornir.core.configuration.Config`): Configuration parameters
     """
 
-    def __init__(self, inventory, config=None, logger=None, data=None):
+    def __init__(
+        self,
+        inventory: Inventory,
+        config: Config = None,
+        logger: logging.Logger = None,
+        data: GlobalState = None,
+    ) -> None:
         self.data = data if data is not None else GlobalState()
         self.logger = logger or logging.getLogger(__name__)
 

@@ -1,5 +1,6 @@
 import importlib
 import logging
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Type, Union, cast
 
 from nornir.core import configuration
@@ -31,6 +32,7 @@ class SSHConfig(BaseNornirSettings):
     @classmethod
     def deserialize(cls, **kwargs: Any) -> configuration.SSHConfig:
         s = SSHConfig(**kwargs)
+        s.config_file = str(Path(s.config_file).expanduser())
         return configuration.SSHConfig(**s.dict())
 
 
@@ -213,4 +215,3 @@ def _resolve_import_from_string(
     except Exception as e:
         logger.error(f"failed to load import_path '{import_path}'\n{e}")
         raise
-
