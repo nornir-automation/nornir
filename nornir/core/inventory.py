@@ -26,7 +26,7 @@ class BaseAttributes(object):
         self.platform = platform
 
     def dict(self):
-        w = f"{self.__class__.__name__}.dict is deprecated, use nornir.core.deserializer instead"
+        w = f"{self.dict.__qualname__} is deprecated, use nornir.core.deserializer instead"
         warnings.warn(w)
         return (
             getattr(deserializer.inventory, self.__class__.__name__)
