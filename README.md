@@ -19,6 +19,11 @@ Please note that Nornir requires Python 3.6 or higher. Install Nornir with pip.
 pip install nornir
 ```
 
+Development version
+-------------------
+
+If you want to clone the repo and install it from there you will need to use [poetry](https://github.com/sdispater/poetry).
+
 Documentation
 =============
 
