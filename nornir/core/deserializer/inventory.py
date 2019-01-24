@@ -25,6 +25,17 @@ class BaseAttributes(BaseModel):
 class ConnectionOptions(BaseAttributes):
     extras: Optional[Dict[str, Any]]
 
+    @classmethod
+    def serialize(cls, i: inventory.ConnectionOptions) -> "ConnectionOptions":
+        return ConnectionOptions(
+            hostname=i.hostname,
+            port=i.port,
+            username=i.username,
+            password=i.password,
+            platform=i.platform,
+            extras=i.extras,
+        )
+
 
 class InventoryElement(BaseAttributes):
     groups: List[str] = []
@@ -77,9 +88,8 @@ class InventoryElement(BaseAttributes):
         for f in cls.__fields__:
             d[f] = object.__getattribute__(e, f)
         d["groups"] = list(d["groups"])
-
         d["connection_options"] = {
-            k: {f: getattr(v, f) for f in v.__recursive_slots__()}
+            k: ConnectionOptions.serialize(v)
             for k, v in d["connection_options"].items()
         }
         return InventoryElement(**d)
@@ -96,7 +106,7 @@ class Defaults(BaseAttributes):
             d[f] = getattr(defaults, f)
 
         d["connection_options"] = {
-            k: {f: getattr(v, f) for f in v.__recursive_slots__()}
+            k: ConnectionOptions.serialize(v)
             for k, v in d["connection_options"].items()
         }
         return Defaults(**d)
