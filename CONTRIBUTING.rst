@@ -1,7 +1,7 @@
 How to contribute to Nornir
 ============================
 
-First of all, thank you for conidering to contribute to this project!
+First of all, thank you for considering to contribute to this project!
 
 Several ways to contribute
 --------------------------
@@ -29,7 +29,7 @@ It could be that you are aware of something that would be great to have in Norni
 Reporting bugs
 --------------
 
-When you are `reporting bugs <https://github.com/nornir-automation/nornir/issues>`_, make sure that you give a explaination about the outcome that you expect and what you are seeing. The bugs which are hardest to fix are the ones which we are unable to reproduce. For this reason it's important that you describe what you did and show us how we can reproduce the bug in another environment.
+When you are `reporting bugs <https://github.com/nornir-automation/nornir/issues>`_, make sure that you give a explanation about the outcome that you expect and what you are seeing. The bugs which are hardest to fix are the ones which we are unable to reproduce. For this reason it's important that you describe what you did and show us how we can reproduce the bug in another environment.
 
 Fix typos
 ---------
@@ -45,7 +45,7 @@ Documentation is another great way to help if you don't want to contribute actua
 - How-to guides: This sections goal is to help people solve a specific task with Nornir
 - Reference guides: This section describe the Nornir API and plugins. Most of the content in this area is generated from the source code itself.
 
-Contributions to the documentation can be small fixes such as changing scentences to make the text more clear, or it could be new guides.
+Contributions to the documentation can be small fixes such as changing sentences to make the text more clear, or it could be new guides.
 
 Contributing plugins
 --------------------
@@ -130,7 +130,7 @@ To run a specific test.
 Coding style
 ------------
 
-Nornir uses `Black <https://github.com/ambv/black>`_, the the uncompromising Python code formatter. Black makes it easy for you to format your code as you can do so automatically after installing it. Note that Python 3.6 is required to run Black.
+Nornir uses `Black <https://github.com/ambv/black>`_, the uncompromising Python code formatter. Black makes it easy for you to format your code as you can do so automatically after installing it. Note that Python 3.6 is required to run Black.
 
 .. code-block:: bash
 
