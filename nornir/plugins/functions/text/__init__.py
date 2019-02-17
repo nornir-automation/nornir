@@ -11,7 +11,7 @@ from nornir.core.task import AggregatedResult, MultiResult, Result
 LOCK = threading.Lock()
 
 
-init(autoreset=True, convert=True, strip=False)
+init(autoreset=True, convert=False, strip=False)
 
 
 def print_title(title: str) -> None:
