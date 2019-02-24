@@ -21,6 +21,7 @@ requests = "^2"
 "ruamel.yaml" = "^0.15.85"
 mypy_extensions = "^0.4.1"
 pydantic = "^0.17.0"
+deepmerge = "^0.0.5"
 [tool.poetry.dev-dependencies]
 decorator = "*"
 nbval = "*"
