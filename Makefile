@@ -34,7 +34,7 @@ pytest:
 .PHONY: black
 black:
 	${DOCKER_COMPOSE} \
-		run nornir black --check nornir docs tests
+		run nornir black --check .
 
 .PHONY: sphinx
 sphinx:
@@ -45,7 +45,7 @@ sphinx:
 .PHONY: pylama
 pylama:
 	${DOCKER_COMPOSE} \
-		run nornir pylama nornir docs tests
+		run nornir pylama .
 
 .PHONY: mypy
 mypy:

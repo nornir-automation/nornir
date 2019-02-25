@@ -119,12 +119,13 @@ class Nornir(object):
         task_name = kwargs.get("name") or task.__name__
         if num_hosts:
             logger.info(
-                "Running task %r with args %s on %d hosts", task_name, kwargs, num_hosts
+                f"Running task %r with args %s on %d hosts",
+                task_name,
+                kwargs,
+                num_hosts,
             )
         else:
-            logger.warning(
-                "Task %r has not been run due to 0 hosts selected", task_name
-            )
+            logger.warning("Task %r has not been run – 0 hosts selected", task_name)
 
         if num_workers == 1:
             result = self._run_serial(task, run_on, **kwargs)

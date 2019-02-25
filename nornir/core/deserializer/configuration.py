@@ -1,7 +1,7 @@
 import importlib
 import logging
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Type, cast, Union
+from typing import Any, Callable, Dict, Optional, Type, Union, List, cast, Union
 
 from nornir.core import configuration
 from nornir.core.deserializer.inventory import Inventory
@@ -71,18 +71,19 @@ class InventoryConfig(BaseNornirSettings):
 
 
 class LoggingConfig(BaseSettings):
-    enabled: bool = Schema(
-        default=True, description="Whether to configure logging or not"
+    enabled: Optional[bool] = Schema(
+        default=None, description="Whether to configure logging or not"
     )
-    level: str = Schema(default="DEBUG", description="Logging level")
-    file_path: str = Schema(default="nornir.log", description="Logging file")
+    level: str = Schema(default="INFO", description="Logging level")
+    file: str = Schema(default="nornir.log", description="Logging file")
     format: str = Schema(
-        default="[%(asctime)s] %(levelname)-8s {%(name)s:%(lineno)d} %(message)s",
+        default="%(asctime)s - %(name)12s - %(levelname)8s - %(funcName)10s() - %(message)s",
         description="Logging format",
     )
     to_console: bool = Schema(
         default=False, description="Whether to log to console or not"
     )
+    loggers: List[str] = Schema(default=["nornir"], description="Loggers to configure")
 
     class Config:
         env_prefix = "NORNIR_LOGGING_"
@@ -94,9 +95,10 @@ class LoggingConfig(BaseSettings):
         return configuration.LoggingConfig(
             enabled=conf.enabled,
             level=conf.level.upper(),
-            file_path=conf.file_path,
-            format=conf.format,
+            file_=conf.file,
+            format_=conf.format,
             to_console=conf.to_console,
+            loggers=conf.loggers,
         )
 
 

@@ -15,7 +15,7 @@
    * - **Type**
      - ``{{ v["type"] }}``
    * - **Default**
-     - {{ "``{}``".format(v["default"]) if v["default"] else "" }}
+     - {{ "``{}``".format(v.get("default")) if v.get("default") != "" else "" }}
    * - **Required**
      - ``{{ v["required"] or false }}``
    * - **Environment Variable**

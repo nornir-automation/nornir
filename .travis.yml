@@ -1,5 +1,4 @@
 sudo: required
-language: minimal
 dist: xenial
 services:
 - docker

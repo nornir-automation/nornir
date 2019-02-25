@@ -15,13 +15,16 @@ dir_path = os.path.join(
 )
 
 
-DEFAULT_LOG_FORMAT = "[%(asctime)s] %(levelname)-8s {%(name)s:%(lineno)d} %(message)s"
+DEFAULT_LOG_FORMAT = (
+    "%(asctime)s - %(name)12s - %(levelname)8s - %(funcName)10s() - %(message)s"
+)
 
 
 class Test(object):
     def test_config_defaults(self):
         c = ConfigDeserializer()
         assert c.dict() == {
+            "core": {"num_workers": 20, "raise_on_error": False},
             "inventory": {
                 "plugin": "nornir.plugins.inventory.simple.SimpleInventory",
                 "options": {},
@@ -30,21 +33,21 @@ class Test(object):
             },
             "ssh": {"config_file": "~/.ssh/config"},
             "logging": {
-                "enabled": True,
-                "level": "DEBUG",
-                "file_path": "nornir.log",
+                "enabled": None,
+                "level": "INFO",
+                "file": "nornir.log",
                 "format": DEFAULT_LOG_FORMAT,
                 "to_console": False,
+                "loggers": ["nornir"],
             },
             "jinja2": {"filters": ""},
-            "core": {"num_workers": 20, "raise_on_error": False},
             "user_defined": {},
         }
 
     def test_config_basic(self):
         c = ConfigDeserializer(
             core={"num_workers": 30},
-            logging={"file_path": ""},
+            logging={"file": ""},
             user_defined={"my_opt": True},
         )
         assert c.dict() == {
@@ -56,11 +59,12 @@ class Test(object):
             },
             "ssh": {"config_file": "~/.ssh/config"},
             "logging": {
-                "enabled": True,
-                "level": "DEBUG",
-                "file_path": "",
+                "enabled": None,
+                "level": "INFO",
+                "file": "",
                 "format": DEFAULT_LOG_FORMAT,
                 "to_console": False,
+                "loggers": ["nornir"],
             },
             "jinja2": {"filters": ""},
             "core": {"num_workers": 30, "raise_on_error": False},
@@ -75,9 +79,9 @@ class Test(object):
         assert not c.core.raise_on_error
         assert c.user_defined == {}
 
-        assert c.logging.enabled
-        assert c.logging.level == "DEBUG"
-        assert c.logging.file_path == "nornir.log"
+        assert c.logging.enabled is None
+        assert c.logging.level == "INFO"
+        assert c.logging.file == "nornir.log"
         assert c.logging.format == DEFAULT_LOG_FORMAT
         assert not c.logging.to_console
 
@@ -92,7 +96,7 @@ class Test(object):
         c = ConfigDeserializer.deserialize(
             core={"num_workers": 30},
             user_defined={"my_opt": True},
-            logging={"file_path": "", "level": "info"},
+            logging={"file": "", "level": "DEBUG"},
             ssh={"config_file": "~/.ssh/alt_config"},
             inventory={"plugin": "nornir.plugins.inventory.ansible.AnsibleInventory"},
         )
@@ -102,9 +106,9 @@ class Test(object):
         assert not c.core.raise_on_error
         assert c.user_defined == {"my_opt": True}
 
-        assert c.logging.enabled
-        assert c.logging.level == "INFO"
-        assert c.logging.file_path == ""
+        assert c.logging.enabled is None
+        assert c.logging.level == "DEBUG"
+        assert c.logging.file == ""
         assert c.logging.format == DEFAULT_LOG_FORMAT
         assert not c.logging.to_console
 
