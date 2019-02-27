@@ -1,0 +1,5 @@
+**/*.pyc
+**/*.pyo
+**/*.log
+docs/_build
+**/.ipynb_checkpoints

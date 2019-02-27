@@ -3,20 +3,20 @@ version: '2.1'
 
 services:
     nornir:
+        image: nornir:latest
         build:
             context: .
-            dockerfile: Dockerfile.tests
             args:
                 PYTHON: ${PYTHON}
         extra_hosts:
-            dev1.group_1: 10.21.33.101
-            dev2.group_1: 10.21.33.102
-            dev3.group_2: 10.21.33.103
-            dev4.group_2: 10.21.33.104
-            dev5.no_group: 10.21.33.105
-            httpbin: 10.21.33.201
+            - "dev1.group_1:10.21.33.101"
+            - "dev2.group_1:10.21.33.102"
+            - "dev3.group_2:10.21.33.103"
+            - "dev4.group_2:10.21.33.104"
+            - "dev5.no_group:10.21.33.105"
+            - "httpbin:10.21.33.201"
         volumes:
-            - .:/nornir
+            - ./docs/_build/:/nornir/docs/_build/
         networks:
             net1:
                 ipv4_address: 10.21.33.2
@@ -68,4 +68,4 @@ networks:
         driver: bridge
         ipam:
             config:
-            - subnet: 10.21.33.0/24
+                - subnet: 10.21.33.0/24
