@@ -63,6 +63,7 @@ Contents
    ref/index
    upgrading/index
    Contribute <contributing/index>
+   Changelog <changelog/index>
 
 
 Indices and tables
