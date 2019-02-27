@@ -1,9 +1,9 @@
 import uuid
 
-#  from nornir.core.exceptions import NornirExecutionError, CommandError
 from nornir.plugins.tasks import files
+from tests import skip
 
-#  import pytest
+pytestmark = skip
 
 
 def get_file(task):
