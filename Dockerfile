@@ -2,14 +2,10 @@ ARG PYTHON
 FROM python:${PYTHON}-slim-stretch AS builder
 
 WORKDIR /nornir
-ARG PANDOC_VERSION=2.6
 ARG POETRY_PATH="/root/.poetry/bin/poetry"
 
 RUN apt-get update \
     && apt-get install -yq curl git \
-#    && curl -sSL https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-linux.tar.gz | tar xzf - -C / \
-#    && mv /pandoc-${PANDOC_VERSION}/bin/pandoc /usr/local/bin/ \
-#    && rm -rf /pandoc-${PANDOC_VERSION} \
     && curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python \
     && python -m venv .venv \
     && ${POETRY_PATH} config settings.virtualenvs.in-project true
@@ -18,7 +14,7 @@ COPY pyproject.toml .
 COPY poetry.lock .
 
 # Dependencies change more often, so we break RUN to cache the previous layer
-RUN ${POETRY_PATH} run pip install --no-cache-dir -U pip \
+RUN ${POETRY_PATH} run pip install --no-cache-dir -U pip setuptools \
     && ${POETRY_PATH} install --no-interaction
 
 # Source code changes even more often, so we cache another layer
@@ -38,8 +34,6 @@ RUN apt-get update \
 
 COPY --from=builder /nornir/.venv .venv
 COPY --from=builder /nornir/nornir.egg-info nornir.egg-info
-#COPY --from=builder /usr/local/bin/pandoc /usr/local/bin/pandoc
-#COPY --from=builder /usr/bin/pandoc /usr/bin/pandoc
 COPY --from=builder /usr/bin/git /usr/bin/git
 
 ENV PATH "/nornir/.venv/bin:$PATH"
