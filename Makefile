@@ -34,7 +34,7 @@ pytest:
 .PHONY: black
 black:
 	${DOCKER_COMPOSE} \
-		run nornir black --check .
+		run nornir black --check nornir tests docs
 
 .PHONY: sphinx
 sphinx:
@@ -45,29 +45,23 @@ sphinx:
 .PHONY: pylama
 pylama:
 	${DOCKER_COMPOSE} \
-		run nornir pylama .
+		run nornir pylama nornir tests docs
 
 .PHONY: mypy
 mypy:
 	${DOCKER_COMPOSE} \
-		run nornir mypy .
-
-.PHONY: _nbval_docker
-_nbval_docker:
-	/root/.poetry/bin/poetry install
-	pytest --nbval --sanitize-with docs/nbval_sanitize.cfg \
-		docs/plugins \
-		docs/howto \
-		docs/tutorials/intro/initializing_nornir.ipynb \
-		docs/tutorials/intro/inventory.ipynb \
+		run nornir mypy nornir test
 
 .PHONY: nbval
 nbval:
 	${DOCKER_COMPOSE} \
-		run nornir \
-			make _nbval_docker
+		run nornir	pytest --nbval --sanitize-with docs/nbval_sanitize.cfg \
+            docs/plugins \
+            docs/howto \
+            docs/tutorials/intro/initializing_nornir.ipynb \
+            docs/tutorials/intro/inventory.ipynb
 
 .PHONY: tests
-tests: build_test_container black sphinx pylama mypy nbval
+tests: stop_dev_env build_test_container start_dev_env black sphinx pylama mypy nbval
 	make pytest PYTEST=3.6
 	make pytest PYTEST=3.7
