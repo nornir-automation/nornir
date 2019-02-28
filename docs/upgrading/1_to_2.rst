@@ -29,3 +29,30 @@ Changes to the configuration
 ----------------------------
 
 The format of the configuration has slightly changed. Some of the options that used to be under the root object, for instance ``num_workers``, ``jinja_filters`` and ``raise_on_error`` are now under ``core`` and ``jinja2`` sections. For details, go to the `configuration section <../configuration/index.rst>`_
+
+Beware, that where top-level options have now been moved into new sections, if you were previously passing these options to ``InitNornir`` in code and other options via configuration file,  you may notice a change in behaviour. 
+
+Changes to templates
+--------------------
+
+In Nornir 1.x, all host data was made directly available as template variables. To avoid the potential for conflicts, nornir 2.x, host data is namespaced under the ``host`` variable.
+
+Change from::
+
+    My hostname is: {{ hostname }}
+
+to::
+
+    My hostname is: {{ host.hostname }}
+
+Changes to transform functions
+------------------------------
+
+In nornir 2.x, a transform function passed in the ``inventory`` configuration to ``InitNonir`` must be serialisable (so it may not be a lambda). If you need to pass parameters to the transform function, use the new ``transform_function_options`` parameter.
+
+Changes to ``Inventory`` plugins
+--------------------------------
+
+The inventory plugin system has changed quite significantly and the base class is now ``nornir.core.deserializer.inventory.Inventory``. Inventory plugins are also now based on Pydantic (https://github.com/samuelcolvin/pydantic) and so instances of the plugin class do not allow arbitrary class members. You may need to alter the way your inventory plugin works, particularly if you need to maintain state during initialisation.
+
+To see some simple examples, look at the ``SimpleInventory`` and ``NetboxInventory`` plugins which ship with Nornir. The ``AnsibleInventory`` plugin is a complete example of a more complex system.
