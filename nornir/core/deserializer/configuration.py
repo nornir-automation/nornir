@@ -1,5 +1,6 @@
 import importlib
 import logging
+from deepmerge import Merger
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Type, Union, cast
 
@@ -14,13 +15,43 @@ import ruamel.yaml
 logger = logging.getLogger(__name__)
 
 
-class BaseNornirSettings(BaseSettings):
+def deep_merge_settings(
+    base: Dict[str, Any], *overrides: Dict[str, Any]
+) -> Dict[str, Any]:
+    """ Merges each of the overrides in turn into the base object"""
+    my_merger = Merger([(dict, ["merge"])], ["override"], ["override"])
+    result = base
+    for override in overrides:
+        if override:
+            my_merger.merge(result, override)
+    return result
+
+
+class NornirBaseSettings(BaseSettings):
     def _build_values(self, init_kwargs: Dict[str, Any]) -> Dict[str, Any]:
+        """ Merges config file, environment variables and passed parameters
+            in a configurable way
+
+            If __deep_merge__=True:
+                Implements deep merging for the config file data, environment vars and
+                passed parameters while maintaing the precedence order.
+
+            If __deep_merge__=False (default):
+                Preserves the nornir 2.0 behaviour. If any parameters are passed, these
+                are used without considering config file or env vars. If not provided,
+                then the resulting merge of config file and environment variables is
+                taken instead.
+        """
+        deep_merge = init_kwargs.pop("__deep_merge__", False)
         config_settings = init_kwargs.pop("__config_settings__", {})
-        return {**config_settings, **self._build_environ(), **init_kwargs}
+        if deep_merge:
+            values = {**config_settings}  # force copy so as not to modify original
+            return deep_merge_settings(values, self._build_environ(), init_kwargs)
+        else:
+            return {**config_settings, **self._build_environ(), **init_kwargs}
 
 
-class SSHConfig(BaseNornirSettings):
+class SSHConfig(NornirBaseSettings):
     config_file: str = Schema(
         default="~/.ssh/config", description="Path to ssh configuration file"
     )
@@ -36,7 +67,7 @@ class SSHConfig(BaseNornirSettings):
         return configuration.SSHConfig(**s.dict())
 
 
-class InventoryConfig(BaseNornirSettings):
+class InventoryConfig(NornirBaseSettings):
     plugin: str = Schema(
         default="nornir.plugins.inventory.simple.SimpleInventory",
         description="Import path to inventory plugin",
@@ -70,7 +101,7 @@ class InventoryConfig(BaseNornirSettings):
         )
 
 
-class LoggingConfig(BaseNornirSettings):
+class LoggingConfig(NornirBaseSettings):
     level: str = Schema(default="debug", description="Logging level")
     file: str = Schema(default="nornir.log", descritpion="Logging file")
     format: str = Schema(
@@ -98,7 +129,7 @@ class LoggingConfig(BaseNornirSettings):
         )
 
 
-class Jinja2Config(BaseNornirSettings):
+class Jinja2Config(NornirBaseSettings):
     filters: str = Schema(
         default="", description="Path to callable returning jinja filters to be used"
     )
@@ -115,7 +146,7 @@ class Jinja2Config(BaseNornirSettings):
         return configuration.Jinja2Config(filters=jinja_filters)
 
 
-class CoreConfig(BaseNornirSettings):
+class CoreConfig(NornirBaseSettings):
     num_workers: int = Schema(
         default=20,
         description="Number of Nornir worker threads that are run at the same time by default",
@@ -139,7 +170,7 @@ class CoreConfig(BaseNornirSettings):
         return configuration.CoreConfig(**c.dict())
 
 
-class Config(BaseNornirSettings):
+class Config(NornirBaseSettings):
     core: CoreConfig = CoreConfig()
     inventory: InventoryConfig = InventoryConfig()
     ssh: SSHConfig = SSHConfig()
@@ -155,31 +186,51 @@ class Config(BaseNornirSettings):
 
     @classmethod
     def deserialize(
-        cls, __config_settings__: Optional[Dict[str, Any]] = None, **kwargs: Any
+        cls,
+        config_settings: Optional[Dict[str, Any]] = None,
+        deep_merge: bool = False,
+        **kwargs: Any,
     ) -> configuration.Config:
-        __config_settings__ = __config_settings__ or {}
+        if config_settings is None:
+            config_settings = {}
+        # Handle merging user_defined here, since there isn't a Pydantic model
+        # handle this automatically as there are for the other config sections
+        if deep_merge:
+            user_defined = deep_merge_settings(
+                config_settings.pop("user_defined", {}), kwargs.pop("user_defined", {})
+            )
+        else:
+            user_defined = kwargs.pop("user_defined", {}) or config_settings.pop(
+                "user_defined", {}
+            )
         c = Config(
+            __deep_merge__=deep_merge,
             core=CoreConfig(
-                __config_settings__=__config_settings__.pop("core", {}),
+                __config_settings__=config_settings.get("core", {}),
+                __deep_merge__=deep_merge,
                 **kwargs.pop("core", {}),
             ),
             ssh=SSHConfig(
-                __config_settings__=__config_settings__.pop("ssh", {}),
+                __config_settings__=config_settings.get("ssh", {}),
+                __deep_merge__=deep_merge,
                 **kwargs.pop("ssh", {}),
             ),
             inventory=InventoryConfig(
-                __config_settings__=__config_settings__.pop("inventory", {}),
+                __config_settings__=config_settings.get("inventory", {}),
+                __deep_merge__=deep_merge,
                 **kwargs.pop("inventory", {}),
             ),
             logging=LoggingConfig(
-                __config_settings__=__config_settings__.pop("logging", {}),
+                __config_settings__=config_settings.get("logging", {}),
+                __deep_merge__=deep_merge,
                 **kwargs.pop("logging", {}),
             ),
             jinja2=Jinja2Config(
-                __config_settings__=__config_settings__.pop("jinja2", {}),
+                __config_settings__=config_settings.get("jinja2", {}),
+                __deep_merge__=deep_merge,
                 **kwargs.pop("jinja2", {}),
             ),
-            __config_settings__=__config_settings__,
+            user_defined=user_defined,
             **kwargs,
         )
         return configuration.Config(
@@ -192,13 +243,17 @@ class Config(BaseNornirSettings):
         )
 
     @classmethod
-    def load_from_file(cls, config_file: str, **kwargs: Any) -> configuration.Config:
+    def load_from_file(
+        cls, config_file: str, deep_merge: bool = False, **kwargs: Any
+    ) -> configuration.Config:
         config_dict: Dict[str, Any] = {}
         if config_file:
             yml = ruamel.yaml.YAML(typ="safe")
             with open(config_file, "r") as f:
                 config_dict = yml.load(f) or {}
-        return Config.deserialize(__config_settings__=config_dict, **kwargs)
+        return Config.deserialize(
+            config_settings=config_dict, deep_merge=deep_merge, **kwargs
+        )
 
 
 def _resolve_import_from_string(
