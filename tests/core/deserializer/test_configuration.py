@@ -176,3 +176,25 @@ class Test(object):
             os.path.join(dir_path, "config.yaml")
         )
         assert config.user_defined["asd"] == "qwe"
+
+    def test_order_of_resolution_config_is_lowest(self):
+        config = ConfigDeserializer.load_from_file(
+            os.path.join(dir_path, "config.yaml")
+        )
+        assert config.core.num_workers == 10
+
+    def test_order_of_resolution_env_is_higher_than_config(self):
+        os.environ["NORNIR_CORE_NUM_WORKERS"] = "20"
+        config = ConfigDeserializer.load_from_file(
+            os.path.join(dir_path, "config.yaml")
+        )
+        os.environ.pop("NORNIR_CORE_NUM_WORKERS")
+        assert config.core.num_workers == 20
+
+    def test_order_of_resolution_code_is_higher_than_env(self):
+        os.environ["NORNIR_CORE_NUM_WORKERS"] = "20"
+        config = ConfigDeserializer.load_from_file(
+            os.path.join(dir_path, "config.yaml"), core={"num_workers": 30}
+        )
+        os.environ.pop("NORNIR_CORE_NUM_WORKERS")
+        assert config.core.num_workers == 30
