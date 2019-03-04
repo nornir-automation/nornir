@@ -1,7 +1,7 @@
 import importlib
 import logging
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Type, Union, List, cast, Union
+from typing import Any, Callable, Dict, Optional, Type, Union, List, cast
 
 from nornir.core import configuration
 from nornir.core.deserializer.inventory import Inventory
@@ -70,7 +70,7 @@ class InventoryConfig(BaseNornirSettings):
         )
 
 
-class LoggingConfig(BaseSettings):
+class LoggingConfig(BaseNornirSettings):
     enabled: Optional[bool] = Schema(
         default=None, description="Whether to configure logging or not"
     )
