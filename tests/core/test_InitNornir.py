@@ -56,6 +56,14 @@ class Test(object):
         assert len(nr.inventory.hosts)
         assert len(nr.inventory.groups)
 
+    def test_InitNornir_override_partial_section(self):
+        nr = InitNornir(
+            config_file=os.path.join(dir_path, "a_config.yaml"),
+            core={"raise_on_error": True},
+        )
+        assert nr.config.core.num_workers == 100
+        assert nr.config.core.raise_on_error
+
     def test_InitNornir_combined(self):
         nr = InitNornir(
             config_file=os.path.join(dir_path, "a_config.yaml"),
