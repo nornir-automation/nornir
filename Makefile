@@ -55,7 +55,7 @@ mypy:
 .PHONY: _nbval_docker
 _nbval_docker:
 	/root/.poetry/bin/poetry install
-	pytest --nbval \
+	pytest --nbval --sanitize-with docs/nbval_sanitize.cfg \
 		docs/plugins \
 		docs/howto \
 		docs/tutorials/intro/initializing_nornir.ipynb \
