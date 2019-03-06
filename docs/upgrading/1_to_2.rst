@@ -4,6 +4,9 @@ Upgrading to nornir 2.x from 1.x
 Changes in the inventory
 ------------------------
 
+Connection parameters
+~~~~~~~~~~~~~~~~~~~~~
+
 When specifying connection parameters, in nornir 1.x those parameters where specified with attributes like ``nornir_username``, ``nornir_password``, etc. All of those have been removed and now the only supported parameters are:
 
 * ``hostname``
@@ -13,6 +16,36 @@ When specifying connection parameters, in nornir 1.x those parameters where spec
 * ``platform`` (which replaces both ``os`` and ``network_operating_system``)
 
 You can check the following how to for more details on `how to <../howto/handling_connections.rst>`_ use these parameters.
+
+Custom inventory data
+~~~~~~~~~~~~~~~~~~~~~
+
+Any custom host or group data keys, other than core supported keys, must also be moved under a data subkey::
+
+    ---
+    host host1.cmh:
+      hostname: 127.0.0.1
+      username: vagrant
+      password: vagrant
+      platform: linux
+      groups:
+        - cmh
+      site: cmh  # example custom data
+
+to::
+
+    ---
+    host1.cmh:
+      hostname: 127.0.0.1
+      username: vagrant
+      password: vagrant
+      platform: linux
+      groups:
+        - cmh
+      data:
+        site: cmh
+
+See `the inventory tutorial <../tutorials/intro/inventory.ipynb>`_ for more information on how to structure inventory data.
 
 Changed to path importing ``InitNornir``
 ----------------------------------------
