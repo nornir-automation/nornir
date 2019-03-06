@@ -31,10 +31,10 @@ For details about upgrading to 2.0.0 see the [https://nornir.readthedocs.io/en/2
 
 + [CORE_ENHANCEMENTS] Lots of core enhancements, too many to document
 + [CORE_ENHANCEMENTS] Changes on how the inventory
-+ [CORE_ENHANCEMENTS] New ``F`` object for advanced filtering of hosts [docs](file:///Users/dbarroso/workspace/nornir/docs/_build/html/howto/advanced_filtering.html)
++ [CORE_ENHANCEMENTS] New ``F`` object for advanced filtering of hosts [docs](https://nornir.readthedocs.io/en/stable/howto/advanced_filtering.html)
 + [CORE_ENHANCEMENTS] Improvements on how to serialize/deserialize user facing data like the configuration and the inventory
 + [CORE_ENHANCEMENTS] Connections are now their own type of plugin
-+ [CORE_ENHANCEMENTS] Ability to handle connections manually [docs](file:///Users/dbarroso/workspace/nornir/docs/_build/html/howto/handling_connections.html)
++ [CORE_ENHANCEMENTS] Ability to handle connections manually [docs](https://nornir.readthedocs.io/en/stable/howto/handling_connections.html)
 + [CORE_BUGFIX] Lots
 + [PLUGIN_BUGFIX] Lots
 + [PLUGIN_NEW] netmiko_save_config
