@@ -4,6 +4,7 @@ endif
 
 DOCKER_COMPOSE_FILE=docker-compose.yaml
 DOCKER_COMPOSE=PYTHON=${PYTHON} docker-compose -f ${DOCKER_COMPOSE_FILE}
+NORNIR_DIRS=nornir tests docs
 
 .PHONY: start_dev_env
 start_dev_env:
@@ -24,38 +25,38 @@ build_test_container:
 .PHONY: enter-container
 enter-container:
 	${DOCKER_COMPOSE} \
-		run nornir bash
+		run --rm nornir bash
 
 .PHONY: pytest
 pytest:
 	${DOCKER_COMPOSE} \
-		run nornir pytest --cov=nornir --cov-report=term-missing -vs ${ARGS}
+		run --rm nornir pytest --cov=nornir --cov-report=term-missing -vs ${ARGS}
 
 .PHONY: black
 black:
 	${DOCKER_COMPOSE} \
-		run nornir black --check nornir tests docs
+		run --rm nornir black --check ${NORNIR_DIRS}
 
 .PHONY: sphinx
 sphinx:
 	# TODO REPLACE with: sphinx-build -n -E -q -N -b dummy -d docs/_build/doctrees docs asd
 	${DOCKER_COMPOSE} \
-		run nornir sphinx-build -W -b html -d docs/_build/doctrees docs docs/_build/html
+		run --rm nornir sphinx-build -W -b html -d docs/_build/doctrees docs docs/_build/html
 
 .PHONY: pylama
 pylama:
 	${DOCKER_COMPOSE} \
-		run nornir pylama nornir tests docs
+		run --rm nornir pylama ${NORNIR_DIRS}
 
 .PHONY: mypy
 mypy:
 	${DOCKER_COMPOSE} \
-		run nornir mypy nornir test
+		run --rm nornir mypy nornir tests
 
 .PHONY: nbval
 nbval:
 	${DOCKER_COMPOSE} \
-		run nornir	pytest --nbval --sanitize-with docs/nbval_sanitize.cfg \
+		run --rm nornir	pytest --nbval --sanitize-with docs/nbval_sanitize.cfg \
             docs/plugins \
             docs/howto \
             docs/tutorials/intro/initializing_nornir.ipynb \
