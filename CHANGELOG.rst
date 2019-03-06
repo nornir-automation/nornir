@@ -17,24 +17,23 @@
 
 Thanks to the following people for their contributions:
 
-* [bradh11](https://github.com/bradh11)
-* [fallenarc](https://github.com/fallenarc)
-* [floatingstatic](https://github.com/floatingstatic)
-* [jimmelville](https://github.com/jimmelville)
-* [optiz0r](https://github.com/optiz0r)
-
+* `bradh11 <https://github.com/bradh11>`_
+* `fallenarc <https://github.com/fallenarc>`_
+* `floatingstatic <https://github.com/floatingstatic>`_
+* `jimmelville <https://github.com/jimmelville>`_
+* `optiz0r <https://github.com/optiz0r>`_
 
 2.0.0 - December 17 2018
 ========================
 
-For details about upgrading to 2.0.0 see the [https://nornir.readthedocs.io/en/2.0.0-beta/upgrading/1_to_2.html](notes).
+For details about upgrading to 2.0.0 see the `notes <https://nornir.readthedocs.io/en/2.0.0-beta/upgrading/1_to_2.html>`_.
 
 + [CORE_ENHANCEMENTS] Lots of core enhancements, too many to document
 + [CORE_ENHANCEMENTS] Changes on how the inventory
-+ [CORE_ENHANCEMENTS] New ``F`` object for advanced filtering of hosts [docs](https://nornir.readthedocs.io/en/stable/howto/advanced_filtering.html)
++ [CORE_ENHANCEMENTS] New ``F`` object for `advanced filtering of hosts <https://nornir.readthedocs.io/en/stable/howto/advanced_filtering.html>`_
 + [CORE_ENHANCEMENTS] Improvements on how to serialize/deserialize user facing data like the configuration and the inventory
 + [CORE_ENHANCEMENTS] Connections are now their own type of plugin
-+ [CORE_ENHANCEMENTS] Ability to handle connections manually [docs](https://nornir.readthedocs.io/en/stable/howto/handling_connections.html)
++ [CORE_ENHANCEMENTS] Ability to `handle connections manually <https://nornir.readthedocs.io/en/stable/howto/handling_connections.html>`_
 + [CORE_BUGFIX] Lots
 + [PLUGIN_BUGFIX] Lots
 + [PLUGIN_NEW] netmiko_save_config
