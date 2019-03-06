@@ -1,6 +1,5 @@
-from typing import Any, Callable, Dict, Optional
-
 import warnings
+from typing import Any, Callable, Dict, Optional
 
 from nornir.core import Nornir
 from nornir.core.connections import Connections
