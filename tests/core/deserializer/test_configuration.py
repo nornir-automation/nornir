@@ -1,4 +1,3 @@
-import logging
 import os
 from pathlib import Path
 
@@ -25,6 +24,7 @@ class Test(object):
     def test_config_defaults(self):
         c = ConfigDeserializer()
         assert c.dict() == {
+            "core": {"num_workers": 20, "raise_on_error": False},
             "inventory": {
                 "plugin": "nornir.plugins.inventory.simple.SimpleInventory",
                 "options": {},
@@ -33,14 +33,14 @@ class Test(object):
             },
             "ssh": {"config_file": "~/.ssh/config"},
             "logging": {
-                "level": "debug",
+                "enabled": None,
+                "level": "INFO",
                 "file": "nornir.log",
                 "format": DEFAULT_LOG_FORMAT,
                 "to_console": False,
                 "loggers": ["nornir"],
             },
             "jinja2": {"filters": ""},
-            "core": {"num_workers": 20, "raise_on_error": False},
             "user_defined": {},
         }
 
@@ -59,7 +59,8 @@ class Test(object):
             },
             "ssh": {"config_file": "~/.ssh/config"},
             "logging": {
-                "level": "debug",
+                "enabled": None,
+                "level": "INFO",
                 "file": "",
                 "format": DEFAULT_LOG_FORMAT,
                 "to_console": False,
@@ -78,11 +79,11 @@ class Test(object):
         assert not c.core.raise_on_error
         assert c.user_defined == {}
 
-        assert c.logging.level == logging.DEBUG
+        assert c.logging.enabled is None
+        assert c.logging.level == "INFO"
         assert c.logging.file == "nornir.log"
         assert c.logging.format == DEFAULT_LOG_FORMAT
         assert not c.logging.to_console
-        assert c.logging.loggers == ["nornir"]
 
         assert c.ssh.config_file == str(Path("~/.ssh/config").expanduser())
 
@@ -95,7 +96,7 @@ class Test(object):
         c = ConfigDeserializer.deserialize(
             core={"num_workers": 30},
             user_defined={"my_opt": True},
-            logging={"file": "", "level": "info"},
+            logging={"file": "", "level": "DEBUG"},
             ssh={"config_file": "~/.ssh/alt_config"},
             inventory={"plugin": "nornir.plugins.inventory.ansible.AnsibleInventory"},
         )
@@ -105,11 +106,11 @@ class Test(object):
         assert not c.core.raise_on_error
         assert c.user_defined == {"my_opt": True}
 
-        assert c.logging.level == logging.INFO
+        assert c.logging.enabled is None
+        assert c.logging.level == "DEBUG"
         assert c.logging.file == ""
         assert c.logging.format == DEFAULT_LOG_FORMAT
         assert not c.logging.to_console
-        assert c.logging.loggers == ["nornir"]
 
         assert c.ssh.config_file == str(Path("~/.ssh/alt_config").expanduser())
 

@@ -1,7 +1,7 @@
 import importlib
 import logging
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Type, Union, cast
+from typing import Any, Callable, Dict, Optional, Type, Union, List, cast
 
 from nornir.core import configuration
 from nornir.core.deserializer.inventory import Inventory
@@ -71,8 +71,11 @@ class InventoryConfig(BaseNornirSettings):
 
 
 class LoggingConfig(BaseNornirSettings):
-    level: str = Schema(default="debug", description="Logging level")
-    file: str = Schema(default="nornir.log", descritpion="Logging file")
+    enabled: Optional[bool] = Schema(
+        default=None, description="Whether to configure logging or not"
+    )
+    level: str = Schema(default="INFO", description="Logging level")
+    file: str = Schema(default="nornir.log", description="Logging file")
     format: str = Schema(
         default="%(asctime)s - %(name)12s - %(levelname)8s - %(funcName)10s() - %(message)s",
         description="Logging format",
@@ -87,14 +90,15 @@ class LoggingConfig(BaseNornirSettings):
         ignore_extra = False
 
     @classmethod
-    def deserialize(cls, **kwargs: Any) -> configuration.LoggingConfig:
-        logging_config = LoggingConfig(**kwargs)
+    def deserialize(cls, **kwargs) -> configuration.LoggingConfig:
+        conf = cls(**kwargs)
         return configuration.LoggingConfig(
-            level=getattr(logging, logging_config.level.upper()),
-            file_=logging_config.file,
-            format_=logging_config.format,
-            to_console=logging_config.to_console,
-            loggers=logging_config.loggers,
+            enabled=conf.enabled,
+            level=conf.level.upper(),
+            file_=conf.file,
+            format_=conf.format,
+            to_console=conf.to_console,
+            loggers=conf.loggers,
         )
 
 
@@ -211,7 +215,7 @@ def _resolve_import_from_string(
             return import_path
         module_name, obj_name = import_path.rsplit(".", 1)
         module = importlib.import_module(module_name)
-        return cast(Callable[..., Any], getattr(module, obj_name))
-    except Exception as e:
-        logger.error(f"failed to load import_path '{import_path}'\n{e}")
+        return getattr(module, obj_name)
+    except Exception:
+        logger.error("Failed to import %r", import_path, exc_info=True)
         raise

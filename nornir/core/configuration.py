@@ -1,7 +1,11 @@
 import logging
-import logging.config
-from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING, Type
+import logging.handlers
+import sys
+import warnings
+from pathlib import Path
+from typing import Any, Callable, Dict, Optional, TYPE_CHECKING, Type, List
 
+from nornir.core.exceptions import ConflictingConfigurationWarning
 
 if TYPE_CHECKING:
     from nornir.core.deserializer.inventory import Inventory  # noqa
@@ -31,11 +35,18 @@ class InventoryConfig(object):
 
 
 class LoggingConfig(object):
-    __slots__ = "level", "file", "format", "to_console", "loggers"
+    __slots__ = "enabled", "level", "file", "format", "to_console", "loggers"
 
     def __init__(
-        self, level: str, file_: str, format_: str, to_console: bool, loggers: List[str]
+        self,
+        enabled: Optional[bool],
+        level: str,
+        file_: str,
+        format_: str,
+        to_console: bool,
+        loggers: List[str],
     ) -> None:
+        self.enabled = enabled
         self.level = level
         self.file = file_
         self.format = format_
@@ -43,50 +54,56 @@ class LoggingConfig(object):
         self.loggers = loggers
 
     def configure(self) -> None:
-        rootHandlers: List[str] = []
-        root = {
-            "level": "CRITICAL" if self.loggers else self.level.upper(),
-            "handlers": rootHandlers,
-            "formatter": "simple",
-        }
-        handlers: Dict[str, Any] = {}
-        loggers: Dict[str, Any] = {}
-        dictConfig = {
-            "version": 1,
-            "disable_existing_loggers": False,
-            "formatters": {"simple": {"format": self.format}},
-            "handlers": handlers,
-            "loggers": loggers,
-            "root": root,
-        }
-        handlers_list = []
-        if self.file:
-            rootHandlers.append("info_file_handler")
-            handlers_list.append("info_file_handler")
-            handlers["info_file_handler"] = {
-                "class": "logging.handlers.RotatingFileHandler",
-                "level": "NOTSET",
-                "formatter": "simple",
-                "filename": self.file,
-                "maxBytes": 10485760,
-                "backupCount": 20,
-                "encoding": "utf8",
-            }
-        if self.to_console:
-            rootHandlers.append("info_console")
-            handlers_list.append("info_console")
-            handlers["info_console"] = {
-                "class": "logging.StreamHandler",
-                "level": "NOTSET",
-                "formatter": "simple",
-                "stream": "ext://sys.stdout",
-            }
+        if not self.enabled:
+            return
 
-        for logger in self.loggers:
-            loggers[logger] = {"level": self.level, "handlers": handlers_list}
+        root_logger = logging.getLogger()
+        if root_logger.hasHandlers() or root_logger.level != logging.WARNING:
+            msg = (
+                "Native Python logging configuration has been detected, but Nornir "
+                "logging is enabled too. "
+                "This can lead to unexpected logging results. "
+                "Please set logging.enabled config to False "
+                "to disable automatic Nornir logging configuration. Refer to "
+                "https://nornir.readthedocs.io/en/stable/configuration/index.html#logging"  # noqa
+            )
+            warnings.warn(msg, ConflictingConfigurationWarning)
 
-        if rootHandlers:
-            logging.config.dictConfig(dictConfig)
+        formatter = logging.Formatter(self.format)
+        # log INFO and DEBUG to stdout
+        stdout_handler = logging.StreamHandler(sys.stdout)
+        stdout_handler.setFormatter(formatter)
+        stdout_handler.setLevel(logging.DEBUG)
+        stdout_handler.addFilter(lambda record: record.levelno <= logging.INFO)
+        # log WARNING, ERROR and CRITICAL to stderr
+        stderr_handler = logging.StreamHandler(sys.stderr)
+        stderr_handler.setFormatter(formatter)
+        stderr_handler.setLevel(logging.WARNING)
+
+        for logger_name in self.loggers:
+            logger_ = logging.getLogger(logger_name)
+            logger_.propagate = False
+            logger_.setLevel(self.level)
+            if logger_.hasHandlers():
+                # Don't add handlers if some handlers are already attached to the logger
+                # This is crucial to avoid duplicate handlers
+                # Alternative would be to clear all handlers and reconfigure them
+                # with Nornir
+                # There are several situations this branch can be executed:
+                # multiple calls to InitNornir,
+                # logging.config.dictConfig configuring 'nornir' logger, etc.
+                # The warning is not emitted in this scenario
+                continue
+            if self.file:
+                handler = logging.handlers.RotatingFileHandler(
+                    str(Path(self.file)), maxBytes=1024 * 1024 * 10, backupCount=20
+                )
+                handler.setFormatter(formatter)
+                logger_.addHandler(handler)
+
+            if self.to_console:
+                logger_.addHandler(stdout_handler)
+                logger_.addHandler(stderr_handler)
 
 
 class Jinja2Config(object):

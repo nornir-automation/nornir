@@ -104,3 +104,7 @@ class NornirSubTaskError(Exception):
 
     def __str__(self) -> str:
         return "Subtask: {} (failed)\n".format(self.task)
+
+
+class ConflictingConfigurationWarning(UserWarning):
+    pass

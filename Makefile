@@ -55,7 +55,7 @@ mypy:
 .PHONY: _nbval_docker
 _nbval_docker:
 	/root/.poetry/bin/poetry install
-	pytest --nbval \
+	pytest --nbval --sanitize-with docs/nbval_sanitize.cfg \
 		docs/plugins \
 		docs/howto \
 		docs/tutorials/intro/initializing_nornir.ipynb \
@@ -67,7 +67,7 @@ nbval:
 		run nornir \
 			make _nbval_docker
 
-PHONY: tests
+.PHONY: tests
 tests: build_test_container black sphinx pylama mypy nbval
 	make pytest PYTEST=3.6
 	make pytest PYTEST=3.7
