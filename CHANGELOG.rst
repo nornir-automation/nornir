@@ -1,3 +1,29 @@
+2.1.0 - March 6 2019
+====================
+
+* [CORE_ENHANCEMENTS] inventory's transform function supports options #292
+* [CORE_ENHANCEMENTS] minor improvements to tests #293 #296 #306 #307 #312 #337
+* [CORE_ENHANCEMENTS] mypy improvements #308
+* [CORE_ENHANCEMENTS] expand user home when deserializing configuration #304
+* [CORE_ENHANCEMENTS] fix order of preference when deserializing config #309
+* [CORE_ENHANCEMENTS] fix and deprecate dict() function #314
+* [CORE_ENHANCEMENTS] migrate to poetry #315
+* [CORE_ENHANCEMENTS] Improve logging #316
+* [CORE_BUGFIX] (windows only) fix issue #319 - ascii color codes appear instead of color in output #320 #323
+* [PLUGIN_IMPROVEMENT] napalm and netmiko plugins support now reading ssh configuration from file #298
+* [PLUGIN_BUGFIX] fix paramiko chan.recv_exit_status() call order #313
+* [PLUGIN_BUGFIX] temporary fix for enum34 and netmiko-poetry issue #322
+* [DOCS] Various improvements #303 #305 #310 #318 #331 #335 #340
+
+Thanks to the following people for their contributions:
+
+* [bradh11](https://github.com/bradh11)
+* [fallenarc](https://github.com/fallenarc)
+* [floatingstatic](https://github.com/floatingstatic)
+* [jimmelville](https://github.com/jimmelville)
+* [optiz0r](https://github.com/optiz0r)
+
+
 2.0.0 - December 17 2018
 ========================
 
