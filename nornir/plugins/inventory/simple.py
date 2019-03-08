@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any
+from typing import Any, Optional
 
 from nornir.core.deserializer.inventory import (
     HostsDict,
@@ -20,9 +20,9 @@ class SimpleInventory(Inventory):
         host_file: str = "hosts.yaml",
         group_file: str = "groups.yaml",
         defaults_file: str = "defaults.yaml",
-        hosts: HostsDict = None,
-        groups: GroupsDict = None,
-        defaults: VarsDict = None,
+        hosts: Optional[HostsDict] = None,
+        groups: Optional[GroupsDict] = None,
+        defaults: Optional[VarsDict] = None,
         *args: Any,
         **kwargs: Any
     ) -> None:
