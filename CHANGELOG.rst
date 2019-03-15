@@ -13,6 +13,7 @@
 * [PLUGIN_IMPROVEMENT] napalm and netmiko plugins support now reading ssh configuration from file #298
 * [PLUGIN_BUGFIX] fix paramiko chan.recv_exit_status() call order #313
 * [PLUGIN_BUGFIX] temporary fix for enum34 and netmiko-poetry issue #322
+* [PLUGIN_IMPROVEMENT] Print OrderDicts nicely in print_result #345
 * [DOCS] Various improvements #303 #305 #310 #318 #331 #335 #340
 
 Thanks to the following people for their contributions:
@@ -22,6 +23,7 @@ Thanks to the following people for their contributions:
 * `floatingstatic <https://github.com/floatingstatic>`_
 * `jimmelville <https://github.com/jimmelville>`_
 * `optiz0r <https://github.com/optiz0r>`_
+* `wdesmedt <https://github.com/wdesmedt>`_
 
 2.0.0 - December 17 2018
 ========================
