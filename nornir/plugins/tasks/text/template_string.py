@@ -10,7 +10,7 @@ def template_string(
     task: Task, template: str, jinja_filters: FiltersDict = None, **kwargs: Any
 ) -> Result:
     """
-    Renders a string with jinja2. All the host data is available in the tempalte
+    Renders a string with jinja2. All the host data is available in the template
 
     Arguments:
         template (string): template string

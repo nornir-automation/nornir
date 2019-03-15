@@ -2,6 +2,8 @@ import logging
 import pprint
 import threading
 from typing import List, Optional, cast
+from collections import OrderedDict
+import json
 
 from colorama import Fore, Style, init
 
@@ -61,7 +63,10 @@ def _print_individual_result(
             # for consistency between py3.6 and py3.7
             print(f"{x.__class__.__name__}{x.args}")
         elif x and not isinstance(x, str):
-            pprint.pprint(x, indent=2)
+            if isinstance(x, OrderedDict):
+                print(json.dumps(x, indent=2))
+            else:
+                pprint.pprint(x, indent=2)
         elif x:
             print(x)
 

@@ -442,19 +442,16 @@ description = "Multi-vendor library to simplify Paramiko SSH connections to netw
 name = "netmiko"
 optional = false
 python-versions = "*"
-version = "2.3.1"
+version = "2.3.3"
 
 [package.dependencies]
 paramiko = ">=2.4.2"
 pyserial = "*"
 pyyaml = "*"
 scp = ">=0.10.0"
+setuptools = ">=38.4.0"
 textfsm = "*"
 
-[package.source]
-reference = "9c0996ddc3d2de18242bf1a722188bd5aa4c8983"
-type = "git"
-url = "https://github.com/ktbyers/netmiko"
 [[package]]
 category = "main"
 description = "A library for managing Cisco devices through NX-API using XML or jsonrpc."
@@ -873,7 +870,7 @@ python-versions = "*"
 version = "0.1.7"
 
 [metadata]
-content-hash = "90596857c51e4925f054deeae4b8eed69032212dd1c2e0d6459187b0c166d0f7"
+content-hash = "bfbe279b16238ff511f004f92c5bf0509bdb8474eaa32fb93fea67b893fe6dbc"
 python-versions = ">= 3.6, < 3.8"
 
 [metadata.hashes]
@@ -917,7 +914,7 @@ nbformat = ["b9a0dbdbd45bb034f4f8893cafd6f652ea08c8c1674ba83f2dc55d3955743b0b", 
 nbval = ["3f18b87af4e94ccd073263dd58cd3eebabe9f5e4d6ab535b39d3af64811c7eda", "74ff5e2c90a50b1ddf7edd02978c4e43221b1ee252dc14fcaa4230aae4492eda"]
 ncclient = ["3ab58ee0d71069cb5b0e2f29a4e605d1d8417bd10af45b73ee3e817fe389fadc"]
 netaddr = ["38aeec7cdd035081d3a4c306394b19d677623bf76fa0913f6695127c7753aefd", "56b3558bd71f3f6999e4c52e349f38660e54a7a8a9943335f73dfc96883e08ca"]
-netmiko = []
+netmiko = ["e7e9af5aeebea54488d9cad92f0a85117ca5ffa816decc63a669d88c5b2018fd"]
 nxapi-plumbing = ["6f54f9983f023bd75b60acd907ff47f559541cc2b98f4fa638b8585ca0de0fb5"]
 paramiko = ["3c16b2bfb4c0d810b24c40155dbfd113c0521e7e6ee593d704e84b4c658a1f3b", "a8975a7df3560c9f1e2b43dc54ebd40fd00a7017392ca5445ce7df409f900fcb"]
 parso = ["4580328ae3f548b358f4901e38c0578229186835f0fa0846e47369796dd5bcc9", "68406ebd7eafe17f8e40e15a84b56848eccbf27d7c1feb89e93d8fca395706db"]
