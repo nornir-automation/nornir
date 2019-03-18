@@ -50,12 +50,13 @@ def get_directory(task):
 
 class Test(object):
     def test_sftp_put(self, nornir):
+        u = uuid.uuid4()
         result = nornir.run(
             files.sftp,
             dry_run=True,
             action="put",
             src="README.md",
-            dst="/tmp/README.md",
+            dst=f"/tmp/README-{u}.md",
         )
 
         assert result
@@ -67,7 +68,7 @@ class Test(object):
             dry_run=False,
             action="put",
             src="README.md",
-            dst="/tmp/README.md",
+            dst=f"/tmp/README-{u}.md",
         )
 
         assert result
@@ -79,7 +80,7 @@ class Test(object):
             dry_run=True,
             action="put",
             src="README.md",
-            dst="/tmp/README.md",
+            dst=f"/tmp/README-{u}.md",
         )
 
         assert result
@@ -91,8 +92,9 @@ class Test(object):
         assert not result.failed
 
     def test_sftp_put_directory(self, nornir):
+        u = uuid.uuid4()
         result = nornir.run(
-            files.sftp, dry_run=True, action="put", src="./nornir", dst="/tmp/asd"
+            files.sftp, dry_run=True, action="put", src="./nornir", dst=f"/tmp/{u}"
         )
 
         assert result
@@ -100,7 +102,7 @@ class Test(object):
             assert r.changed, r.files_changed
 
         result = nornir.run(
-            files.sftp, dry_run=False, action="put", src="./nornir", dst="/tmp/asd"
+            files.sftp, dry_run=False, action="put", src="./nornir", dst=f"/tmp/{u}"
         )
 
         assert result
@@ -108,7 +110,7 @@ class Test(object):
             assert r.changed, r.files_changed
 
         result = nornir.run(
-            files.sftp, dry_run=True, action="put", src="./nornir", dst="/tmp/asd"
+            files.sftp, dry_run=True, action="put", src="./nornir", dst=f"/tmp/{u}"
         )
 
         assert result

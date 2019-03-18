@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "nornir"
+version = "2.1.0"
+description = "Pluggable multi-threaded framework with inventory management to help operate collections of devices"
+authors = ["David Barroso <dbarrosop@dravetech.com>"]
+readme = "README.md"
+repository = "https://github.com/nornir-automation/nornir"
+classifiers = [
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+]
+
+[tool.poetry.dependencies]
+python = ">= 3.6, < 3.8"
+colorama = "^0.4.1"
+jinja2 = "^2"
+napalm = "^2"
+netmiko = ">=2.3.3, <3"
+paramiko = ">=2.1.1, <3"
+requests = "^2"
+"ruamel.yaml" = "^0.15.85"
+mypy_extensions = "^0.4.1"
+pydantic = "^0.18.2"
+[tool.poetry.dev-dependencies]
+# https://github.com/jupyter/notebook/issues/4399
+tornado = "^5.1"
+decorator = "*"
+nbval = "*"
+pytest = "*"
+pytest-cov = "*"
+pylama = "*"
+flake8-import-order = "*"
+requests-mock = "*"
+black = {version = "^18.3-alpha.0",allows-prereleases = true}
+mypy = "*"
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

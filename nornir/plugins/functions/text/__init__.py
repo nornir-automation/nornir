@@ -1,7 +1,9 @@
 import logging
 import pprint
 import threading
-from typing import List, Optional
+from typing import List, Optional, cast
+from collections import OrderedDict
+import json
 
 from colorama import Fore, Style, init
 
@@ -11,7 +13,7 @@ from nornir.core.task import AggregatedResult, MultiResult, Result
 LOCK = threading.Lock()
 
 
-init(autoreset=True, convert=False, strip=False)
+init(autoreset=True, strip=False)
 
 
 def print_title(title: str) -> None:
@@ -29,7 +31,7 @@ def _get_color(result: Result, failed: bool) -> str:
         color = Fore.YELLOW
     else:
         color = Fore.GREEN
-    return color
+    return cast(str, color)
 
 
 def _print_individual_result(
@@ -57,8 +59,14 @@ def _print_individual_result(
     )
     for attribute in attrs:
         x = getattr(result, attribute, "")
-        if x and not isinstance(x, str):
-            pprint.pprint(x, indent=2)
+        if isinstance(x, BaseException):
+            # for consistency between py3.6 and py3.7
+            print(f"{x.__class__.__name__}{x.args}")
+        elif x and not isinstance(x, str):
+            if isinstance(x, OrderedDict):
+                print(json.dumps(x, indent=2))
+            else:
+                pprint.pprint(x, indent=2)
         elif x:
             print(x)
 

@@ -1,9 +1,15 @@
 import logging
 import traceback
-from typing import Optional
+from typing import Any, Optional, TYPE_CHECKING
 
 from nornir.core.exceptions import NornirExecutionError
 from nornir.core.exceptions import NornirSubTaskError
+
+if TYPE_CHECKING:
+    from nornir.core.inventory import Host
+
+
+logger = logging.getLogger(__name__)
 
 
 class Task(object):
@@ -56,21 +62,30 @@ class Task(object):
         self.host = host
         self.nornir = nornir
 
-        logger = logging.getLogger(__name__)
         try:
-            logger.info("{}: {}: running task".format(self.host.name, self.name))
+            logger.debug("Host %r: running task %r", self.host.name, self.name)
             r = self.task(self, **self.params)
             if not isinstance(r, Result):
                 r = Result(host=host, result=r)
 
         except NornirSubTaskError as e:
             tb = traceback.format_exc()
-            logger.error("{}: {}".format(self.host, tb))
+            logger.error(
+                "Host %r: task %r failed with traceback:\n%s",
+                self.host.name,
+                self.name,
+                tb,
+            )
             r = Result(host, exception=e, result=str(e), failed=True)
 
         except Exception as e:
             tb = traceback.format_exc()
-            logger.error("{}: {}".format(self.host, tb))
+            logger.error(
+                "Host %r: task %r failed with traceback:\n%s",
+                self.host.name,
+                self.name,
+                tb,
+            )
             r = Result(host, exception=e, result=tb, failed=True)
 
         r.name = self.name
@@ -110,12 +125,9 @@ class Task(object):
 
         return r
 
-    def is_dry_run(self, override=None):
+    def is_dry_run(self, override: bool = None) -> bool:
         """
         Returns whether current task is a dry_run or not.
-
-        Arguments:
-            override (bool): Override for current task
         """
         return override if override is not None else self.nornir.data.dry_run
 
@@ -145,14 +157,14 @@ class Result(object):
 
     def __init__(
         self,
-        host,
-        result=None,
-        changed=False,
-        diff="",
-        failed=False,
-        exception=None,
-        severity_level=logging.INFO,
-        **kwargs
+        host: "Host",
+        result: Any = None,
+        changed: bool = False,
+        diff: str = "",
+        failed: bool = False,
+        exception: Optional[BaseException] = None,
+        severity_level: int = logging.INFO,
+        **kwargs: Any
     ):
         self.result = result
         self.host = host

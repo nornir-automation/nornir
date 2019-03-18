@@ -1,6 +1,8 @@
+import warnings
 from collections import UserList
 from typing import Any, Dict, List, Optional, Set, Union
 
+from nornir.core import deserializer
 from nornir.core.configuration import Config
 from nornir.core.connections import ConnectionPlugin, Connections
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
@@ -23,17 +25,14 @@ class BaseAttributes(object):
         self.password = password
         self.platform = platform
 
-    def __recursive_slots__(self):
-        s = self.__slots__
-        for b in self.__class__.__bases__:
-            if hasattr(b, "__recursive_slots__"):
-                s += b().__recursive_slots__()
-            elif hasattr(b, "__slots__"):
-                s += b.__slots__
-        return s
-
     def dict(self):
-        return {k: object.__getattribute__(self, k) for k in self.__recursive_slots__()}
+        w = f"{self.dict.__qualname__} is deprecated, use nornir.core.deserializer instead"
+        warnings.warn(w)
+        return (
+            getattr(deserializer.inventory, self.__class__.__name__)
+            .serialize(self)
+            .dict()
+        )
 
 
 class ConnectionOptions(BaseAttributes):
@@ -291,10 +290,16 @@ class Host(InventoryElement):
             An already established connection
         """
         if connection not in self.connections:
+            conn = self.get_connection_parameters(connection)
             self.open_connection(
                 connection=connection,
                 configuration=configuration,
-                **self.get_connection_parameters(connection).dict(),
+                hostname=conn.hostname,
+                port=conn.port,
+                username=conn.username,
+                password=conn.password,
+                platform=conn.platform,
+                extras=conn.extras,
             )
         return self.connections[connection].connection
 
@@ -393,6 +398,7 @@ class Inventory(object):
         groups: Optional[Groups] = None,
         defaults: Optional[Defaults] = None,
         transform_function=None,
+        transform_function_options=None,
     ) -> None:
         self.hosts = hosts
         self.groups = groups or Groups()
@@ -405,7 +411,7 @@ class Inventory(object):
 
         if transform_function:
             for h in self.hosts.values():
-                transform_function(h)
+                transform_function(h, **transform_function_options)
 
     def filter(self, filter_obj=None, filter_func=None, *args, **kwargs):
         filter_func = filter_obj or filter_func

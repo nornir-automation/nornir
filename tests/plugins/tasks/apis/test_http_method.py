@@ -7,7 +7,7 @@ import pytest
 from requests.exceptions import HTTPError
 
 
-BASE_URL = "http://localhost:65080"
+BASE_URL = "http://httpbin"
 
 
 class Test(object):

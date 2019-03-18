@@ -134,12 +134,10 @@ class AnsibleParser(object):
                 )
                 if vars_file.is_file():
                     with open(vars_file) as f:
-                        logger.debug(
-                            "AnsibleInventory: reading var file: %s", vars_file
-                        )
-                        return YAML.load(f)
+                        logger.debug("AnsibleInventory: reading var file %r", vars_file)
+                        return cast(Dict[str, Any], YAML.load(f))
             logger.debug(
-                "AnsibleInventory: no vars file was found with the path %s "
+                "AnsibleInventory: no vars file was found with the path %r "
                 "and one of the supported extensions: %s",
                 vars_file_base,
                 VARS_FILENAME_EXTENSIONS,
@@ -147,7 +145,7 @@ class AnsibleParser(object):
         return {}
 
     @staticmethod
-    def map_nornir_vars(obj: VarsDict):
+    def map_nornir_vars(obj: VarsDict) -> None:
         mappings = {
             "ansible_host": "hostname",
             "ansible_port": "port",
@@ -251,9 +249,7 @@ def parse(hostsfile: str) -> Tuple[HostsDict, GroupsDict, DefaultsDict]:
         try:
             parser = YAMLParser(hostsfile)
         except (ScannerError, ComposerError):
-            logger.error(
-                "couldn't parse '{}' as neither a ini nor yaml file".format(hostsfile)
-            )
+            logger.error("AnsibleInventory: file %r is not INI or YAML file", hostsfile)
             raise
 
     parser.parse()

@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from nornir.core import inventory
 
@@ -24,6 +24,17 @@ class BaseAttributes(BaseModel):
 
 class ConnectionOptions(BaseAttributes):
     extras: Optional[Dict[str, Any]]
+
+    @classmethod
+    def serialize(cls, i: inventory.ConnectionOptions) -> "ConnectionOptions":
+        return ConnectionOptions(
+            hostname=i.hostname,
+            port=i.port,
+            username=i.username,
+            password=i.password,
+            platform=i.platform,
+            extras=i.extras,
+        )
 
 
 class InventoryElement(BaseAttributes):
@@ -64,11 +75,11 @@ class InventoryElement(BaseAttributes):
         }
 
     @classmethod
-    def deserialize_host(cls, **kwargs) -> inventory.Host:
+    def deserialize_host(cls, **kwargs: Any) -> inventory.Host:
         return inventory.Host(**cls.deserialize(**kwargs))
 
     @classmethod
-    def deserialize_group(cls, **kwargs) -> inventory.Group:
+    def deserialize_group(cls, **kwargs: Any) -> inventory.Group:
         return inventory.Group(**cls.deserialize(**kwargs))
 
     @classmethod
@@ -77,9 +88,8 @@ class InventoryElement(BaseAttributes):
         for f in cls.__fields__:
             d[f] = object.__getattribute__(e, f)
         d["groups"] = list(d["groups"])
-
         d["connection_options"] = {
-            k: {f: getattr(v, f) for f in v.__recursive_slots__()}
+            k: ConnectionOptions.serialize(v)
             for k, v in d["connection_options"].items()
         }
         return InventoryElement(**d)
@@ -96,7 +106,7 @@ class Defaults(BaseAttributes):
             d[f] = getattr(defaults, f)
 
         d["connection_options"] = {
-            k: {f: getattr(v, f) for f in v.__recursive_slots__()}
+            k: ConnectionOptions.serialize(v)
             for k, v in d["connection_options"].items()
         }
         return Defaults(**d)
@@ -108,7 +118,14 @@ class Inventory(BaseModel):
     defaults: Defaults
 
     @classmethod
-    def deserialize(cls, transform_function=None, *args, **kwargs):
+    def deserialize(
+        cls,
+        transform_function: Optional[Callable[..., Any]] = None,
+        transform_function_options: Optional[Dict[str, Any]] = None,
+        *args: Any,
+        **kwargs: Any
+    ) -> inventory.Inventory:
+        transform_function_options = transform_function_options or {}
         deserialized = cls(*args, **kwargs)
 
         defaults_dict = deserialized.defaults.dict()
@@ -131,10 +148,11 @@ class Inventory(BaseModel):
             groups=groups,
             defaults=defaults,
             transform_function=transform_function,
+            transform_function_options=transform_function_options,
         )
 
     @classmethod
-    def serialize(cls, inv: inventory.Inventory):
+    def serialize(cls, inv: inventory.Inventory) -> "Inventory":
         hosts = {}
         for n, h in inv.hosts.items():
             hosts[n] = InventoryElement.serialize(h)

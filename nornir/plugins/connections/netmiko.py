@@ -17,7 +17,7 @@ napalm_to_netmiko_map = {
 
 class Netmiko(ConnectionPlugin):
     """
-    This plugin connects to the device using the NAPALM driver and sets the
+    This plugin connects to the device using the Netmiko driver and sets the
     relevant connection.
 
     Inventory:
@@ -40,6 +40,13 @@ class Netmiko(ConnectionPlugin):
             "password": password,
             "port": port,
         }
+
+        try:
+            parameters[
+                "ssh_config_file"
+            ] = configuration.ssh.config_file  # type: ignore
+        except AttributeError:
+            pass
 
         if platform is not None:
             # Look platform up in corresponding map, if no entry return the host.nos unmodified

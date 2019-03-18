@@ -12,9 +12,9 @@ def template_file(
     path: str,
     jinja_filters: FiltersDict = None,
     **kwargs: Any
-):
+) -> Result:
     """
-    Renders contants of a file with jinja2. All the host data is available in the tempalte
+    Renders contants of a file with jinja2. All the host data is available in the template
 
     Arguments:
         template: filename

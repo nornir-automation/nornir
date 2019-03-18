@@ -1,7 +1,7 @@
 How to contribute to Nornir
 ============================
 
-First of all, thank you for conidering to contribute to this project!
+First of all, thank you for considering to contribute to this project!
 
 Several ways to contribute
 --------------------------
@@ -29,7 +29,7 @@ It could be that you are aware of something that would be great to have in Norni
 Reporting bugs
 --------------
 
-When you are `reporting bugs <https://github.com/nornir-automation/nornir/issues>`_, make sure that you give a explaination about the outcome that you expect and what you are seeing. The bugs which are hardest to fix are the ones which we are unable to reproduce. For this reason it's important that you describe what you did and show us how we can reproduce the bug in another environment.
+When you are `reporting bugs <https://github.com/nornir-automation/nornir/issues>`_, make sure that you give a explanation about the outcome that you expect and what you are seeing. The bugs which are hardest to fix are the ones which we are unable to reproduce. For this reason it's important that you describe what you did and show us how we can reproduce the bug in another environment.
 
 Fix typos
 ---------
@@ -45,7 +45,7 @@ Documentation is another great way to help if you don't want to contribute actua
 - How-to guides: This sections goal is to help people solve a specific task with Nornir
 - Reference guides: This section describe the Nornir API and plugins. Most of the content in this area is generated from the source code itself.
 
-Contributions to the documentation can be small fixes such as changing scentences to make the text more clear, or it could be new guides.
+Contributions to the documentation can be small fixes such as changing sentences to make the text more clear, or it could be new guides.
 
 Contributing plugins
 --------------------
@@ -66,31 +66,74 @@ Before you make any significant code changes to the core it's recommended that y
 Setting up your environment
 ---------------------------
 
-In order to run tests locally you need to have `Docker <https://docs.docker.com/install/>`_ and `Pandoc <https://pandoc.org/installing.html>`_ installed. Docker is used to test the Nornir plugins and Pandoc is required for building the documentation provided by `Sphinx <http://www.sphinx-doc.org/>`_. After those are installed you can go ahead and install the needed Python dependencies.
+In order to run tests locally you need to have `Docker <https://docs.docker.com/install/>`_ and `docker-compose <https://docs.docker.com/compose/>`_ installed.
+
+Updating dependencies
+---------------------
+
+Nornir dependencies are managed by `poetry <https://github.com/sdispater/poetry>`_. The guidelines to pin dependencies are:
+
+1. For the application dependencies:
+    a. if semver is supported we pin to major release
+    b. if semver is not supported we pin to specific version
+2. For development:
+    a. black is pinned to a specific version
+    b. everything is set to *
+
+Then, to update them:
+
+1. PRs can't update dependencies, if development or application dependencies need to be updated we will have a dedicated PR
+2. Prior to a release we will update dependencies
+
+These guidelines are not set in stone and can be changed or broken if there is a compelling reason.
+
+Starting development environment
+--------------------------------
+
+You need some services to run the tests. Those are managed with ``docker-compose``. In order to start them you can execute:
 
 .. code-block:: bash
 
-	pip install -r requirements-dev.txt
+   make start_dev_env
+
+You can then stop it with:
+
+.. code-block:: bash
+
+   make stop_dev_env
 
 Running tests
 -------------
 
-While the automated tests will be triggered when you submit a new pull request it can still save you time to run the tests locally first. 
+While the automated tests will be triggered when you submit a new pull request it can still save you time to run the tests locally first.
 
 .. code-block:: bash
 
-	make tests
+   make tests
 
-The test above will run the tests against the Nornir code and documentation.
+That will run the entire test suite, if you want to target some specific test you can do:
+
+.. code-block:: bash
+
+   make build_test_container && make nbval
+
+To run only ``nbval`` environment or:
+
+
+.. code-block:: bash
+
+   make build_test_container && make pytest ARGS="tests/plugins/tasks/networking/test_tcp_ping.py"
+
+To run a specific test.
 
 
 Coding style
 ------------
 
-Nornir uses `Black <https://github.com/ambv/black>`_, the the uncompromising Python code formatter. Black makes it easy for you to format your code as you can do so automatically after installing it. Note that Python 3.6 is required to run Black.
+Nornir uses `Black <https://github.com/ambv/black>`_, the uncompromising Python code formatter. Black makes it easy for you to format your code as you can do so automatically after installing it. Note that Python 3.6 is required to run Black.
 
 .. code-block:: bash
 
-	make format
+   black .
 
 The Black GitHub repo has information about how you can integrate Black in your editor.

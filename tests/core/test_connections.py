@@ -113,10 +113,10 @@ class Test(object):
 
     def test_validate_params_simple(self, nornir):
         params = {
-            "hostname": "127.0.0.1",
+            "hostname": "dev2.group_1",
             "username": "root",
             "password": "from_group1",
-            "port": 65002,
+            "port": 22,
             "platform": "junos",
             "extras": {},
         }
@@ -132,7 +132,7 @@ class Test(object):
 
     def test_validate_params_overrides(self, nornir):
         params = {
-            "port": 65002,
+            "port": 22,
             "hostname": "dummy_from_parent_group",
             "username": "root",
             "password": "from_group1",
@@ -146,7 +146,7 @@ class Test(object):
 
     def test_validate_params_overrides_groups(self, nornir):
         params = {
-            "port": 65002,
+            "port": 22,
             "hostname": "dummy2_from_parent_group",
             "username": "dummy2_from_host",
             "password": "from_group1",

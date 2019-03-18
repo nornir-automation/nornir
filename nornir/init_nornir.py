@@ -1,4 +1,6 @@
-from typing import Any, Callable
+from typing import Any, Callable, Dict, Optional
+
+import warnings
 
 from nornir.core import Nornir
 from nornir.core.connections import Connections
@@ -19,11 +21,19 @@ def cls_to_string(cls: Callable[..., Any]) -> str:
     return f"{cls.__module__}.{cls.__name__}"
 
 
-def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
+def InitNornir(
+    config_file: str = "",
+    dry_run: bool = False,
+    configure_logging: Optional[bool] = None,
+    **kwargs: Dict[str, Any],
+) -> Nornir:
     """
     Arguments:
         config_file(str): Path to the configuration file (optional)
         dry_run(bool): Whether to simulate changes or not
+        configure_logging: Whether to configure logging or not. This argument is being
+            deprecated. Please use logging.enabled parameter in the configuration
+            instead.
         **kwargs: Extra information to pass to the
             :obj:`nornir.core.configuration.Config` object
 
@@ -44,11 +54,25 @@ def InitNornir(config_file="", dry_run=False, configure_logging=True, **kwargs):
 
     data = GlobalState(dry_run=dry_run)
 
-    if configure_logging:
-        conf.logging.configure()
+    if configure_logging is not None:
+        msg = (
+            "'configure_logging' argument is deprecated, please use "
+            "'logging.enabled' parameter in the configuration instead: "
+            "https://nornir.readthedocs.io/en/stable/configuration/index.html"
+        )
+        warnings.warn(msg, DeprecationWarning)
+
+    if conf.logging.enabled is None:
+        if configure_logging is not None:
+            conf.logging.enabled = configure_logging
+        else:
+            conf.logging.enabled = True
+
+    conf.logging.configure()
 
     inv = conf.inventory.plugin.deserialize(
         transform_function=conf.inventory.transform_function,
+        transform_function_options=conf.inventory.transform_function_options,
         config=conf,
         **conf.inventory.options,
     )

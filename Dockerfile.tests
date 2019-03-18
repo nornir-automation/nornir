@@ -1,0 +1,18 @@
+ARG PYTHON
+
+FROM python:${PYTHON}-stretch
+
+RUN apt-get update && apt-get install -y pandoc
+
+
+RUN curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python && \
+    /root/.poetry/bin/poetry config settings.virtualenvs.create false
+
+ADD poetry.lock /tmp
+ADD pyproject.toml /tmp
+RUN cd /tmp && /root/.poetry/bin/poetry install
+
+ADD docs/requirements.txt /tmp/requirements-docs.txt
+RUN pip install -r /tmp/requirements-docs.txt
+
+WORKDIR "/nornir"

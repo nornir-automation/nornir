@@ -1,5 +1,5 @@
-import logging
 import os
+from pathlib import Path
 
 from nornir.core.configuration import Config
 from nornir.plugins.inventory.simple import SimpleInventory
@@ -24,21 +24,23 @@ class Test(object):
     def test_config_defaults(self):
         c = ConfigDeserializer()
         assert c.dict() == {
+            "core": {"num_workers": 20, "raise_on_error": False},
             "inventory": {
                 "plugin": "nornir.plugins.inventory.simple.SimpleInventory",
                 "options": {},
                 "transform_function": "",
+                "transform_function_options": {},
             },
             "ssh": {"config_file": "~/.ssh/config"},
             "logging": {
-                "level": "debug",
+                "enabled": None,
+                "level": "INFO",
                 "file": "nornir.log",
                 "format": DEFAULT_LOG_FORMAT,
                 "to_console": False,
                 "loggers": ["nornir"],
             },
             "jinja2": {"filters": ""},
-            "core": {"num_workers": 20, "raise_on_error": False},
             "user_defined": {},
         }
 
@@ -53,10 +55,12 @@ class Test(object):
                 "plugin": "nornir.plugins.inventory.simple.SimpleInventory",
                 "options": {},
                 "transform_function": "",
+                "transform_function_options": {},
             },
             "ssh": {"config_file": "~/.ssh/config"},
             "logging": {
-                "level": "debug",
+                "enabled": None,
+                "level": "INFO",
                 "file": "",
                 "format": DEFAULT_LOG_FORMAT,
                 "to_console": False,
@@ -75,23 +79,24 @@ class Test(object):
         assert not c.core.raise_on_error
         assert c.user_defined == {}
 
-        assert c.logging.level == logging.DEBUG
+        assert c.logging.enabled is None
+        assert c.logging.level == "INFO"
         assert c.logging.file == "nornir.log"
         assert c.logging.format == DEFAULT_LOG_FORMAT
         assert not c.logging.to_console
-        assert c.logging.loggers == ["nornir"]
 
-        assert c.ssh.config_file == "~/.ssh/config"
+        assert c.ssh.config_file == str(Path("~/.ssh/config").expanduser())
 
         assert c.inventory.plugin == SimpleInventory
         assert c.inventory.options == {}
         assert c.inventory.transform_function is None
+        assert c.inventory.transform_function_options == {}
 
     def test_deserialize_basic(self):
         c = ConfigDeserializer.deserialize(
             core={"num_workers": 30},
             user_defined={"my_opt": True},
-            logging={"file": "", "level": "info"},
+            logging={"file": "", "level": "DEBUG"},
             ssh={"config_file": "~/.ssh/alt_config"},
             inventory={"plugin": "nornir.plugins.inventory.ansible.AnsibleInventory"},
         )
@@ -101,17 +106,18 @@ class Test(object):
         assert not c.core.raise_on_error
         assert c.user_defined == {"my_opt": True}
 
-        assert c.logging.level == logging.INFO
+        assert c.logging.enabled is None
+        assert c.logging.level == "DEBUG"
         assert c.logging.file == ""
         assert c.logging.format == DEFAULT_LOG_FORMAT
         assert not c.logging.to_console
-        assert c.logging.loggers == ["nornir"]
 
-        assert c.ssh.config_file == "~/.ssh/alt_config"
+        assert c.ssh.config_file == str(Path("~/.ssh/alt_config").expanduser())
 
         assert c.inventory.plugin == AnsibleInventory
         assert c.inventory.options == {}
         assert c.inventory.transform_function is None
+        assert c.inventory.transform_function_options == {}
 
     def test_jinja_filters(self):
         c = ConfigDeserializer.deserialize(
@@ -171,3 +177,25 @@ class Test(object):
             os.path.join(dir_path, "config.yaml")
         )
         assert config.user_defined["asd"] == "qwe"
+
+    def test_order_of_resolution_config_is_lowest(self):
+        config = ConfigDeserializer.load_from_file(
+            os.path.join(dir_path, "config.yaml")
+        )
+        assert config.core.num_workers == 10
+
+    def test_order_of_resolution_env_is_higher_than_config(self):
+        os.environ["NORNIR_CORE_NUM_WORKERS"] = "20"
+        config = ConfigDeserializer.load_from_file(
+            os.path.join(dir_path, "config.yaml")
+        )
+        os.environ.pop("NORNIR_CORE_NUM_WORKERS")
+        assert config.core.num_workers == 20
+
+    def test_order_of_resolution_code_is_higher_than_env(self):
+        os.environ["NORNIR_CORE_NUM_WORKERS"] = "20"
+        config = ConfigDeserializer.load_from_file(
+            os.path.join(dir_path, "config.yaml"), core={"num_workers": 30}
+        )
+        os.environ.pop("NORNIR_CORE_NUM_WORKERS")
+        assert config.core.num_workers == 30
