@@ -24,6 +24,9 @@ Thanks to the following people for their contributions:
 * `jimmelville <https://github.com/jimmelville>`_
 * `optiz0r <https://github.com/optiz0r>`_
 * `wdesmedt <https://github.com/wdesmedt>`_
+* `dmfigol <https://github.com/dmfigol>`_
+* `ktbyers <https://github.com/ktbyers>`_
+* `dbarrosop <https://github.com/dbarrosop>`_
 
 2.0.0 - December 17 2018
 ========================
