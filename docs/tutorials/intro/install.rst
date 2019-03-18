@@ -1,7 +1,7 @@
 Installing Nornir
 ==================
 
-Before you go ahead and install Nornir it's recommended to create your own Python virtualenv. That way you have complete control of your environment and you don't risk overwriting your systems Python environment.
+Before you go ahead and install Nornir, it's recommended to create your own Python virtualenv. That way you have complete control of your environment and you don't risk overwriting your systems Python environment.
 
 .. note::
 
@@ -10,7 +10,7 @@ Before you go ahead and install Nornir it's recommended to create your own Pytho
 Nornir is published to `PyPI <https://pypi.org/project/nornir/>`_ and can be installed like most other Python packages using the pip tool. You can verify that you have pip installed by typing:
 
 .. code-block:: bash
-	
+
 	pip --version
 
 	pip 9.0.3 from /Users/patrick/nornir/lib/python3.6/site-packages (python 3.6)
@@ -28,7 +28,7 @@ As you would assume, the installation is then very easy.
 	[...]
 	Successfully installed MarkupSafe-1.0 asn1crypto-0.24.0 bcrypt-3.1.4 nornir-2.0.0
 
-Please note that the above output has been abbreviated for readability. Your output will be quite a bit longer. You should see that `nornir` is successfully installed. 
+Please note that the above output has been abbreviated for readability. Your output will be quite a bit longer. You should see that `nornir` is successfully installed.
 
 Now we can verify that Nornir is installed and that you are able to import the package from Python.
 
