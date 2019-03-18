@@ -5,7 +5,7 @@ Nornir is an automation framework written in Python. These days there exists sev
 
 Why does this matter?
 ---------------------
-Typically, a specific configuration language is easy to use in a basic way. Though after a while, you need to use more advanced features and might have to extend that configuration language with another programming language. While this works, it can be very hard to troubleshoot once it's started to grow.
+Typically, a specific configuration language is easy to use in a basic way. Though after a while you need to use more advanced features and might have to extend that configuration language with another programming language. While this works, it can be very hard to troubleshoot once it's started to grow.
 
 As Nornir allows you to use pure Python code, you can troubleshoot and debug it in the same way as you would do with any other Python code.
 
