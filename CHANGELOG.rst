@@ -1,5 +1,5 @@
-2.1.0 - March 6 2019
-====================
+2.1.0 - March 18 2019
+=====================
 
 * [CORE_ENHANCEMENTS] inventory's transform function supports options #292
 * [CORE_ENHANCEMENTS] minor improvements to tests #293 #296 #306 #307 #312 #337
