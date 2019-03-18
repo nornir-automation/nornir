@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nornir"
-version = "2.0.0"
+version = "2.1.0"
 description = "Pluggable multi-threaded framework with inventory management to help operate collections of devices"
 authors = ["David Barroso <dbarrosop@dravetech.com>"]
 readme = "README.md"
