@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nornir"
-version = "2.1.0"
+version = "2.1.1"
 description = "Pluggable multi-threaded framework with inventory management to help operate collections of devices"
 authors = ["David Barroso <dbarrosop@dravetech.com>"]
 readme = "README.md"
@@ -11,7 +11,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = ">= 3.6, < 3.8"
+python = "^3.6"
 colorama = "^0.4.1"
 jinja2 = "^2"
 napalm = "^2"

@@ -23,7 +23,7 @@ deploy:
   script: poetry publish
   on:
     tags: true
-    condition: "$TRAVIS_PYTHON_VERSION == 3.7"
+    condition: "$PYTHON == 3.7"
 after_success:
 - coveralls
 env:
