@@ -1,3 +1,13 @@
+2.1.1 - March 19 2019
+=====================
+
+* [MISC] Workaround to sdispater/poetry#743 #358
+* [MISC] Fix automated deployment to pypi #358
+
+Thanks to the following people for their contributions:
+
+* `dbarrosop <https://github.com/dbarrosop>`_
+
 2.1.0 - March 18 2019
 =====================
 
