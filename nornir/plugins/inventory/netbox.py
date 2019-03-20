@@ -36,17 +36,47 @@ class NBInventory(Inventory):
         )
         headers = {"Authorization": "Token {}".format(nb_token)}
 
+
+        def make_request(url):
+            req = requests.get(url=url,headers=headers,params=filter_parameters)
+            if req.ok:
+                return req.json()
+            else:
+                raise RequestError(req)
+
+
+        def req_all(url):
+            req = make_request(url)
+            if isinstance(req, dict) and req.get("results") is not None:
+                ret = req["results"]
+                first_run = True
+                while req["next"]:
+                    next_url = (
+                        "{}{}limit={}&offset={}".format(
+                            url,
+                            "&" if url[-1] != "/" else "?",
+                            req["count"],
+                            len(req["results"]),
+                        )
+                        if first_run
+                        else req["next"]
+                    )
+                    req = make_request(next_url)
+                    first_run = False
+                    ret.extend(req["results"])
+                return ret
+            else:
+                return req
+
+
         # Create dict of hosts using 'devices' from NetBox
-        r = requests.get(
-            "{}/api/dcim/devices/?limit=0".format(nb_url),
-            headers=headers,
-            params=filter_parameters,
+        nb_devices = req_all(
+            url = f"{nb_url}/api/dcim/devices/?limit=1000"
         )
-        r.raise_for_status()
-        nb_devices = r.json()
+
 
         hosts = {}
-        for d in nb_devices["results"]:
+        for d in nb_devices:
             host: HostsDict = {"data": {}}
 
             # Add value for IP address
