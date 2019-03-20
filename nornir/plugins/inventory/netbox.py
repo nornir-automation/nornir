@@ -36,16 +36,14 @@ class NBInventory(Inventory):
         )
         headers = {"Authorization": "Token {}".format(nb_token)}
 
-
-        def make_request(url):
-            req = requests.get(url=url,headers=headers,params=filter_parameters)
+        def make_request(url) -> Any:
+            req = requests.get(url=url, headers=headers, params=filter_parameters)
             if req.ok:
                 return req.json()
             else:
                 raise RequestError(req)
 
-
-        def req_all(url):
+        def req_all(url) -> Any:
             req = make_request(url)
             if isinstance(req, dict) and req.get("results") is not None:
                 ret = req["results"]
@@ -68,12 +66,8 @@ class NBInventory(Inventory):
             else:
                 return req
 
-
         # Create dict of hosts using 'devices' from NetBox
-        nb_devices = req_all(
-            url = f"{nb_url}/api/dcim/devices/?limit=1000"
-        )
-
+        nb_devices = req_all(url=f"{nb_url}/api/dcim/devices/?limit=1000")
 
         hosts = {}
         for d in nb_devices:
