@@ -36,14 +36,14 @@ class NBInventory(Inventory):
         )
         headers = {"Authorization": "Token {}".format(nb_token)}
 
-        def make_request(url) -> Any:
+        def make_request(url: str) -> Any:
             req = requests.get(url=url, headers=headers, params=filter_parameters)
+            req.raise_for_status()
+
             if req.ok:
                 return req.json()
-            else:
-                raise RequestError(req)
 
-        def req_all(url) -> Any:
+        def req_all(url: str) -> Any:
             req = make_request(url)
             if isinstance(req, dict) and req.get("results") is not None:
                 ret = req["results"]
