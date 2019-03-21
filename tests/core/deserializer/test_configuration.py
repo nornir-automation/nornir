@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-
 from nornir.core.configuration import Config
 from nornir.plugins.inventory.simple import SimpleInventory
 from nornir.plugins.inventory.ansible import AnsibleInventory
@@ -199,3 +198,10 @@ class Test(object):
         )
         os.environ.pop("NORNIR_CORE_NUM_WORKERS")
         assert config.core.num_workers == 30
+
+    def test_env_var_expansion_in_load_from_file(self):
+        os.environ["TEST_PATH"] = dir_path
+        config = ConfigDeserializer.load_from_file("$TEST_PATH/config.yaml")
+        assert config.core.num_workers == 10
+        assert not config.core.raise_on_error
+        assert config.user_defined["asd"] == "qwe"
