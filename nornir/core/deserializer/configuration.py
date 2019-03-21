@@ -2,6 +2,7 @@ import importlib
 import logging
 from pathlib import Path
 from typing import Any, Callable, Dict, Optional, Type, Union, List, cast
+from os.path import expandvars
 
 from nornir.core import configuration
 from nornir.core.deserializer.inventory import Inventory
@@ -199,8 +200,9 @@ class Config(BaseNornirSettings):
     def load_from_file(cls, config_file: str, **kwargs: Any) -> configuration.Config:
         config_dict: Dict[str, Any] = {}
         if config_file:
+            expanded_config_file = expandvars(config_file)
             yml = ruamel.yaml.YAML(typ="safe")
-            with open(config_file, "r") as f:
+            with open(expanded_config_file, "r") as f:
                 config_dict = yml.load(f) or {}
         return Config.deserialize(__config_settings__=config_dict, **kwargs)
 
