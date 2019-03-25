@@ -35,6 +35,7 @@ sphinxcontrib-napoleon = { version = "^0.7", optional = true }
 jupyter = { version = "^1", optional = true }
 nbsphinx = { version = "^0.4", optional = true }
 pygments = { version = "^2", optional = true }
+sphinx-issues = { version = "^1.2", optional = true }
 
 [tool.poetry.dev-dependencies]
 decorator = "*"
@@ -54,8 +55,9 @@ sphinxcontrib_napoleon = "^0.7"
 jupyter = "^1"
 nbsphinx = "^0.4"
 pygments = "^2"
+sphinx-issues = "^1.2"
 
 [tool.poetry.extras]
 # The following section is required to install docs dependencies
 # until RTD fully supports poetry: https://github.com/rtfd/readthedocs.org/issues/4912
-docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-napoleon", "jupyter", "nbsphinx", "pygments"]
+docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-napoleon", "jupyter", "nbsphinx", "pygments", "sphinx-issues"]
