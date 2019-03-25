@@ -1,6 +1,7 @@
 from typing import Optional
 
 from nornir.core.task import Result, Task
+from nornir.plugins.connections import Napalm
 
 
 def napalm_configure(
@@ -24,7 +25,7 @@ def napalm_configure(
           * changed (``bool``): whether the task is changing the system or not
           * diff (``string``): change in the system
     """
-    device = task.host.get_connection("napalm", task.nornir.config)
+    device = task.get_connection(Napalm)
 
     if replace:
         device.load_replace_candidate(filename=filename, config=configuration)

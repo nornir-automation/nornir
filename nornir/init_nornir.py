@@ -6,15 +6,13 @@ from nornir.core import Nornir
 from nornir.core.connections import Connections
 from nornir.core.deserializer.configuration import Config
 from nornir.core.state import GlobalState
-from nornir.plugins.connections.napalm import Napalm
-from nornir.plugins.connections.netmiko import Netmiko
-from nornir.plugins.connections.paramiko import Paramiko
+from nornir.plugins import connections as nr_connections
 
 
 def register_default_connection_plugins() -> None:
-    Connections.register("napalm", Napalm)
-    Connections.register("netmiko", Netmiko)
-    Connections.register("paramiko", Paramiko)
+    Connections.register(nr_connections.Napalm)
+    Connections.register(nr_connections.Netmiko)
+    Connections.register(nr_connections.Paramiko)
 
 
 def cls_to_string(cls: Callable[..., Any]) -> str:

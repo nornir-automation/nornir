@@ -1,9 +1,13 @@
 from typing import Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from nornir.core.connection import Connection
-    from nornir.core.result import AggregatedResult, MultiResult, Result  # noqa
-    from nornir.core.tasks import Task
+    from nornir.core.inventory import Host
+    from nornir.core.task import (  # noqa: W0611
+        AggregatedResult,
+        MultiResult,
+        Result,
+        Task,
+    )
 
 
 class ConnectionException(Exception):
@@ -11,8 +15,14 @@ class ConnectionException(Exception):
     Superclass for all the Connection* Exceptions
     """
 
-    def __init__(self, connection: "Connection") -> None:
-        self.connection = connection
+    def __init__(self, host: "Host", name: str, details: str = "") -> None:
+        if not details:
+            msg = f"Host {host.name!r}: problem with connection {name!r}"
+        else:
+            msg = f"Host {host.name!r}: connection {name!r} {details}"
+        super().__init__(msg)
+        self.conn_name = name
+        self.host = host
 
 
 class ConnectionAlreadyOpen(ConnectionException):
@@ -20,18 +30,29 @@ class ConnectionAlreadyOpen(ConnectionException):
     Raised when opening an already opened connection
     """
 
-    pass
+    def __init__(
+        self,
+        host: "Host",
+        name: str,
+        details: str = "trying to open connection which is already open",
+    ) -> None:
+        super().__init__(host, name, details)
 
 
 class ConnectionNotOpen(ConnectionException):
     """
-    Raised when trying to close a connection that isn't open
+    Raised when the connection is supposed to be open but it isn't
     """
 
+    def __init__(self, host: "Host", name: str, details: str = "is not open") -> None:
+        super().__init__(host, name, details)
+
+
+class ConnectionPluginException(Exception):
     pass
 
 
-class ConnectionPluginAlreadyRegistered(ConnectionException):
+class ConnectionPluginAlreadyRegistered(ConnectionPluginException):
     """
     Raised when trying to register an already registered plugin
     """
@@ -39,7 +60,7 @@ class ConnectionPluginAlreadyRegistered(ConnectionException):
     pass
 
 
-class ConnectionPluginNotRegistered(ConnectionException):
+class ConnectionPluginNotRegistered(ConnectionPluginException):
     """
     Raised when trying to access a plugin that is not registered
     """

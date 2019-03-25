@@ -1,6 +1,7 @@
 from typing import Any
 
 from nornir.core.task import Result, Task
+from nornir.plugins.connections import Netmiko
 
 
 def netmiko_send_command(
@@ -23,7 +24,7 @@ def netmiko_send_command(
         Result object with the following attributes set:
           * result: Result of the show command (generally a string, but depends on use of TextFSM).
     """
-    net_connect = task.host.get_connection("netmiko", task.nornir.config)
+    net_connect = task.get_connection(Netmiko)
     if enable:
         net_connect.enable()
     if use_timing:

@@ -5,6 +5,7 @@ from typing import List, Optional
 
 from nornir.core.exceptions import CommandError
 from nornir.core.task import Result, Task
+from nornir.plugins.connections import Paramiko
 from nornir.plugins.tasks import commands
 
 import paramiko
@@ -149,7 +150,7 @@ def sftp(
     """
     dry_run = task.is_dry_run(dry_run)
     actions = {"put": put, "get": get}
-    client = task.host.get_connection("paramiko", task.nornir.config)
+    client = task.get_connection(Paramiko)
     scp_client = SCPClient(client.get_transport())
     sftp_client = paramiko.SFTPClient.from_transport(client.get_transport())
     files_changed = actions[action](task, scp_client, sftp_client, src, dst, dry_run)

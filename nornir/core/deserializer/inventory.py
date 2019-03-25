@@ -53,7 +53,7 @@ class InventoryElement(BaseAttributes):
         platform: Optional[str] = None,
         groups: Optional[List[str]] = None,
         data: Optional[Dict[str, Any]] = None,
-        connection_options: Optional[Dict[str, ConnectionOptions]] = None,
+        connection_options: Optional[Dict[str, Any]] = None,
         defaults: inventory.Defaults = None,
     ) -> Dict[str, Any]:
         parent_groups = inventory.ParentGroups(groups)

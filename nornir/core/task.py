@@ -1,12 +1,14 @@
 import logging
 import traceback
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any, Optional, TYPE_CHECKING, Type
 
 from nornir.core.exceptions import NornirExecutionError
 from nornir.core.exceptions import NornirSubTaskError
 
+
 if TYPE_CHECKING:
     from nornir.core.inventory import Host
+    from nornir.core.connections import ConnectionPlugin  # noqa: W0611
 
 
 logger = logging.getLogger(__name__)
@@ -36,9 +38,19 @@ class Task(object):
         severity_level (logging.LEVEL): Severity level associated to the task
     """
 
-    def __init__(self, task, name=None, severity_level=logging.INFO, **kwargs):
+    def __init__(
+        self,
+        task,
+        name=None,
+        severity_level=logging.INFO,
+        conn_name: Optional[str] = None,
+        autoconnect: bool = True,
+        **kwargs
+    ):
         self.name = name or task.__name__
         self.task = task
+        self.conn_name = conn_name
+        self.autoconnect = autoconnect
         self.params = kwargs
         self.results = MultiResult(self.name)
         self.severity_level = severity_level
@@ -130,6 +142,33 @@ class Task(object):
         Returns whether current task is a dry_run or not.
         """
         return override if override is not None else self.nornir.data.dry_run
+
+    def get_connection(self, conn_plugin: Type["ConnectionPlugin"]):
+        """
+        Gets or opens a connection using the name specified explicitly during
+        task creation or using the plugin name
+
+        Attributes:
+            plugin: connection plugin class
+        """
+        conn_name = self.conn_name or conn_plugin.name
+        return self.host.get_connection(
+            name=conn_name,
+            configuration=self.nornir.config,
+            plugin_name=conn_plugin.name,
+            autoconnect=self.autoconnect,
+        )
+
+    def get_connection_state(self, conn_plugin: Type["ConnectionPlugin"]):
+        """
+        Gets connection state using the name specified explicitly during
+        task creation or using the plugin name
+
+        Attributes:
+            plugin: connection plugin class
+        """
+        conn_name = self.conn_name or conn_plugin.name
+        return self.host.get_connection_state(conn_name)
 
 
 class Result(object):

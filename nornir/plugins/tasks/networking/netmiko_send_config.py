@@ -1,6 +1,7 @@
 from typing import Any, List, Optional
 
 from nornir.core.task import Result, Task
+from nornir.plugins.connections import Netmiko
 
 
 def netmiko_send_config(
@@ -21,7 +22,7 @@ def netmiko_send_config(
         Result object with the following attributes set:
           * result (``str``): string showing the CLI from the configuration changes.
     """
-    net_connect = task.host.get_connection("netmiko", task.nornir.config)
+    net_connect = task.get_connection(Netmiko)
     net_connect.enable()
     if config_commands:
         result = net_connect.send_config_set(config_commands=config_commands, **kwargs)

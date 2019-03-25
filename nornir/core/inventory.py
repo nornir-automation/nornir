@@ -212,9 +212,9 @@ class Host(InventoryElement):
             return default
 
     def get_connection_parameters(
-        self, connection: Optional[str] = None
+        self, conn_name: Optional[str] = None
     ) -> ConnectionOptions:
-        if not connection:
+        if not conn_name:
             d = ConnectionOptions(
                 hostname=self.hostname,
                 port=self.port,
@@ -224,7 +224,7 @@ class Host(InventoryElement):
                 extras={},
             )
         else:
-            r = self._get_connection_options_recursively(connection)
+            r = self._get_connection_options_recursively(conn_name)
             if r is not None:
                 d = ConnectionOptions(
                     hostname=r.hostname if r.hostname is not None else self.hostname,
@@ -272,50 +272,60 @@ class Host(InventoryElement):
             p.extras = p.extras if p.extras is not None else sp.extras
         return p
 
-    def get_connection(self, connection: str, configuration: Config) -> Any:
+    def get_connection(
+        self,
+        name: str,
+        configuration: Config,
+        plugin_name: Optional[str] = None,
+        autoconnect: bool = True,
+    ) -> Any:
         """
-        The function of this method is twofold:
-
-            1. If an existing connection is already established for the given type return it
-            2. If none exists, establish a new connection of that type with default parameters
-               and return it
+        Returns a connection by its name
 
         Raises:
             AttributeError: if it's unknown how to establish a connection for the given type
 
         Arguments:
-            connection: Name of the connection, for instance, netmiko, paramiko, napalm...
+            name: name of the connection, for instance, netmiko, paramiko, napalm
+            configuration: nornir Configuration object
+            plugin_name: registered ConnectionPlugin name if different from name
+            autoconnect: open a connection with the specified name if it is not open yet
 
         Returns:
             An already established connection
         """
-        if connection not in self.connections:
-            conn = self.get_connection_parameters(connection)
-            self.open_connection(
-                connection=connection,
-                configuration=configuration,
-                hostname=conn.hostname,
-                port=conn.port,
-                username=conn.username,
-                password=conn.password,
-                platform=conn.platform,
-                extras=conn.extras,
-            )
-        return self.connections[connection].connection
+        if name not in self.connections:
+            if autoconnect:
+                conn_params = self.get_connection_parameters(name)
+                self.open_connection(
+                    name=name,
+                    configuration=configuration,
+                    plugin_name=plugin_name,
+                    hostname=conn_params.hostname,
+                    port=conn_params.port,
+                    username=conn_params.username,
+                    password=conn_params.password,
+                    platform=conn_params.platform,
+                    extras=conn_params.extras,
+                )
+            else:
+                details = "is not open and automatic connection is disabled"
+                raise ConnectionNotOpen(self, name, details)
+        return self.connections[name].connection
 
-    def get_connection_state(self, connection: str) -> Dict[str, Any]:
+    def get_connection_state(self, name: str) -> Dict[str, Any]:
         """
         For an already established connection return its state.
         """
-        if connection not in self.connections:
-            raise ConnectionNotOpen(connection)
-
-        return self.connections[connection].state
+        if name not in self.connections:
+            raise ConnectionNotOpen(self, name)
+        return self.connections[name].state
 
     def open_connection(
         self,
-        connection: str,
+        name: str,
         configuration: Config,
+        plugin_name: Optional[str] = None,
         hostname: Optional[str] = None,
         username: Optional[str] = None,
         password: Optional[str] = None,
@@ -334,41 +344,42 @@ class Host(InventoryElement):
             AttributeError: if it's unknown how to establish a connection for the given type
 
         Returns:
-            An already established connection
+            An already established  connection represented as
+              :class:`.ConnectionPlugin` instance
         """
-        if connection in self.connections:
-            raise ConnectionAlreadyOpen(connection)
+        if plugin_name is None:
+            plugin_name = name
 
-        self.connections[connection] = self.connections.get_plugin(connection)()
+        if name in self.connections:
+            raise ConnectionAlreadyOpen(self, name)
+
+        conn_plugin = self.connections.get_plugin(plugin_name)
         if default_to_host_attributes:
-            conn_params = self.get_connection_parameters(connection)
-            self.connections[connection].open(
-                hostname=hostname if hostname is not None else conn_params.hostname,
-                username=username if username is not None else conn_params.username,
-                password=password if password is not None else conn_params.password,
-                port=port if port is not None else conn_params.port,
-                platform=platform if platform is not None else conn_params.platform,
-                extras=extras if extras is not None else conn_params.extras,
-                configuration=configuration,
-            )
-        else:
-            self.connections[connection].open(
-                hostname=hostname,
-                username=username,
-                password=password,
-                port=port,
-                platform=platform,
-                extras=extras,
-                configuration=configuration,
-            )
-        return self.connections[connection]
+            conn_params = self.get_connection_parameters(name)
+            if hostname is None:
+                hostname = conn_params.hostname
+            if username is None:
+                username = conn_params.username
+            if password is None:
+                password = conn_params.password
+            if port is None:
+                port = conn_params.port
+            if platform is None:
+                platform = conn_params.platform
+            if extras is None:
+                extras = conn_params.extras
 
-    def close_connection(self, connection: str) -> None:
-        """ Close the connection"""
-        if connection not in self.connections:
-            raise ConnectionNotOpen(connection)
+        connection = conn_plugin(
+            hostname, username, password, port, platform, extras, configuration
+        )
+        self.connections[name] = connection
+        return connection
 
-        self.connections.pop(connection).close()
+    def close_connection(self, name: str) -> None:
+        """Close the connection"""
+        if name not in self.connections:
+            raise ConnectionNotOpen(self, name)
+        self.connections.pop(name).close()
 
     def close_connections(self) -> None:
         # Decouple deleting dictionary elements from iterating over connections dict

@@ -1,5 +1,6 @@
 from nornir.core.exceptions import CommandError
 from nornir.core.task import Result, Task
+from nornir.plugins.connections import Paramiko
 
 from paramiko.agent import AgentRequestHandler
 
@@ -20,8 +21,8 @@ def remote_command(task: Task, command: str) -> Result:
     Raises:
         :obj:`nornir.core.exceptions.CommandError`: when there is a command error
     """
-    client = task.host.get_connection("paramiko", task.nornir.config)
-    connection_state = task.host.get_connection_state("paramiko")
+    client = task.get_connection(Paramiko)
+    connection_state = task.get_connection_state(Paramiko)
 
     chan = client.get_transport().open_session()
 

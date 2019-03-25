@@ -15,6 +15,8 @@ class Napalm(ConnectionPlugin):
         extras: passed as it is to the napalm driver
     """
 
+    name = "napalm"
+
     def open(
         self,
         hostname: Optional[str],
@@ -24,7 +26,7 @@ class Napalm(ConnectionPlugin):
         platform: Optional[str],
         extras: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
-    ) -> None:
+    ) -> Any:
         extras = extras or {}
 
         parameters: Dict[str, Any] = {
@@ -49,7 +51,7 @@ class Napalm(ConnectionPlugin):
         network_driver = get_network_driver(platform)
         connection = network_driver(**parameters)
         connection.open()
-        self.connection = connection
+        return connection
 
     def close(self) -> None:
         self.connection.close()

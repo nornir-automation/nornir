@@ -16,6 +16,8 @@ class Paramiko(ConnectionPlugin):
         extras: maps to argument passed to ``ConnectHandler``.
     """
 
+    name = "paramiko"
+
     def open(
         self,
         hostname: Optional[str],
@@ -25,7 +27,7 @@ class Paramiko(ConnectionPlugin):
         platform: Optional[str],
         extras: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
-    ) -> None:
+    ) -> paramiko.SSHClient:
         extras = extras or {}
 
         client = paramiko.SSHClient()
@@ -62,7 +64,7 @@ class Paramiko(ConnectionPlugin):
 
         extras.update(parameters)
         client.connect(**extras)
-        self.connection = client
+        return client
 
     def close(self) -> None:
         self.connection.close()

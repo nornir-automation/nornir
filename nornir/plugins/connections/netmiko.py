@@ -1,6 +1,6 @@
 from typing import Any, Dict, Optional
 
-from netmiko import ConnectHandler
+from netmiko import ConnectHandler, BaseConnection
 
 from nornir.core.configuration import Config
 from nornir.core.connections import ConnectionPlugin
@@ -24,6 +24,8 @@ class Netmiko(ConnectionPlugin):
         extras: maps to argument passed to ``ConnectHandler``.
     """
 
+    name = "netmiko"
+
     def open(
         self,
         hostname: Optional[str],
@@ -33,7 +35,7 @@ class Netmiko(ConnectionPlugin):
         platform: Optional[str],
         extras: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
-    ) -> None:
+    ) -> BaseConnection:
         parameters = {
             "host": hostname,
             "username": username,
@@ -55,7 +57,7 @@ class Netmiko(ConnectionPlugin):
 
         extras = extras or {}
         parameters.update(extras)
-        self.connection = ConnectHandler(**parameters)
+        return ConnectHandler(**parameters)
 
     def close(self) -> None:
         self.connection.disconnect()
