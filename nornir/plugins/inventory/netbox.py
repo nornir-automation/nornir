@@ -34,28 +34,28 @@ class NBInventory(Inventory):
         nb_token = nb_token or os.environ.get(
             "NB_TOKEN", "0123456789abcdef0123456789abcdef01234567"
         )
-        headers = {"Authorization": "Token {}".format(nb_token)}
+        headers = {"Authorization": f"Token {nb_token}"}
 
-        def make_request(url: str) -> Any:
+        def make_request(url: str) -> Dict:
             req = requests.get(url=url, headers=headers, params=filter_parameters)
             req.raise_for_status()
 
             if req.ok:
                 return req.json()
 
-        def req_all(url: str) -> Any:
+        def req_all(url: str) -> Dict:
             req = make_request(url)
             if isinstance(req, dict) and req.get("results") is not None:
                 ret = req["results"]
                 first_run = True
                 while req["next"]:
                     next_url = (
-                        "{}{}limit={}&offset={}".format(
-                            url,
-                            "&" if url[-1] != "/" else "?",
-                            req["count"],
-                            len(req["results"]),
-                        )
+                        """
+                        {url}
+                        {'&' if url[-1] != '/' else '?'}
+                        limit={req['count']}
+                        &offset={len(req['results'])}
+                        """
                         if first_run
                         else req["next"]
                     )
@@ -77,31 +77,47 @@ class NBInventory(Inventory):
             if d.get("primary_ip", {}):
                 host["hostname"] = d["primary_ip"]["address"].split("/")[0]
 
-            # Add values that don't have an option for 'slug'
+            # Add values that do have an option for 'slug'
+            if use_slugs:
+                host["platform"] = d["platform"]["slug"] if d["platform"] else None
+                host["data"]["site"] = d["site"]["slug"]
+                host["data"]["role"] = d["device_role"]["slug"]
+                host["data"]["model"] = d["device_type"]["slug"]
+                host["data"]["vendor"] = d["device_type"]["manufacturer"]["slug"]
+
+            else:
+                host["platform"] = d["platform"]
+                host["data"]["site"] = d["site"]["name"]
+                host["data"]["role"] = d["device_role"]
+                host["data"]["model"] = d["device_type"]
+                host["data"]["vendor"] = d["device_type"]["manufacturer"]["name"]
+
+            # Add values for other fields that do not have an option for 'slug'
+            host["data"]["tags"] = d["tags"]
+            host["data"]["rack"] = d["rack"]
+            host["data"]["tenant"] = d["tenant"]
+            host["data"]["status"] = d["status"]["label"]
+
+            # Add values for device unique identification
             host["data"]["serial"] = d["serial"]
-            host["data"]["vendor"] = d["device_type"]["manufacturer"]["name"]
+            host["data"]["comments"] = d["comments"]
             host["data"]["asset_tag"] = d["asset_tag"]
 
+            # Add values for cluster / virtual_chassis
+            host["data"]["cluster"] = d["cluster"]
+            host["data"]["vc_position"] = d["vc_position"]
+            host["data"]["vc_priority"] = d["vc_priority"]
+            host["data"]["virtual_chassis"] = d["virtual_chassis"]
+
+            # Add config context data
+            host["data"]["local_context_data"] = d["local_context_data"]
+
+            # Add custom fields according to 'flatten' flag
             if flatten_custom_fields:
                 for cf, value in d["custom_fields"].items():
                     host["data"][cf] = value
             else:
                 host["data"]["custom_fields"] = d["custom_fields"]
-
-            # Add values that do have an option for 'slug'
-            if use_slugs:
-                host["data"]["site"] = d["site"]["slug"]
-                host["data"]["role"] = d["device_role"]["slug"]
-                host["data"]["model"] = d["device_type"]["slug"]
-
-                # Attempt to add 'platform' based of value in 'slug'
-                host["platform"] = d["platform"]["slug"] if d["platform"] else None
-
-            else:
-                host["data"]["site"] = d["site"]["name"]
-                host["data"]["role"] = d["device_role"]
-                host["data"]["model"] = d["device_type"]
-                host["platform"] = d["platform"]
 
             # Assign temporary dict to outer dict
             hosts[d["name"]] = host
