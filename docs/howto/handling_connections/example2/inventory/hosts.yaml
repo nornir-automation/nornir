@@ -1,0 +1,12 @@
+rtr00:
+    connection_options:
+        napalm:
+            platform: mock
+            extras:
+                optional_args:
+                    path: handling_connections/example2/mocked_data
+        napalm-secondary:  # non-default connection name
+            platform: mock
+            extras:
+                optional_args:
+                    path: handling_connections/example2/mocked_data

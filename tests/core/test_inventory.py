@@ -236,3 +236,17 @@ class Test(object):
             inv.hosts["dev4.group_2"],
             inv.hosts["dev3.group_2"],
         }
+
+    def test_docs_howto_handling_connections_ex1(self):
+        hosts_filepath = "docs/howto/handling_connections/example1/inventory/hosts.yaml"
+        with open(hosts_filepath) as hosts_file:
+            hosts_ = yaml.load(hosts_file)
+        inv_dict_ = {"hosts": hosts_, "groups": {}, "defaults": {}}
+        deserializer.Inventory.deserialize(**inv_dict_)
+
+    def test_docs_howto_handling_connections_ex2(self):
+        hosts_filepath = "docs/howto/handling_connections/example2/inventory/hosts.yaml"
+        with open(hosts_filepath) as hosts_file:
+            hosts_ = yaml.load(hosts_file)
+        inv_dict_ = {"hosts": hosts_, "groups": {}, "defaults": {}}
+        deserializer.Inventory.deserialize(**inv_dict_)
