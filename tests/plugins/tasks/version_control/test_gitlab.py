@@ -1,6 +1,6 @@
 import os
 
-from nornir.plugins.tasks import files
+from nornir.plugins.tasks.version_control import gitlab
 
 
 BASE_PATH = os.path.join(os.path.dirname(__file__), "gitlab")
@@ -49,7 +49,7 @@ def create_file(
     requests_mock.post(create_file_url, status_code=status_code, json=resp)
 
     res = nornir.run(
-        files.gitlab,
+        gitlab,
         url=url,
         token=token,
         repository=repository,
@@ -95,7 +95,7 @@ def update_file(
     requests_mock.put(update_file_url, status_code=status_code, json=resp)
 
     res = nornir.run(
-        files.gitlab,
+        gitlab,
         url=url,
         token=token,
         repository=repository,
