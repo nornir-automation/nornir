@@ -1,0 +1,232 @@
+{
+  "count": 9,
+  "next": "http://localhost:8080/api/dcim/devices/?limit=3&offset=3",
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "name": "Device A",
+      "display_name": "Device A",
+      "device_type": {
+        "id": 1,
+        "url": "http://localhost:8080/api/dcim/device-types/1/",
+        "manufacturer": {
+          "id": 1,
+          "url": "http://localhost:8080/api/dcim/manufacturers/1/",
+          "name": "Cisco",
+          "slug": "cisco"
+        },
+        "model": "2960S-24PS-L",
+        "slug": "2960s-24ps-l",
+        "display_name": "Cisco 2960S-24PS-L"
+      },
+      "device_role": {
+        "id": 1,
+        "url": "http://localhost:8080/api/dcim/device-roles/1/",
+        "name": "Switch",
+        "slug": "switch"
+      },
+      "tenant": null,
+      "platform": {
+        "id": 1,
+        "url": "http://localhost:8080/api/dcim/platforms/1/",
+        "name": "ios",
+        "slug": "ios"
+      },
+      "serial": "",
+      "asset_tag": null,
+      "site": {
+        "id": 1,
+        "url": "http://localhost:8080/api/dcim/sites/1/",
+        "name": "San Jose, CA",
+        "slug": "san-jose-ca"
+      },
+      "rack": null,
+      "position": null,
+      "face": null,
+      "parent_device": null,
+      "status": {
+        "value": 1,
+        "label": "Active"
+      },
+      "primary_ip": {
+        "id": 1,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/1/",
+        "family": 4,
+        "address": "10.0.1.1/32"
+      },
+      "primary_ip4": {
+        "id": 1,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/1/",
+        "family": 4,
+        "address": "10.0.1.1/32"
+      },
+      "primary_ip6": null,
+      "cluster": null,
+      "virtual_chassis": null,
+      "vc_position": null,
+      "vc_priority": null,
+      "comments": "",
+      "local_context_data": null,
+      "tags": [
+          "Access"
+      ],
+      "custom_fields": {
+        "template_version": "19.0.0",
+        "template_name": "Cisco-Access",
+      },
+      "created": "2019-03-08",
+      "last_updated": "2019-03-08T22:27:50.052291Z"
+    },
+    {
+      "id": 2,
+      "name": "Device B",
+      "display_name": "Device B",
+      "device_type": {
+        "id": 2,
+        "url": "http://localhost:8080/api/dcim/device-types/2/",
+        "manufacturer": {
+          "id": 1,
+          "url": "http://localhost:8080/api/dcim/manufacturers/1/",
+          "name": "Cisco",
+          "slug": "cisco"
+        },
+        "model": "2960X-24PS-L",
+        "slug": "2960x-24ps-l",
+        "display_name": "Cisco 2960X-24PS-L"
+      },
+      "device_role": {
+        "id": 1,
+        "url": "http://localhost:8080/api/dcim/device-roles/1/",
+        "name": "Switch",
+        "slug": "switch"
+      },
+      "tenant": null,
+      "platform": {
+        "id": 1,
+        "url": "http://localhost:8080/api/dcim/platforms/1/",
+        "name": "ios",
+        "slug": "ios"
+      },
+      "serial": "",
+      "asset_tag": null,
+      "site": {
+        "id": 1,
+        "url": "http://localhost:8080/api/dcim/sites/1/",
+        "name": "San Jose, CA",
+        "slug": "san-jose-ca"
+      },
+      "rack": null,
+      "position": null,
+      "face": null,
+      "parent_device": null,
+      "status": {
+        "value": 1,
+        "label": "Active"
+      },
+      "primary_ip": {
+        "id": 1,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/1/",
+        "family": 4,
+        "address": "10.0.1.2/32"
+      },
+      "primary_ip4": {
+        "id": 1,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/1/",
+        "family": 4,
+        "address": "10.0.1.2/32"
+      },
+      "primary_ip6": null,
+      "cluster": null,
+      "virtual_chassis": null,
+      "vc_position": null,
+      "vc_priority": null,
+      "comments": "",
+      "local_context_data": null,
+      "tags": [
+          "Access"
+      ],
+      "custom_fields": {
+        "template_version": "19.0.0",
+        "template_name": "Cisco-Access",
+      },
+      "created": "2019-03-04",
+      "last_updated": "2019-03-05T20:03:38.891984Z"
+    },
+    {
+      "id": 3,
+      "name": "Device C",
+      "display_name": "Device C",
+      "device_type": {
+        "id": 3,
+        "url": "http://localhost:8080/api/dcim/device-types/3/",
+        "manufacturer": {
+          "id": 1,
+          "url": "http://localhost:8080/api/dcim/manufacturers/1/",
+          "name": "Cisco",
+          "slug": "cisco"
+        },
+        "model": "ISR4351",
+        "slug": "isr4351",
+        "display_name": "Cisco ISR4351"
+      },
+      "device_role": {
+        "id": 2,
+        "url": "http://localhost:8080/api/dcim/device-roles/2/",
+        "name": "Router",
+        "slug": "router"
+      },
+      "tenant": null,
+      "platform": {
+        "id": 1,
+        "url": "http://localhost:8080/api/dcim/platforms/1/",
+        "name": "ios",
+        "slug": "ios"
+      },
+      "serial": "",
+      "asset_tag": null,
+      "site": {
+        "id": 1,
+        "url": "http://localhost:8080/api/dcim/sites/1/",
+        "name": "San Jose, CA",
+        "slug": "san-jose-ca"
+      },
+      "rack": null,
+      "position": null,
+      "face": null,
+      "parent_device": null,
+      "status": {
+        "value": 1,
+        "label": "Active"
+      },
+      "primary_ip": {
+        "id": 3,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/3/",
+        "family": 4,
+        "address": "10.0.1.3/32"
+      },
+      "primary_ip4": {
+        "id": 3,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/3/",
+        "family": 4,
+        "address": "10.0.1.3/32"
+      },
+      "primary_ip6": null,
+      "cluster": null,
+      "virtual_chassis": null,
+      "vc_position": null,
+      "vc_priority": null,
+      "comments": "",
+      "local_context_data": null,
+      "tags": [
+          "Router"
+      ],
+      "custom_fields": {
+        "template_version": "19.0.0",
+        "template_name": "Cisco-Core",
+      },
+      "created": "2019-03-25",
+      "last_updated": "2019-03-25T23:12:24.971531Z"
+    }
+  ]
+}

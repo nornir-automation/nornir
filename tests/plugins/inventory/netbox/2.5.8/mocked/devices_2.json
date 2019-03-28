@@ -1,0 +1,245 @@
+{
+  "count": 9,
+  "next": "http://localhost:8080/api/dcim/devices/?limit=3&offset=6",
+  "previous": "http://localhost:8080/api/dcim/devices/?limit=3",
+  "results": [
+    {
+      "id": 4,
+      "name": "Device D",
+      "display_name": "Device D",
+      "device_type": {
+        "id": 4,
+        "url": "http://localhost:8080/api/dcim/device-types/4/",
+        "manufacturer": {
+          "id": 2,
+          "url": "http://localhost:8080/api/dcim/manufacturers/2/",
+          "name": "Juniper",
+          "slug": "juniper"
+        },
+        "model": "EX4550-32F",
+        "slug": "ex4550-32f",
+        "display_name": "Juniper EX4550-32F"
+      },
+      "device_role": {
+        "id": 1,
+        "url": "http://localhost:8080/api/dcim/device-roles/1/",
+        "name": "Switch",
+        "slug": "switch"
+      },
+      "tenant": null,
+      "platform": {
+        "id": 2,
+        "url": "http://localhost:8080/api/dcim/platforms/2/",
+        "name": "junos",
+        "slug": "junos"
+      },
+      "serial": "",
+      "asset_tag": null,
+      "site": {
+        "id": 2,
+        "url": "http://localhost:8080/api/dcim/sites/2/",
+        "name": "Sunnyvale, CA",
+        "slug": "sunnyvale-ca"
+      },
+      "rack": null,
+      "position": null,
+      "face": null,
+      "parent_device": null,
+      "status": {
+        "value": 1,
+        "label": "Active"
+      },
+      "primary_ip": {
+        "id": 4,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/4/",
+        "family": 4,
+        "address": "10.0.2.1/32"
+      },
+      "primary_ip4": {
+        "id": 4,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/4/",
+        "family": 4,
+        "address": "10.0.2.1/32"
+      },
+      "primary_ip6": null,
+      "cluster": null,
+      "virtual_chassis": null,
+      "vc_position": null,
+      "vc_priority": null,
+      "comments": "",
+      "local_context_data": {
+        "trusted_interfaces": [
+          "xe-0/0/0.0",
+          "xe-0/0/4.0",
+          "xe-0/0/5.0",
+          "xe-0/0/6.0",
+          "xe-0/0/7.0",
+          "xe-0/0/8.0",
+          "xe-0/0/9.0",
+          "xe-0/0/10.0",
+          "xe-0/0/11.0",
+          "xe-0/0/30.0"
+        ]
+      },
+      "tags": [
+          "Access"
+      ],
+      "custom_fields": {
+        "template_version": "19.0.0",
+        "template_name": "Juniper-Access",
+      },
+      "created": "2019-03-04",
+      "last_updated": "2019-03-05T20:03:38.891984Z"
+    },
+    {
+      "id": 5,
+      "name": "Device E",
+      "display_name": "Device E",
+      "device_type": {
+        "id": 5,
+        "url": "http://localhost:8080/api/dcim/device-types/5/",
+        "manufacturer": {
+          "id": 2,
+          "url": "http://localhost:8080/api/dcim/manufacturers/2/",
+          "name": "Juniper",
+          "slug": "juniper"
+        },
+        "model": "QFX5100-48S-6Q",
+        "slug": "qfx5100-48s-6q",
+        "display_name": "Juniper QFX5100-48S-6Q"
+      },
+      "device_role": {
+        "id": 1,
+        "url": "http://localhost:8080/api/dcim/device-roles/1/",
+        "name": "Switch",
+        "slug": "switch"
+      },
+      "tenant": null,
+      "platform": {
+        "id": 2,
+        "url": "http://localhost:8080/api/dcim/platforms/2/",
+        "name": "junos",
+        "slug": "junos"
+      },
+      "serial": "",
+      "asset_tag": null,
+      "site": {
+        "id": 2,
+        "url": "http://localhost:8080/api/dcim/sites/2/",
+        "name": "Sunnyvale, CA",
+        "slug": "sunnyvale-ca"
+      },
+      "rack": null,
+      "position": null,
+      "face": null,
+      "parent_device": null,
+      "status": {
+        "value": 1,
+        "label": "Active"
+      },
+      "primary_ip": {
+        "id": 5,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/5/",
+        "family": 4,
+        "address": "10.0.2.2/32"
+      },
+      "primary_ip4": {
+        "id": 5,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/5/",
+        "family": 4,
+        "address": "10.0.2.2/32"
+      },
+      "primary_ip6": null,
+      "cluster": null,
+      "virtual_chassis": null,
+      "vc_position": null,
+      "vc_priority": null,
+      "comments": "",
+      "local_context_data": null,
+      "tags": [
+          "Access"
+      ],
+      "custom_fields": {
+        "template_version": "19.0.0",
+        "template_name": "Juniper-Access",
+      },
+      "created": "2019-03-25",
+      "last_updated": "2019-03-25T23:12:24.971531Z"
+    },
+    {
+      "id": 6,
+      "name": "Device F",
+      "display_name": "Device F",
+      "device_type": {
+        "id": 6,
+        "url": "http://localhost:8080/api/dcim/device-types/6/",
+        "manufacturer": {
+          "id": 2,
+          "url": "http://localhost:8080/api/dcim/manufacturers/2/",
+          "name": "Juniper",
+          "slug": "juniper"
+        },
+        "model": "MX480",
+        "slug": "mx480",
+        "display_name": "Juniper MX480"
+      },
+      "device_role": {
+        "id": 2,
+        "url": "http://localhost:8080/api/dcim/device-roles/2/",
+        "name": "Router",
+        "slug": "router"
+      },
+      "tenant": null,
+      "platform": {
+        "id": 2,
+        "url": "http://localhost:8080/api/dcim/platforms/2/",
+        "name": "junos",
+        "slug": "junos"
+      },
+      "serial": "",
+      "asset_tag": null,
+      "site": {
+        "id": 2,
+        "url": "http://localhost:8080/api/dcim/sites/2/",
+        "name": "Sunnyvale, CA",
+        "slug": "sunnyvale-ca"
+      },
+      "rack": null,
+      "position": null,
+      "face": null,
+      "parent_device": null,
+      "status": {
+        "value": 1,
+        "label": "Active"
+      },
+      "primary_ip": {
+        "id": 6,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/6/",
+        "family": 4,
+        "address": "10.0.2.3/32"
+      },
+      "primary_ip4": {
+        "id": 6,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/6/",
+        "family": 4,
+        "address": "10.0.2.3/32"
+      },
+      "primary_ip6": null,
+      "cluster": null,
+      "virtual_chassis": null,
+      "vc_position": null,
+      "vc_priority": null,
+      "comments": "",
+      "local_context_data": null,
+      "tags": [
+          "Router"
+      ],
+      "custom_fields": {
+        "template_version": "19.0.0",
+        "template_name": "Juniper-Core",
+      },
+      "created": "2019-03-08",
+      "last_updated": "2019-03-08T22:27:50.052291Z"
+    },
+  ]
+}

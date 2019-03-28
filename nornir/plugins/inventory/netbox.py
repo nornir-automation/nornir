@@ -100,14 +100,14 @@ class NBInventory(Inventory):
 
             # Add values for device unique identification
             host["data"]["serial"] = d["serial"]
-            host["data"]["comments"] = d["comments"]
             host["data"]["asset_tag"] = d["asset_tag"]
+            host["data"]["comments"] = d["comments"]
 
             # Add values for cluster / virtual_chassis
             host["data"]["cluster"] = d["cluster"]
+            host["data"]["virtual_chassis"] = d["virtual_chassis"]
             host["data"]["vc_position"] = d["vc_position"]
             host["data"]["vc_priority"] = d["vc_priority"]
-            host["data"]["virtual_chassis"] = d["virtual_chassis"]
 
             # Add config context data
             host["data"]["local_context_data"] = d["local_context_data"]

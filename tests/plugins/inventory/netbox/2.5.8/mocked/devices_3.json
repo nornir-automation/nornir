@@ -1,0 +1,232 @@
+{
+  "count": 9,
+  "next": null,
+  "previous": "http://localhost:8080/api/dcim/devices/?limit=3&offset=3",
+  "results": [
+    {
+      "id": 7,
+      "name": "Device G",
+      "display_name": "Device G",
+      "device_type": {
+        "id": 7,
+        "url": "http://localhost:8080/api/dcim/device-types/7/",
+        "manufacturer": {
+          "id": 3,
+          "url": "http://localhost:8080/api/dcim/manufacturers/3/",
+          "name": "Arista",
+          "slug": "Arista"
+        },
+        "model": "DCS-7150-S52-CL",
+        "slug": "dcs-7150-s52-cl",
+        "display_name": "Arista DCS-7150-S52-CL",
+      },
+      "device_role": {
+        "id": 1,
+        "url": "http://localhost:8080/api/dcim/device-roles/1/",
+        "name": "Switch",
+        "slug": "switch"
+      },
+      "tenant": null,
+      "platform": {
+        "id": 3,
+        "url": "http://localhost:8080/api/dcim/platforms/3/",
+        "name": "eos",
+        "slug": "eos"
+      },
+      "serial": "",
+      "asset_tag": null,
+      "site": {
+        "id": 3,
+        "url": "http://localhost:8080/api/dcim/sites/3/",
+        "name": "Santa Clara, CA",
+        "slug": "santa-clara-ca"
+      },
+      "rack": null,
+      "position": null,
+      "face": null,
+      "parent_device": null,
+      "status": {
+        "value": 1,
+        "label": "Active"
+      },
+      "primary_ip": {
+        "id": 7,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/7/",
+        "family": 4,
+        "address": "10.0.3.1/32"
+      },
+      "primary_ip4": {
+        "id": 7,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/7/",
+        "family": 4,
+        "address": "10.0.3.1/32"
+      },
+      "primary_ip6": null,
+      "cluster": null,
+      "virtual_chassis": null,
+      "vc_position": null,
+      "vc_priority": null,
+      "comments": "",
+      "local_context_data": {},
+      "tags": [
+          "Access"
+      ],
+      "custom_fields": {
+        "template_version": "19.0.0",
+        "template_name": "Arista-Access",
+      },
+      "created": "2019-03-04",
+      "last_updated": "2019-03-05T20:03:38.891984Z"
+    },
+    {
+      "id": 8,
+      "name": "Device H",
+      "display_name": "Device H",
+      "device_type": {
+        "id": 8,
+        "url": "http://localhost:8080/api/dcim/device-types/8/",
+        "manufacturer": {
+          "id": 3,
+          "url": "http://localhost:8080/api/dcim/manufacturers/3/",
+          "name": "Arista",
+          "slug": "Arista"
+        },
+        "model": "7170-32CD",
+        "slug": "7170-32cd",
+        "display_name": "Arista 7170-32CD",
+      },
+      "device_role": {
+        "id": 1,
+        "url": "http://localhost:8080/api/dcim/device-roles/1/",
+        "name": "Switch",
+        "slug": "switch"
+      },
+      "tenant": null,
+      "platform": {
+        "id": 3,
+        "url": "http://localhost:8080/api/dcim/platforms/3/",
+        "name": "eos",
+        "slug": "eos"
+      },
+      "serial": "",
+      "asset_tag": null,
+      "site": {
+        "id": 3,
+        "url": "http://localhost:8080/api/dcim/sites/3/",
+        "name": "Santa Clara, CA",
+        "slug": "santa-clara-ca"
+      },
+      "rack": null,
+      "position": null,
+      "face": null,
+      "parent_device": null,
+      "status": {
+        "value": 1,
+        "label": "Active"
+      },
+      "primary_ip": {
+        "id": 8,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/8/",
+        "family": 4,
+        "address": "10.0.3.2/32"
+      },
+      "primary_ip4": {
+        "id": 8,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/8/",
+        "family": 4,
+        "address": "10.0.3.2/32"
+      },
+      "primary_ip6": null,
+      "cluster": null,
+      "virtual_chassis": null,
+      "vc_position": null,
+      "vc_priority": null,
+      "comments": "",
+      "local_context_data": null,
+      "tags": [
+          "Access"
+      ],
+      "custom_fields": {
+        "template_version": "19.0.0",
+        "template_name": "Arista-Access",
+      },
+      "created": "2019-03-25",
+      "last_updated": "2019-03-25T23:12:24.971531Z"
+    },
+    {
+      "id": 9,
+      "name": "Device I",
+      "display_name": "Device I",
+      "device_type": {
+        "id": 9,
+        "url": "http://localhost:8080/api/dcim/device-types/9/",
+        "manufacturer": {
+          "id": 3,
+          "url": "http://localhost:8080/api/dcim/manufacturers/3/",
+          "name": "Arista",
+          "slug": "Arista"
+        },
+        "model": "7500R",
+        "slug": "7500r",
+        "display_name": "Arista 7500R"
+      },
+      "device_role": {
+        "id": 2,
+        "url": "http://localhost:8080/api/dcim/device-roles/2/",
+        "name": "Router",
+        "slug": "router"
+      },
+      "tenant": null,
+      "platform": {
+        "id": 3,
+        "url": "http://localhost:8080/api/dcim/platforms/3/",
+        "name": "eos",
+        "slug": "eos"
+      },
+      "serial": "",
+      "asset_tag": null,
+      "site": {
+        "id": 3,
+        "url": "http://localhost:8080/api/dcim/sites/3/",
+        "name": "Santa Clara, CA",
+        "slug": "santa-clara-ca"
+      },
+      "rack": null,
+      "position": null,
+      "face": null,
+      "parent_device": null,
+      "status": {
+        "value": 1,
+        "label": "Active"
+      },
+      "primary_ip": {
+        "id": 9,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/9/",
+        "family": 4,
+        "address": "10.0.3.3/32"
+      },
+      "primary_ip4": {
+        "id": 9,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/9/",
+        "family": 4,
+        "address": "10.0.3.3/32"
+      },
+      "primary_ip6": null,
+      "cluster": null,
+      "virtual_chassis": null,
+      "vc_position": null,
+      "vc_priority": null,
+      "comments": "",
+      "local_context_data": null,
+      "tags": [
+          "Router"
+      ],
+      "custom_fields": {
+        "template_version": "19.0.0",
+        "template_name": "Arista-Core",
+      },
+      "created": "2019-03-08",
+      "last_updated": "2019-03-08T22:27:50.052291Z"
+    },
+  ]
+}
