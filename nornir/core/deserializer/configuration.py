@@ -165,9 +165,6 @@ class Config(BaseNornirSettings):
     ) -> configuration.Config:
         __config_settings__ = __config_settings__ or {}
 
-        # expanded_config = _deep_expand(__config_settings__)
-        # expanded_kwargs = _deep_expand(kwargs)
-
         c = Config(
             core=CoreConfig(
                 __config_settings__=__config_settings__.pop("core", {}),
