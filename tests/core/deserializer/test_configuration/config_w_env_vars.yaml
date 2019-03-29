@@ -1,0 +1,13 @@
+---
+core:
+    num_workers: 10
+    raise_on_error: false
+inventory:
+    plugin: nornir.plugins.inventory.ansible.AnsibleInventory
+    options:
+      host_file: $MYVAR1/hosts.yml
+      group_file: $MYVAR1/groups.yml
+user_defined:
+    misc:
+      - $MYVAR2
+      - $MYVAR3
