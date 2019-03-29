@@ -4,7 +4,10 @@ from pathlib import Path
 from nornir.core.configuration import Config
 from nornir.plugins.inventory.simple import SimpleInventory
 from nornir.plugins.inventory.ansible import AnsibleInventory
-from nornir.core.deserializer.configuration import Config as ConfigDeserializer
+from nornir.core.deserializer.configuration import (
+    _deep_expand,
+    Config as ConfigDeserializer,
+)
 
 from tests.core.deserializer import my_jinja_filters
 
@@ -199,3 +202,21 @@ class Test(object):
         )
         os.environ.pop("NORNIR_CORE_NUM_WORKERS")
         assert config.core.num_workers == 30
+
+    def test_deep_expand_helper(self):
+        os.environ["MYVAR"] = "I've been expanded"
+        nested_dict = {"hello": [{"hello": "$MYVAR"}, [[["$MYVAR"]]], "$MYVAR"]}
+        expanded_dict = _deep_expand(nested_dict)
+        assert expanded_dict["hello"][0]["hello"] == "I've been expanded"
+        assert expanded_dict["hello"][-1] == "I've been expanded"
+        assert expanded_dict["hello"][1][0][0][0] == "I've been expanded"
+
+    def test_env_var_expansion_in_config(self):
+        os.environ["MYVAR1"] = dir_path
+        os.environ["MYVAR2"] = "random string"
+        config = ConfigDeserializer.load_from_file(
+            os.path.join(dir_path, "config_w_env_vars.yaml")
+        )
+        assert config.inventory.options["host_file"] == dir_path + "/hosts.yml"
+        assert config.inventory.options["group_file"] == dir_path + "/groups.yml"
+        assert config.user_defined["misc"][0] == "random string"
