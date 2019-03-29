@@ -273,3 +273,32 @@ class TestLogging:
         assert root_logger.level == logging.DEBUG
         assert nornir_logger.hasHandlers()
         assert app_logger.level == logging.INFO
+
+    def test_InitNornir_w_env_vars_in_config(self):
+        self.cleanup()
+        os.environ["HOSTS"] = "tests/inventory_data/hosts.yaml"
+        os.environ["GROUPS"] = "tests/inventory_data/groups.yaml"
+        os.environ["RANDOM_VAR"] = "random value"
+        os.environ["GRATUITOUSLY_NESTED_VAR"] = "another random value"
+        nr = InitNornir(config_file=os.path.join(dir_path, "a_config_w_env_vars.yaml"))
+        assert len(nr.inventory.hosts) == 5
+        assert nr.config.user_defined["data"][0] == "random value"
+        assert nr.config.user_defined["data"][1][0] == "another random value"
+
+    def test_InitNornir_w_env_vars_wo_config_file(self):
+        self.cleanup()
+        os.environ["HOSTS"] = "tests/inventory_data/hosts.yaml"
+        os.environ["GROUPS"] = "tests/inventory_data/groups.yaml"
+        os.environ["RANDOM_VAR"] = "random value"
+        os.environ["GRATUITOUSLY_NESTED_VAR"] = "another random value"
+        nr = InitNornir(
+            core={"num_workers": 100},
+            inventory={
+                "plugin": "nornir.plugins.inventory.simple.SimpleInventory",
+                "options": {"host_file": "$HOSTS", "group_file": "$GROUPS"},
+            },
+            user_defined={"data": ["$RANDOM_VAR", ["$GRATUITOUSLY_NESTED_VAR"]]},
+        )
+        assert len(nr.inventory.hosts) == 5
+        assert nr.config.user_defined["data"][0] == "random value"
+        assert nr.config.user_defined["data"][1][0] == "another random value"
