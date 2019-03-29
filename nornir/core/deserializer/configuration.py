@@ -1,6 +1,8 @@
 import importlib
 import logging
 from pathlib import Path
+import os
+from copy import deepcopy
 from typing import Any, Callable, Dict, Optional, Type, Union, List, cast
 
 from nornir.core import configuration
@@ -162,29 +164,33 @@ class Config(BaseNornirSettings):
         cls, __config_settings__: Optional[Dict[str, Any]] = None, **kwargs: Any
     ) -> configuration.Config:
         __config_settings__ = __config_settings__ or {}
+
+        expanded_config = _deep_expand(__config_settings__)
+        expanded_kwargs = _deep_expand(kwargs)
+
         c = Config(
             core=CoreConfig(
-                __config_settings__=__config_settings__.pop("core", {}),
-                **kwargs.pop("core", {}),
+                __config_settings__=expanded_config.pop("core", {}),
+                **expanded_kwargs.pop("core", {}),
             ),
             ssh=SSHConfig(
-                __config_settings__=__config_settings__.pop("ssh", {}),
-                **kwargs.pop("ssh", {}),
+                __config_settings__=expanded_config.pop("ssh", {}),
+                **expanded_kwargs.pop("ssh", {}),
             ),
             inventory=InventoryConfig(
-                __config_settings__=__config_settings__.pop("inventory", {}),
-                **kwargs.pop("inventory", {}),
+                __config_settings__=expanded_config.pop("inventory", {}),
+                **expanded_kwargs.pop("inventory", {}),
             ),
             logging=LoggingConfig(
-                __config_settings__=__config_settings__.pop("logging", {}),
-                **kwargs.pop("logging", {}),
+                __config_settings__=expanded_config.pop("logging", {}),
+                **expanded_kwargs.pop("logging", {}),
             ),
             jinja2=Jinja2Config(
-                __config_settings__=__config_settings__.pop("jinja2", {}),
-                **kwargs.pop("jinja2", {}),
+                __config_settings__=expanded_config.pop("jinja2", {}),
+                **expanded_kwargs.pop("jinja2", {}),
             ),
-            __config_settings__=__config_settings__,
-            **kwargs,
+            __config_settings__=expanded_config,
+            **expanded_kwargs,
         )
         return configuration.Config(
             core=CoreConfig.deserialize(**c.core.dict()),
@@ -203,6 +209,18 @@ class Config(BaseNornirSettings):
             with open(config_file, "r") as f:
                 config_dict = yml.load(f) or {}
         return Config.deserialize(__config_settings__=config_dict, **kwargs)
+
+
+def _deep_expand(conf) -> Any:
+    new_conf = deepcopy(conf)
+    if isinstance(conf, str):
+        return os.path.expandvars(conf)
+    if isinstance(conf, dict):
+        for key, value in conf.items():
+            new_conf[key] = _deep_expand(value)
+    elif isinstance(conf, list):
+        return list(map(lambda x: _deep_expand(x), conf))
+    return new_conf
 
 
 def _resolve_import_from_string(
