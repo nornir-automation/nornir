@@ -165,32 +165,32 @@ class Config(BaseNornirSettings):
     ) -> configuration.Config:
         __config_settings__ = __config_settings__ or {}
 
-        expanded_config = _deep_expand(__config_settings__)
-        expanded_kwargs = _deep_expand(kwargs)
+        # expanded_config = _deep_expand(__config_settings__)
+        # expanded_kwargs = _deep_expand(kwargs)
 
         c = Config(
             core=CoreConfig(
-                __config_settings__=expanded_config.pop("core", {}),
-                **expanded_kwargs.pop("core", {}),
+                __config_settings__=__config_settings__.pop("core", {}),
+                **kwargs.pop("core", {}),
             ),
             ssh=SSHConfig(
-                __config_settings__=expanded_config.pop("ssh", {}),
-                **expanded_kwargs.pop("ssh", {}),
+                __config_settings__=__config_settings__.pop("ssh", {}),
+                **kwargs.pop("ssh", {}),
             ),
             inventory=InventoryConfig(
-                __config_settings__=expanded_config.pop("inventory", {}),
-                **expanded_kwargs.pop("inventory", {}),
+                __config_settings__=__config_settings__.pop("inventory", {}),
+                **kwargs.pop("inventory", {}),
             ),
             logging=LoggingConfig(
-                __config_settings__=expanded_config.pop("logging", {}),
-                **expanded_kwargs.pop("logging", {}),
+                __config_settings__=__config_settings__.pop("logging", {}),
+                **kwargs.pop("logging", {}),
             ),
             jinja2=Jinja2Config(
-                __config_settings__=expanded_config.pop("jinja2", {}),
-                **expanded_kwargs.pop("jinja2", {}),
+                __config_settings__=__config_settings__.pop("jinja2", {}),
+                **kwargs.pop("jinja2", {}),
             ),
-            __config_settings__=expanded_config,
-            **expanded_kwargs,
+            __config_settings__=__config_settings__,
+            **kwargs,
         )
         return configuration.Config(
             core=CoreConfig.deserialize(**c.core.dict()),
@@ -207,8 +207,10 @@ class Config(BaseNornirSettings):
         if config_file:
             yml = ruamel.yaml.YAML(typ="safe")
             with open(config_file, "r") as f:
-                config_dict = yml.load(f) or {}
-        return Config.deserialize(__config_settings__=config_dict, **kwargs)
+                config_dict = _deep_expand(yml.load(f)) or {}
+        return Config.deserialize(
+            __config_settings__=config_dict, **_deep_expand(kwargs)
+        )
 
 
 def _deep_expand(conf) -> Any:
