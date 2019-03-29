@@ -1,0 +1,12 @@
+---
+core:
+    num_workers: 100
+inventory:
+    plugin: nornir.plugins.inventory.simple.SimpleInventory
+    options:
+        host_file: $HOSTS
+        group_file: $GROUPS
+user_defined:
+  data:
+    - "$RANDOM_VAR"
+    - ["$GRATUITOUSLY_NESTED_VAR"]
