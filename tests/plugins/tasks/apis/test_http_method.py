@@ -1,13 +1,13 @@
 import json
-
-from nornir.plugins.tasks.apis import http_method
-
 import pytest
-
 from requests.exceptions import HTTPError
 
+from nornir.plugins.tasks.apis import http_method
+from tests import skip
 
 BASE_URL = "http://httpbin"
+
+pytestmark = skip
 
 
 class Test(object):

@@ -1,5 +1,8 @@
 from nornir.core.exceptions import CommandError
 from nornir.plugins.tasks import commands
+from tests import skip
+
+pytestmark = skip
 
 
 class Test(object):

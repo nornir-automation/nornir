@@ -1,0 +1,12 @@
+**/*.pyc
+**/*.pyo
+**/*.log
+**/__pycache__
+docs/_build
+**/.ipynb_checkpoints
+.venv/
+.mypy_cache/
+.pytest_cache/
+.tox/
+**/*.egg-info
+pip-wheel-metadata/
