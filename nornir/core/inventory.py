@@ -439,18 +439,24 @@ class Inventory(object):
                 hosts.add(host)
         return hosts
 
-    def add_host(self, name: str, defaults: Optional[Defaults] = None,
-                **kwargs) -> None:
+    def add_host(self, name: str, **kwargs) -> None:
         """
         Add a host to the inventory after initialization
         """
-        host = {name: Host(name, defaults=self.defaults, **kwargs)}
+        host = {
+            name: deserializer.inventory.InventoryElement.deserialize_host(
+                name=name, defaults=self.defaults, **kwargs
+            )
+        }
         self.hosts.update(host)
 
-    def add_group(self, name: str, defaults: Optional[Defaults] = None,
-                **kwargs) -> None:
+    def add_group(self, name: str, **kwargs) -> None:
         """
         Add a group to the inventory after initialization
         """
-        group = {name: Group(name, defaults=self.defaults, **kwargs)}
+        group = {
+            name: deserializer.inventory.InventoryElement.deserialize_group(
+                name=name, defaults=self.defaults, **kwargs
+            )
+        }
         self.groups.update(group)
