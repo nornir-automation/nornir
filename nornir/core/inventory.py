@@ -438,3 +438,25 @@ class Inventory(object):
             if host.has_parent_group(group):
                 hosts.add(host)
         return hosts
+
+    def add_host(self, name: str, **kwargs) -> None:
+        """
+        Add a host to the inventory after initialization
+        """
+        host = {
+            name: deserializer.inventory.InventoryElement.deserialize_host(
+                name=name, defaults=self.defaults, **kwargs
+            )
+        }
+        self.hosts.update(host)
+
+    def add_group(self, name: str, **kwargs) -> None:
+        """
+        Add a group to the inventory after initialization
+        """
+        group = {
+            name: deserializer.inventory.InventoryElement.deserialize_group(
+                name=name, defaults=self.defaults, **kwargs
+            )
+        }
+        self.groups.update(group)

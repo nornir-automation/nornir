@@ -236,3 +236,59 @@ class Test(object):
             inv.hosts["dev4.group_2"],
             inv.hosts["dev3.group_2"],
         }
+
+    def test_add_host(self):
+        data = {"test_var": "test_value"}
+        defaults = inventory.Defaults(data=data)
+        g1 = inventory.Group(name="g1")
+        g2 = inventory.Group(name="g2", groups=inventory.ParentGroups(["g1"]))
+        h1 = inventory.Host(name="h1", groups=inventory.ParentGroups(["g1", "g2"]))
+        h2 = inventory.Host(name="h2")
+        hosts = {"h1": h1, "h2": h2}
+        groups = {"g1": g1, "g2": g2}
+        inv = inventory.Inventory(hosts=hosts, groups=groups, defaults=defaults)
+        h3_connection_options = {"netmiko": {"extras": {"device_type": "cisco_ios"}}}
+        inv.add_host(
+            name="h3",
+            groups=["g1"],
+            platform="TestPlatform",
+            connection_options=h3_connection_options,
+        )
+        assert "h3" in inv.hosts
+        assert "g1" in inv.hosts["h3"].groups
+        assert "test_var" in inv.hosts["h3"].defaults.data.keys()
+        assert inv.hosts["h3"].defaults.data.get("test_var") == "test_value"
+        assert inv.hosts["h3"].platform == "TestPlatform"
+        assert (
+            inv.hosts["h3"].connection_options["netmiko"].extras["device_type"]
+            == "cisco_ios"
+        )
+
+    def test_add_group(self):
+        connection_options = {"username": "test_user", "password": "test_pass"}
+        data = {"test_var": "test_value"}
+        defaults = inventory.Defaults(data=data, connection_options=connection_options)
+        g1 = inventory.Group(name="g1")
+        g2 = inventory.Group(name="g2", groups=inventory.ParentGroups(["g1"]))
+        h1 = inventory.Host(name="h1", groups=inventory.ParentGroups(["g1", "g2"]))
+        h2 = inventory.Host(name="h2")
+        hosts = {"h1": h1, "h2": h2}
+        groups = {"g1": g1, "g2": g2}
+        inv = inventory.Inventory(hosts=hosts, groups=groups, defaults=defaults)
+        g3_connection_options = {"netmiko": {"extras": {"device_type": "cisco_ios"}}}
+        inv.add_group(
+            name="g3", username="test_user", connection_options=g3_connection_options
+        )
+        assert "g3" in inv.groups
+        assert (
+            inv.groups["g3"].defaults.connection_options.get("username") == "test_user"
+        )
+        assert (
+            inv.groups["g3"].defaults.connection_options.get("password") == "test_pass"
+        )
+        assert "test_var" in inv.groups["g3"].defaults.data.keys()
+        assert "test_value" == inv.groups["g3"].defaults.data.get("test_var")
+        assert (
+            inv.groups["g3"].connection_options["netmiko"].extras["device_type"]
+            == "cisco_ios"
+        )
