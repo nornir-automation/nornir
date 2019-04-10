@@ -304,7 +304,7 @@ class Test(object):
         assert def_extras["blah"] == "from_defaults"
         assert "my_var" and "site" in grp_data
         assert "www_server" and "role" in host_data
-        
+
     def test_get_defaults_dict(self):
         inv = deserializer.Inventory.deserialize(**inv_dict)
         defaults_dict = inv.get_defaults_dict()
@@ -325,7 +325,9 @@ class Test(object):
         inv = deserializer.Inventory.deserialize(**inv_dict)
         hosts_dict = inv.get_hosts_dict()
         dev1_groups = hosts_dict["dev1.group_1"]["groups"]
-        dev2_paramiko_opts = hosts_dict["dev2.group_1"]["connection_options"]["paramiko"]
+        dev2_paramiko_opts = hosts_dict["dev2.group_1"]["connection_options"][
+            "paramiko"
+        ]
         assert type(hosts_dict) == dict
         assert "group_1" in dev1_groups
         assert dev2_paramiko_opts["username"] == "root"
