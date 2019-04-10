@@ -292,3 +292,36 @@ class Test(object):
             inv.groups["g3"].connection_options["netmiko"].extras["device_type"]
             == "cisco_ios"
         )
+
+    def test_get_inventory_dict(self):
+        #connection_options = {"username": "test_user", "password": "test_pass"}
+        #data = {"test_var": "test_value"}
+        #defaults = inventory.Defaults(data=data, connection_options=connection_options)
+        #g1 = inventory.Group(name="g1")
+        #g2 = inventory.Group(name="g2", groups=inventory.ParentGroups(["g1"]))
+        #h1 = inventory.Host(name="h1", groups=inventory.ParentGroups(["g1", "g2"]))
+        #h2 = inventory.Host(name="h2")
+        #hosts = {"h1": h1, "h2": h2}
+        #groups = {"g1": g1, "g2": g2}
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        #g3_connection_options = {"netmiko": {"extras": {"device_type": "cisco_ios"}}}
+        #inv.add_group(
+        #    name="g3", username="test_user", connection_options=g3_connection_options
+        #)
+        inventory_dict = inv.get_inventory_dict()
+        assert type(inventory_dict) == dict
+
+    def test_get_defaults_dict(self):
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        defaults_dict = inv.get_defaults_dict()
+        assert type(default_dict) == dict
+
+    def test_get_groups_dict(self):
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        groups_dict = inv.get_groups_dict()
+        assert type(groups_dict) == dict
+
+    def test_get_hosts_dict(self):
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        hosts_dict = inv.get_hosts_dict()
+        assert type(hosts_dict) == dict

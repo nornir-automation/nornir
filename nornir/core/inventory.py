@@ -460,3 +460,15 @@ class Inventory(object):
             )
         }
         self.groups.update(group)
+
+    def get_inventory_dict(self):
+        return deserializer.inventory.Inventory.serialize(self).dict()
+
+    def get_defaults_dict(self):
+        raise NotImplementedError
+
+    def get_groups_dict(self):
+        raise NotImplementedError
+
+    def get_hosts_dict(self):
+        raise NotImplementedError
