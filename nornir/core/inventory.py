@@ -461,14 +461,26 @@ class Inventory(object):
         }
         self.groups.update(group)
 
-    def get_inventory_dict(self):
+    def get_inventory_dict(self) -> Dict:
+        """
+        Return serialized dictionary of inventory
+        """
         return deserializer.inventory.Inventory.serialize(self).dict()
 
-    def get_defaults_dict(self):
+    def get_defaults_dict(self) -> Dict:
+        """
+        Returns serialized dictionary of defaults from inventory
+        """
         return self.get_inventory_dict().get("defaults")
 
-    def get_groups_dict(self):
+    def get_groups_dict(self) -> Dict:
+        """
+        Returns serialized dictionary of groups from inventory
+        """
         return self.get_inventory_dict().get("groups")
 
-    def get_hosts_dict(self):
+    def get_hosts_dict(self) -> Dict:
+        """
+        Returns serialized dictionary of hosts from inventory
+        """
         return self.get_inventory_dict().get("hosts")
