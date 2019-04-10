@@ -308,7 +308,11 @@ class Test(object):
     def test_get_defaults_dict(self):
         inv = deserializer.Inventory.deserialize(**inv_dict)
         defaults_dict = inv.get_defaults_dict()
+        con_options = defaults_dict["connection_options"]["dummy"]
         assert type(defaults_dict) == dict
+        assert defaults_dict["username"] == "root"
+        assert con_options["hostname"] == "dummy_from_defaults"
+        assert "blah" in con_options["extras"]
 
     def test_get_groups_dict(self):
         inv = deserializer.Inventory.deserialize(**inv_dict)

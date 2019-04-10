@@ -465,8 +465,7 @@ class Inventory(object):
         return deserializer.inventory.Inventory.serialize(self).dict()
 
     def get_defaults_dict(self):
-        inv_dict = self.get_inventory_dict()
-        return inv_dict["defaults"]
+        return self.get_inventory_dict().get("defaults")
 
     def get_groups_dict(self):
         raise NotImplementedError
