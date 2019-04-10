@@ -318,6 +318,8 @@ class Test(object):
         inv = deserializer.Inventory.deserialize(**inv_dict)
         groups_dict = inv.get_groups_dict()
         assert type(groups_dict) == dict
+        assert groups_dict["group_1"]["password"] == "from_group1"
+        assert groups_dict["group_2"]["data"]["site"] == "site2"
 
     def test_get_hosts_dict(self):
         inv = deserializer.Inventory.deserialize(**inv_dict)
