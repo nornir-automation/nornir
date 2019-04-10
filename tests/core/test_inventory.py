@@ -308,7 +308,7 @@ class Test(object):
     def test_get_defaults_dict(self):
         inv = deserializer.Inventory.deserialize(**inv_dict)
         defaults_dict = inv.get_defaults_dict()
-        assert type(default_dict) == dict
+        assert type(defaults_dict) == dict
 
     def test_get_groups_dict(self):
         inv = deserializer.Inventory.deserialize(**inv_dict)
