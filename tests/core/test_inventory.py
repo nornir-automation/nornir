@@ -294,23 +294,17 @@ class Test(object):
         )
 
     def test_get_inventory_dict(self):
-        #connection_options = {"username": "test_user", "password": "test_pass"}
-        #data = {"test_var": "test_value"}
-        #defaults = inventory.Defaults(data=data, connection_options=connection_options)
-        #g1 = inventory.Group(name="g1")
-        #g2 = inventory.Group(name="g2", groups=inventory.ParentGroups(["g1"]))
-        #h1 = inventory.Host(name="h1", groups=inventory.ParentGroups(["g1", "g2"]))
-        #h2 = inventory.Host(name="h2")
-        #hosts = {"h1": h1, "h2": h2}
-        #groups = {"g1": g1, "g2": g2}
         inv = deserializer.Inventory.deserialize(**inv_dict)
-        #g3_connection_options = {"netmiko": {"extras": {"device_type": "cisco_ios"}}}
-        #inv.add_group(
-        #    name="g3", username="test_user", connection_options=g3_connection_options
-        #)
         inventory_dict = inv.get_inventory_dict()
+        def_extras = inventory_dict["defaults"]["connection_options"]["dummy"]["extras"]
+        grp_data = inventory_dict["groups"]["group_1"]["data"]
+        host_data = inventory_dict["hosts"]["dev1.group_1"]["data"]
         assert type(inventory_dict) == dict
-
+        assert inventory_dict["defaults"]["username"] == "root"
+        assert def_extras["blah"] == "from_defaults"
+        assert "my_var" and "site" in grp_data
+        assert "www_server" and "role" in host_data
+        
     def test_get_defaults_dict(self):
         inv = deserializer.Inventory.deserialize(**inv_dict)
         defaults_dict = inv.get_defaults_dict()
