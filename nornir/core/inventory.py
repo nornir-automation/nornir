@@ -471,4 +471,4 @@ class Inventory(object):
         return self.get_inventory_dict().get("groups")
 
     def get_hosts_dict(self):
-        raise NotImplementedError
+        return self.get_inventory_dict().get("hosts")
