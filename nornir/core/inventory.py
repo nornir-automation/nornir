@@ -471,16 +471,22 @@ class Inventory(object):
         """
         Returns serialized dictionary of defaults from inventory
         """
-        return self.get_inventory_dict().get("defaults")
+        return deserializer.inventory.Defaults.serialize(self.defaults).dict()
 
     def get_groups_dict(self) -> Dict:
         """
         Returns serialized dictionary of groups from inventory
         """
-        return self.get_inventory_dict().get("groups")
+        return {
+            k: deserializer.inventory.InventoryElement.serialize(v).dict()
+            for k, v in self.groups.items()
+        }
 
     def get_hosts_dict(self) -> Dict:
         """
         Returns serialized dictionary of hosts from inventory
         """
-        return self.get_inventory_dict().get("hosts")
+        return {
+            k: deserializer.inventory.InventoryElement.serialize(v).dict()
+            for k, v in self.hosts.items()
+        }
