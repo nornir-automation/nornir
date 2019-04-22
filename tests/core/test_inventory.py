@@ -292,3 +292,43 @@ class Test(object):
             inv.groups["g3"].connection_options["netmiko"].extras["device_type"]
             == "cisco_ios"
         )
+
+    def test_get_inventory_dict(self):
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        inventory_dict = inv.get_inventory_dict()
+        def_extras = inventory_dict["defaults"]["connection_options"]["dummy"]["extras"]
+        grp_data = inventory_dict["groups"]["group_1"]["data"]
+        host_data = inventory_dict["hosts"]["dev1.group_1"]["data"]
+        assert type(inventory_dict) == dict
+        assert inventory_dict["defaults"]["username"] == "root"
+        assert def_extras["blah"] == "from_defaults"
+        assert "my_var" and "site" in grp_data
+        assert "www_server" and "role" in host_data
+
+    def test_get_defaults_dict(self):
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        defaults_dict = inv.get_defaults_dict()
+        con_options = defaults_dict["connection_options"]["dummy"]
+        assert type(defaults_dict) == dict
+        assert defaults_dict["username"] == "root"
+        assert con_options["hostname"] == "dummy_from_defaults"
+        assert "blah" in con_options["extras"]
+
+    def test_get_groups_dict(self):
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        groups_dict = inv.get_groups_dict()
+        assert type(groups_dict) == dict
+        assert groups_dict["group_1"]["password"] == "from_group1"
+        assert groups_dict["group_2"]["data"]["site"] == "site2"
+
+    def test_get_hosts_dict(self):
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        hosts_dict = inv.get_hosts_dict()
+        dev1_groups = hosts_dict["dev1.group_1"]["groups"]
+        dev2_paramiko_opts = hosts_dict["dev2.group_1"]["connection_options"][
+            "paramiko"
+        ]
+        assert type(hosts_dict) == dict
+        assert "group_1" in dev1_groups
+        assert dev2_paramiko_opts["username"] == "root"
+        assert "dev3.group_2" in hosts_dict
