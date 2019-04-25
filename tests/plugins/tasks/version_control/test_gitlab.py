@@ -1,4 +1,5 @@
 import os
+import uuid
 
 from nornir.plugins.tasks.version_control import gitlab
 
@@ -21,6 +22,14 @@ diff_update = """--- dummy
 
 -dummy
 +new line"""
+
+diff_get = """--- /tmp/{f}
+
++++ /tmp/{f}
+
+@@ -0,0 +1 @@
+
++content"""
 
 
 def create_file(
@@ -105,6 +114,46 @@ def update_file(
         dry_run=dry_run,
         branch=branch,
         commit_message=commit_message,
+    )
+    return res
+
+
+def get_file(
+    nornir,
+    requests_mock,
+    url,
+    repository,
+    pid,
+    filename,
+    destination,
+    dry_run,
+    project_status_code,
+    exists_status_code,
+    project_resp,
+    exists_resp,
+    ref,
+):
+    token = "dummy"
+
+    repo_url = f"{url}/api/v4/projects?search={repository}"
+    requests_mock.get(repo_url, status_code=project_status_code, json=project_resp)
+
+    exists_file_url = (
+        f"{url}/api/v4/projects/{pid}/repository/files/{filename}?ref={ref}"
+    )
+
+    requests_mock.get(exists_file_url, status_code=exists_status_code, json=exists_resp)
+
+    res = nornir.run(
+        gitlab,
+        url=url,
+        token=token,
+        repository=repository,
+        filename=filename,
+        destination=destination,
+        action="get",
+        dry_run=dry_run,
+        ref=ref,
     )
     return res
 
@@ -342,5 +391,116 @@ class Test(object):
             exists_resp={"content": "ZHVtbXk=\n"},
             resp={"branch": "master", "file_path": "dummy"},
         )
+        assert res["dev1.group_1"][0].failed
+        assert not res["dev1.group_1"][0].changed
+
+    def test_gitlab_get_dry_run(self, nornir, requests_mock):
+        nornir = nornir.filter(name="dev1.group_1")
+        u = uuid.uuid4()
+        res = get_file(
+            nornir=nornir,
+            requests_mock=requests_mock,
+            url="http://localhost",
+            repository="test",
+            pid=1,
+            filename="bar",
+            dry_run=True,
+            destination=f"/tmp/{u}",
+            project_status_code=200,
+            exists_status_code=200,
+            project_resp=[{"name": "test", "id": 1}],
+            exists_resp={"content": "Y29udGVudA==\n"},
+            ref="master",
+        )
+
+        diff = diff_get.format(f=u)
+        assert not res["dev1.group_1"][0].failed
+        assert res["dev1.group_1"][0].changed
+        assert res["dev1.group_1"][0].diff == diff
+
+    def test_gitlab_get(self, nornir, requests_mock):
+        nornir = nornir.filter(name="dev1.group_1")
+        u = uuid.uuid4()
+        res = get_file(
+            nornir=nornir,
+            requests_mock=requests_mock,
+            url="http://localhost",
+            repository="test",
+            pid=1,
+            filename="bar",
+            dry_run=False,
+            destination=f"/tmp/{u}",
+            project_status_code=200,
+            exists_status_code=200,
+            project_resp=[{"name": "test", "id": 1}],
+            exists_resp={"content": "Y29udGVudA==\n"},
+            ref="master",
+        )
+
+        diff = diff_get.format(f=u)
+        assert not res["dev1.group_1"][0].failed
+        assert res["dev1.group_1"][0].changed
+        assert res["dev1.group_1"][0].diff == diff
+
+    def test_gitlab_get_invalid_project(self, nornir, requests_mock):
+        nornir = nornir.filter(name="dev1.group_1")
+        res = get_file(
+            nornir=nornir,
+            requests_mock=requests_mock,
+            url="http://localhost",
+            repository="test",
+            pid=2,
+            filename="bar",
+            dry_run=False,
+            destination="/tmp/foo",
+            project_status_code=400,
+            exists_status_code=200,
+            project_resp=[{"name": "test", "id": 1}],
+            exists_resp={"content": "Y29udGVudA==\n"},
+            ref="master",
+        )
+
+        assert res["dev1.group_1"][0].failed
+        assert not res["dev1.group_1"][0].changed
+
+    def test_gitlab_get_invalid_branch(self, nornir, requests_mock):
+        nornir = nornir.filter(name="dev1.group_1")
+        res = get_file(
+            nornir=nornir,
+            requests_mock=requests_mock,
+            url="http://localhost",
+            repository="test",
+            pid=1,
+            filename="bar",
+            dry_run=False,
+            destination="/tmp/foo",
+            project_status_code=200,
+            exists_status_code=400,
+            project_resp=[{"name": "test", "id": 1}],
+            exists_resp={"content": "Y29udGVudA==\n"},
+            ref="lll",
+        )
+
+        assert res["dev1.group_1"][0].failed
+        assert not res["dev1.group_1"][0].changed
+
+    def test_gitlab_get_invalid_file(self, nornir, requests_mock):
+        nornir = nornir.filter(name="dev1.group_1")
+        res = get_file(
+            nornir=nornir,
+            requests_mock=requests_mock,
+            url="http://localhost",
+            repository="test",
+            pid=1,
+            filename="baz",
+            dry_run=False,
+            destination="/tmp/foo",
+            project_status_code=200,
+            exists_status_code=400,
+            project_resp=[{"name": "test", "id": 1}],
+            exists_resp={"content": "Y29udGVudA==\n"},
+            ref="",
+        )
+
         assert res["dev1.group_1"][0].failed
         assert not res["dev1.group_1"][0].changed
