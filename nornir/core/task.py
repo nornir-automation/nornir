@@ -1,3 +1,4 @@
+import datetime
 import logging
 import traceback
 from typing import Any, Optional, TYPE_CHECKING
@@ -174,6 +175,7 @@ class Result(object):
         self.exception = exception
         self.name = None
         self.severity_level = severity_level
+        self.timestamp = datetime.datetime.now(datetime.timezone.utc)
 
         self.stdout: Optional[str] = None
         self.stderr: Optional[str] = None
