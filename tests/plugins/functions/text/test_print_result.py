@@ -49,6 +49,9 @@ def parse_data(task):
         data["changed"] = False
         data["failed"] = True
 
+    elif "dev5.no_group" == task.host.name:
+        data["values"] = [13, 14, 15]
+
     if data["failed"]:
         raise Exception("Unknown Error -> Contact your system administrator")
 
@@ -97,5 +100,6 @@ class Test(object):
 
     @wrap_cli_test(output="{}/failed_with_severity".format(output_dir))
     def test_print_failed_with_severity(self, nornir):
+        nornir.config.logging.configure()
         result = nornir.run(read_data)
         print_result(result, vars=["exception", "output"], severity_level=logging.ERROR)

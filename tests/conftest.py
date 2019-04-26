@@ -1,4 +1,3 @@
-import logging
 import os
 
 from nornir import InitNornir
@@ -8,14 +7,6 @@ import pytest
 
 
 global_data = GlobalState(dry_run=True)
-
-
-logging.basicConfig(
-    filename="tests.log",
-    filemode="w",
-    level=logging.DEBUG,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(funcName)20s() - %(message)s",
-)
 
 
 @pytest.fixture(scope="session", autouse=True)

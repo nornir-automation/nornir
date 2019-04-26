@@ -17,7 +17,7 @@ napalm_to_netmiko_map = {
 
 class Netmiko(ConnectionPlugin):
     """
-    This plugin connects to the device using the NAPALM driver and sets the
+    This plugin connects to the device using the Netmiko driver and sets the
     relevant connection.
 
     Inventory:

@@ -4,6 +4,9 @@ Upgrading to nornir 2.x from 1.x
 Changes in the inventory
 ------------------------
 
+Connection parameters
+~~~~~~~~~~~~~~~~~~~~~
+
 When specifying connection parameters, in nornir 1.x those parameters where specified with attributes like ``nornir_username``, ``nornir_password``, etc. All of those have been removed and now the only supported parameters are:
 
 * ``hostname``
@@ -13,6 +16,36 @@ When specifying connection parameters, in nornir 1.x those parameters where spec
 * ``platform`` (which replaces both ``os`` and ``network_operating_system``)
 
 You can check the following how to for more details on `how to <../howto/handling_connections.rst>`_ use these parameters.
+
+Custom inventory data
+~~~~~~~~~~~~~~~~~~~~~
+
+Any custom host or group data keys, other than core supported keys, must also be moved under a data subkey::
+
+    ---
+    host host1.cmh:
+      hostname: 127.0.0.1
+      username: vagrant
+      password: vagrant
+      platform: linux
+      groups:
+        - cmh
+      site: cmh  # example custom data
+
+to::
+
+    ---
+    host1.cmh:
+      hostname: 127.0.0.1
+      username: vagrant
+      password: vagrant
+      platform: linux
+      groups:
+        - cmh
+      data:
+        site: cmh
+
+See `the inventory tutorial <../tutorials/intro/inventory.ipynb>`_ for more information on how to structure inventory data.
 
 Changed to path importing ``InitNornir``
 ----------------------------------------
@@ -29,3 +62,30 @@ Changes to the configuration
 ----------------------------
 
 The format of the configuration has slightly changed. Some of the options that used to be under the root object, for instance ``num_workers``, ``jinja_filters`` and ``raise_on_error`` are now under ``core`` and ``jinja2`` sections. For details, go to the `configuration section <../configuration/index.rst>`_
+
+Beware, that where top-level options have now been moved into new sections, if you were previously passing these options to ``InitNornir`` in code and other options via configuration file,  you may notice a change in behaviour. 
+
+Changes to templates
+--------------------
+
+In Nornir 1.x, all host data was made directly available as template variables. To avoid the potential for conflicts, nornir 2.x, host data is namespaced under the ``host`` variable.
+
+Change from::
+
+    My hostname is: {{ hostname }}
+
+to::
+
+    My hostname is: {{ host.hostname }}
+
+Changes to transform functions
+------------------------------
+
+In nornir 2.x, a transform function passed in the ``inventory`` configuration to ``InitNonir`` must be serialisable (so it may not be a lambda). If you need to pass parameters to the transform function, use the new ``transform_function_options`` parameter.
+
+Changes to ``Inventory`` plugins
+--------------------------------
+
+The inventory plugin system has changed quite significantly and the base class is now ``nornir.core.deserializer.inventory.Inventory``. Inventory plugins are also now based on Pydantic (https://github.com/samuelcolvin/pydantic) and so instances of the plugin class do not allow arbitrary class members. You may need to alter the way your inventory plugin works, particularly if you need to maintain state during initialisation.
+
+To see some simple examples, look at the ``SimpleInventory`` and ``NetboxInventory`` plugins which ship with Nornir. The ``AnsibleInventory`` plugin is a complete example of a more complex system.

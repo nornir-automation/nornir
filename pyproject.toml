@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nornir"
-version = "2.0.0"
+version = "2.1.1"
 description = "Pluggable multi-threaded framework with inventory management to help operate collections of devices"
 authors = ["David Barroso <dbarrosop@dravetech.com>"]
 readme = "README.md"
@@ -11,17 +11,19 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = ">= 3.6, < 3.8"
+python = "^3.6"
 colorama = "^0.4.1"
 jinja2 = "^2"
 napalm = "^2"
-netmiko = { git = "https://github.com/ktbyers/netmiko", branch = "environment_markers" }
+netmiko = ">=2.3.3, <3"
 paramiko = ">=2.1.1, <3"
 requests = "^2"
 "ruamel.yaml" = "^0.15.85"
 mypy_extensions = "^0.4.1"
-pydantic = "^0.17.0"
+pydantic = "^0.18.2"
 [tool.poetry.dev-dependencies]
+# https://github.com/jupyter/notebook/issues/4399
+tornado = "^5.1"
 decorator = "*"
 nbval = "*"
 pytest = "*"

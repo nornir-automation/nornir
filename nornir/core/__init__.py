@@ -7,6 +7,8 @@ from nornir.core.inventory import Inventory
 from nornir.core.state import GlobalState
 from nornir.core.task import AggregatedResult, Task
 
+logger = logging.getLogger(__name__)
+
 
 class Nornir(object):
     """
@@ -27,14 +29,9 @@ class Nornir(object):
     """
 
     def __init__(
-        self,
-        inventory: Inventory,
-        config: Config = None,
-        logger: logging.Logger = None,
-        data: GlobalState = None,
+        self, inventory: Inventory, config: Config = None, data: GlobalState = None
     ) -> None:
         self.data = data if data is not None else GlobalState()
-        self.logger = logger or logging.getLogger(__name__)
 
         self.inventory = inventory
 
@@ -118,12 +115,17 @@ class Nornir(object):
                 if name in self.data.failed_hosts:
                     run_on.append(host)
 
-        self.logger.info(
-            "Running task '{}' with num_workers: {}".format(
-                kwargs.get("name") or task.__name__, num_workers
+        num_hosts = len(self.inventory.hosts)
+        task_name = kwargs.get("name") or task.__name__
+        if num_hosts:
+            logger.info(
+                f"Running task %r with args %s on %d hosts",
+                task_name,
+                kwargs,
+                num_hosts,
             )
-        )
-        self.logger.debug(kwargs)
+        else:
+            logger.warning("Task %r has not been run – 0 hosts selected", task_name)
 
         if num_workers == 1:
             result = self._run_serial(task, run_on, **kwargs)
