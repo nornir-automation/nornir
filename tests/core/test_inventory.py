@@ -268,7 +268,7 @@ class Test(object):
         # Test with one good and one undefined group
         with pytest.raises(KeyError):
             inv.add_host(name="h5", groups=["g1", "not_defined"])
-        
+
     def test_add_group(self):
         connection_options = {"username": "test_user", "password": "test_pass"}
         data = {"test_var": "test_value"}
@@ -303,7 +303,7 @@ class Test(object):
         # Test with one defined and one undefined parent group
         with pytest.raises(KeyError):
             inv.add_group(name="g4", groups=["g1", "undefined"])
-        
+
     def test_get_inventory_dict(self):
         inv = deserializer.Inventory.deserialize(**inv_dict)
         inventory_dict = inv.get_inventory_dict()
