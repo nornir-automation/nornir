@@ -461,6 +461,7 @@ class Inventory(object):
             )
         }
         self.groups.update(group)
+        self.__init__(hosts=self.hosts, groups=self.groups, defaults=self.defaults)
 
     def get_inventory_dict(self) -> Dict:
         """
