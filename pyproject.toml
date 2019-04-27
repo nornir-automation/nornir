@@ -1,6 +1,10 @@
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
+
 [tool.poetry]
 name = "nornir"
-version = "2.1.1"
+version = "2.2.0"
 description = "Pluggable multi-threaded framework with inventory management to help operate collections of devices"
 authors = ["David Barroso <dbarrosop@dravetech.com>"]
 readme = "README.md"
@@ -15,15 +19,25 @@ python = "^3.6"
 colorama = "^0.4.1"
 jinja2 = "^2"
 napalm = "^2"
-netmiko = ">=2.3.3, <3"
-paramiko = ">=2.1.1, <3"
+netmiko = "^2.3.3"
+paramiko = "^2.1.1"
 requests = "^2"
 "ruamel.yaml" = "^0.15.85"
 mypy_extensions = "^0.4.1"
 pydantic = "^0.18.2"
+# The following dependencies are used for docs generation when installed as extras
+# (e.g. pip install nornir[docs])
+# Currently they have to be specified as non-dev dependencies with optional = true
+# Refer to: https://github.com/sdispater/poetry/issues/129
+sphinx = { version = "^1", optional = true }
+sphinx_rtd_theme = { version = "^0.4", optional = true }
+sphinxcontrib-napoleon = { version = "^0.7", optional = true }
+jupyter = { version = "^1", optional = true }
+nbsphinx = { version = "^0.4", optional = true }
+pygments = { version = "^2", optional = true }
+sphinx-issues = { version = "^1.2", optional = true }
+
 [tool.poetry.dev-dependencies]
-# https://github.com/jupyter/notebook/issues/4399
-tornado = "^5.1"
 decorator = "*"
 nbval = "*"
 pytest = "*"
@@ -31,8 +45,19 @@ pytest-cov = "*"
 pylama = "*"
 flake8-import-order = "*"
 requests-mock = "*"
-black = {version = "^18.3-alpha.0",allows-prereleases = true}
+black = {version = "^19.3b0",allows-prereleases = true}
 mypy = "*"
-[build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
+# The following dependencies are used for docs generation when run locally or in Docker
+# (e.g. poetry install)
+sphinx = "^1"
+sphinx_rtd_theme = "^0.4"
+sphinxcontrib_napoleon = "^0.7"
+jupyter = "^1"
+nbsphinx = "^0.4"
+pygments = "^2"
+sphinx-issues = "^1.2"
+
+[tool.poetry.extras]
+# The following section is required to install docs dependencies
+# until RTD fully supports poetry: https://github.com/rtfd/readthedocs.org/issues/4912
+docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-napoleon", "jupyter", "nbsphinx", "pygments", "sphinx-issues"]

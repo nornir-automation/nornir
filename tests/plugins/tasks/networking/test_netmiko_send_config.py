@@ -1,4 +1,7 @@
 from nornir.plugins.tasks import networking
+from tests import skip
+
+pytestmark = skip
 
 
 class Test(object):

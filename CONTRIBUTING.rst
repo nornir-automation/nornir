@@ -59,9 +59,9 @@ If you have written your custom plugin for Nornir there's a good chance that it 
 Contributing to the Nornir core
 --------------------------------
 
-When you are contributing code to the core of Nornir make sure that the existing tests are passing, and add tests to the code you have added. Having your tests in place ensures that other won't accidentally brake it in the future.
+When you are contributing code to the core of Nornir make sure that the existing tests are passing, and add tests for the code you wrote. Having your tests in place ensures that other won't accidentally break the contributed code in the future.
 
-Before you make any significant code changes to the core it's recommended that you open an issue to discuss your ideas before writing the code.
+Before you make any significant code changes to the core, it's recommended that you open a GitHub issue to discuss your ideas.
 
 Setting up your environment
 ---------------------------
@@ -71,7 +71,11 @@ In order to run tests locally you need to have `Docker <https://docs.docker.com/
 Updating dependencies
 ---------------------
 
-Nornir dependencies are managed by `poetry <https://github.com/sdispater/poetry>`_. The guidelines to pin dependencies are:
+| Nornir dependencies are managed by `poetry <https://github.com/sdispater/poetry>`_.
+| When installing `poetry`, please make sure it is not installed in the project virtual environment.
+| Either use the recommended way of installation: ``curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python`` or install it in your home directory ``python3 -m pip install --user poetry``.
+
+The guidelines to pin dependencies are:
 
 1. For the application dependencies:
     a. if semver is supported we pin to major release
@@ -89,51 +93,59 @@ These guidelines are not set in stone and can be changed or broken if there is a
 
 Starting development environment
 --------------------------------
-
-You need some services to run the tests. Those are managed with ``docker-compose``. In order to start them you can execute:
+Some tests requires additional services to be running which are managed by ``docker-compose``. You can start these services with:
 
 .. code-block:: bash
 
    make start_dev_env
 
-You can then stop it with:
+You can then stop them with:
 
 .. code-block:: bash
 
    make stop_dev_env
 
-Running tests
--------------
 
-While the automated tests will be triggered when you submit a new pull request it can still save you time to run the tests locally first.
+Coding style
+------------
+
+Nornir uses `Black <https://github.com/ambv/black>`_, the uncompromising Python code formatter. Black makes it easy for you to format your code as you can do so automatically after installing it.
+
+.. code-block:: bash
+
+   poetry run black .
+
+The Black GitHub repo has information about how you can integrate Black in your editor.
+
+Tests
+-------------
+As part of the automatic CI on every pull request, besides coding style checks with ``black``, we also do linting with ``pylama``, static type checking with ``mypy``, unit tests with ``pytest``, docs generation with ``sphinx`` and ``nbsphinx`` (for Jupyter notebooks) and verification of outputs in Jupyter notebook tutorials with pytest plugin ``nbval``.
+
+After modifying any code in the core, at first, we recommend running unit tests locally before running the whole test suite (which takes longer time):
+
+.. code-block:: bash
+
+   poetry run pytest
+
+Note: unit tests which require additional services to be running are skipped automatically, when not running in Docker.
+
+To run all CI tests, execute:
 
 .. code-block:: bash
 
    make tests
 
-That will run the entire test suite, if you want to target some specific test you can do:
+To run only verification of Jupyter notebook tutorials outputs with ``nbval`` execute:
 
 .. code-block:: bash
 
    make build_test_container && make nbval
 
-To run only ``nbval`` environment or:
 
+To run a specific unit test:
 
 .. code-block:: bash
 
    make build_test_container && make pytest ARGS="tests/plugins/tasks/networking/test_tcp_ping.py"
 
-To run a specific test.
-
-
-Coding style
-------------
-
-Nornir uses `Black <https://github.com/ambv/black>`_, the uncompromising Python code formatter. Black makes it easy for you to format your code as you can do so automatically after installing it. Note that Python 3.6 is required to run Black.
-
-.. code-block:: bash
-
-   black .
-
-The Black GitHub repo has information about how you can integrate Black in your editor.
+You can find commands to run other groups of tests in the ``Makefile``

@@ -2,8 +2,10 @@ import os
 import uuid
 
 from nornir.plugins.tasks import networking
+from tests import skip
 
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
+pytestmark = skip
 
 
 class Test(object):
