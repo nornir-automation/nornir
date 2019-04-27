@@ -263,6 +263,30 @@ class Test(object):
             inv.hosts["h3"].connection_options["netmiko"].extras["device_type"]
             == "cisco_ios"
         )
+        
+    def test_add_host_undefined_group(self):
+        data = {"test_var": "test_value"}
+        defaults = inventory.Defaults(data=data)
+        g1 = inventory.Group(name="g1")
+        g2 = inventory.Group(name="g2", groups=inventory.ParentGroups(["g1"]))
+        h1 = inventory.Host(name="h1", groups=inventory.ParentGroups(["g1", "g2"]))
+        h2 = inventory.Host(name="h2")
+        hosts = {"h1": h1, "h2": h2}
+        groups = {"g1": g1, "g2": g2}
+        inv = inventory.Inventory(hosts=hosts, groups=groups, defaults=defaults)
+        h3_connection_options = {"netmiko": {"extras": {"device_type": "cisco_ios"}}}
+        inv.add_host(
+            name="h3",
+            groups=["g1"],
+            platform="TestPlatform",
+            connection_options=h3_connection_options,
+        )
+        # Test with none of the groups correct
+        with pytest.raises(KeyError):
+            inv.add_host(name="h4", groups=["not_defined"])
+        # Test with one good and one undefined group
+        with pytest.raises(KeyError):
+            inv.add_host(name="h5", groups=["g1", "not_defined"])    
 
     def test_add_group(self):
         connection_options = {"username": "test_user", "password": "test_pass"}

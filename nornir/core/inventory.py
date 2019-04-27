@@ -449,6 +449,7 @@ class Inventory(object):
             )
         }
         self.hosts.update(host)
+        self.__init__(hosts=self.hosts, groups=self.groups, defaults=self.defaults)
 
     def add_group(self, name: str, **kwargs) -> None:
         """
