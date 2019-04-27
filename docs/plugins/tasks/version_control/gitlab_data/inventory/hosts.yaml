@@ -1,0 +1,11 @@
+---
+alpine:
+    data:
+        domestic: true
+        diet: omnivore
+        additional_data:
+            lifespan: 17
+            famous_members:
+                - garfield
+                - felix
+                - grumpy
