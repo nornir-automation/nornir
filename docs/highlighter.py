@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 from IPython.core.magic import register_line_magic
 from IPython.display import HTML
 
