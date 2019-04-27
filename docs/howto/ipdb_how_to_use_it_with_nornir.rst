@@ -19,7 +19,7 @@ For the sake of the demo I have written some code that contains a bug. The code 
 
 #. Read a yaml file containing a bunch of users we want to have configured on our devices
 #. Connect to a couple of network devices and get the users configured
-#. Check with users are already configured, which ones we want and compute two lists; a list with the users we need to configure and another list with the ones we need to remove.
+#. Check which users are already configured, which ones we want and compute two lists; a list with the users we need to configure and another list with the ones we need to remove.
 #. Finally, we pass those lists to a template and we generate some configuration.
 
 First, let's run the script:
