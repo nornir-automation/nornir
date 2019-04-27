@@ -1,6 +1,23 @@
 Changelog
 ==========
 
+2.2.0 - April 27 2019
+---------------------
+
+* [DOCS] Fixed copyright in the LICENSE :issue:`378`
+* [CORE_ENHANCEMENTS] Added functions to retrieve inventory using native datastructures :issue:`375`
+* [DOCS] Added external resources :issues:`374`
+* [MISC] Improve build
+* [CORE_ENHANCEMENTS] Added add_host and add_group functions to nornir.core.inventory.Inventory class :issue:`372`
+* [DOCS] Updating howto documentation for including 'ConnectionOptions' :issue:`365`
+* [DOCS] Fixed typos :issue:`362` :issue:`360`
+
+* :user:`brandomando`
+* :user:`dbarrosop`
+* :user:`dmfigol`
+* :user:`bdlamprecht`
+* :user:`eakman`
+
 2.1.1 - March 19 2019
 ---------------------
 
