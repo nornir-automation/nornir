@@ -6,3 +6,31 @@ rtr00:
             extras:
                 optional_args:
                     path: handling_connections/mocked_data
+rtr01:
+    connection_options:
+        napalm:
+            platform: mock
+            extras:
+                optional_args:
+                    path: handling_connections/mocked_data
+rtr02:
+    connection_options:
+        napalm:
+            platform: mock
+            extras:
+                optional_args:
+                    path: handling_connections/mocked_data
+rtr04:
+    connection_options:
+        napalm:
+            platform: mock
+            extras:
+                optional_args:
+                    path: handling_connections/mocked_data
+rtr03:
+    connection_options:
+        napalm:
+            platform: mock
+            extras:
+                optional_args:
+                    path: handling_connections/mocked_data
