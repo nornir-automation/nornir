@@ -34,6 +34,17 @@ Examples
 
 You can find some examples and already made tools [here](https://github.com/nornir-automation/nornir-tools/)
 
+External Resources
+==================
+
+Below you can find links to talks, blog posts, podcasts and other resources:
+
+* April 2019 - Packet Pushers podcast - [https://packetpushers.net/podcast/heavy-networking-445-an-introduction-to-the-nornir-automation-framework/](Heavy Networking 445: An Introduction To The Nornir Automation Framework)
+* May 2018 - Software Gone Wild podcast - [http://blog.ipspace.net/2018/05/network-automation-with-brigade-on.html](IPSpace podcast about nornir)
+* Sep 2018 - IPSpace network automation solutions - [https://my.ipspace.net/bin/list?id=NetAutSol&module=9#NORNIR](Nornir workshop) [slides](https://github.com/dravetech/nornir-workshop/blob/master/nornir-workshop.pdf)
+* May 2018 - Networklore - [https://networklore.com/introducing-brigade/](Introducing Nornir - The Python automation framework)
+* May 2018 - Cisco blogs - [https://blogs.cisco.com/developer/nornir-python-automation-framework](Exploring Nornir, the Python Automation Framework)
+
 
 Bugs & New features
 ===================
