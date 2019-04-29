@@ -50,7 +50,7 @@ def send_result(
     bootstrap_servers: Union[Iterable[str], str],
     key: Optional[Any] = None,
     key_serializer: Optional[Callable[[Any], bytes]] = default_key_serializer,
-    value_serializer: Optional[Callable[[Result],  bytes]] = default_value_serializer,
+    value_serializer: Optional[Callable[[Result], bytes]] = default_value_serializer,
     **kwargs: Mapping[str, Any],
 ) -> None:
     """
