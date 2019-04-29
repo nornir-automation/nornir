@@ -4,6 +4,7 @@ Changelog
 2.2.0 - April 27 2019
 ---------------------
 
+* [PLUGIN_NEW] Add gitlab file plugin :issue:`324`
 * [DOCS] Fixed copyright in the LICENSE :issue:`378`
 * [DOCS] added ipdb examples :issue:`376`
 * [CORE_ENHANCEMENTS] Added functions to retrieve inventory using native datastructures :issue:`375`
@@ -15,6 +16,7 @@ Changelog
 
 Thanks to the following people for their contributions:
 
+* :user:`wvandeun`
 * :user:`brandomando`
 * :user:`dbarrosop`
 * :user:`dmfigol`
