@@ -1,4 +1,4 @@
-from typing import Any, Callable, Iterable, Optional, Union
+from typing import Any, Callable, Iterable, Optional, Mapping, Union
 
 import json
 import threading
@@ -11,11 +11,11 @@ from nornir.core.task import AggregatedResult, MultiResult, Result
 LOCK = threading.Lock()
 
 
-def default_key_serializer(key):
+def default_key_serializer(key: Any) -> bytes:
     return str(key).encode("utf-8")
 
 
-def default_value_serializer(result: Result):
+def default_value_serializer(result: Result) -> bytes:
     d = {
         k: v if isinstance(v, (dict, str)) else str(v) for k, v in vars(result).items()
     }
@@ -24,7 +24,7 @@ def default_value_serializer(result: Result):
 
 
 def _send_single_result(
-    result: Result, p: kafka.KafkaProducer, topic: str, key: Optional[any]
+    result: Result, p: kafka.KafkaProducer, topic: str, key: Optional[Any]
 ) -> None:
     key = key or result.host.name
     p.send(topic, value=result, key=key)
@@ -49,9 +49,9 @@ def send_result(
     topic: str,
     bootstrap_servers: Union[Iterable[str], str],
     key: Optional[Any] = None,
-    key_serializer: Optional[Callable] = default_key_serializer,
-    value_serializer: Optional[Callable] = default_value_serializer,
-    **kwargs,
+    key_serializer: Optional[Callable[[Any], bytes]] = default_key_serializer,
+    value_serializer: Optional[Callable[[Result],  bytes]] = default_value_serializer,
+    **kwargs: Mapping[str, Any],
 ) -> None:
     """
     Send the :obj:`nornir.core.task.Result` from a previous task to the Kafka cluster specified by
@@ -67,6 +67,10 @@ def send_result(
            a JSON dump of the result object, with objects de-referenced.
         **kwargs: keyword args to pass into :obj:`kafka.producer.kafka.KafkaProducer`
     """
+
+    key_serializer = key_serializer or default_key_serializer
+    value_serializer = value_serializer or default_value_serializer
+
     with LOCK:
         p = kafka.KafkaProducer(
             bootstrap_servers=bootstrap_servers,
