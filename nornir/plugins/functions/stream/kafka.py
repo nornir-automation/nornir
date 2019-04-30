@@ -69,7 +69,7 @@ def send_result(
         key: Key for the message, default the name of the :obj:`nornir.core.inventory.Host`
         key_serializer: (``callable``): Function to serialize key to bytes.  Default is UTF-8
         value_serializer (``callable``): Function to serialize result value to bytes.  Default is
-           a JSON dump of the result object, with objects de-referenced.
+           a JSON dump of the result object, with objects de-referenced, encoded as UTF-8
         **kwargs: keyword args to pass into :obj:`kafka.producer.kafka.KafkaProducer`
     """
 
