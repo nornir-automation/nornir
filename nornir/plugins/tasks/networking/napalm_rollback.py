@@ -1,5 +1,3 @@
-from typing import Optional
-
 from nornir.core.task import Result, Task
 
 
