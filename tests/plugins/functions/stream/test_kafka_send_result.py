@@ -42,3 +42,9 @@ class Test(object):
         result = filter.run(simple_task)
         send_result(result, "my topic", "broker:9000", key="my key")
         assert producer.return_value.send.call_args[1]["key"] == "my key"
+
+    def test_kafka_send_empty_key(self, producer, nornir):
+        filter = nornir.filter(name="dev1.group_1")
+        result = filter.run(simple_task)
+        send_result(result, "my topic", "broker:9000", key=None)
+        assert producer.return_value.send.call_args[1]["key"] is None

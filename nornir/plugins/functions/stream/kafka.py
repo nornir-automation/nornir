@@ -9,10 +9,13 @@ from nornir.core.task import AggregatedResult, MultiResult, Result
 
 
 LOCK = threading.Lock()
+DEFAULT_KEY = object()
 
 
-def default_key_serializer(key: Any) -> bytes:
-    return str(key).encode("utf-8")
+def default_key_serializer(key: Any) -> Union[bytes, None]:
+    if key:
+        return str(key).encode("utf-8")
+    return None
 
 
 def default_value_serializer(result: Result) -> bytes:
@@ -26,7 +29,7 @@ def default_value_serializer(result: Result) -> bytes:
 def _send_single_result(
     result: Result, p: kafka.KafkaProducer, topic: str, key: Optional[Any]
 ) -> None:
-    key = key or result.host.name
+    key = key if key is not DEFAULT_KEY else result.host.name
     p.send(topic, value=result, key=key)
 
 
@@ -48,8 +51,10 @@ def send_result(
     result: Result,
     topic: str,
     bootstrap_servers: Union[Iterable[str], str],
-    key: Optional[Any] = None,
-    key_serializer: Optional[Callable[[Any], bytes]] = default_key_serializer,
+    key: Optional[Any] = DEFAULT_KEY,
+    key_serializer: Optional[
+        Callable[[Any], Union[bytes, None]]
+    ] = default_key_serializer,
     value_serializer: Optional[Callable[[Result], bytes]] = default_value_serializer,
     **kwargs: Any,
 ) -> None:
