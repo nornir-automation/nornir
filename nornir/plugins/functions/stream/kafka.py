@@ -1,4 +1,4 @@
-from typing import Any, Callable, Iterable, Optional, Mapping, Union
+from typing import Any, Callable, Iterable, Optional, Union
 
 import json
 import threading
