@@ -51,7 +51,7 @@ def send_result(
     key: Optional[Any] = None,
     key_serializer: Optional[Callable[[Any], bytes]] = default_key_serializer,
     value_serializer: Optional[Callable[[Result], bytes]] = default_value_serializer,
-    **kwargs: Mapping[str, Any],
+    **kwargs: Any,
 ) -> None:
     """
     Send the :obj:`nornir.core.task.Result` from a previous task to the Kafka cluster specified by
