@@ -20,7 +20,8 @@ def default_key_serializer(key: Any) -> Union[bytes, None]:
 
 def default_value_serializer(result: Result) -> bytes:
     d = {
-        k: v if isinstance(v, (dict, str)) else str(v) for k, v in vars(result).items()
+        k: v if isinstance(v, (dict, str, bool, int, float, type(None))) else str(v)
+        for k, v in vars(result).items()
     }
     j = json.dumps(d)
     return j.encode("utf-8")
