@@ -1,0 +1,69 @@
+{
+  "count": 1,
+  "next": null,
+  "previous": "http://localhost:8080/api/dcim/devices/?limit=0&offset=1",
+  "results": [
+    {
+      "id": 3,
+      "name": "3-Access",
+      "display_name": "3-Access",
+      "device_type": {
+        "id": 2,
+        "url": "http://localhost:8080/api/dcim/device-types/2/",
+        "manufacturer": {
+          "id": 2,
+          "url": "http://localhost:8080/api/dcim/manufacturers/2/",
+          "name": "Cisco",
+          "slug": "cisco"
+        },
+        "model": "3650-48TQ-L",
+        "slug": "3650-48tq-l"
+      },
+      "device_role": {
+        "id": 2,
+        "url": "http://localhost:8080/api/dcim/device-roles/2/",
+        "name": "Switch",
+        "slug": "sw"
+      },
+      "tenant": null,
+      "platform": null,
+      "serial": "",
+      "asset_tag": null,
+      "site": {
+        "id": 2,
+        "url": "http://localhost:8080/api/dcim/sites/2/",
+        "name": "San Jose, CA",
+        "slug": "san-jose-ca"
+      },
+      "rack": null,
+      "position": null,
+      "face": null,
+      "parent_device": null,
+      "status": {
+        "value": 1,
+        "label": "Active"
+      },
+      "primary_ip": {
+        "id": 3,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/3/",
+        "family": 4,
+        "address": "192.168.3.1/32"
+      },
+      "primary_ip4": {
+        "id": 3,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/3/",
+        "family": 4,
+        "address": "192.168.3.1/32"
+      },
+      "primary_ip6": null,
+      "cluster": null,
+      "virtual_chassis": null,
+      "vc_position": null,
+      "vc_priority": null,
+      "comments": "",
+      "custom_fields": {"user_defined": 1},
+      "created": "2018-07-12",
+      "last_updated": "2018-07-12T11:53:54.866133Z"
+    }
+  ]
+}

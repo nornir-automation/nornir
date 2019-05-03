@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from nornir.core.deserializer.inventory import Inventory, HostsDict
 
@@ -34,19 +34,29 @@ class NBInventory(Inventory):
         nb_token = nb_token or os.environ.get(
             "NB_TOKEN", "0123456789abcdef0123456789abcdef01234567"
         )
-        headers = {"Authorization": "Token {}".format(nb_token)}
 
-        # Create dict of hosts using 'devices' from NetBox
-        r = requests.get(
-            "{}/api/dcim/devices/?limit=0".format(nb_url),
-            headers=headers,
-            params=filter_parameters,
-        )
-        r.raise_for_status()
-        nb_devices = r.json()
+        session = requests.Session()
+        session.headers.update({"Authorization": f"Token {nb_token}"})
+
+        # Fetch all devices from Netbox
+        # Since the api uses pagination we have to fetch until no next is provided
+
+        url = f"{nb_url}/api/dcim/devices/?limit=0"
+        nb_devices: List[Dict[str, Any]] = []
+
+        while url:
+            r = session.get(url, params=filter_parameters)
+
+            if not r.status_code == 200:
+                raise ValueError(f"Failed to get devices from Netbox instance {nb_url}")
+
+            resp = r.json()
+            nb_devices.extend(resp.get("results"))
+
+            url = resp.get("next")
 
         hosts = {}
-        for d in nb_devices["results"]:
+        for d in nb_devices:
             host: HostsDict = {"data": {}}
 
             # Add value for IP address
