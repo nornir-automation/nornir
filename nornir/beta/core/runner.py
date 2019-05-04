@@ -1,8 +1,7 @@
 import asyncio
-import functools
 import logging
 from multiprocessing.dummy import Pool
-from typing import Any, Callable, List
+from typing import Any, Awaitable, Callable, List
 
 from nornir.core import Nornir
 from nornir.core.inventory import Host
@@ -36,17 +35,17 @@ class TaskRunner:
 
     def run(self, **kwargs: Any) -> None:
         if asyncio.iscoroutinefunction(self.task):
-            self.run_async(**kwargs)
+            self._run_async(**kwargs)
         else:
-            self.run_sync(**kwargs)
+            self._run_sync(**kwargs)
 
-    def run_async(self, **kwargs: Any) -> None:
+    def _run_async(self, **kwargs: Any) -> None:
         loop = asyncio.get_event_loop()
-        futures = [self.task(host, **kwargs) for host in self.hosts]
-        loop.run_until_complete(asyncio.gather(*futures))
+        hosts = [self.task(host, **kwargs) for host in self.hosts]
+        loop.run_until_complete(asyncio.gather(*hosts))
         loop.close()
 
-    def run_sync(self, **kwargs: Any) -> None:
+    def _run_sync(self, **kwargs: Any) -> None:
         result = {}
 
         pool = Pool(processes=self.num_workers)
@@ -59,6 +58,14 @@ class TaskRunner:
         for rp in result_pool:
             r = rp.get()
             result[r.host.name] = r
+
+    def prepare_futures(self, **kwargs: Any) -> List[Awaitable[Any]]:
+        # TODO: fix return types
+        fs: List[Awaitable[Any]] = []
+        for host in self.hosts:
+            f = asyncio.ensure_future(self.task(host, **kwargs))
+            fs.append(f)
+        return fs
 
 
 class with_retries:
