@@ -128,7 +128,7 @@ class Host(InventoryElement):
         return self._resolve_data().items()
 
     def has_parent_group(self, group):
-        """Retuns whether the object is a child of the :obj:`Group` ``group``"""
+        """Returns whether the object is a child of the :obj:`Group` ``group``"""
         if isinstance(group, str):
             return self._has_parent_group_by_name(group)
 
