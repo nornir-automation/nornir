@@ -13,6 +13,7 @@ class NBInventory(Inventory):
         nb_url: Optional[str] = None,
         nb_token: Optional[str] = None,
         use_slugs: bool = True,
+        ssl_verify: bool = True,
         flatten_custom_fields: bool = True,
         filter_parameters: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
@@ -37,6 +38,7 @@ class NBInventory(Inventory):
 
         session = requests.Session()
         session.headers.update({"Authorization": f"Token {nb_token}"})
+        session.verify = ssl_verify
 
         # Fetch all devices from Netbox
         # Since the api uses pagination we have to fetch until no next is provided
