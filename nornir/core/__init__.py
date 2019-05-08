@@ -90,7 +90,7 @@ class Nornir(object):
         Arguments:
             task (``callable``): function or callable that will be run against each device in
               the inventory
-            num_workers(``int``): Override for how many hosts to run in paralell for this task
+            num_workers(``int``): Override for how many hosts to run in parallel for this task
             raise_on_error (``bool``): Override raise_on_error behavior
             on_good(``bool``): Whether to run or not this task on hosts marked as good
             on_failed(``bool``): Whether to run or not this task on hosts marked as failed

@@ -255,7 +255,7 @@ class Test(object):
             connection_options=h3_connection_options,
         )
         assert "h3" in inv.hosts
-        assert "g1" in inv.hosts["h3"].groups
+        assert "g1" in [i.name for i in inv.hosts["h3"].groups.refs]
         assert "test_var" in inv.hosts["h3"].defaults.data.keys()
         assert inv.hosts["h3"].defaults.data.get("test_var") == "test_value"
         assert inv.hosts["h3"].platform == "TestPlatform"
@@ -263,6 +263,11 @@ class Test(object):
             inv.hosts["h3"].connection_options["netmiko"].extras["device_type"]
             == "cisco_ios"
         )
+        with pytest.raises(KeyError):
+            inv.add_host(name="h4", groups=["not_defined"])
+        # Test with one good and one undefined group
+        with pytest.raises(KeyError):
+            inv.add_host(name="h5", groups=["g1", "not_defined"])
 
     def test_add_group(self):
         connection_options = {"username": "test_user", "password": "test_pass"}
@@ -279,6 +284,7 @@ class Test(object):
         inv.add_group(
             name="g3", username="test_user", connection_options=g3_connection_options
         )
+        assert "g1" in [i.name for i in inv.groups["g2"].groups.refs]
         assert "g3" in inv.groups
         assert (
             inv.groups["g3"].defaults.connection_options.get("username") == "test_user"
@@ -292,6 +298,12 @@ class Test(object):
             inv.groups["g3"].connection_options["netmiko"].extras["device_type"]
             == "cisco_ios"
         )
+        # Test with one undefined parent group
+        with pytest.raises(KeyError):
+            inv.add_group(name="g4", groups=["undefined"])
+        # Test with one defined and one undefined parent group
+        with pytest.raises(KeyError):
+            inv.add_group(name="g4", groups=["g1", "undefined"])
 
     def test_get_inventory_dict(self):
         inv = deserializer.Inventory.deserialize(**inv_dict)

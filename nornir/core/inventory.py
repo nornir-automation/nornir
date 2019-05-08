@@ -128,7 +128,7 @@ class Host(InventoryElement):
         return self._resolve_data().items()
 
     def has_parent_group(self, group):
-        """Retuns whether the object is a child of the :obj:`Group` ``group``"""
+        """Returns whether the object is a child of the :obj:`Group` ``group``"""
         if isinstance(group, str):
             return self._has_parent_group_by_name(group)
 
@@ -428,6 +428,17 @@ class Inventory(object):
     def __len__(self):
         return self.hosts.__len__()
 
+    def _update_group_refs(self, inventory_element: InventoryElement) -> None:
+        """
+        Returns inventory_element with updated group references for the supplied
+        inventory element
+        """
+        if hasattr(inventory_element, "groups"):
+            inventory_element.groups.refs = [
+                self.groups[p] for p in inventory_element.groups
+            ]
+        return inventory_element
+
     def children_of_group(self, group: Union[str, Group]) -> Set[Host]:
         """
         Returns set of hosts that belongs to a group including those that belong
@@ -443,22 +454,20 @@ class Inventory(object):
         """
         Add a host to the inventory after initialization
         """
-        host = {
-            name: deserializer.inventory.InventoryElement.deserialize_host(
-                name=name, defaults=self.defaults, **kwargs
-            )
-        }
+        host_element = deserializer.inventory.InventoryElement.deserialize_host(
+            name=name, defaults=self.defaults, **kwargs
+        )
+        host = {name: self._update_group_refs(host_element)}
         self.hosts.update(host)
 
     def add_group(self, name: str, **kwargs) -> None:
         """
         Add a group to the inventory after initialization
         """
-        group = {
-            name: deserializer.inventory.InventoryElement.deserialize_group(
-                name=name, defaults=self.defaults, **kwargs
-            )
-        }
+        group_element = deserializer.inventory.InventoryElement.deserialize_group(
+            name=name, defaults=self.defaults, **kwargs
+        )
+        group = {name: self._update_group_refs(group_element)}
         self.groups.update(group)
 
     def get_inventory_dict(self) -> Dict:
