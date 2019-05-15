@@ -24,6 +24,6 @@ class GlobalState(object):
         """Reset failed hosts and make all hosts available for future tasks."""
         self.failed_hosts = set()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def dict(self) -> Dict[str, Any]:
         """ Return a dictionary representing the object. """
-        return self.__dict__
+        return {item: getattr(self, item) for item in GlobalState.__slots__}

@@ -470,11 +470,17 @@ class Inventory(object):
         group = {name: self._update_group_refs(group_element)}
         self.groups.update(group)
 
-    def get_inventory_dict(self) -> Dict:
+    def dict(self) -> Dict:
         """
         Return serialized dictionary of inventory
         """
         return deserializer.inventory.Inventory.serialize(self).dict()
+
+    def get_inventory_dict(self) -> Dict:
+        """
+        Return serialized dictionary of inventory
+        """
+        return self.dict()
 
     def get_defaults_dict(self) -> Dict:
         """
