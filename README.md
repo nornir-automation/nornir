@@ -3,6 +3,9 @@
 
 Nornir
 =======
+
+![logo][logo]
+
 Nornir is a pure Python automation framework intented to be used directly from Python. While most automation frameworks use their own Domain Specific Language (DSL) which you use to describe what you want to have done, Nornir lets you control everything from Python.
 
 One of the benefits we want to highlight with this approach is the ease of troubleshooting, if something goes wrong you can just use your existing debug tools directly from Python (just add a line of `import pdb` & `pdb.set_trace()` and you're good to go). Doing the same using a DSL can be quite time consuming.
@@ -62,3 +65,5 @@ Contributing to Nornir
 =======================
 
 If you want to help the project, the [Contribution Guidelines](https://nornir.readthedocs.io/en/develop/contributing/index.html) is the best place to start.
+
+[logo]: docs/_static/logo/nornir_logo_02.jpg "nornir logo"
