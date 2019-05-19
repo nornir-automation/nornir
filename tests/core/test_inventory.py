@@ -305,6 +305,18 @@ class Test(object):
         with pytest.raises(KeyError):
             inv.add_group(name="g4", groups=["g1", "undefined"])
 
+    def test_dict(self):
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        inventory_dict = inv.dict()
+        def_extras = inventory_dict["defaults"]["connection_options"]["dummy"]["extras"]
+        grp_data = inventory_dict["groups"]["group_1"]["data"]
+        host_data = inventory_dict["hosts"]["dev1.group_1"]["data"]
+        assert type(inventory_dict) == dict
+        assert inventory_dict["defaults"]["username"] == "root"
+        assert def_extras["blah"] == "from_defaults"
+        assert "my_var" and "site" in grp_data
+        assert "www_server" and "role" in host_data
+
     def test_get_inventory_dict(self):
         inv = deserializer.Inventory.deserialize(**inv_dict)
         inventory_dict = inv.get_inventory_dict()
