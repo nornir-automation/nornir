@@ -4,7 +4,7 @@
 Nornir
 =======
 
-![logo][logo]{:height="500px" width="500px"}
+![logo][logo]
 
 Nornir is a pure Python automation framework intented to be used directly from Python. While most automation frameworks use their own Domain Specific Language (DSL) which you use to describe what you want to have done, Nornir lets you control everything from Python.
 
