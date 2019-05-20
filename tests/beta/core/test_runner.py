@@ -1,7 +1,7 @@
 import asyncio
 import concurrent
 import time
-from typing import Any, Awaitable, List, Set
+from typing import Any, Awaitable, List, Sequence, cast
 
 from nornir.beta.core.runner import (
     FutureException,
@@ -112,9 +112,9 @@ class Tests:
                 assert result.data == "awesome"
 
     def test_async_with_futures(self, nornir: Nornir) -> None:
-        async def done(fs: Set[Awaitable[Any]]) -> None:
+        async def done(fs: Sequence[Awaitable[Any]]) -> None:
             failed = False
-            for f in asyncio.as_completed(fs):
+            for f in cast(Sequence[Awaitable[Result]], asyncio.as_completed(fs)):
                 try:
                     result = await f
                 except FutureException as e:

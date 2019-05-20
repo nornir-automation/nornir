@@ -3,7 +3,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field
 from multiprocessing.dummy import Pool
-from typing import Any, Awaitable, Callable, Dict, List, Optional, Set
+from typing import Any, Awaitable, Callable, Dict, List, Optional, Sequence
 
 from nornir.core import Nornir
 from nornir.core.inventory import Host
@@ -140,9 +140,9 @@ class TaskRunner:
         pool.join()
         return [r.get() for r in result_pool]
 
-    def async_with_futures(self, **kwargs: Any) -> Set[Awaitable[Result]]:
+    def async_with_futures(self, **kwargs: Any) -> Sequence[Awaitable[Result]]:
         # TODO: fix return type
-        return {
+        return [
             asyncio.ensure_future(
                 _futures_wrapper(
                     task=self.task,
@@ -151,12 +151,12 @@ class TaskRunner:
                 )
             )
             for h in self.hosts
-        }
+        ]
 
-    def sync_with_futures(self, **kwargs: Any) -> Set[Any]:
+    def sync_with_futures(self, **kwargs: Any) -> Sequence[Any]:
         # TODO: fix return type
         executor = ThreadPoolExecutor(max_workers=self.num_workers)
-        fs = {
+        fs = [
             executor.submit(
                 _func_wrapper,
                 self.task,
@@ -164,7 +164,7 @@ class TaskRunner:
                 **kwargs,
             )
             for h in self.hosts
-        }
+        ]
         executor.shutdown(wait=False)
         return fs
 
