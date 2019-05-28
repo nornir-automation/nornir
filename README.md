@@ -58,7 +58,11 @@ If you think you have bug or would like to request a new feature, please registe
 Contact & Support
 =================
 
-While we are happy to help, the [GitHub issues](https://github.com/nornir-automation/nornir/issues) are intended for bugs and discussions about new features. If are struggling to get something to work but don't believe its due to a bug in Nornir, the place to ask questions is in the #nornir channel in the [networktoCode Slack team](https://networktocode.herokuapp.com/).
+While we are happy to help, the [GitHub issues](https://github.com/nornir-automation/nornir/issues) are intended for bugs and discussions about new features. If are struggling to get something to work you have two options:
+
+
+1. You can go to our [discourse community](https://nornir.discourse.group) and see if your problem has already been discussed there or post it if it hasn't.
+2. You can also head to our ``#nornir`` channel in the [networktoCode Slack team](https://networktocode.herokuapp.com/).
 
 
 Contributing to Nornir
