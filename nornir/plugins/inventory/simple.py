@@ -28,12 +28,13 @@ class SimpleInventory(Inventory):
     ) -> None:
         if hosts is None:
             yml = ruamel.yaml.YAML(typ="safe")
-            with open(host_file, "r") as f:
+            with open(os.path.expanduser(host_file), "r") as f:
                 hosts = yml.load(f)
 
         if groups is None:
             groups = {}
             if group_file:
+                group_file = os.path.expanduser(group_file)
                 if os.path.exists(group_file):
                     with open(group_file, "r") as f:
                         groups = yml.load(f) or {}
@@ -44,6 +45,7 @@ class SimpleInventory(Inventory):
         if defaults is None:
             defaults = {}
             if defaults_file:
+                defaults_file = os.path.expanduser(defaults_file)
                 if os.path.exists(defaults_file):
                     with open(defaults_file, "r") as f:
                         defaults = yml.load(f) or {}
