@@ -3,9 +3,7 @@ from __future__ import unicode_literals
 from nornir.core.task import Result, Task
 
 
-def netmiko_commit(
-    task: Task
-) -> Result:
+def netmiko_commit(task: Task) -> Result:
     """
     Execute Netmiko commit method
 
