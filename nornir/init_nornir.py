@@ -6,12 +6,14 @@ from nornir.core.connections import Connections
 from nornir.core.deserializer.configuration import Config
 from nornir.core.state import GlobalState
 from nornir.plugins.connections.napalm import Napalm
+from nornir.plugins.connections.netconf import Netconf
 from nornir.plugins.connections.netmiko import Netmiko
 from nornir.plugins.connections.paramiko import Paramiko
 
 
 def register_default_connection_plugins() -> None:
     Connections.register("napalm", Napalm)
+    Connections.register("netconf", Netconf)
     Connections.register("netmiko", Netmiko)
     Connections.register("paramiko", Paramiko)
 
