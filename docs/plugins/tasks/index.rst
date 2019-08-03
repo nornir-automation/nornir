@@ -12,3 +12,4 @@ Tasks
    networking
    text
    version_control
+   ntc_rosetta

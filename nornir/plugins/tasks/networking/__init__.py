@@ -4,9 +4,10 @@ from .napalm_get import napalm_get
 from .napalm_validate import napalm_validate
 from .netmiko_commit import netmiko_commit
 from .netmiko_file_transfer import netmiko_file_transfer
+from .netmiko_save_config import netmiko_save_config
 from .netmiko_send_command import netmiko_send_command
 from .netmiko_send_config import netmiko_send_config
-from .netmiko_save_config import netmiko_save_config
+from .ntc_rosetta import ntc_rosetta_parse_config
 from .tcp_ping import tcp_ping
 
 __all__ = (
@@ -19,5 +20,6 @@ __all__ = (
     "netmiko_send_command",
     "netmiko_send_config",
     "netmiko_save_config",
+    "ntc_rosetta_parse_config",
     "tcp_ping",
 )

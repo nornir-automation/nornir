@@ -132,7 +132,7 @@ python-versions = "*"
 version = "3.0.4"
 
 [[package]]
-category = "dev"
+category = "main"
 description = "Composable command line interface toolkit"
 name = "click"
 optional = false
@@ -171,7 +171,7 @@ six = ">=1.4.1"
 [[package]]
 category = "main"
 description = "A backport of the dataclasses module for Python 3.6"
-marker = "python_version < \"3.7\""
+marker = "python_version >= \"3.6\" and python_version < \"3.7\" or python_version < \"3.7\""
 name = "dataclasses"
 optional = false
 python-versions = "*"
@@ -327,6 +327,14 @@ version = "2.10.1"
 
 [package.dependencies]
 MarkupSafe = ">=0.23"
+
+[[package]]
+category = "main"
+description = "JSON Matching Expressions"
+name = "jmespath"
+optional = false
+python-versions = "*"
+version = "0.9.4"
 
 [[package]]
 category = "main"
@@ -633,6 +641,20 @@ traitlets = ">=4.2.1"
 
 [[package]]
 category = "main"
+description = "The missing bridge between industry standard CLIs and YANG"
+name = "ntc-rosetta"
+optional = false
+python-versions = ">=3.6,<4.0"
+version = "0.2.0"
+
+[package.dependencies]
+click = ">=7.0,<8.0"
+jmespath = ">=0.9.3,<0.10.0"
+lxml = ">=4.3,<5.0"
+yangify = ">=0.1.1,<0.2.0"
+
+[[package]]
+category = "main"
 description = "A library for managing Cisco devices through NX-API using XML or jsonrpc."
 name = "nxapi-plumbing"
 optional = false
@@ -785,7 +807,7 @@ category = "main"
 description = "C parser in Python"
 name = "pycparser"
 optional = false
-python-versions = "*"
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "2.19"
 
 [[package]]
@@ -968,10 +990,18 @@ version = "0.5.5"
 
 [[package]]
 category = "main"
+description = "Python XML Schema Bindings"
+name = "pyxb"
+optional = false
+python-versions = "*"
+version = "1.2.6"
+
+[[package]]
+category = "main"
 description = "YAML parser and emitter for Python"
 name = "pyyaml"
 optional = false
-python-versions = "*"
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "5.1"
 
 [[package]]
@@ -1233,11 +1263,37 @@ version = "3.4.2"
 [package.dependencies]
 notebook = ">=4.4.1"
 
+[[package]]
+category = "main"
+description = "Library to help parsing/translating YANG models from/to native text/structures"
+name = "yangify"
+optional = false
+python-versions = ">=3.6,<4.0"
+version = "0.1.1"
+
+[package.dependencies]
+yangson = ">=1.3,<2.0"
+
+[package.dependencies.dataclasses]
+python = ">=3.6,<3.7"
+version = ">=0.6.0,<0.7.0"
+
+[[package]]
+category = "main"
+description = "Library for working with data modelled in YANG"
+name = "yangson"
+optional = false
+python-versions = "*"
+version = "1.3.42"
+
+[package.dependencies]
+PyXB = "*"
+
 [extras]
 docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-napoleon", "jupyter", "nbsphinx", "pygments", "sphinx-issues"]
 
 [metadata]
-content-hash = "724e84c9f94d154751acbf1dd346686ff792cd5b8e4688a184c7145d7a3c5512"
+content-hash = "b7128acc646505abcf0a4bb100a6b555c85a960d85fef1ed581348797761507a"
 python-versions = "^3.6"
 
 [metadata.hashes]
@@ -1274,6 +1330,7 @@ ipython-genutils = ["72dd37233799e619666c9f639a9da83c34013a73e8bbc79a7a6348d93c6
 ipywidgets = ["0f2b5cde9f272cb49d52f3f0889fdd1a7ae1e74f37b48dac35a83152780d2b7b", "a3e224f430163f767047ab9a042fc55adbcab0c24bbe6cf9f306c4f89fdf0ba3"]
 jedi = ["2bb0603e3506f708e792c7f4ad8fc2a7a9d9c2d292a358fbbd58da531695595b", "2c6bcd9545c7d6440951b12b44d373479bf18123a401a52025cf98563fbd826c"]
 jinja2 = ["065c4f02ebe7f7cf559e49ee5a95fb800a9e4528727aec6f24402a5374c65013", "14dd6caf1527abb21f08f86c784eac40853ba93edb79552aa1e4b8aef1b61c7b"]
+jmespath = ["3720a4b1bd659dd2eecad0666459b9788813e032b83e7ba58578e48254e0a0e6", "bde2aef6f44302dfb30320115b17d030798de8c4110e28d5cf6cf91a7a31074c"]
 jsonschema = ["0c0a81564f181de3212efa2d17de1910f8732fa1b71c42266d983cd74304e20d", "a5f6559964a3851f59040d3b961de5e68e70971afb88ba519d27e6a039efff1a"]
 junos-eznc = ["0133a10ba3d46ddf70f0ba6620aa3b92e5533f08c57edd000dbffd8fe60d586d", "0a5c650e819b12b44ae8c47f7dfa8944e5402ef4d58b05523984d397a79329b6"]
 jupyter = ["3e1f86076bbb7c8c207829390305a2b1fe836d471ed54be66a3b8c41e7f46cc7", "5b290f93b98ffbc21c0c7e749f054b3267782166d72fa5e3ed1ed4eaf34a2b78", "d9dc4b3318f310e34c82951ea5d6683f67bed7def4b259fafbfe4f1beb1d8e5f"]
@@ -1296,6 +1353,7 @@ ncclient = ["47d5af7398f16d609eebd02be2ecbd997b364032b5dc6d4927c810ea24f39080"]
 netaddr = ["38aeec7cdd035081d3a4c306394b19d677623bf76fa0913f6695127c7753aefd", "56b3558bd71f3f6999e4c52e349f38660e54a7a8a9943335f73dfc96883e08ca"]
 netmiko = ["e7e9af5aeebea54488d9cad92f0a85117ca5ffa816decc63a669d88c5b2018fd"]
 notebook = ["573e0ae650c5d76b18b6e564ba6d21bf321d00847de1d215b418acb64f056eb8", "f64fa6624d2323fbef6210a621817d6505a45d0d4a9367f1843b20a38a4666ee"]
+ntc-rosetta = ["5e8c6d495131600758b8e5fcdc721357209d114d07be4bca5daa84a9984fbfea", "b08309af9f27fbdbafe01d3d06768217c6cbf7ab748d02112a5bd4c7f0cbacca"]
 nxapi-plumbing = ["6f54f9983f023bd75b60acd907ff47f559541cc2b98f4fa638b8585ca0de0fb5"]
 packaging = ["0c98a5d0be38ed775798ece1b9727178c4469d9c3b4ada66e8e6b7849f8732af", "9e1cbf8c12b1f1ce0bb5344b8d7ecf66a6f8a6e91bcb0c84593ed6d3ab5c4ab3"]
 pandocfilters = ["b3dd70e169bb5449e6bc6ff96aea89c5eea8c5f6ab5e207fc2f521a2cf4a0da9"]
@@ -1328,6 +1386,7 @@ pytest-cov = ["0ab664b25c6aa9716cbf203b17ddb301932383046082c081b9848a0edf5add33"
 python-dateutil = ["7e6584c74aeed623791615e26efd690f29817a27c73085b78e4bad02493df2fb", "c89805f6f4d64db21ed966fda138f8a5ed7a4fdbc1a8ee329ce1b74e3c74da9e"]
 pytz = ["303879e36b721603cc54604edcac9d20401bdbe31e1e4fdee5b9f98d5d31dfda", "d747dd3d23d77ef44c6a3526e274af6efeb0a6f1afd5a69ba4d5be4098c8e141"]
 pywinpty = ["0e01321e53a230233358a6d608a1a8bc86c3882cf82769ba3c62ca387dc9cc51", "333e0bc5fca8ad9e9a1516ebedb2a65da38dc1f399f8b2ea57d6cccec1ff2cc8", "3ca3123aa6340ab31bbf9bd012b92e72f9ec905e4c9ee152cc997403e1778cd3", "44a6dddcf2abf402e22f87e2c9a341f7d0b296afbec3d28184c8de4d7f514ee4", "53d94d574c3d4da2df5b1c3ae728b8d90e4d33502b0388576bbd4ddeb4de0f77", "c3955f162c53dde968f3fc11361658f1d83b683bfe601d4b6f94bb01ea4300bc", "cec9894ecb34de3d7b1ca121dd98433035b9f8949b5095e84b103b349231509c", "dcd45912e2fe2e6f72cee997a4da6ed1ad2056165a277ce5ec7f7ac98dcdf667", "f2bcdd9a2ffd8b223752a971b3d377fb7bfed85f140ec9710f1218d760f2ccb7"]
+pyxb = ["2a00f38dd1d87b88f92d79bc5a09718d730419b88e814545f472bbd5a3bf27b4"]
 pyyaml = ["1adecc22f88d38052fb787d959f003811ca858b799590a5eaa70e63dca50308c", "436bc774ecf7c103814098159fbb84c2715d25980175292c648f2da143909f95", "460a5a4248763f6f37ea225d19d5c205677d8d525f6a83357ca622ed541830c2", "5a22a9c84653debfbf198d02fe592c176ea548cccce47553f35f466e15cf2fd4", "7a5d3f26b89d688db27822343dfa25c599627bc92093e788956372285c6298ad", "9372b04a02080752d9e6f990179a4ab840227c6e2ce15b95e1278456664cf2ba", "a5dcbebee834eaddf3fa7366316b880ff4062e4bcc9787b78c7fbb4a26ff2dd1", "aee5bab92a176e7cd034e57f46e9df9a9862a71f8f37cad167c6fc74c65f5b4e", "c51f642898c0bacd335fc119da60baae0824f2cde95b0330b56c0553439f0673", "c68ea4d3ba1705da1e0d85da6684ac657912679a649e8868bd850d2c299cce13", "e23d0cc5299223dcc37885dae624f382297717e459ea24053709675a976a3e19"]
 pyzmq = ["1651e52ed91f0736afd6d94ef9f3259b5534ce8beddb054f3d5ca989c4ef7c4f", "5ccb9b3d4cd20c000a9b75689d5add8cd3bce67fcbd0f8ae1b59345247d803af", "5e120c4cd3872e332fb35d255ad5998ebcee32ace4387b1b337416b6b90436c7", "5e2a3707c69a7281a9957f83718815fd74698cba31f6d69f9ed359921f662221", "63d51add9af8d0442dc90f916baf98fdc04e3b0a32afec4bfc83f8d85e72959f", "65c5a0bdc49e20f7d6b03a661f71e2fda7a99c51270cafe71598146d09810d0d", "66828fabe911aa545d919028441a585edb7c9c77969a5fea6722ef6e6ece38ab", "7d79427e82d9dad6e9b47c0b3e7ae5f9d489b1601e3a36ea629bb49501a4daf3", "824ee5d3078c4eae737ffc500fbf32f2b14e6ec89b26b435b7834febd70120cf", "89dc0a83cccec19ff3c62c091e43e66e0183d1e6b4658c16ee4e659518131494", "8b319805f6f7c907b101c864c3ca6cefc9db8ce0791356f180b1b644c7347e4c", "90facfb379ab47f94b19519c1ecc8ec8d10813b69d9c163117944948bdec5d15", "a0a178c7420021fc0730180a914a4b4b3092ce9696ceb8e72d0f60f8ce1655dd", "a7a89591ae315baccb8072f216614b3e59aed7385aef4393a6c741783d6ee9cf", "ba2578f0ae582452c02ed9fac2dc477b08e80ce05d2c0885becf5fff6651ccb0", "c69b0055c55702f5b0b6b354133e8325b9a56dbc80e1be2d240bead253fb9825", "ca434e1858fe222380221ddeb81e86f45522773344c9da63c311d17161df5e06", "d4b8ecfc3d92f114f04d5c40f60a65e5196198b827503341521dda12d8b14939", "d706025c47b09a54f005953ebe206f6d07a22516776faa4f509aaff681cc5468", "d8f27e958f8a2c0c8ffd4d8855c3ce8ac3fa1e105f0491ce31729aa2b3229740", "dbd264298f76b9060ce537008eb989317ca787c857e23cbd1b3ddf89f190a9b1", "e926d66f0df8fdbf03ba20583af0f215e475c667fb033d45fd031c66c63e34c9", "efc3bd48237f973a749f7312f68062f1b4ca5c2032a0673ca3ea8e46aa77187b", "f59bc782228777cbfe04555707a9c56d269c787ed25d6d28ed9d0fbb41cb1ad2", "f8da5322f4ff5f667a0d5a27e871b560c6637153c81e318b35cb012b2a98835c"]
 qtconsole = ["1ac4a65e81a27b0838330a6d351c2f8435d4013d98a95373e8a41119b2968390", "bc1ba15f50c29ed50f1268ad823bb6543be263c18dd093b80495e9df63b003ac"]
@@ -1354,3 +1413,5 @@ urllib3 = ["4c291ca23bbb55c76518905869ef34bdd5f0e46af7afe6861e8375643ffee1a0", "
 wcwidth = ["3df37372226d6e63e1b1e1eda15c594bca98a22d33a23832a90998faa96bc65e", "f4ebe71925af7b40a864553f761ed559b43544f8f71746c2d756c7fe788ade7c"]
 webencodings = ["a0af1213f3c2226497a97e2b3aa01a7e4bee4f403f95be16fc9acd2947514a78", "b36a1c245f2d304965eb4e0a82848379241dc04b865afcc4aab16748587e1923"]
 widgetsnbextension = ["14b2c65f9940c9a7d3b70adbe713dbd38b5ec69724eebaba034d1036cf3d4740", "fa618be8435447a017fd1bf2c7ae922d0428056cfc7449f7a8641edf76b48265"]
+yangify = ["53a6c0a0c99c822028d59b69f4dbe25366ba824a8c23f198340e5a284d676d70", "775aa5203426acd96cd98cd0c8d4b63b4de07db036546d4da623bc7b51a3286c"]
+yangson = ["7945a303ba43eddb902288d89546c4fd91281f7e8e7c22af8d3874a535d4c218", "d26378e4ddfe243885dbd4d344fb31a095cf1c2a2b49f0dbaafb2f04961375a0"]
