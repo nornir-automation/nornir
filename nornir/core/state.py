@@ -12,7 +12,7 @@ class GlobalState(object):
 
     __slots__ = "dry_run", "failed_hosts"
 
-    def __init__(self, dry_run: bool = None, failed_hosts: Set[str] = None) -> None:
+    def __init__(self, dry_run: bool = False, failed_hosts: Set[str] = None) -> None:
         self.dry_run = dry_run
         self.failed_hosts = failed_hosts or set()
 
