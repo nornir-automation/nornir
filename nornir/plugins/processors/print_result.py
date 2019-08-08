@@ -73,18 +73,3 @@ class PrintResult:
         )
 
         self.lock.release()
-
-        #  for result in results:
-        #  print(result)
-        #  color = _get_color(result)
-        #  subtitle = (
-        #      "" if result.changed is None else " ** changed : {} ".format(result.changed)
-        #  )
-        #  level_name = logging.getLevelName(result.severity_level)
-        #  symbol = "v" if task_group else "-"
-        #  msg = "{} {}{}".format(symbol * 4, result.name, subtitle)
-        #  print(
-        #      "{}{}{}{} {}".format(
-        #          Style.BRIGHT, color, msg, symbol * (80 - len(msg)), level_name
-        #      )
-        #  )
