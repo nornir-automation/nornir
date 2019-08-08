@@ -785,7 +785,7 @@ category = "main"
 description = "C parser in Python"
 name = "pycparser"
 optional = false
-python-versions = "*"
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "2.19"
 
 [[package]]
@@ -971,7 +971,7 @@ category = "main"
 description = "YAML parser and emitter for Python"
 name = "pyyaml"
 optional = false
-python-versions = "*"
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "5.1"
 
 [[package]]
@@ -1200,6 +1200,25 @@ version = "1.3.4"
 
 [[package]]
 category = "main"
+description = "Type Hints for Python"
+name = "typing"
+optional = false
+python-versions = "*"
+version = "3.7.4"
+
+[[package]]
+category = "main"
+description = "Backported and Experimental Type Hints for Python 3.5+"
+name = "typing-extensions"
+optional = false
+python-versions = "*"
+version = "3.7.4"
+
+[package.dependencies]
+typing = ">=3.7.4"
+
+[[package]]
+category = "main"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 name = "urllib3"
 optional = false
@@ -1237,7 +1256,7 @@ notebook = ">=4.4.1"
 docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-napoleon", "jupyter", "nbsphinx", "pygments", "sphinx-issues"]
 
 [metadata]
-content-hash = "724e84c9f94d154751acbf1dd346686ff792cd5b8e4688a184c7145d7a3c5512"
+content-hash = "1ea8b6d04f89396bfd4a8d20ebaab96639234fc06d4a075d430cb4623b4cf9f9"
 python-versions = "^3.6"
 
 [metadata.hashes]
@@ -1350,6 +1369,8 @@ toml = ["229f81c57791a41d65e399fc06bf0848bab550a9dfd5ed66df18ce5f05e73d5c", "235
 tornado = ["1174dcb84d08887b55defb2cda1986faeeea715fff189ef3dc44cce99f5fca6b", "2613fab506bd2aedb3722c8c64c17f8f74f4070afed6eea17f20b2115e445aec", "44b82bc1146a24e5b9853d04c142576b4e8fa7a92f2e30bc364a85d1f75c4de2", "457fcbee4df737d2defc181b9073758d73f54a6cfc1f280533ff48831b39f4a8", "49603e1a6e24104961497ad0c07c799aec1caac7400a6762b687e74c8206677d", "8c2f40b99a8153893793559919a355d7b74649a11e59f411b0b0a1793e160bc0", "e1d897889c3b5a829426b7d52828fb37b28bc181cd598624e65c8be40ee3f7fa"]
 traitlets = ["9c4bd2d267b7153df9152698efb1050a5d84982d3384a37b2c1f7723ba3e7835", "c6cb5e6f57c5a9bdaa40fa71ce7b4af30298fbab9ece9815b5d995ab6217c7d9"]
 typed-ast = ["04894d268ba6eab7e093d43107869ad49e7b5ef40d1a94243ea49b352061b200", "16616ece19daddc586e499a3d2f560302c11f122b9c692bc216e821ae32aa0d0", "252fdae740964b2d3cdfb3f84dcb4d6247a48a6abe2579e8029ab3be3cdc026c", "2af80a373af123d0b9f44941a46df67ef0ff7a60f95872412a145f4500a7fc99", "2c88d0a913229a06282b285f42a31e063c3bf9071ff65c5ea4c12acb6977c6a7", "2ea99c029ebd4b5a308d915cc7fb95b8e1201d60b065450d5d26deb65d3f2bc1", "3d2e3ab175fc097d2a51c7a0d3fda442f35ebcc93bb1d7bd9b95ad893e44c04d", "4766dd695548a15ee766927bf883fb90c6ac8321be5a60c141f18628fb7f8da8", "56b6978798502ef66625a2e0f80cf923da64e328da8bbe16c1ff928c70c873de", "5cddb6f8bce14325b2863f9d5ac5c51e07b71b462361fd815d1d7706d3a9d682", "644ee788222d81555af543b70a1098f2025db38eaa99226f3a75a6854924d4db", "64cf762049fc4775efe6b27161467e76d0ba145862802a65eefc8879086fc6f8", "68c362848d9fb71d3c3e5f43c09974a0ae319144634e7a47db62f0f2a54a7fa7", "6c1f3c6f6635e611d58e467bf4371883568f0de9ccc4606f17048142dec14a1f", "b213d4a02eec4ddf622f4d2fbc539f062af3788d1f332f028a2e19c42da53f15", "bb27d4e7805a7de0e35bd0cb1411bc85f807968b2b0539597a49a23b00a622ae", "c9d414512eaa417aadae7758bc118868cd2396b0e6138c1dd4fda96679c079d3", "f0937165d1e25477b01081c4763d2d9cdc3b18af69cb259dd4f640c9b900fe5e", "fb96a6e2c11059ecf84e6741a319f93f683e440e341d4489c9b161eca251cf2a", "fc71d2d6ae56a091a8d94f33ec9d0f2001d1cb1db423d8b4355debfe9ce689b7"]
+typing = ["38566c558a0a94d6531012c8e917b1b8518a41e418f7f15f00e129cc80162ad3", "53765ec4f83a2b720214727e319607879fec4acde22c4fbb54fa2604e79e44ce", "84698954b4e6719e912ef9a42a2431407fe3755590831699debda6fba92aac55"]
+typing-extensions = ["2ed632b30bb54fc3941c382decfd0ee4148f5c591651c9272473fea2c6397d95", "b1edbbf0652660e32ae780ac9433f4231e7339c7f9a8057d0f042fcbcea49b87", "d8179012ec2c620d3791ca6fe2bf7979d979acdbef1fca0bc56b37411db682ed"]
 urllib3 = ["4c291ca23bbb55c76518905869ef34bdd5f0e46af7afe6861e8375643ffee1a0", "9a247273df709c4fedb38c711e44292304f73f39ab01beda9f6b9fc375669ac3"]
 wcwidth = ["3df37372226d6e63e1b1e1eda15c594bca98a22d33a23832a90998faa96bc65e", "f4ebe71925af7b40a864553f761ed559b43544f8f71746c2d756c7fe788ade7c"]
 webencodings = ["a0af1213f3c2226497a97e2b3aa01a7e4bee4f403f95be16fc9acd2947514a78", "b36a1c245f2d304965eb4e0a82848379241dc04b865afcc4aab16748587e1923"]
