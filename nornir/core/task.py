@@ -136,12 +136,7 @@ class Task(object):
         """
         Returns whether current task is a dry_run or not.
         """
-        # if override is not None:
-        #    return override
-
-        # return self.nornir.data.dry_run
         return override if override is not None else self.nornir.data.dry_run
-        # return cast(bool, override if override is not None else self.nornir.data.dry_run)
 
 
 class Result(object):
