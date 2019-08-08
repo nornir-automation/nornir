@@ -1,9 +1,11 @@
 import logging
 import logging.config
 from multiprocessing.dummy import Pool
+from typing import List, Optional
 
 from nornir.core.configuration import Config
-from nornir.core.inventory import Inventory
+from nornir.core.inventory import Host, Inventory
+from nornir.core.processor import Processor, Processors
 from nornir.core.state import GlobalState
 from nornir.core.task import AggregatedResult, Task
 
@@ -29,19 +31,25 @@ class Nornir(object):
     """
 
     def __init__(
-        self, inventory: Inventory, config: Config = None, data: GlobalState = None
+        self,
+        inventory: Inventory,
+        config: Config = None,
+        data: GlobalState = None,
+        processors: Optional[Processors] = None,
     ) -> None:
         self.data = data if data is not None else GlobalState()
-
         self.inventory = inventory
-
         self.config = config or Config()
+        self.processors = processors or Processors()
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close_connections(on_good=True, on_failed=True)
+
+    def with_processors(self, processors: List[Processor]) -> "Nornir":
+        return Nornir(**{**self.__dict__, **{"processors": Processors(processors)}})
 
     def filter(self, *args, **kwargs):
         """
@@ -54,18 +62,18 @@ class Nornir(object):
         b.inventory = self.inventory.filter(*args, **kwargs)
         return b
 
-    def _run_serial(self, task, hosts, **kwargs):
-        result = AggregatedResult(kwargs.get("name") or task.__name__)
+    def _run_serial(self, task: Task, hosts, **kwargs):
+        result = AggregatedResult(kwargs.get("name") or task.name)
         for host in hosts:
-            result[host.name] = Task(task, **kwargs).start(host, self)
+            result[host.name] = task_wrapper(task, host, self)
         return result
 
-    def _run_parallel(self, task, hosts, num_workers, **kwargs):
-        result = AggregatedResult(kwargs.get("name") or task.__name__)
+    def _run_parallel(self, task: Task, hosts, num_workers, **kwargs):
+        result = AggregatedResult(kwargs.get("name") or task.name)
 
         pool = Pool(processes=num_workers)
         result_pool = [
-            pool.apply_async(Task(task, **kwargs).start, args=(h, self)) for h in hosts
+            pool.apply_async(task_wrapper, args=(task, h, self)) for h in hosts
         ]
         pool.close()
         pool.join()
@@ -103,6 +111,9 @@ class Nornir(object):
         Returns:
             :obj:`nornir.core.task.AggregatedResult`: results of each execution
         """
+        task = Task(task, **kwargs)
+        self.processors.task_started(task)
+
         num_workers = num_workers or self.config.core.num_workers
 
         run_on = []
@@ -116,7 +127,7 @@ class Nornir(object):
                     run_on.append(host)
 
         num_hosts = len(self.inventory.hosts)
-        task_name = kwargs.get("name") or task.__name__
+        task_name = kwargs.get("name") or task.name
         if num_hosts:
             logger.info(
                 f"Running task %r with args %s on %d hosts",
@@ -141,6 +152,9 @@ class Nornir(object):
             result.raise_on_error()
         else:
             self.data.failed_hosts.update(result.failed_hosts.keys())
+
+        self.processors.task_completed(task, result)
+
         return result
 
     def dict(self):
@@ -166,3 +180,10 @@ class Nornir(object):
     @property
     def state(self):
         return GlobalState
+
+
+def task_wrapper(task: Task, host: Host, nr: Nornir) -> AggregatedResult:
+    nr.processors.host_started(task, host)
+    results = task.copy().start(host, nr)
+    nr.processors.host_completed(task, host, results)
+    return results

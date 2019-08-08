@@ -50,6 +50,9 @@ class Task(object):
         self.results = MultiResult(self.name)
         self.severity_level = severity_level
 
+    def copy(self) -> "Task":
+        return Task(self.task, self.name, self.severity_level, **self.params)
+
     def __repr__(self) -> str:
         return self.name
 
