@@ -4,7 +4,7 @@ import threading
 from pathlib import Path
 from typing import Tuple
 
-from nornir.core.task import Result, Task
+from nornir.core.task import Optional, Result, Task
 
 import requests
 
@@ -160,7 +160,7 @@ def gitlab(
     filename: str,
     content: str = "",
     action: str = "create",
-    dry_run: bool = False,
+    dry_run: Optional[bool] = None,
     branch: str = "master",
     destination: str = "",
     ref: str = "master",
@@ -199,7 +199,7 @@ def gitlab(
             * diff (``str``): unified diff
 
     """
-    dry_run = task.is_dry_run(dry_run)
+    dry_run = dry_run if dry_run is not None else task.is_dry_run()
 
     session = requests.session()
     session.headers.update({"PRIVATE-TOKEN": token})
