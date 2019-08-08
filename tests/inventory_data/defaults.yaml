@@ -6,6 +6,7 @@ password: docker
 platform: linux
 data:
     my_var: comes_from_defaults
+    only_default: only_defined_in_default
 connection_options:
     dummy:
         hostname: dummy_from_defaults
