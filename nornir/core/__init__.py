@@ -49,6 +49,10 @@ class Nornir(object):
         self.close_connections(on_good=True, on_failed=True)
 
     def with_processors(self, processors: List[Processor]) -> "Nornir":
+        """
+        Given a list of Processor objects return a copy of the nornir object with the processors
+        assigned to the copy. The orinal object is left unmodified.
+        """
         return Nornir(**{**self.__dict__, **{"processors": Processors(processors)}})
 
     def filter(self, *args, **kwargs):
