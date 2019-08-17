@@ -21,11 +21,15 @@ def _get_color(result: Union[MultiResult, Result]) -> str:
 
 
 class PrintResult:
-    def __init__(
-        self, severity_level: int = logging.INFO, attrs: Optional[List[str]] = None
-    ) -> None:
+    """
+    Prints information about the task execution on screen.
+
+    Arguments:
+        severity_level: Print only results with this severity level or higher
+    """
+
+    def __init__(self, severity_level: int = logging.INFO) -> None:
         self.severity_level = severity_level
-        self.attrs = attrs or []
         self.lock = threading.Lock()
 
     def task_started(self, task: Task) -> None:
