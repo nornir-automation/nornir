@@ -1,6 +1,6 @@
 import logging
 import threading
-from typing import List, Optional, Union, cast
+from typing import Union, cast
 
 from colorama import Fore, Style, init
 

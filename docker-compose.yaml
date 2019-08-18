@@ -16,7 +16,7 @@ services:
             - "dev5.no_group:10.21.33.105"
             - "httpbin:10.21.33.201"
         volumes:
-            - ./:/nornir
+            - ./docs/_build/:/nornir/docs/_build/
         networks:
             net1:
                 ipv4_address: 10.21.33.2
