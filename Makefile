@@ -20,7 +20,7 @@ stop_dev_env:
 .PHONY: build_test_container
 build_test_container:
 	${DOCKER_COMPOSE} \
-		build --no-cache nornir
+		build nornir
 
 .PHONY: enter-container
 enter-container:
