@@ -1,0 +1,11 @@
+---
+netconf1.no_group:
+    hostname: netconf1.no_group
+    username: netconf
+    password: netconf
+    connection_options:
+        netconf:
+            extras:
+                allow_agent: False
+                hostkey_verify: False
+                look_for_keys: False

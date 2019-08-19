@@ -30,7 +30,7 @@ class Netconf(ConnectionPlugin):
             "host": hostname,
             "username": username,
             "password": password,
-            "port": port,
+            "port": port or 830,
         }
 
         if "ssh_config" not in extras:

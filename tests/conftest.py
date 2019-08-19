@@ -32,3 +32,20 @@ def nornir(request):
 def reset_data():
     global_data.dry_run = True
     global_data.reset_failed_hosts()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def netconf(request):
+    """Initializes nornir"""
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+
+    nornir = InitNornir(
+        inventory={
+            "options": {
+                "host_file": "{}/inventory_data/netconf_hosts.yaml".format(dir_path)
+            }
+        },
+        dry_run=True,
+    )
+    nornir.data = global_data
+    return nornir

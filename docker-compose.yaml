@@ -56,6 +56,13 @@ services:
             net1:
                 ipv4_address: 10.21.33.105
 
+    netconf1.no_group:
+        hostname: netconf1.no_group
+        image: sysrepo/sysrepo-netopeer2:v0.7.7
+        networks:
+            net1:
+                ipv4_address: 10.21.33.106
+
     httpbin:
         hostname: httpbin
         image: bungoume/httpbin-container
