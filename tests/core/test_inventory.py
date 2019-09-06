@@ -73,6 +73,16 @@ class Test(object):
         inv = deserializer.Inventory.deserialize(**inv_dict)
         assert inv.groups["group_1"] in inv.hosts["dev1.group_1"].groups
 
+    def test_inventory_data(self):
+        """Test Host values()/keys()/items()"""
+        inv = deserializer.Inventory.deserialize(**inv_dict)
+        h = inv.hosts["dev1.group_1"]
+        assert "comes_from_dev1.group_1" in h.values()
+        assert "blah" in h.values()
+        assert "my_var" in h.keys()
+        assert "only_default" in h.keys()
+        assert "comes_from_dev1.group_1" == dict(h.items())["my_var"]
+
     def test_filtering(self):
         inv = deserializer.Inventory.deserialize(**inv_dict)
         unfiltered = sorted(list(inv.hosts.keys()))
