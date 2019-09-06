@@ -56,7 +56,9 @@ class Task(object):
     def __repr__(self) -> str:
         return self.name
 
-    def start(self, host: "Host", nornir: "Nornir") -> "MultiResult":
+    def start(
+        self, host: "Host", nornir: "Nornir", is_subtask: bool = False
+    ) -> "MultiResult":
         """
         Run the task for the given host.
 
@@ -71,7 +73,7 @@ class Task(object):
         """
         self.host = host
         self.nornir = nornir
-
+        self.nornir.processors.host_started(self, host, is_subtask)
         try:
             logger.debug("Host %r: running task %r", self.host.name, self.name)
             r = self.task(self, **self.params)
@@ -102,6 +104,8 @@ class Task(object):
         r.severity_level = logging.ERROR if r.failed else self.severity_level
 
         self.results.insert(0, r)
+
+        self.nornir.processors.host_completed(self, host, self.results, is_subtask)
         return self.results
 
     def run(self, task: Callable[..., Any], **kwargs: Any) -> "MultiResult":
@@ -126,7 +130,7 @@ class Task(object):
         if "severity_level" not in kwargs:
             kwargs["severity_level"] = self.severity_level
         run_task = Task(task, **kwargs)
-        r = run_task.start(self.host, self.nornir)
+        r = run_task.start(self.host, self.nornir, True)
         self.results.append(r[0] if len(r) == 1 else r)
 
         if r.failed:

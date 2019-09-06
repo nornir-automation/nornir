@@ -26,13 +26,15 @@ class Processor(Protocol):
         """
         raise NotImplementedError("needs to be implemented by the processor")
 
-    def host_started(self, task: Task, host: Host) -> None:
+    def host_started(self, task: Task, host: Host, is_subtask: bool) -> None:
         """
         This method is called before a host starts executing its instance of the task
         """
         raise NotImplementedError("needs to be implemented by the processor")
 
-    def host_completed(self, task: Task, host: Host, result: MultiResult) -> None:
+    def host_completed(
+        self, task: Task, host: Host, result: MultiResult, is_subtask: bool
+    ) -> None:
         """
         This method is called when a host completes its instance of a task
         """
@@ -58,10 +60,12 @@ class Processors(List[Processor]):
         for p in self:
             p.task_completed(task, result)
 
-    def host_started(self, task: Task, host: Host) -> None:
+    def host_started(self, task: Task, host: Host, is_subtask: bool) -> None:
         for p in self:
-            p.host_started(task, host)
+            p.host_started(task, host, is_subtask)
 
-    def host_completed(self, task: Task, host: Host, result: MultiResult) -> None:
+    def host_completed(
+        self, task: Task, host: Host, result: MultiResult, is_subtask: bool
+    ) -> None:
         for p in self:
-            p.host_completed(task, host, result)
+            p.host_completed(task, host, result, is_subtask)

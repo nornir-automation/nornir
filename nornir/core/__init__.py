@@ -4,7 +4,7 @@ from multiprocessing.dummy import Pool
 from typing import List, Optional
 
 from nornir.core.configuration import Config
-from nornir.core.inventory import Host, Inventory
+from nornir.core.inventory import Inventory
 from nornir.core.processor import Processor, Processors
 from nornir.core.state import GlobalState
 from nornir.core.task import AggregatedResult, Task
@@ -69,7 +69,7 @@ class Nornir(object):
     def _run_serial(self, task: Task, hosts, **kwargs):
         result = AggregatedResult(kwargs.get("name") or task.name)
         for host in hosts:
-            result[host.name] = task_wrapper(task, host, self)
+            result[host.name] = task.copy().start(host, self)
         return result
 
     def _run_parallel(self, task: Task, hosts, num_workers, **kwargs):
@@ -77,7 +77,7 @@ class Nornir(object):
 
         pool = Pool(processes=num_workers)
         result_pool = [
-            pool.apply_async(task_wrapper, args=(task, h, self)) for h in hosts
+            pool.apply_async(task.copy().start, args=(h, self)) for h in hosts
         ]
         pool.close()
         pool.join()
@@ -184,10 +184,3 @@ class Nornir(object):
     @property
     def state(self):
         return GlobalState
-
-
-def task_wrapper(task: Task, host: Host, nr: Nornir) -> AggregatedResult:
-    nr.processors.host_started(task, host)
-    results = task.copy().start(host, nr)
-    nr.processors.host_completed(task, host, results)
-    return results

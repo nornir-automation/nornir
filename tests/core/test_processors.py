@@ -11,24 +11,32 @@ def mock_task(task: Task) -> Result:
     return Result(host=task.host, result=True)
 
 
+def mock_subtask(task: Task) -> Result:
+    task.run(task=mock_task)
+    return Result(host=task.host, result=True)
+
+
 class MockProcessor:
     def __init__(self, data: Dict[str, None]) -> None:
         self.data = data
 
     def task_started(self, task: Task) -> None:
-        self.data[task.name] = {}
-        self.data[task.name]["started"] = True
+        self.data[task.name] = {"started": True}
 
     def task_completed(self, task: Task, result: AggregatedResult) -> None:
         self.data[task.name]["completed"] = True
 
-    def host_started(self, task: Task, host: Host) -> None:
+    def host_started(self, task: Task, host: Host, is_subtask: bool) -> None:
+        if is_subtask and task.name not in self.data:
+            self.data[task.name] = {"started": True, "is_subtask": True}
         self.data[task.name][host.hostname] = {"started": True}
 
-    def host_completed(self, task: Task, host: Host, results: MultiResult) -> None:
+    def host_completed(
+        self, task: Task, host: Host, results: MultiResult, is_subtask: bool
+    ) -> None:
         self.data[task.name][host.hostname] = {
             "completed": True,
-            "result": results.result,
+            "failed": results.failed,
         }
 
 
@@ -36,18 +44,38 @@ class Test:
     def test_processor(self, nornir: Nornir) -> None:
         data = {}
         nornir.with_processors([MockProcessor(data)]).run(task=mock_task)
-        print(data)
         assert data == {
             "mock_task": {
                 "started": True,
-                "dev1.group_1": {"completed": True, "result": True},
-                "dev2.group_1": {"completed": True, "result": True},
-                "dev3.group_2": {
-                    "completed": True,
-                    "result": 'Traceback (most recent call last):\n  File "/nornir/nornir/core/task.py", line 77, in start\n    r = self.task(self, **self.params)\n  File "/nornir/tests/core/test_processors.py", line 10, in mock_task\n    raise Exception("failed!!!")\nException: failed!!!\n',  # noqa
-                },
-                "dev4.group_2": {"completed": True, "result": True},
-                "dev5.no_group": {"completed": True, "result": True},
+                "dev1.group_1": {"completed": True, "failed": False},
+                "dev2.group_1": {"completed": True, "failed": False},
+                "dev3.group_2": {"completed": True, "failed": True},
+                "dev4.group_2": {"completed": True, "failed": False},
+                "dev5.no_group": {"completed": True, "failed": False},
                 "completed": True,
             }
+        }
+
+    def test_processor_subtasks(self, nornir: Nornir) -> None:
+        data = {}
+        nornir.with_processors([MockProcessor(data)]).run(task=mock_subtask)
+        assert data == {
+            "mock_subtask": {
+                "started": True,
+                "dev1.group_1": {"completed": True, "failed": False},
+                "dev2.group_1": {"completed": True, "failed": False},
+                "dev3.group_2": {"completed": True, "failed": True},
+                "dev4.group_2": {"completed": True, "failed": False},
+                "dev5.no_group": {"completed": True, "failed": False},
+                "completed": True,
+            },
+            "mock_task": {
+                "started": True,
+                "is_subtask": True,
+                "dev1.group_1": {"completed": True, "failed": False},
+                "dev2.group_1": {"completed": True, "failed": False},
+                "dev3.group_2": {"completed": True, "failed": True},
+                "dev4.group_2": {"completed": True, "failed": False},
+                "dev5.no_group": {"completed": True, "failed": False},
+            },
         }
