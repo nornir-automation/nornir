@@ -576,7 +576,7 @@ description = "Python library for NETCONF clients"
 name = "ncclient"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "0.6.4"
+version = "0.6.6"
 
 [package.dependencies]
 lxml = ">=3.3.0"
@@ -785,7 +785,7 @@ category = "main"
 description = "C parser in Python"
 name = "pycparser"
 optional = false
-python-versions = "*"
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "2.19"
 
 [[package]]
@@ -971,7 +971,7 @@ category = "main"
 description = "YAML parser and emitter for Python"
 name = "pyyaml"
 optional = false
-python-versions = "*"
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "5.1"
 
 [[package]]
@@ -1237,7 +1237,7 @@ notebook = ">=4.4.1"
 docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-napoleon", "jupyter", "nbsphinx", "pygments", "sphinx-issues"]
 
 [metadata]
-content-hash = "724e84c9f94d154751acbf1dd346686ff792cd5b8e4688a184c7145d7a3c5512"
+content-hash = "1fa0d357ad5a9ce7d47d061f10845f6775cc289e05efda3cde8308c83e62840e"
 python-versions = "^3.6"
 
 [metadata.hashes]
@@ -1292,7 +1292,7 @@ nbconvert = ["138381baa41d83584459b5cfecfc38c800ccf1f37d9ddd0bd440783346a4c39c",
 nbformat = ["b9a0dbdbd45bb034f4f8893cafd6f652ea08c8c1674ba83f2dc55d3955743b0b", "f7494ef0df60766b7cabe0a3651556345a963b74dbc16bc7c18479041170d402"]
 nbsphinx = ["b794219e465b3aab500b800884ff40fd152bb19d8b6f87580de1f3a07170aef8", "c39176496b17e34c7a53b13350468ea7d5e076997efbeedd52352a340ade4d3b"]
 nbval = ["3f18b87af4e94ccd073263dd58cd3eebabe9f5e4d6ab535b39d3af64811c7eda", "74ff5e2c90a50b1ddf7edd02978c4e43221b1ee252dc14fcaa4230aae4492eda"]
-ncclient = ["47d5af7398f16d609eebd02be2ecbd997b364032b5dc6d4927c810ea24f39080"]
+ncclient = ["2b367354d1cd25b79b8798a0b4c1949590d890057f2a252e6e970a9ab744e009"]
 netaddr = ["38aeec7cdd035081d3a4c306394b19d677623bf76fa0913f6695127c7753aefd", "56b3558bd71f3f6999e4c52e349f38660e54a7a8a9943335f73dfc96883e08ca"]
 netmiko = ["e7e9af5aeebea54488d9cad92f0a85117ca5ffa816decc63a669d88c5b2018fd"]
 notebook = ["573e0ae650c5d76b18b6e564ba6d21bf321d00847de1d215b418acb64f056eb8", "f64fa6624d2323fbef6210a621817d6505a45d0d4a9367f1843b20a38a4666ee"]
