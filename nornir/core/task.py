@@ -51,7 +51,6 @@ class Task(object):
         self.params = kwargs
         self.results = MultiResult(self.name)
         self.severity_level = severity_level
-        self.parent_task.append("asd")
 
     def copy(self) -> "Task":
         return Task(
