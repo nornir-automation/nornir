@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Any, Dict
 
 from nornir.core import Nornir
 from nornir.core.inventory import Host
@@ -11,8 +11,14 @@ def mock_task(task: Task) -> Result:
     return Result(host=task.host, result=True)
 
 
+def mock_subsubtask(task: Task) -> Result:
+    task.run(task=mock_task)
+    return Result(host=task.host, result=True)
+
+
 def mock_subtask(task: Task) -> Result:
     task.run(task=mock_task)
+    task.run(task=mock_subsubtask)
     return Result(host=task.host, result=True)
 
 
@@ -26,18 +32,39 @@ class MockProcessor:
     def task_completed(self, task: Task, result: AggregatedResult) -> None:
         self.data[task.name]["completed"] = True
 
-    def host_started(self, task: Task, host: Host, is_subtask: bool) -> None:
-        if is_subtask and task.name not in self.data:
-            self.data[task.name] = {"started": True, "is_subtask": True}
-        self.data[task.name][host.hostname] = {"started": True}
+    def task_instance_started(self, task: Task, host: Host) -> None:
+        self.data[task.name][host.hostname] = {"started": True, "subtasks": {}}
 
-    def host_completed(
-        self, task: Task, host: Host, results: MultiResult, is_subtask: bool
+    def task_instance_completed(
+        self, task: Task, host: Host, result: MultiResult
     ) -> None:
-        self.data[task.name][host.hostname] = {
-            "completed": True,
-            "failed": results.failed,
-        }
+        self.data[task.name][host.hostname]["completed"] = True
+        self.data[task.name][host.hostname]["failed"] = result.failed
+
+    def _get_subtask_dict(self, task: Task, host: Host) -> Dict[str, Any]:
+        parents = []
+        parent = task.parent_task
+        while True:
+            if parent is None:
+                break
+            parents.insert(0, parent.name)
+            parent = parent.parent_task
+
+        data = self.data[parents[0]][host.hostname]["subtasks"]
+        for p in parents[1:]:
+            data = data[p]["subtasks"]
+        return data
+
+    def subtask_instance_started(self, task: Task, host: Host) -> None:
+        data = self._get_subtask_dict(task, host)
+        data[task.name] = {"started": True, "subtasks": {}}
+
+    def subtask_instance_completed(
+        self, task: Task, host: Host, result: MultiResult
+    ) -> None:
+        data = self._get_subtask_dict(task, host)
+        data[task.name]["completed"] = True
+        data[task.name]["failed"] = result.failed
 
 
 class Test:
@@ -47,11 +74,36 @@ class Test:
         assert data == {
             "mock_task": {
                 "started": True,
-                "dev1.group_1": {"completed": True, "failed": False},
-                "dev2.group_1": {"completed": True, "failed": False},
-                "dev3.group_2": {"completed": True, "failed": True},
-                "dev4.group_2": {"completed": True, "failed": False},
-                "dev5.no_group": {"completed": True, "failed": False},
+                "dev1.group_1": {
+                    "started": True,
+                    "subtasks": {},
+                    "completed": True,
+                    "failed": False,
+                },
+                "dev2.group_1": {
+                    "started": True,
+                    "subtasks": {},
+                    "completed": True,
+                    "failed": False,
+                },
+                "dev3.group_2": {
+                    "started": True,
+                    "subtasks": {},
+                    "completed": True,
+                    "failed": True,
+                },
+                "dev4.group_2": {
+                    "started": True,
+                    "subtasks": {},
+                    "completed": True,
+                    "failed": False,
+                },
+                "dev5.no_group": {
+                    "started": True,
+                    "subtasks": {},
+                    "completed": True,
+                    "failed": False,
+                },
                 "completed": True,
             }
         }
@@ -62,20 +114,123 @@ class Test:
         assert data == {
             "mock_subtask": {
                 "started": True,
-                "dev1.group_1": {"completed": True, "failed": False},
-                "dev2.group_1": {"completed": True, "failed": False},
-                "dev3.group_2": {"completed": True, "failed": True},
-                "dev4.group_2": {"completed": True, "failed": False},
-                "dev5.no_group": {"completed": True, "failed": False},
+                "dev1.group_1": {
+                    "started": True,
+                    "subtasks": {
+                        "mock_task": {
+                            "started": True,
+                            "subtasks": {},
+                            "completed": True,
+                            "failed": False,
+                        },
+                        "mock_subsubtask": {
+                            "started": True,
+                            "subtasks": {
+                                "mock_task": {
+                                    "started": True,
+                                    "subtasks": {},
+                                    "completed": True,
+                                    "failed": False,
+                                }
+                            },
+                            "completed": True,
+                            "failed": False,
+                        },
+                    },
+                    "completed": True,
+                    "failed": False,
+                },
+                "dev2.group_1": {
+                    "started": True,
+                    "subtasks": {
+                        "mock_task": {
+                            "started": True,
+                            "subtasks": {},
+                            "completed": True,
+                            "failed": False,
+                        },
+                        "mock_subsubtask": {
+                            "started": True,
+                            "subtasks": {
+                                "mock_task": {
+                                    "started": True,
+                                    "subtasks": {},
+                                    "completed": True,
+                                    "failed": False,
+                                }
+                            },
+                            "completed": True,
+                            "failed": False,
+                        },
+                    },
+                    "completed": True,
+                    "failed": False,
+                },
+                "dev3.group_2": {
+                    "started": True,
+                    "subtasks": {
+                        "mock_task": {
+                            "started": True,
+                            "subtasks": {},
+                            "completed": True,
+                            "failed": True,
+                        }
+                    },
+                    "completed": True,
+                    "failed": True,
+                },
+                "dev4.group_2": {
+                    "started": True,
+                    "subtasks": {
+                        "mock_task": {
+                            "started": True,
+                            "subtasks": {},
+                            "completed": True,
+                            "failed": False,
+                        },
+                        "mock_subsubtask": {
+                            "started": True,
+                            "subtasks": {
+                                "mock_task": {
+                                    "started": True,
+                                    "subtasks": {},
+                                    "completed": True,
+                                    "failed": False,
+                                }
+                            },
+                            "completed": True,
+                            "failed": False,
+                        },
+                    },
+                    "completed": True,
+                    "failed": False,
+                },
+                "dev5.no_group": {
+                    "started": True,
+                    "subtasks": {
+                        "mock_task": {
+                            "started": True,
+                            "subtasks": {},
+                            "completed": True,
+                            "failed": False,
+                        },
+                        "mock_subsubtask": {
+                            "started": True,
+                            "subtasks": {
+                                "mock_task": {
+                                    "started": True,
+                                    "subtasks": {},
+                                    "completed": True,
+                                    "failed": False,
+                                }
+                            },
+                            "completed": True,
+                            "failed": False,
+                        },
+                    },
+                    "completed": True,
+                    "failed": False,
+                },
                 "completed": True,
-            },
-            "mock_task": {
-                "started": True,
-                "is_subtask": True,
-                "dev1.group_1": {"completed": True, "failed": False},
-                "dev2.group_1": {"completed": True, "failed": False},
-                "dev3.group_2": {"completed": True, "failed": True},
-                "dev4.group_2": {"completed": True, "failed": False},
-                "dev5.no_group": {"completed": True, "failed": False},
-            },
+            }
         }

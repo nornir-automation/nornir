@@ -26,14 +26,28 @@ class Processor(Protocol):
         """
         raise NotImplementedError("needs to be implemented by the processor")
 
-    def host_started(self, task: Task, host: Host, is_subtask: bool) -> None:
+    def task_instance_started(self, task: Task, host: Host) -> None:
         """
         This method is called before a host starts executing its instance of the task
         """
         raise NotImplementedError("needs to be implemented by the processor")
 
-    def host_completed(
-        self, task: Task, host: Host, result: MultiResult, is_subtask: bool
+    def task_instance_completed(
+        self, task: Task, host: Host, result: MultiResult
+    ) -> None:
+        """
+        This method is called when a host completes its instance of a task
+        """
+        raise NotImplementedError("needs to be implemented by the processor")
+
+    def subtask_instance_started(self, task: Task, host: Host) -> None:
+        """
+        This method is called before a host starts executing its instance of the task
+        """
+        raise NotImplementedError("needs to be implemented by the processor")
+
+    def subtask_instance_completed(
+        self, task: Task, host: Host, result: MultiResult
     ) -> None:
         """
         This method is called when a host completes its instance of a task
@@ -60,12 +74,22 @@ class Processors(List[Processor]):
         for p in self:
             p.task_completed(task, result)
 
-    def host_started(self, task: Task, host: Host, is_subtask: bool) -> None:
+    def task_instance_started(self, task: Task, host: Host) -> None:
         for p in self:
-            p.host_started(task, host, is_subtask)
+            p.task_instance_started(task, host)
 
-    def host_completed(
-        self, task: Task, host: Host, result: MultiResult, is_subtask: bool
+    def task_instance_completed(
+        self, task: Task, host: Host, result: MultiResult
     ) -> None:
         for p in self:
-            p.host_completed(task, host, result, is_subtask)
+            p.task_instance_completed(task, host, result)
+
+    def subtask_instance_started(self, task: Task, host: Host) -> None:
+        for p in self:
+            p.subtask_instance_started(task, host)
+
+    def subtask_instance_completed(
+        self, task: Task, host: Host, result: MultiResult
+    ) -> None:
+        for p in self:
+            p.subtask_instance_completed(task, host, result)

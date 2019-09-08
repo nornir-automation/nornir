@@ -42,23 +42,26 @@ class Task(object):
         task: Callable[..., Any],
         name: str = None,
         severity_level: int = logging.INFO,
+        parent_task: Optional["Task"] = None,
         **kwargs: str
     ):
         self.name = name or task.__name__
         self.task = task
+        self.parent_task = parent_task
         self.params = kwargs
         self.results = MultiResult(self.name)
         self.severity_level = severity_level
+        self.parent_task.append("asd")
 
     def copy(self) -> "Task":
-        return Task(self.task, self.name, self.severity_level, **self.params)
+        return Task(
+            self.task, self.name, self.severity_level, self.parent_task, **self.params
+        )
 
     def __repr__(self) -> str:
         return self.name
 
-    def start(
-        self, host: "Host", nornir: "Nornir", is_subtask: bool = False
-    ) -> "MultiResult":
+    def start(self, host: "Host", nornir: "Nornir") -> "MultiResult":
         """
         Run the task for the given host.
 
@@ -73,7 +76,11 @@ class Task(object):
         """
         self.host = host
         self.nornir = nornir
-        self.nornir.processors.host_started(self, host, is_subtask)
+
+        if self.parent_task is not None:
+            self.nornir.processors.subtask_instance_started(self, host)
+        else:
+            self.nornir.processors.task_instance_started(self, host)
         try:
             logger.debug("Host %r: running task %r", self.host.name, self.name)
             r = self.task(self, **self.params)
@@ -105,7 +112,10 @@ class Task(object):
 
         self.results.insert(0, r)
 
-        self.nornir.processors.host_completed(self, host, self.results, is_subtask)
+        if self.parent_task is not None:
+            self.nornir.processors.subtask_instance_completed(self, host, self.results)
+        else:
+            self.nornir.processors.task_instance_completed(self, host, self.results)
         return self.results
 
     def run(self, task: Callable[..., Any], **kwargs: Any) -> "MultiResult":
@@ -129,8 +139,8 @@ class Task(object):
 
         if "severity_level" not in kwargs:
             kwargs["severity_level"] = self.severity_level
-        run_task = Task(task, **kwargs)
-        r = run_task.start(self.host, self.nornir, True)
+        run_task = Task(task, parent_task=self, **kwargs)
+        r = run_task.start(self.host, self.nornir)
         self.results.append(r[0] if len(r) == 1 else r)
 
         if r.failed:
