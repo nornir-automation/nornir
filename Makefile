@@ -10,7 +10,7 @@ NORNIR_DIRS=nornir tests docs
 start_dev_env:
 	${DOCKER_COMPOSE} \
 		up -d \
-		dev1.group_1 dev2.group_1 dev3.group_2 dev4.group_2 dev5.no_group httpbin
+		dev1.group_1 dev2.group_1 dev3.group_2 dev4.group_2 dev5.no_group httpbin netconf1.no_group
 
 .PHONY: stop_dev_env
 stop_dev_env:
