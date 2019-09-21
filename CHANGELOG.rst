@@ -1,6 +1,31 @@
 Changelog
 ==========
 
+2.3.0 - September 21 2019
+-------------------------
+
+* Fixes (#406) ssl_verify in netbox plugin should accept string :issue:`434` by :user:`wvandeun`
+* Add connection test for Netconf :issue:`427` by :user:`ogenstad`
+* Fix Poetry link in .travis.yml: Install Poetry from official link :issue:`425` by :user:`ogenstad`
+* Processors :issue:`424` by :user:`dbarrosop`
+* Gitlab plugin: Fix global dry_run check :issue:`421` by :user:`ogenstad`
+* Add tests for Host data functions :issue:`420` by :user:`ogenstad`
+* Enable mypy for nornir.core.task :issue:`418` by :user:`ogenstad`
+* NETCONF prototype :issue:`416` by :user:`dbarrosop`
+* Add netmiko_commit task :issue:`414` by :user:`jrokeach`
+* Allow the use of ~ in simple inventory file paths :issue:`408` by :user:`ktbyers`
+* Minor docfix for failed hosts content :issue:`403` by :user:`ktbyers`
+* added empty line so the docstring is properly formatted :issue:`399` by :user:`dbarrosop`
+* added discourse link :issue:`398` by :user:`dbarrosop`
+* add logo :issue:`395` by :user:`dbarrosop`
+* Fix Nornir dict method and dependencies :issue:`394` by :user:`brandomando`
+* Fix netbox pagination :issue:`392` by :user:`wvandeun`
+* spelling fixes :issue:`389` by :user:`ka7`
+* Fix markup for links to external resources :issue:`388` by :user:`vincentbernat`
+* Fix add_host and add_group methods to re-initialize inventory :issue:`384` by :user:`brandomando`
+* fix changelog format again :issue:`382` by :user:`dbarrosop`
+* added howto "Adding a progress bar to nornir" :issue:`381` by :user:`dbarrosop`
+
 2.2.0 - April 27 2019
 ---------------------
 
