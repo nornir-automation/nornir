@@ -1,0 +1,5 @@
+[1m[36m**** echo_task - Starting ******************************************************
+[1m[32mvvvv echo_task - dev1.group_1 ** changed: False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv INFO
+Hello from Nornir
+[1m[32m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[36m**** echo_task - Completed *****************************************************

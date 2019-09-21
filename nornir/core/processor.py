@@ -42,7 +42,7 @@ class Processor(Protocol):
 
     def subtask_instance_started(self, task: Task, host: Host) -> None:
         """
-        This method is called before a host starts executing its instance of the task
+        This method is called before a host starts executing a subtask
         """
         raise NotImplementedError("needs to be implemented by the processor")
 
@@ -50,7 +50,7 @@ class Processor(Protocol):
         self, task: Task, host: Host, result: MultiResult
     ) -> None:
         """
-        This method is called when a host completes its instance of a task
+        This method is called when a host completes executing a subtask
         """
         raise NotImplementedError("needs to be implemented by the processor")
 

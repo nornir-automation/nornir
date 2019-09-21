@@ -33,47 +33,47 @@ class PrintResult:
         self.lock = threading.Lock()
 
     def task_started(self, task: Task) -> None:
-        msg = f"**** {task.name} "
+        if task.severity_level < self.severity_level:
+            return
+
+        msg = f"**** {task.name} - Starting "
         print(f"{Style.BRIGHT}{Fore.CYAN}{msg}{'*' * (80 - len(msg))}")
 
     def task_completed(self, task: Task, result: AggregatedResult) -> None:
-        pass
-
-    def host_started(self, task: Task, host: Host) -> None:
-        pass
-
-    def host_completed(self, task: Task, host: Host, results: MultiResult) -> None:
-        self.lock.acquire()
-
-        if results.severity_level < self.severity_level:
+        if task.severity_level < self.severity_level:
             return
 
-        # print host header
-        msg = f"* {host.name} ** changed: {results.changed} "
-        print(f"{Style.BRIGHT}{Fore.BLUE}{msg}{'*' * (80 - len(msg))}")
+        msg = f"**** {task.name} - Completed "
+        print(f"{Style.BRIGHT}{Fore.CYAN}{msg}{'*' * (80 - len(msg))}")
+
+    def task_instance_started(self, task: Task, host: Host) -> None:
+        pass
+
+    def task_instance_completed(
+        self, task: Task, host: Host, results: MultiResult
+    ) -> None:
+        self.lock.acquire()
+        if task.severity_level < self.severity_level:
+            self.lock.release()
+            return
 
         # print task
-        msg = f"vvvv {results.name} ** changed: {results.changed} "
+        msg = f"vvvv {task.name} - {host.name} ** changed: {results.changed} "
         level_name = logging.getLevelName(results.severity_level)
         print(
             f"{Style.BRIGHT}{_get_color(results)}{msg}{'v' * (80 - len(msg))} {level_name}"
         )
         print(results.result)
 
-        # print subtasks
-        for result in results[1:]:
-            if result.severity_level < self.severity_level:
-                continue
-            msg = f"--- {result.name} ** changed: {result.changed} "
-            print(
-                f"{Style.BRIGHT}{_get_color(result)}{msg}{'-' * (80 - len(msg))} {level_name}"
-            )
-            print(result.result)
-
         # print task footer
-        msg = f"^^^^ END {task.name}"
-        print(
-            f"{Style.BRIGHT}{_get_color(results)}{msg}{'^' * (80 - len(msg))} {level_name}"
-        )
+        print(f"{Style.BRIGHT}{_get_color(results)}{'^' * 80}")
 
         self.lock.release()
+
+    def subtask_instance_started(self, task: Task, host: Host) -> None:
+        self.task_instance_started(task, host)
+
+    def subtask_instance_completed(
+        self, task: Task, host: Host, result: MultiResult
+    ) -> None:
+        self.task_instance_completed(task, host, result)

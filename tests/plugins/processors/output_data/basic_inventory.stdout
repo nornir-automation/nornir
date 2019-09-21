@@ -1,0 +1,17 @@
+[1m[36m**** echo_task - Starting ******************************************************
+[1m[32mvvvv echo_task - dev1.group_1 ** changed: False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv INFO
+Hello from Nornir
+[1m[32m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[32mvvvv echo_task - dev2.group_1 ** changed: False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv INFO
+Hello from Nornir
+[1m[32m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[32mvvvv echo_task - dev3.group_2 ** changed: False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv INFO
+Hello from Nornir
+[1m[32m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[32mvvvv echo_task - dev4.group_2 ** changed: False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv INFO
+Hello from Nornir
+[1m[32m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[32mvvvv echo_task - dev5.no_group ** changed: False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv INFO
+Hello from Nornir
+[1m[32m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[36m**** echo_task - Completed *****************************************************

@@ -1,0 +1,15 @@
+[1m[32mvvvv echo_task - dev1.group_1 ** changed: False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv CRITICAL
+Hello from CRITICAL
+[1m[32m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[32mvvvv echo_task - dev2.group_1 ** changed: False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv CRITICAL
+Hello from CRITICAL
+[1m[32m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[32mvvvv echo_task - dev3.group_2 ** changed: False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv CRITICAL
+Hello from CRITICAL
+[1m[32m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[32mvvvv echo_task - dev4.group_2 ** changed: False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv CRITICAL
+Hello from CRITICAL
+[1m[32m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[32mvvvv echo_task - dev5.no_group ** changed: False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv CRITICAL
+Hello from CRITICAL
+[1m[32m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
