@@ -42,13 +42,20 @@ class Task(object):
         task: Callable[..., Any],
         name: str = None,
         severity_level: int = logging.INFO,
+        parent_task: Optional["Task"] = None,
         **kwargs: str
     ):
         self.name = name or task.__name__
         self.task = task
+        self.parent_task = parent_task
         self.params = kwargs
         self.results = MultiResult(self.name)
         self.severity_level = severity_level
+
+    def copy(self) -> "Task":
+        return Task(
+            self.task, self.name, self.severity_level, self.parent_task, **self.params
+        )
 
     def __repr__(self) -> str:
         return self.name
@@ -69,6 +76,10 @@ class Task(object):
         self.host = host
         self.nornir = nornir
 
+        if self.parent_task is not None:
+            self.nornir.processors.subtask_instance_started(self, host)
+        else:
+            self.nornir.processors.task_instance_started(self, host)
         try:
             logger.debug("Host %r: running task %r", self.host.name, self.name)
             r = self.task(self, **self.params)
@@ -99,6 +110,11 @@ class Task(object):
         r.severity_level = logging.ERROR if r.failed else self.severity_level
 
         self.results.insert(0, r)
+
+        if self.parent_task is not None:
+            self.nornir.processors.subtask_instance_completed(self, host, self.results)
+        else:
+            self.nornir.processors.task_instance_completed(self, host, self.results)
         return self.results
 
     def run(self, task: Callable[..., Any], **kwargs: Any) -> "MultiResult":
@@ -122,7 +138,7 @@ class Task(object):
 
         if "severity_level" not in kwargs:
             kwargs["severity_level"] = self.severity_level
-        run_task = Task(task, **kwargs)
+        run_task = Task(task, parent_task=self, **kwargs)
         r = run_task.start(self.host, self.nornir)
         self.results.append(r[0] if len(r) == 1 else r)
 
@@ -136,12 +152,7 @@ class Task(object):
         """
         Returns whether current task is a dry_run or not.
         """
-        # if override is not None:
-        #    return override
-
-        # return self.nornir.data.dry_run
         return override if override is not None else self.nornir.data.dry_run
-        # return cast(bool, override if override is not None else self.nornir.data.dry_run)
 
 
 class Result(object):
