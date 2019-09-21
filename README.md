@@ -3,6 +3,9 @@
 
 Nornir
 =======
+
+![logo][logo]
+
 Nornir is a pure Python automation framework intented to be used directly from Python. While most automation frameworks use their own Domain Specific Language (DSL) which you use to describe what you want to have done, Nornir lets you control everything from Python.
 
 One of the benefits we want to highlight with this approach is the ease of troubleshooting, if something goes wrong you can just use your existing debug tools directly from Python (just add a line of `import pdb` & `pdb.set_trace()` and you're good to go). Doing the same using a DSL can be quite time consuming.
@@ -39,11 +42,11 @@ External Resources
 
 Below you can find links to talks, blog posts, podcasts and other resources:
 
-* April 2019 - Packet Pushers podcast - [https://packetpushers.net/podcast/heavy-networking-445-an-introduction-to-the-nornir-automation-framework/](Heavy Networking 445: An Introduction To The Nornir Automation Framework)
-* May 2018 - Software Gone Wild podcast - [http://blog.ipspace.net/2018/05/network-automation-with-brigade-on.html](IPSpace podcast about nornir)
-* Sep 2018 - IPSpace network automation solutions - [https://my.ipspace.net/bin/list?id=NetAutSol&module=9#NORNIR](Nornir workshop) [slides](https://github.com/dravetech/nornir-workshop/blob/master/nornir-workshop.pdf)
-* May 2018 - Networklore - [https://networklore.com/introducing-brigade/](Introducing Nornir - The Python automation framework)
-* May 2018 - Cisco blogs - [https://blogs.cisco.com/developer/nornir-python-automation-framework](Exploring Nornir, the Python Automation Framework)
+* April 2019 - Packet Pushers podcast - [Heavy Networking 445: An Introduction To The Nornir Automation Framework](https://packetpushers.net/podcast/heavy-networking-445-an-introduction-to-the-nornir-automation-framework/)
+* May 2018 - Software Gone Wild podcast - [IPSpace podcast about nornir](http://blog.ipspace.net/2018/05/network-automation-with-brigade-on.html)
+* Sep 2018 - IPSpace network automation solutions - [Nornir workshop](https://my.ipspace.net/bin/list?id=NetAutSol&module=9#NORNIR) ([slides](https://github.com/dravetech/nornir-workshop/blob/master/nornir-workshop.pdf))
+* May 2018 - Networklore - [Introducing Nornir - The Python automation framework](https://networklore.com/introducing-brigade/)
+* May 2018 - Cisco blogs - [Exploring Nornir, the Python Automation Framework](https://blogs.cisco.com/developer/nornir-python-automation-framework)
 
 
 Bugs & New features
@@ -55,10 +58,16 @@ If you think you have bug or would like to request a new feature, please registe
 Contact & Support
 =================
 
-While we are happy to help, the [GitHub issues](<https://github.com/nornir-automation/nornir/issues>) are intended for bugs and discussions about new features. If are struggling to get something to work but don't believe its due to a bug in Nornir, the place to ask questions is in the #nornir channel in the [networktoCode Slack team](https://networktocode.herokuapp.com/).
+While we are happy to help, the [GitHub issues](https://github.com/nornir-automation/nornir/issues) are intended for bugs and discussions about new features. If are struggling to get something to work you have two options:
+
+
+1. You can go to our [discourse community](https://nornir.discourse.group) and see if your problem has already been discussed there or post it if it hasn't.
+2. You can also head to our ``#nornir`` channel in the [networktoCode Slack team](https://networktocode.herokuapp.com/).
 
 
 Contributing to Nornir
 =======================
 
 If you want to help the project, the [Contribution Guidelines](https://nornir.readthedocs.io/en/develop/contributing/index.html) is the best place to start.
+
+[logo]: docs/_static/logo/nornir_logo_02.jpg "nornir logo"

@@ -6,6 +6,10 @@
 Welcome to nornir's documentation!
 ===================================
 
+.. image:: _static/logo/nornir_logo_02.jpg
+   :height: 500px
+   :width: 500px
+
 Nornir is an automation framework written in python to be used with python. Most automation
 frameworks hide the language they are written in by using some cumbersome pseudo-language
 which usually is almost Turing complete, but lacks tooling to debug and troubleshoot. Integrating

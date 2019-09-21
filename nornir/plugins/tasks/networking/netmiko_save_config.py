@@ -8,6 +8,7 @@ def netmiko_save_config(
 ) -> Result:
     """
     Execute Netmiko save_config method
+
     Arguments:
         cmd(str, optional): Command used to save the configuration.
         confirm(bool, optional): Does device prompt for confirmation before executing save operation

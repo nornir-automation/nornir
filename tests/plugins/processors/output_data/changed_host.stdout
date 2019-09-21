@@ -1,0 +1,20 @@
+[1m[36m**** read_data - Starting ******************************************************
+[1m[32mvvvv echo_task - dev1.group_1 ** changed: False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv CRITICAL
+Hello from CRITICAL
+[1m[32m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[33mvvvv parse_data - dev1.group_1 ** changed: True vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv WARNING
+[1, 2, 3]
+[1m[33m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[33mvvvv read_data - dev1.group_1 ** changed: True vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv WARNING
+None
+[1m[33m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[32mvvvv echo_task - dev2.group_1 ** changed: False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv CRITICAL
+Hello from CRITICAL
+[1m[32m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[32mvvvv parse_data - dev2.group_1 ** changed: False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv WARNING
+[4, 5, 6]
+[1m[32m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[32mvvvv read_data - dev2.group_1 ** changed: False vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv WARNING
+None
+[1m[32m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[1m[36m**** read_data - Completed *****************************************************

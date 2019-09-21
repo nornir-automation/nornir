@@ -8,3 +8,4 @@ Plugins
    functions/index
    inventory/index
    tasks/index
+   processors/index
