@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from nornir.core.deserializer.inventory import Inventory, HostsDict
 
@@ -13,7 +13,7 @@ class NBInventory(Inventory):
         nb_url: Optional[str] = None,
         nb_token: Optional[str] = None,
         use_slugs: bool = True,
-        ssl_verify: bool = True,
+        ssl_verify: Union[bool, str] = True,
         flatten_custom_fields: bool = True,
         filter_parameters: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
@@ -26,11 +26,11 @@ class NBInventory(Inventory):
                 You can also use env variable NB_URL
             nb_token: Netbokx token. You can also use env variable NB_TOKEN
             use_slugs: Whether to use slugs or not
+            ssl_verify: Enable/disable certificate validation or provide path to CA bundle file
             flatten_custom_fields: Whether to assign custom fields directly to the host or not
             filter_parameters: Key-value pairs to filter down hosts
         """
         filter_parameters = filter_parameters or {}
-
         nb_url = nb_url or os.environ.get("NB_URL", "http://localhost:8080")
         nb_token = nb_token or os.environ.get(
             "NB_TOKEN", "0123456789abcdef0123456789abcdef01234567"

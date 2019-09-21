@@ -18,3 +18,9 @@ Paramiko
 
 .. automodule:: nornir.plugins.connections.paramiko
     :members:
+
+Netconf
+-------
+
+.. automodule:: nornir.plugins.connections.netconf
+    :members:

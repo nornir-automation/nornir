@@ -16,7 +16,7 @@ script:
 - make start_dev_env
 - make $TESTS
 before_deploy:
-- curl -sSL https://raw.githubusercontent.com/Victor-Savu/poetry/patch-1/get-poetry.py | python
+- curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python
 - poetry config http-basic.pypi $PYPI_USER $PYPI_PASSWORD
 - poetry build
 deploy:
