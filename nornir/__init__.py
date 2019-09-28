@@ -1,6 +1,7 @@
+from nornir.init_nornir import InitNornir
+
 import pkg_resources
 
-from nornir.init_nornir import InitNornir
 
 __version__ = pkg_resources.get_distribution("nornir").version
 

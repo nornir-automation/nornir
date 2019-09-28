@@ -1,6 +1,4 @@
-import os
 import tempfile
-import uuid
 
 from nornir.plugins.tasks.version_control import github
 
