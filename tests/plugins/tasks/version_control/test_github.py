@@ -64,9 +64,7 @@ def create_file(
     requests_mock.get(file_url, status_code=file_status_code, json=file_resp)
 
     create_file_url = f"{repo_url}/contents/{filename}"
-    requests_mock.put(
-        create_file_url, status_code=create_status_code, json=create_resp
-    )
+    requests_mock.put(create_file_url, status_code=create_status_code, json=create_resp)
 
     res = nornir.run(
         github,

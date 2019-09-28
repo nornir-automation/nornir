@@ -122,9 +122,9 @@ def _create(
     with LOCK:
         url = f"{url}/repos/{owner}/{repository}/contents/{filename}"
         data = {
-                "branch": branch,
-                "content": base64.b64encode(content.encode()).decode('ascii'),
-                "message": commit_message
+            "branch": branch,
+            "content": base64.b64encode(content.encode()).decode("ascii"),
+            "message": commit_message,
         }
         resp = session.put(url, json=data)
 
@@ -171,7 +171,7 @@ def _update(
             url = f"{url}/repos/{owner}/{repository}/contents/{filename}"
             data = {
                 "branch": branch,
-                "content": base64.b64encode(content.encode()).decode('ascii'),
+                "content": base64.b64encode(content.encode()).decode("ascii"),
                 "message": commit_message,
                 "sha": sha,
             }
@@ -310,14 +310,6 @@ def github(
         )
     elif action == "get":
         diff = _get(
-            task,
-            session,
-            url,
-            owner,
-            repository,
-            filename,
-            destination,
-            ref,
-            dry_run
+            task, session, url, owner, repository, filename, destination, ref, dry_run
         )
     return Result(host=task.host, diff=diff, changed=bool(diff))
