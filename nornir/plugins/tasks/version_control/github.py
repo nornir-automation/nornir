@@ -247,7 +247,7 @@ def github(
 
     Example:
 
-        nornir.run(files.github,
+        nornir.run(version_control.github,
                    action="create",
                    url="https://github.localhost.com",
                    token="ABCD1234",

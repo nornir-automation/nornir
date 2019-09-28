@@ -172,7 +172,7 @@ def gitlab(
 
     Example:
 
-        nornir.run(files.gitlab,
+        nornir.run(version_control.gitlab,
                    action="create",
                    url="https://gitlab.localhost.com",
                    token="ABCD1234",
