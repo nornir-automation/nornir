@@ -51,6 +51,23 @@
 			},
 			"connection_options": {},
 			"groups": []
+		},
+		"4": {
+			"port": null,
+			"hostname": "10.0.1.4",
+			"username": null,
+			"password": null,
+			"platform": null,
+			"data": {
+				"serial": "",
+				"vendor": "Juniper",
+				"asset_tag": null,
+				"site": "sunnyvale-ca",
+				"role": "rt",
+				"model": "mx480"
+			},
+			"connection_options": {},
+			"groups": []
 		}
 	},
 	"groups": {},

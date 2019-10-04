@@ -1,5 +1,5 @@
 {
-  "count": 1,
+  "count": 2,
   "next": null,
   "previous": "http://localhost:8080/api/dcim/devices/?limit=0&offset=1",
   "results": [
@@ -64,6 +64,68 @@
       "custom_fields": {"user_defined": 1},
       "created": "2018-07-12",
       "last_updated": "2018-07-12T11:53:54.866133Z"
+    },
+    {
+      "id": 4,
+      "name": null,
+      "display_name": "",
+      "device_type": {
+        "id": 11,
+        "url": "http://localhost:8080/api/dcim/device-types/11/",
+        "manufacturer": {
+          "id": 3,
+          "url": "http://localhost:8080/api/dcim/manufacturers/3/",
+          "name": "Juniper",
+          "slug": "juniper"
+        },
+        "model": "MX480",
+        "slug": "mx480"
+      },
+      "device_role": {
+        "id": 1,
+        "url": "http://localhost:8080/api/dcim/device-roles/1/",
+        "name": "Router",
+        "slug": "rt"
+      },
+      "tenant": null,
+      "platform": null,
+      "serial": "",
+      "asset_tag": null,
+      "site": {
+        "id": 3,
+        "url": "http://localhost:8080/api/dcim/sites/3/",
+        "name": "Sunnyvale, CA",
+        "slug": "sunnyvale-ca"
+      },
+      "rack": null,
+      "position": null,
+      "face": null,
+      "parent_device": null,
+      "status": {
+        "value": 1,
+        "label": "Active"
+      },
+      "primary_ip": {
+        "id": 4,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/4/",
+        "family": 4,
+        "address": "10.0.1.4/32"
+      },
+      "primary_ip4": {
+        "id": 1,
+        "url": "http://localhost:8080/api/ipam/ip-addresses/4/",
+        "family": 4,
+        "address": "10.0.1.4/32"
+      },
+      "primary_ip6": null,
+      "cluster": null,
+      "virtual_chassis": null,
+      "vc_position": null,
+      "vc_priority": null,
+      "comments": "",
+      "custom_fields": {},
+      "created": "2018-07-12",
+      "last_updated": "2018-07-12T11:53:54.742412Z"
     }
   ]
 }
