@@ -9,4 +9,5 @@ Inventory
 
    simple
    ansible
+   netbox
    nsot
