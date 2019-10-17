@@ -26,8 +26,8 @@ class SimpleInventory(Inventory):
         *args: Any,
         **kwargs: Any
     ) -> None:
+        yml = ruamel.yaml.YAML(typ="safe")
         if hosts is None:
-            yml = ruamel.yaml.YAML(typ="safe")
             with open(os.path.expanduser(host_file), "r") as f:
                 hosts = yml.load(f)
 
