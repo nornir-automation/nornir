@@ -1,5 +1,4 @@
 import json
-from typing import Any, Dict, MutableMapping, Type
 
 from nornir.core.task import Result, Task
 
@@ -24,8 +23,7 @@ def load_json(task: Task, file: str) -> Result:
         Result object with the following attributes set:
           * result (``dict``): dictionary with the contents of the file
     """
-    kwargs: Dict[str, Type[MutableMapping[str, Any]]] = {}
     with open(file, "r") as f:
-        data = json.loads(f.read(), **kwargs)
+        data = json.loads(f.read())
 
     return Result(host=task.host, result=data)
