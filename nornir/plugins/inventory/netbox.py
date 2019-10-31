@@ -92,7 +92,9 @@ class NBInventory(Inventory):
                 host["platform"] = d["platform"]
 
             # Assign temporary dict to outer dict
-            hosts[d["name"]] = host
+            # Netbox allows devices to be unnamed, but the Nornir model does not allow this
+            # If a device is unnamed we will set the name to the id of the device in netbox
+            hosts[d.get("name") or d.get("id")] = host
 
         # Pass the data back to the parent class
         super().__init__(hosts=hosts, groups={}, defaults={}, **kwargs)
