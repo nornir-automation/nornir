@@ -1289,7 +1289,7 @@ more-itertools = "*"
 docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-napoleon", "jupyter", "nbsphinx", "pygments", "sphinx-issues"]
 
 [metadata]
-content-hash = "49f23cb8455708112415604e715ab2e2df9062d9e9b0de121347c584dcc63709"
+content-hash = "c749fa20b4d692ccc69f4032f7c5ffedeeb408f28ffd1e3dd650f08f73ddc73a"
 python-versions = "^3.6"
 
 [metadata.hashes]
