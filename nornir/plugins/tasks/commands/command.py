@@ -29,9 +29,9 @@ def command(task: Task, command: str) -> Result:
         shell=False,
     )
 
-    stdout, stderr = cmd.communicate()
-    stdout = stdout.decode()
-    stderr = stderr.decode()
+    bytes_stdout, bytes_stderr = cmd.communicate()
+    stdout = bytes_stdout.decode()
+    stderr = bytes_stderr.decode()
 
     if cmd.poll():
         raise CommandError(command, cmd.returncode, stdout, stderr)

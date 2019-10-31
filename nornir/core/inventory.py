@@ -158,7 +158,7 @@ class Host(InventoryElement):
                     continue
 
             r = self.defaults.data.get(item)
-            if r:
+            if r is not None:
                 return r
 
             raise
