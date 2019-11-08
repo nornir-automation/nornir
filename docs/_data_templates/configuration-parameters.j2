@@ -1,8 +1,9 @@
-{% macro document_section(section, schema) %}
+{% macro document_section(section, schema, definitions) %}
 {{ section }}
 {{ "-" * section|length }}
 
-{% for k, v in schema["properties"].items() -%}
+{% with ref = (schema["allOf"]|map(attribute="$ref")|first).split('/')|last -%}
+{% for k, v in definitions[ref]["properties"].items() -%}
 
 ``{{ k }}``
 {{ "_" * (k|length + 4) }}
@@ -22,8 +23,9 @@
      - ``{{ "NORNIR_{}_{}".format(section, k).upper() }}``
 
 {% endfor %}
+{% endwith %}
 {%- endmacro %}
 
 {% for k, v in schema["properties"].items() if k not in ["user_defined"] %}
-{{ document_section(k, v) }}
+{{ document_section(k, v, schema["definitions"]) }}
 {% endfor %}
