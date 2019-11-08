@@ -70,7 +70,7 @@ class NSOTInventory(Inventory):
 
             remove_keys = []
             for k, v in d.items():
-                if k not in InventoryElement().fields:
+                if k not in InventoryElement().__fields__:
                     remove_keys.append(k)
                     d["data"][k] = v
             for r in remove_keys:
