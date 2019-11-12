@@ -24,7 +24,7 @@ paramiko = "^2.3.2"
 requests = "^2"
 "ruamel.yaml" = "^0.15.85"
 mypy_extensions = "^0.4.1"
-pydantic = "^0.18.2"
+pydantic = "^1"
 # The following dependencies are used for docs generation when installed as extras
 # (e.g. pip install nornir[docs])
 # Currently they have to be specified as non-dev dependencies with optional = true
