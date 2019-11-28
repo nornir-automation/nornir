@@ -20,7 +20,7 @@ def _generate_diff(original: str, fromfile: str, tofile: str, content: str) -> s
 
 
 def _get_repository(session: requests.Session, url: str, repository: str) -> int:
-    if '/' in repository:
+    if "/" in repository:
         pid = repository.replace("/", "%2F")
         return pid
     resp = session.get(f"{url}/api/v4/projects?search={repository}")
