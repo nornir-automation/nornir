@@ -19,7 +19,7 @@ def _generate_diff(original: str, fromfile: str, tofile: str, content: str) -> s
     return "\n".join(diff)
 
 
-def _get_repository(session: requests.Session, url: str, repository: str) -> int:
+def _get_repository(session: requests.Session, url: str, repository: str) -> str:
     if "/" in repository:
         pid = repository.replace("/", "%2F")
         return pid
@@ -27,7 +27,7 @@ def _get_repository(session: requests.Session, url: str, repository: str) -> int
     if resp.status_code != 200:
         raise RuntimeError(f"Unexpected Gitlab status code {resp.status_code}")
 
-    pid = 0
+    pid = "0"
     found = False
     respjson = resp.json()
     if not len(respjson):
@@ -36,16 +36,16 @@ def _get_repository(session: requests.Session, url: str, repository: str) -> int
     for p in respjson:
         if p.get("name", "") == repository:
             found = True
-            pid = p.get("id", 0)
+            pid = p.get("id", "0")
 
-    if not pid or not found:
+    if pid == "0" or not found:
         raise RuntimeError("Gitlab repository not found")
 
     return pid
 
 
 def _remote_exists(
-    task: Task, session: requests.Session, url: str, pid: int, filename: str, ref: str
+    task: Task, session: requests.Session, url: str, pid: str, filename: str, ref: str
 ) -> Tuple[bool, str]:
     resp = session.get(
         f"{url}/api/v4/projects/{pid}/repository/files/{filename}?ref={ref}"
@@ -71,7 +71,7 @@ def _create(
     task: Task,
     session: requests.Session,
     url: str,
-    pid: int,
+    pid: str,
     filename: str,
     content: str,
     branch: str,
@@ -95,7 +95,7 @@ def _update(
     task: Task,
     session: requests.Session,
     url: str,
-    pid: int,
+    pid: str,
     filename: str,
     content: str,
     branch: str,
@@ -128,7 +128,7 @@ def _get(
     task: Task,
     session: requests.Session,
     url: str,
-    pid: int,
+    pid: str,
     filename: str,
     destination: str,
     ref: str,
