@@ -36,7 +36,7 @@ def _get_repository(session: requests.Session, url: str, repository: str) -> str
     for p in respjson:
         if p.get("name", "") == repository:
             found = True
-            pid = p.get("id", "0")
+            pid = str(p.get("id", "0"))
 
     if pid == "0" or not found:
         raise RuntimeError("Gitlab repository not found")
