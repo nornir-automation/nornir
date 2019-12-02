@@ -1,7 +1,8 @@
 import base64
 import difflib
 import threading
-import urllib
+
+from urllib.parse import quote
 from pathlib import Path
 from typing import Tuple
 
@@ -22,7 +23,7 @@ def _generate_diff(original: str, fromfile: str, tofile: str, content: str) -> s
 
 def _get_repository(session: requests.Session, url: str, repository: str) -> str:
     if "/" in repository:
-        pid = urllib.parse.quote(repository, safe="")
+        pid = quote(repository, safe="")
         return pid
     resp = session.get(f"{url}/api/v4/projects?search={repository}")
     if resp.status_code != 200:
@@ -48,7 +49,7 @@ def _get_repository(session: requests.Session, url: str, repository: str) -> str
 def _remote_exists(
     task: Task, session: requests.Session, url: str, pid: str, filename: str, ref: str
 ) -> Tuple[bool, str]:
-    filename = urllib.parse.quote(filename, safe="")
+    filename = quote(filename, safe="")
     resp = session.get(
         f"{url}/api/v4/projects/{pid}/repository/files/{filename}?ref={ref}"
     )
@@ -84,7 +85,7 @@ def _create(
         return _generate_diff("", "", filename, content)
 
     with LOCK:
-        _filename = urllib.parse.quote(filename, safe="")
+        _filename = quote(filename, safe="")
         url = f"{url}/api/v4/projects/{pid}/repository/files/{_filename}"
         data = {"branch": branch, "content": content, "commit_message": commit_message}
         resp = session.post(url, data=data)
@@ -115,7 +116,7 @@ def _update(
 
     if original != content:
         with LOCK:
-            _filename = urllib.parse.quote(filename, safe="")
+            _filename = quote(filename, safe="")
             url = f"{url}/api/v4/projects/{pid}/repository/files/{_filename}"
             data = {
                 "branch": branch,
