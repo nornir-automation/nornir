@@ -28,6 +28,7 @@ class NBInventory(Inventory):
             use_slugs: Whether to use slugs or not
             ssl_verify: Enable/disable certificate validation or provide path to CA bundle file
             flatten_custom_fields: Whether to assign custom fields directly to the host or not
+            flatten_config_context_fields: Wheter to assign config context fields directly to the host or not
             filter_parameters: Key-value pairs to filter down hosts
         """
         filter_parameters = filter_parameters or {}
@@ -75,6 +76,12 @@ class NBInventory(Inventory):
                     host["data"][cf] = value
             else:
                 host["data"]["custom_fields"] = d["custom_fields"]
+
+            if flatten_config_context_fields:
+                for cf, value in d["config_context"].items():
+                    host["data"][cf] = value
+            else:
+                host["data"]["config_context"] = d["config_context"]
 
             # Add values that do have an option for 'slug'
             if use_slugs:
