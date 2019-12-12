@@ -15,7 +15,7 @@ class NBInventory(Inventory):
         use_slugs: bool = True,
         ssl_verify: Union[bool, str] = True,
         flatten_custom_fields: bool = True,
-        flatten_config_context_fields: bool = True,
+        flatten_config_context_fields: bool = False,
         filter_parameters: Optional[Dict[str, Any]] = None,
         **kwargs: Any,
     ) -> None:
