@@ -1,6 +1,7 @@
 import os
 
 from nornir.plugins.inventory import ansible
+from nornir.core.exceptions import NornirNoValidInventoryError
 
 import pytest
 
@@ -57,5 +58,5 @@ class Test(object):
 
     def test_parse_error(self):
         base_path = os.path.join(BASE_PATH, "parse_error")
-        with pytest.raises(ScannerError):
+        with pytest.raises(NornirNoValidInventoryError):
             ansible.parse(hostsfile=os.path.join(base_path, "source", "hosts"))

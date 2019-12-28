@@ -106,5 +106,13 @@ class NornirSubTaskError(Exception):
         return "Subtask: {} (failed)\n".format(self.task)
 
 
+class NornirNoValidInventoryError(Exception):
+    """
+    Raised by nornir when :meth:`nornir.plugins.inventory.parse` has failed to load any valid inventory file
+    """
+
+    pass
+
+
 class ConflictingConfigurationWarning(UserWarning):
     pass

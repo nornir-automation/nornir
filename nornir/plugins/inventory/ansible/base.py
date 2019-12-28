@@ -1,33 +1,24 @@
-import configparser as cp
 import logging
 import os
-from collections import defaultdict
 from pathlib import Path
-from typing import Any, DefaultDict, Dict, MutableMapping, Optional, Tuple, Union, cast
+from typing import Any, Dict, Optional, cast
 
 from mypy_extensions import TypedDict
+
+import ruamel.yaml
 
 from nornir.core.deserializer.inventory import (
     DefaultsDict,
     GroupsDict,
     HostsDict,
-    Inventory,
     InventoryElement,
     VarsDict,
 )
 
-import ruamel.yaml
-from ruamel.yaml.composer import ComposerError
-from ruamel.yaml.scanner import ScannerError
-
-
-VARS_FILENAME_EXTENSIONS = ["", ".yml", ".yaml"]
-
-
+VARS_FILENAME_EXTENSIONS = ["", ".ini", ".py", ".yml", ".yaml"]
 YAML = ruamel.yaml.YAML(typ="safe")
 
 logger = logging.getLogger(__name__)
-
 
 AnsibleHostsDict = Dict[str, Optional[VarsDict]]
 
@@ -163,103 +154,3 @@ class AnsibleParser(object):
 
     def load_hosts_file(self) -> None:
         raise NotImplementedError
-
-
-class INIParser(AnsibleParser):
-    @staticmethod
-    def normalize_value(value: str) -> Union[str, int]:
-        try:
-            return int(value)
-
-        except (ValueError, TypeError):
-            return value
-
-    @staticmethod
-    def normalize_content(content: str) -> VarsDict:
-        result: VarsDict = {}
-
-        if not content:
-            return result
-
-        for option in content.split():
-            key, value = option.split("=")
-            result[key] = INIParser.normalize_value(value)
-        return result
-
-    @staticmethod
-    def process_meta(
-        meta: Optional[str], section: MutableMapping[str, str]
-    ) -> Dict[str, Any]:
-        if meta == "vars":
-            return {
-                key: INIParser.normalize_value(value) for key, value in section.items()
-            }
-
-        elif meta == "children":
-            return {group_name: {} for group_name in section}
-
-        else:
-            raise ValueError(f"Unknown tag {meta}")
-
-    def normalize(self, data: cp.ConfigParser) -> Dict[str, AnsibleGroupDataDict]:
-        groups: DefaultDict[str, Dict[str, Any]] = defaultdict(dict)
-        # Dict[str, AnsibleGroupDataDict] does not work because of
-        # https://github.com/python/mypy/issues/5359
-        result: Dict[str, Dict[str, Dict[str, Dict[str, Any]]]] = {
-            "all": {"children": groups}
-        }
-
-        for section_name, section in data.items():
-
-            if section_name == "DEFAULT":
-                continue
-
-            if ":" in section_name:
-                group_name, meta = section_name.split(":")
-                subsection = self.process_meta(meta, section)
-                if group_name == "all":
-                    result["all"][meta] = subsection
-                else:
-                    groups[group_name][meta] = subsection
-            else:
-                groups[section_name]["hosts"] = {
-                    host: self.normalize_content(host_vars)
-                    for host, host_vars in section.items()
-                }
-        return cast(AnsibleGroupsDict, result)
-
-    def load_hosts_file(self) -> None:
-        original_data = cp.ConfigParser(
-            interpolation=None, allow_no_value=True, delimiters=" ="
-        )
-        original_data.read(self.hostsfile)
-        self.original_data = self.normalize(original_data)
-
-
-class YAMLParser(AnsibleParser):
-    def load_hosts_file(self) -> None:
-        with open(self.hostsfile, "r") as f:
-            self.original_data = cast(AnsibleGroupsDict, YAML.load(f))
-
-
-def parse(hostsfile: str) -> Tuple[HostsDict, GroupsDict, DefaultsDict]:
-    try:
-        parser: AnsibleParser = INIParser(hostsfile)
-    except cp.Error:
-        try:
-            parser = YAMLParser(hostsfile)
-        except (ScannerError, ComposerError):
-            logger.error("AnsibleInventory: file %r is not INI or YAML file", hostsfile)
-            raise
-
-    parser.parse()
-
-    return parser.hosts, parser.groups, parser.defaults
-
-
-class AnsibleInventory(Inventory):
-    def __init__(self, hostsfile: str = "hosts", *args: Any, **kwargs: Any) -> None:
-        host_vars, group_vars, defaults = parse(hostsfile)
-        super().__init__(
-            hosts=host_vars, groups=group_vars, defaults=defaults, *args, **kwargs
-        )
