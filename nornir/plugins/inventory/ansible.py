@@ -1,6 +1,7 @@
 import configparser as cp
 from collections import defaultdict
 import json
+from json.decoder import JSONDecodeError
 import logging
 import os
 from pathlib import Path
@@ -262,26 +263,19 @@ class ScriptParser(AnsibleParser):
 
     def load_hosts_file(self) -> None:
         if not self.verify_file():
-            raise TypeError("AnsibleInventory: invalid script file %r", self.hostsfile)
+            raise TypeError(f"AnsibleInventory: invalid script file {self.hostsfile}")
 
-        try:
-            proc = subprocess.Popen(
-                [self.hostsfile, "--list"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-            std_out, std_err = proc.communicate()
-        except OSError as e:
-            raise e
+        proc = subprocess.Popen(
+            [self.hostsfile, "--list"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        std_out, std_err = proc.communicate()
+
         if proc.returncode != 0:
             raise OSError(
-                "AnsibleInventory: %r exited with non-zero return code", self.hostsfile
+                f"AnsibleInventory: {self.hostsfile} exited with non-zero return code"
             )
 
-        try:
-            processed = json.loads(std_out.decode())
-        except Exception as e:
-            raise e
+        processed = json.loads(std_out.decode())
 
         self.original_data = self.normalize(processed)
 
@@ -305,16 +299,13 @@ class ScriptParser(AnsibleParser):
             if "vars" in gdata.keys():
                 groups[group]["vars"] = gdata["vars"]
             if "children" in gdata.keys():
-                # pretty sure this only comes back as a list in dyn inventories?
                 groups[group]["children"] = {}
                 for child in gdata["children"]:
                     groups[group]["children"][child] = {}
             if "hosts" in gdata.keys():
-                # not sure if dict is ever returned as an option?
-                if isinstance(gdata["hosts"], list):
-                    groups[group]["hosts"] = {}
-                    for host in gdata["hosts"]:
-                        groups[group]["hosts"][host] = hostvars.get(host, None)
+                groups[group]["hosts"] = {}
+                for host in gdata["hosts"]:
+                    groups[group]["hosts"][host] = hostvars.get(host, None)
         return result
 
 
@@ -350,7 +341,7 @@ def parse(
             valid_sources.append(parser)
             continue
         except cp.Error:
-            logger.error(
+            logger.info(
                 "AnsibleInventory: file %r is not INI file, moving to next parser...",
                 possible_source,
             )
@@ -359,7 +350,7 @@ def parse(
             valid_sources.append(parser)
             continue
         except (ScannerError, ComposerError):
-            logger.error(
+            logger.info(
                 "AnsibleInventory: file %r is not YAML file, moving to next parser...",
                 possible_source,
             )
@@ -367,16 +358,17 @@ def parse(
             parser = ScriptParser(possible_source)
             valid_sources.append(parser)
             continue
-        except Exception as e:
-            logger.error(
-                "AnsibleInventory: file %r is not Python file, no more parsers to try...",
+        except (TypeError, OSError, JSONDecodeError) as e:
+            logger.info(
+                "AnsibleInventory: file %r is not executable Python file. "
+                "Error: %r no more parsers to try...",
                 possible_source,
+                e,
             )
 
     if not valid_sources:
         raise NornirNoValidInventoryError(
-            "AnsibleInventory: no valid inventory source(s) to parse. Tried: %r",
-            possible_sources,
+            f"AnsibleInventory: no valid inventory source(s) to parse. Tried: {possible_sources}"
         )
 
     hosts: Dict[str, Any] = {}
@@ -410,7 +402,8 @@ def merge_hash(a: Dict[str, Any], b: Union[Dict[str, Any]]) -> Dict[str, Any]:
             and isinstance(result[k], MutableMapping)
             and isinstance(v, MutableMapping)
         ):
-            result[k] = merge_hash(result[k], v)
+            new_v: Dict[str, Any] = dict(v)
+            result[k] = merge_hash(result[k], new_v)
         else:
             result[k] = v
     return result

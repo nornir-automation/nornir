@@ -108,7 +108,7 @@ class NornirSubTaskError(Exception):
 
 class NornirNoValidInventoryError(Exception):
     """
-    Raised by nornir when :meth:`nornir.plugins.inventory.parse` has failed to load any valid inventory file
+    Raised by nornir when :meth:`nornir.plugins.inventory.parse` fails to load any valid inventory
     """
 
     pass

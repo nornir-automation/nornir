@@ -103,7 +103,10 @@ class Test(object):
             base_path, "expected", hash_behavior, "defaults.yaml"
         )
 
-        inventory_sources = f"{os.path.join(base_path, 'source', 'source1')},{os.path.join(base_path, 'source',  'source2')}"
+        inventory_sources = (
+            f"{os.path.join(base_path, 'source', 'source1')},"
+            f"{os.path.join(base_path, 'source',  'source2')}"
+        )
 
         inv = ansible.AnsibleInventory(
             inventory=inventory_sources, hash_behavior=hash_behavior
