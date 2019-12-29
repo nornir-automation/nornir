@@ -1,0 +1,61 @@
+access1:
+  connection_options: {}
+  data: {}
+  groups:
+  - access
+  hostname: 10.255.0.6
+  password: null
+  platform: null
+  port: null
+  username: null
+asa1:
+  connection_options: {}
+  data:
+    dot1x: true
+  groups:
+  - asa
+  hostname: 10.255.0.2
+  password: null
+  platform: null
+  port: null
+  username: null
+dist1:
+  connection_options: {}
+  data: {}
+  groups:
+  - dist
+  hostname: 10.255.0.5
+  password: null
+  platform: null
+  port: null
+  username: null
+dist2:
+  connection_options: {}
+  data: {}
+  groups:
+  - dist
+  hostname: 10.255.0.11
+  password: null
+  platform: null
+  port: null
+  username: null
+iosv-1:
+  connection_options: {}
+  data: {}
+  groups:
+  - routers
+  hostname: 10.255.0.12
+  password: null
+  platform: null
+  port: null
+  username: null
+iosv-2:
+  connection_options: {}
+  data: {}
+  groups:
+  - routers
+  hostname: 10.255.0.13
+  password: null
+  platform: null
+  port: null
+  username: null

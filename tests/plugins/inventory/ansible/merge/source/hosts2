@@ -1,0 +1,5 @@
+[all:vars]
+ansible_network_os=eos
+
+[asa:vars]
+ansible_something_else=racecar

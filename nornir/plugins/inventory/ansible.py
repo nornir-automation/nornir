@@ -275,9 +275,9 @@ class ScriptParser(AnsibleParser):
             raise e
         if proc.returncode != 0:
             raise OSError(
-                "AnsibleInventory: %r exited with non-zero return code",
-                self.hostsfile,
+                "AnsibleInventory: %r exited with non-zero return code", self.hostsfile
             )
+
         try:
             processed = json.loads(std_out.decode())
         except Exception as e:
@@ -296,11 +296,19 @@ class ScriptParser(AnsibleParser):
         # hostvars are stored in ["_meta"]["hostvars"] if present
         hostvars = data.get("_meta", {}).get("hostvars", None)
 
+        if "all" in data.keys():
+            data = data["all"]
+        if "vars" in data.keys():
+            groups["defaults"]["vars"] = data.pop("vars")
+
         for group, gdata in data.items():
-            if group == "all" and "vars" in gdata.keys():
-                result["all"]["vars"] = gdata["vars"]
             if "vars" in gdata.keys():
                 groups[group]["vars"] = gdata["vars"]
+            if "children" in gdata.keys():
+                # pretty sure this only comes back as a list in dyn inventories?
+                groups[group]["children"] = {}
+                for child in gdata["children"]:
+                    groups[group]["children"][child] = {}
             if "hosts" in gdata.keys():
                 # not sure if dict is ever returned as an option?
                 if isinstance(gdata["hosts"], list):

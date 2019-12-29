@@ -1,0 +1,67 @@
+access:
+  connection_options: {}
+  data: {}
+  groups:
+  - ios
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null
+asa:
+  connection_options: {}
+  data:
+    ansible_become: yes
+    ansible_become_method: enable
+    ansible_network_os: asa
+    ansible_persistent_command_timeout: 30
+    cisco_asa: true
+    network_os: asa
+  groups:
+  - virl
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null
+dist:
+  connection_options: {}
+  data: {}
+  groups:
+  - ios
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null
+ios:
+  connection_options: {}
+  data:
+    network_os: ios
+    nornir_nos: ios
+  groups:
+  - virl
+  hostname: null
+  password: null
+  platform: ios
+  port: null
+  username: null
+routers:
+  connection_options: {}
+  data: {}
+  groups:
+  - ios
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null
+virl:
+  connection_options: {}
+  data: {}
+  groups: []
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null

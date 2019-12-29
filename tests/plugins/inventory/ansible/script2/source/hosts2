@@ -1,0 +1,5 @@
+[all:vars]
+ansible_network_os=eos
+
+[datacenter:vars]
+ansible_network_os=eos
