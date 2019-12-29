@@ -1,0 +1,115 @@
+access1:
+  connection_options: {}
+  data: {}
+  groups:
+  - access
+  hostname: 10.255.0.6
+  password: null
+  platform: null
+  port: null
+  username: null
+asa1:
+  connection_options: {}
+  data:
+    dot1x: true
+  groups:
+  - asa
+  hostname: 10.255.0.2
+  password: null
+  platform: null
+  port: null
+  username: null
+dist1:
+  connection_options: {}
+  data: {}
+  groups:
+  - dist
+  hostname: 10.255.0.5
+  password: null
+  platform: null
+  port: null
+  username: null
+dist2:
+  connection_options: {}
+  data: {}
+  groups:
+  - dist
+  hostname: 10.255.0.11
+  password: null
+  platform: null
+  port: null
+  username: null
+iosv-1:
+  connection_options: {}
+  data: {}
+  groups:
+  - routers
+  hostname: 10.255.0.12
+  password: null
+  platform: null
+  port: null
+  username: null
+iosv-2:
+  connection_options: {}
+  data: {}
+  groups:
+  - routers
+  hostname: 10.255.0.13
+  password: null
+  platform: null
+  port: null
+  username: null
+bar.example.com:
+  connection_options: {}
+  data: {}
+  groups:
+  - webservers
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null
+foo.example.com:
+  connection_options: {}
+  data: {}
+  groups:
+  - frontend
+  - webservers
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null
+one.example.com:
+  connection_options: {}
+  data:
+    my_var: from_one.example.com
+  groups:
+  - dbservers
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null
+three.example.com:
+  connection_options: {}
+  data: {}
+  groups:
+  - dbservers
+  hostname: 192.0.2.50
+  password: null
+  platform: null
+  port: 5555
+  username: null
+two.example.com:
+  connection_options: {}
+  data:
+    my_var: from_hostfile
+    whatever: asdasd
+  groups:
+  - dbservers
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null

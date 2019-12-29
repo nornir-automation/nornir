@@ -93,6 +93,30 @@ class Test(object):
         assert inv_serialized["groups"] == expected_groups
         assert inv_serialized["defaults"] == expected_defaults
 
+    @pytest.mark.parametrize("case", ["multiple_sources"])
+    @pytest.mark.parametrize("hash_behavior", ["replace", "merge"])
+    def test_inventory_multiple_source(self, case, hash_behavior):
+        base_path = os.path.join(BASE_PATH, case)
+        hosts_file = os.path.join(base_path, "expected", hash_behavior, "hosts.yaml")
+        groups_file = os.path.join(base_path, "expected", hash_behavior, "groups.yaml")
+        defaults_file = os.path.join(
+            base_path, "expected", hash_behavior, "defaults.yaml"
+        )
+
+        inventory_sources = f"{os.path.join(base_path, 'source', 'source1')},{os.path.join(base_path, 'source',  'source2')}"
+
+        inv = ansible.AnsibleInventory(
+            inventory=inventory_sources, hash_behavior=hash_behavior
+        )
+        inv_serialized = ansible.AnsibleInventory.serialize(inv).dict()
+
+        expected_hosts, expected_groups, expected_defaults = read(
+            hosts_file, groups_file, defaults_file
+        )
+        assert inv_serialized["hosts"] == expected_hosts
+        assert inv_serialized["groups"] == expected_groups
+        assert inv_serialized["defaults"] == expected_defaults
+
     def test_parse_error(self):
         base_path = os.path.join(BASE_PATH, "parse_error")
         with pytest.raises(NornirNoValidInventoryError):

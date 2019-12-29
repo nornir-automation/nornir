@@ -327,10 +327,12 @@ def parse(
     if Path(hostsfile).expanduser().is_file():
         possible_sources.append(hostsfile)
 
-    if inventory:
-        inv: Path = Path(inventory).expanduser()
+    inventory_locations = inventory.split(",") if inventory else []
+
+    for location in inventory_locations:
+        inv: Path = Path(location).expanduser()
         if inv.is_dir():
-            files = Path(inventory).glob("*")
+            files = Path(location).glob("*")
             possible_sources.extend(
                 [
                     str(f.resolve())
