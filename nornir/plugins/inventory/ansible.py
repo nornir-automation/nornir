@@ -424,6 +424,18 @@ class AnsibleInventory(Inventory):
         *args: Any,
         **kwargs: Any,
     ) -> None:
+        """
+        Ansible Inventory plugin supporting ini, yaml, and dynamic inventory sources.
+
+        Arguments:
+            hostsfile: Path to valid Ansible inventory
+            inventory: Comma separated list of valid Ansible inventory sources
+            hash_behavior: Determines behavior of how duplicate dicts vars in inventory are handled.
+                With 'replace' (default), highest priority (first file parsed) dicts are retained
+                and subsequent dicts ignored. With 'merge', subsequent dicts are merged into any
+                higher priority dicts in inventory. This is intended to duplicate Ansible
+                "hash_behaviour" setting.
+        """
         host_vars, group_vars, defaults = parse(hostsfile, inventory, hash_behavior)
         super().__init__(
             hosts=host_vars, groups=group_vars, defaults=defaults, *args, **kwargs
