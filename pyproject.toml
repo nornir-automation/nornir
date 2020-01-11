@@ -48,7 +48,7 @@ pytest-cov = "*"
 pylama = "*"
 flake8-import-order = "*"
 requests-mock = "*"
-black = {version = "^19.3b0",allows-prereleases = true}
+black = {version = "^19.3b0",allow-prereleases = true}
 mypy = "*"
 # The following dependencies are used for docs generation when run locally or in Docker
 # (e.g. poetry install)
