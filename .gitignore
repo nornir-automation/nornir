@@ -103,5 +103,6 @@ output/
 
 .DS_Store
 .vscode
+.idea
 
 pip-wheel-metadata/
