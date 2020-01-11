@@ -6,7 +6,6 @@ from nornir.core.exceptions import NornirNoValidInventoryError
 import pytest
 
 import ruamel.yaml
-from ruamel.yaml.scanner import ScannerError
 
 
 BASE_PATH = os.path.join(os.path.dirname(__file__), "ansible")

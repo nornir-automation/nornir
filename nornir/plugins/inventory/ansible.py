@@ -261,12 +261,7 @@ def parse(hostsfile: str) -> Tuple[HostsDict, GroupsDict, DefaultsDict]:
 
 
 class AnsibleInventory(Inventory):
-    def __init__(
-        self,
-        hostsfile: str = "hosts",
-        *args: Any,
-        **kwargs: Any,
-    ) -> None:
+    def __init__(self, hostsfile: str = "hosts", *args: Any, **kwargs: Any) -> None:
         """
         Ansible Inventory plugin supporting ini, yaml, and dynamic inventory sources.
 
