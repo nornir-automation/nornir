@@ -1,13 +1,16 @@
 import logging
 import logging.config
-from multiprocessing.dummy import Pool
-from typing import List, Optional
+from concurrent.futures import ThreadPoolExecutor
+from typing import List, Optional, TYPE_CHECKING, Dict, Any
 
 from nornir.core.configuration import Config
 from nornir.core.inventory import Inventory
 from nornir.core.processor import Processor, Processors
 from nornir.core.state import GlobalState
 from nornir.core.task import AggregatedResult, Task
+
+if TYPE_CHECKING:
+    from nornir.core.inventory import Host  # noqa: W0611
 
 logger = logging.getLogger(__name__)
 
@@ -72,20 +75,24 @@ class Nornir(object):
             result[host.name] = task.copy().start(host, self)
         return result
 
-    def _run_parallel(self, task: Task, hosts, num_workers, **kwargs):
-        result = AggregatedResult(kwargs.get("name") or task.name)
+    def _run_parallel(
+        self,
+        task: Task,
+        hosts: List["Host"],
+        num_workers: int,
+        **kwargs: Dict[str, Any],
+    ) -> AggregatedResult:
+        agg_result = AggregatedResult(kwargs.get("name") or task.name)
+        futures = []
+        with ThreadPoolExecutor(num_workers) as pool:
+            for host in hosts:
+                future = pool.submit(task.copy().start, host, self)
+                futures.append(future)
 
-        pool = Pool(processes=num_workers)
-        result_pool = [
-            pool.apply_async(task.copy().start, args=(h, self)) for h in hosts
-        ]
-        pool.close()
-        pool.join()
-
-        for rp in result_pool:
-            r = rp.get()
-            result[r.host.name] = r
-        return result
+        for future in futures:
+            worker_result = future.result()
+            agg_result[worker_result.host.name] = worker_result
+        return agg_result
 
     def run(
         self,
