@@ -45,7 +45,6 @@ nbval = "*"
 pytest = "*"
 pytest-cov = "*"
 pylama = "*"
-flake8-import-order = "*"
 requests-mock = "*"
 black = { version = "19.10b0", allow-prereleases = true }
 mypy = "*"
