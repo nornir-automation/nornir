@@ -15,13 +15,14 @@ from nornir.core.deserializer.inventory import (
     InventoryElement,
     VarsDict,
 )
+from nornir.core.exceptions import NornirNoValidInventoryError
 
 import ruamel.yaml
 from ruamel.yaml.composer import ComposerError
 from ruamel.yaml.scanner import ScannerError
 
 
-VARS_FILENAME_EXTENSIONS = ["", ".yml", ".yaml"]
+VARS_FILENAME_EXTENSIONS = ["", ".ini", ".yml", ".yaml"]
 
 
 YAML = ruamel.yaml.YAML(typ="safe")
@@ -250,7 +251,9 @@ def parse(hostsfile: str) -> Tuple[HostsDict, GroupsDict, DefaultsDict]:
             parser = YAMLParser(hostsfile)
         except (ScannerError, ComposerError):
             logger.error("AnsibleInventory: file %r is not INI or YAML file", hostsfile)
-            raise
+            raise NornirNoValidInventoryError(
+                f"AnsibleInventory: no valid inventory source(s) to parse. Tried: {hostsfile}"
+            )
 
     parser.parse()
 
@@ -259,6 +262,13 @@ def parse(hostsfile: str) -> Tuple[HostsDict, GroupsDict, DefaultsDict]:
 
 class AnsibleInventory(Inventory):
     def __init__(self, hostsfile: str = "hosts", *args: Any, **kwargs: Any) -> None:
+        """
+        Ansible Inventory plugin supporting ini, yaml, and dynamic inventory sources.
+
+        Arguments:
+            hostsfile: Path to valid Ansible inventory
+
+        """
         host_vars, group_vars, defaults = parse(hostsfile)
         super().__init__(
             hosts=host_vars, groups=group_vars, defaults=defaults, *args, **kwargs
