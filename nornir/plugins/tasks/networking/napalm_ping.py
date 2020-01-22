@@ -20,7 +20,7 @@ def napalm_ping(
       (optional) source – Source address of echo request. (default=None) (type=string)
       (optional) ttl – Maximum number of hops. (default=255) (type=integer)
       (optional) timeout – Maximum seconds to wait after sending final packet. 
-                 (default=2) (type=integer)
+      (default=2) (type=integer)
       (optional) size – Size of request in bytes. (default=100)(type=integer)
       (optional) count – Number of ping request to send. (default=5) (type=integer)
       (optional) vrf - Name of vrf. (default=None) (type=string)
@@ -44,6 +44,7 @@ def napalm_ping(
 
     """
     device = task.host.get_connection("napalm", task.nornir.config)
-    result = device.ping(destination=dest, source=source, ttl=ttl, timeout=timeout, size=size, 
-                         count=count, vrf=vrf)
+    result = device.ping(
+        destination=dest, source=source, ttl=ttl, timeout=timeout, size=size, count=count, vrf=vrf
+    )
     return Result(host=task.host, result=result)
