@@ -1,6 +1,24 @@
 Changelog
 ==========
 
+2.4.0 - January 26 2020
+-----------------------
+
+* Add skip mark to netconf tests :issue:`469` :user:`dmfigol`
+* Update dependencies :issue:`468` :user:`dmfigol`
+* Replace multiprocessing.dummy with concurrent.futures :issue:`467` :user:`dmfigol`
+* Ansible Inventory - NornirNoValidInventoryError Exception :issue:`463` :user:`carlmontanari`
+* cleanup items from :issue:`459` #462 :user:`carlmontanari`
+* Update pydantic to v1 :issue:`449` :user:`AchilleAsh`
+* Minor Typing updates to appease mypy .740 :issue:`448` :user:`carlmontanari`
+* Update to support Netmiko 3.x.x :issue:`445` :user:`carlmontanari`
+* Add netconf plugins :issue:`444` :user:`ogenstad`
+* Fix KeyError when setting a "False" val in defaults :issue:`443` :user:`k01ek`
+* Fix :issue:`411` #442 :user:`k01ek`
+* Add Netbox inventory plugin to documentation :issue:`441` :user:`ogenstad`
+* Add netconf_capabilities plugin :issue:`439` :user:`ogenstad`
+* Fix netbox unnamed devices :issue:`438` :user:`wvandeun`
+
 2.3.0 - September 21 2019
 -------------------------
 
