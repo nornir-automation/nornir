@@ -18,7 +18,7 @@ def napalm_ping(
     Arguments:
       dest(str) – Host or IP Address of the destination.
       source(str, optional) – Source address of echo request.
-      ttl(int, optional) – Max number of hops.  
+      ttl(int, optional) – Max number of hops.
       timeout(int, optional) – Max seconds to wait after sending final packet.
       size(int, optional) – Size of request in bytes.
       count(int, optional) – Number of ping request to send.
