@@ -16,13 +16,13 @@ def napalm_ping(
     Executes ping on the device and returns a dictionary with the result.
 
     Arguments:
-      dest(destination) – Host or IP Address of the destination. (type=string)
-      (optional) source – Source address of echo request. (default=None) (type=string)
-      (optional) ttl – Max number of hops. (default=255) (type=integer)
-      (optional) timeout – Max seconds to wait after sending final packet.(default=2)(type=integer)
-      (optional) size – Size of request in bytes. (default=100)(type=integer)
-      (optional) count – Number of ping request to send. (default=5) (type=integer)
-      (optional) vrf - Name of vrf. (default=None) (type=string)
+      dest(str) – Host or IP Address of the destination.
+      source(str, optional) – Source address of echo request.
+      ttl(int, optional) – Max number of hops.  
+      timeout(int, optional) – Max seconds to wait after sending final packet.
+      size(int, optional) – Size of request in bytes.
+      count(int, optional) – Number of ping request to send.
+      vrf(str, optional) - Name of vrf.
 
     Examples:
 
