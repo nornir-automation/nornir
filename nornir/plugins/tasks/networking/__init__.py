@@ -29,5 +29,5 @@ __all__ = (
     "netmiko_send_config",
     "netmiko_save_config",
     "tcp_ping",
-    "napalm_ping"
+    "napalm_ping",
 )
