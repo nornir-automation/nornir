@@ -33,7 +33,7 @@ def get_inv(requests_mock, case, pagination, **kwargs):
 
 def transform_function(host):
     vendor_map = {"Cisco": "ios", "Juniper": "junos"}
-    host["platform"] = vendor_map[host["vendor"]]
+    host.platform = vendor_map[host["device_type"]["manufacturer"]["name"]]
 
 
 class Test(object):
@@ -53,10 +53,6 @@ class Test(object):
         inv = get_inv(
             requests_mock, "2.3.5", False, transform_function=transform_function
         )
-        #  with open(
-        #      "{}/{}/expected_transform_function.json".format(BASE_PATH, "2.3.5"), "w"
-        #  ) as f:
-        #      f.write(InventorySerializer.serialize(inv).json())
         with open(
             "{}/{}/expected_transform_function.json".format(BASE_PATH, "2.3.5"), "r"
         ) as f:

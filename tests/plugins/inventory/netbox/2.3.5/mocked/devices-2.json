@@ -68,7 +68,7 @@
     {
       "id": 4,
       "name": null,
-      "display_name": "",
+      "display_name": "MX480",
       "device_type": {
         "id": 11,
         "url": "http://localhost:8080/api/dcim/device-types/11/",
