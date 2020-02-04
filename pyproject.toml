@@ -38,6 +38,9 @@ sphinx-issues = { version = "^1.2", optional = true }
 typing_extensions = "^3.7"
 ncclient = "^0.6.6"
 
+# for pydantic
+dataclasses = {version = "^0.7", python = "3.6"}
+
 [tool.poetry.dev-dependencies]
 decorator = "*"
 nbval = "*"
