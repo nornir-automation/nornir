@@ -2,7 +2,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 from nornir.core import inventory
 
-from nornir.vendor.pydantic import BaseModel
+from nornir._vendor.pydantic import BaseModel
 
 
 VarsDict = Dict[str, Any]

@@ -3,7 +3,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Callable, Optional, Type, TypeVar, Union
 
-from nornir.vendor.pydantic.parse import Protocol, load_file
+from nornir._vendor.pydantic.parse import Protocol, load_file
 
 from .typing import display_as_type
 
