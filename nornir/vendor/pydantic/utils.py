@@ -29,7 +29,7 @@ if TYPE_CHECKING:
     from .typing import AbstractSetIntStr, DictIntStrAny, IntStr, ReprArgs  # noqa: F401
     from .dataclasses import DataclassType  # noqa: F401
 
-KeyType = TypeVar('KeyType')
+KeyType = TypeVar("KeyType")
 
 
 def import_string(dotted_path: str) -> Any:
@@ -38,7 +38,7 @@ def import_string(dotted_path: str) -> Any:
     last name in the path. Raise ImportError if the import fails.
     """
     try:
-        module_path, class_name = dotted_path.strip(' ').rsplit('.', 1)
+        module_path, class_name = dotted_path.strip(" ").rsplit(".", 1)
     except ValueError as e:
         raise ImportError(f'"{dotted_path}" doesn\'t look like a module path') from e
 
@@ -46,23 +46,27 @@ def import_string(dotted_path: str) -> Any:
     try:
         return getattr(module, class_name)
     except AttributeError as e:
-        raise ImportError(f'Module "{module_path}" does not define a "{class_name}" attribute') from e
+        raise ImportError(
+            f'Module "{module_path}" does not define a "{class_name}" attribute'
+        ) from e
 
 
 def truncate(v: Union[str], *, max_len: int = 80) -> str:
     """
     Truncate a value and add a unicode ellipsis (three dots) to the end if it was too long
     """
-    warnings.warn('`truncate` is no-longer used by pydantic and is deprecated', DeprecationWarning)
+    warnings.warn(
+        "`truncate` is no-longer used by pydantic and is deprecated", DeprecationWarning
+    )
     if isinstance(v, str) and len(v) > (max_len - 2):
         # -3 so quote + string + … + quote has correct length
-        return (v[: (max_len - 3)] + '…').__repr__()
+        return (v[: (max_len - 3)] + "…").__repr__()
     try:
         v = v.__repr__()
     except TypeError:
         v = type(v).__repr__(v)  # in case v is a type
     if len(v) > max_len:
-        v = v[: max_len - 1] + '…'
+        v = v[: max_len - 1] + "…"
     return v
 
 
@@ -73,7 +77,7 @@ def sequence_like(v: AnyType) -> bool:
     return isinstance(v, (list, tuple, set, frozenset)) or inspect.isgenerator(v)
 
 
-def validate_field_name(bases: List[Type['BaseModel']], field_name: str) -> None:
+def validate_field_name(bases: List[Type["BaseModel"]], field_name: str) -> None:
     """
     Ensure that the field's name does not shadow an existing attribute of the model.
     """
@@ -81,11 +85,13 @@ def validate_field_name(bases: List[Type['BaseModel']], field_name: str) -> None
         if getattr(base, field_name, None):
             raise NameError(
                 f'Field name "{field_name}" shadows a BaseModel attribute; '
-                f'use a different field name with "alias=\'{field_name}\'".'
+                f"use a different field name with \"alias='{field_name}'\"."
             )
 
 
-def lenient_issubclass(cls: Any, class_or_tuple: Union[AnyType, Tuple[AnyType, ...]]) -> bool:
+def lenient_issubclass(
+    cls: Any, class_or_tuple: Union[AnyType, Tuple[AnyType, ...]]
+) -> bool:
     return isinstance(cls, type) and issubclass(cls, class_or_tuple)
 
 
@@ -94,14 +100,16 @@ def in_ipython() -> bool:
     Check whether we're in an ipython environment, including jupyter notebooks.
     """
     try:
-        eval('__IPYTHON__')
+        eval("__IPYTHON__")
     except NameError:
         return False
     else:  # pragma: no cover
         return True
 
 
-def deep_update(mapping: Dict[KeyType, Any], updating_mapping: Dict[KeyType, Any]) -> Dict[KeyType, Any]:
+def deep_update(
+    mapping: Dict[KeyType, Any], updating_mapping: Dict[KeyType, Any]
+) -> Dict[KeyType, Any]:
     updated_mapping = mapping.copy()
     for k, v in updating_mapping.items():
         if k in mapping and isinstance(mapping[k], dict) and isinstance(v, dict):
@@ -122,7 +130,9 @@ def almost_equal_floats(value_1: float, value_2: float, *, delta: float = 1e-8) 
     return abs(value_1 - value_2) <= delta
 
 
-def get_model(obj: Union[Type['BaseModel'], Type['DataclassType']]) -> Type['BaseModel']:
+def get_model(
+    obj: Union[Type["BaseModel"], Type["DataclassType"]]
+) -> Type["BaseModel"]:
     from .main import BaseModel  # noqa: F811
 
     try:
@@ -131,7 +141,7 @@ def get_model(obj: Union[Type['BaseModel'], Type['DataclassType']]) -> Type['Bas
         model_cls = obj
 
     if not issubclass(model_cls, BaseModel):
-        raise TypeError('Unsupported type, must be either BaseModel or dataclass')
+        raise TypeError("Unsupported type, must be either BaseModel or dataclass")
     return model_cls
 
 
@@ -153,7 +163,7 @@ class Representation:
     of objects.
     """
 
-    def __repr_args__(self) -> 'ReprArgs':
+    def __repr_args__(self) -> "ReprArgs":
         """
         Returns the attributes to show in __str__, __repr__, and __pretty__ this is generally overridden.
 
@@ -171,25 +181,29 @@ class Representation:
         return self.__class__.__name__
 
     def __repr_str__(self, join_str: str) -> str:
-        return join_str.join(repr(v) if a is None else f'{a}={v!r}' for a, v in self.__repr_args__())
+        return join_str.join(
+            repr(v) if a is None else f"{a}={v!r}" for a, v in self.__repr_args__()
+        )
 
-    def __pretty__(self, fmt: Callable[[Any], Any], **kwargs: Any) -> Generator[Any, None, None]:
+    def __pretty__(
+        self, fmt: Callable[[Any], Any], **kwargs: Any
+    ) -> Generator[Any, None, None]:
         """
         Used by devtools (https://python-devtools.helpmanual.io/) to provide a human readable representations of objects
         """
-        yield self.__repr_name__() + '('
+        yield self.__repr_name__() + "("
         yield 1
         for name, value in self.__repr_args__():
             if name is not None:
-                yield name + '='
+                yield name + "="
             yield fmt(value)
-            yield ','
+            yield ","
             yield 0
         yield -1
-        yield ')'
+        yield ")"
 
     def __str__(self) -> str:
-        return self.__repr_str__(' ')
+        return self.__repr_str__(" ")
 
     def __repr__(self) -> str:
         return f'{self.__repr_name__()}({self.__repr_str__(", ")})'
@@ -202,7 +216,7 @@ class GetterDict(Representation):
     We can't inherit from Mapping[str, Any] because it upsets cython so we have to implement all methods ourselves.
     """
 
-    __slots__ = ('_obj',)
+    __slots__ = ("_obj",)
 
     def __init__(self, obj: Any):
         self._obj = obj
@@ -238,7 +252,7 @@ class GetterDict(Representation):
 
     def __iter__(self) -> Iterator[str]:
         for name in dir(self._obj):
-            if not name.startswith('_'):
+            if not name.startswith("_"):
                 yield name
 
     def __len__(self) -> int:
@@ -250,11 +264,11 @@ class GetterDict(Representation):
     def __eq__(self, other: Any) -> bool:
         return dict(self) == dict(other.items())  # type: ignore
 
-    def __repr_args__(self) -> 'ReprArgs':
+    def __repr_args__(self) -> "ReprArgs":
         return [(None, dict(self))]  # type: ignore
 
     def __repr_name__(self) -> str:
-        return f'GetterDict[{display_as_type(self._obj)}]'
+        return f"GetterDict[{display_as_type(self._obj)}]"
 
 
 class ValueItems(Representation):
@@ -262,11 +276,13 @@ class ValueItems(Representation):
     Class for more convenient calculation of excluded or included fields on values.
     """
 
-    __slots__ = ('_items', '_type')
+    __slots__ = ("_items", "_type")
 
-    def __init__(self, value: Any, items: Union['AbstractSetIntStr', 'DictIntStrAny']) -> None:
+    def __init__(
+        self, value: Any, items: Union["AbstractSetIntStr", "DictIntStrAny"]
+    ) -> None:
         if TYPE_CHECKING:
-            self._items: Union['AbstractSetIntStr', 'DictIntStrAny']
+            self._items: Union["AbstractSetIntStr", "DictIntStrAny"]
             self._type: Type[Union[set, dict]]  # type: ignore
 
         # For further type checks speed-up
@@ -275,7 +291,7 @@ class ValueItems(Representation):
         elif isinstance(items, AbstractSet):
             self._type = set
         else:
-            raise TypeError(f'Unexpected type of exclude value {type(items)}')
+            raise TypeError(f"Unexpected type of exclude value {type(items)}")
 
         if isinstance(value, (list, tuple)):
             items = self._normalize_indexes(items, len(value))
@@ -305,7 +321,9 @@ class ValueItems(Representation):
         return item in self._items
 
     @no_type_check
-    def for_element(self, e: 'IntStr') -> Optional[Union['AbstractSetIntStr', 'DictIntStrAny']]:
+    def for_element(
+        self, e: "IntStr"
+    ) -> Optional[Union["AbstractSetIntStr", "DictIntStrAny"]]:
         """
         :param e: key or index of element on value
         :return: raw values for elemet if self._items is dict and contain needed element
@@ -318,8 +336,8 @@ class ValueItems(Representation):
 
     @no_type_check
     def _normalize_indexes(
-        self, items: Union['AbstractSetIntStr', 'DictIntStrAny'], v_length: int
-    ) -> Union['AbstractSetIntStr', 'DictIntStrAny']:
+        self, items: Union["AbstractSetIntStr", "DictIntStrAny"], v_length: int
+    ) -> Union["AbstractSetIntStr", "DictIntStrAny"]:
         """
         :param items: dict or set of indexes which will be normalized
         :param v_length: length of sequence indexes of which will be
@@ -332,7 +350,7 @@ class ValueItems(Representation):
         else:
             return {v_length + i if i < 0 else i: v for i, v in items.items()}
 
-    def __repr_args__(self) -> 'ReprArgs':
+    def __repr_args__(self) -> "ReprArgs":
         return [(None, self._items)]
 
 
@@ -341,19 +359,21 @@ def version_info() -> str:
     from .version import VERSION
 
     optional_deps = []
-    for p in ('typing-extensions', 'email-validator', 'devtools'):
+    for p in ("typing-extensions", "email-validator", "devtools"):
         try:
-            import_module(p.replace('-', '_'))
+            import_module(p.replace("-", "_"))
         except ImportError:
             continue
         optional_deps.append(p)
 
     info = {
-        'pydantic version': VERSION,
-        'pydantic compiled': compiled,
-        'install path': Path(__file__).resolve().parent,
-        'python version': sys.version,
-        'platform': platform.platform(),
-        'optional deps. installed': optional_deps,
+        "pydantic version": VERSION,
+        "pydantic compiled": compiled,
+        "install path": Path(__file__).resolve().parent,
+        "python version": sys.version,
+        "platform": platform.platform(),
+        "optional deps. installed": optional_deps,
     }
-    return '\n'.join('{:>30} {}'.format(k + ':', str(v).replace('\n', ' ')) for k, v in info.items())
+    return "\n".join(
+        "{:>30} {}".format(k + ":", str(v).replace("\n", " ")) for k, v in info.items()
+    )

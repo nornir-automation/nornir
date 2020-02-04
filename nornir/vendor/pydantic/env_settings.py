@@ -40,7 +40,7 @@ class BaseSettings(BaseModel):
 
         for field in self.__fields__.values():
             env_val: Optional[str] = None
-            for env_name in field.field_info.extra['env_names']:
+            for env_name in field.field_info.extra["env_names"]:
                 env_val = env_vars.get(env_name)
                 if env_val is not None:
                     break
@@ -57,7 +57,7 @@ class BaseSettings(BaseModel):
         return d
 
     class Config:
-        env_prefix = ''
+        env_prefix = ""
         validate_all = True
         extra = Extra.forbid
         arbitrary_types_allowed = True
@@ -66,13 +66,13 @@ class BaseSettings(BaseModel):
         @classmethod
         def prepare_field(cls, field: ModelField) -> None:
             env_names: Union[List[str], AbstractSet[str]]
-            env = field.field_info.extra.get('env')
+            env = field.field_info.extra.get("env")
             if env is None:
                 if field.has_alias:
                     warnings.warn(
-                        'aliases are no longer used by BaseSettings to define which environment variables to read. '
+                        "aliases are no longer used by BaseSettings to define which environment variables to read. "
                         'Instead use the "env" field setting. '
-                        'See https://pydantic-docs.helpmanual.io/usage/settings/#environment-variable-names',
+                        "See https://pydantic-docs.helpmanual.io/usage/settings/#environment-variable-names",
                         FutureWarning,
                     )
                 env_names = {cls.env_prefix + field.name}
@@ -83,10 +83,12 @@ class BaseSettings(BaseModel):
             elif sequence_like(env):
                 env_names = list(env)
             else:
-                raise TypeError(f'invalid field env: {env!r} ({display_as_type(env)}); should be string, list or set')
+                raise TypeError(
+                    f"invalid field env: {env!r} ({display_as_type(env)}); should be string, list or set"
+                )
 
             if not cls.case_sensitive:
                 env_names = type(env_names)(n.lower() for n in env_names)
-            field.field_info.extra['env_names'] = env_names
+            field.field_info.extra["env_names"] = env_names
 
     __config__: Config  # type: ignore

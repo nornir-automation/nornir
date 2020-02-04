@@ -1,5 +1,15 @@
 import dataclasses
-from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, Optional, Type, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Generator,
+    Optional,
+    Type,
+    TypeVar,
+    Union,
+)
 
 from .class_validators import gather_all_validators
 from .error_wrappers import ValidationError
@@ -11,7 +21,7 @@ from .typing import AnyType
 if TYPE_CHECKING:
     from .main import BaseModel  # noqa: F401
 
-    DataclassT = TypeVar('DataclassT', bound='DataclassType')
+    DataclassT = TypeVar("DataclassT", bound="DataclassType")
 
     class DataclassType:
         __pydantic_model__: Type[BaseModel]
@@ -21,14 +31,14 @@ if TYPE_CHECKING:
             pass
 
         @classmethod
-        def __validate__(cls: Type['DataclassT'], v: Any) -> 'DataclassT':
+        def __validate__(cls: Type["DataclassT"], v: Any) -> "DataclassT":
             pass
 
-        def __call__(self: 'DataclassT', *args: Any, **kwargs: Any) -> 'DataclassT':
+        def __call__(self: "DataclassT", *args: Any, **kwargs: Any) -> "DataclassT":
             pass
 
 
-def _validate_dataclass(cls: Type['DataclassT'], v: Any) -> 'DataclassT':
+def _validate_dataclass(cls: Type["DataclassT"], v: Any) -> "DataclassT":
     if isinstance(v, cls):
         return v
     elif isinstance(v, (list, tuple)):
@@ -39,11 +49,11 @@ def _validate_dataclass(cls: Type['DataclassT'], v: Any) -> 'DataclassT':
         raise DataclassTypeError(class_name=cls.__name__)
 
 
-def _get_validators(cls: Type['DataclassT']) -> Generator[Any, None, None]:
+def _get_validators(cls: Type["DataclassT"]) -> Generator[Any, None, None]:
     yield cls.__validate__
 
 
-def setattr_validate_assignment(self: 'DataclassType', name: str, value: Any) -> None:
+def setattr_validate_assignment(self: "DataclassType", name: str, value: Any) -> None:
     if self.__initialised__:
         d = dict(self.__dict__)
         d.pop(name, None)
@@ -65,23 +75,25 @@ def _process_class(
     unsafe_hash: bool,
     frozen: bool,
     config: Optional[Type[Any]],
-) -> 'DataclassType':
-    post_init_original = getattr(_cls, '__post_init__', None)
-    if post_init_original and post_init_original.__name__ == '_pydantic_post_init':
+) -> "DataclassType":
+    post_init_original = getattr(_cls, "__post_init__", None)
+    if post_init_original and post_init_original.__name__ == "_pydantic_post_init":
         post_init_original = None
     if not post_init_original:
-        post_init_original = getattr(_cls, '__post_init_original__', None)
+        post_init_original = getattr(_cls, "__post_init_original__", None)
 
-    post_init_post_parse = getattr(_cls, '__post_init_post_parse__', None)
+    post_init_post_parse = getattr(_cls, "__post_init_post_parse__", None)
 
-    def _pydantic_post_init(self: 'DataclassType', *initvars: Any) -> None:
+    def _pydantic_post_init(self: "DataclassType", *initvars: Any) -> None:
         if post_init_original is not None:
             post_init_original(self, *initvars)
-        d, _, validation_error = validate_model(self.__pydantic_model__, self.__dict__, cls=self.__class__)
+        d, _, validation_error = validate_model(
+            self.__pydantic_model__, self.__dict__, cls=self.__class__
+        )
         if validation_error:
             raise validation_error
-        object.__setattr__(self, '__dict__', d)
-        object.__setattr__(self, '__initialised__', True)
+        object.__setattr__(self, "__dict__", d)
+        object.__setattr__(self, "__initialised__", True)
         if post_init_post_parse is not None:
             post_init_post_parse(self, *initvars)
 
@@ -103,7 +115,11 @@ def _process_class(
 
     validators = gather_all_validators(cls)
     cls.__pydantic_model__ = create_model(
-        cls.__name__, __config__=config, __module__=_cls.__module__, __validators__=validators, **fields
+        cls.__name__,
+        __config__=config,
+        __module__=_cls.__module__,
+        __validators__=validators,
+        **fields,
     )
 
     cls.__initialised__ = False
@@ -128,7 +144,7 @@ def dataclass(
     unsafe_hash: bool = False,
     frozen: bool = False,
     config: Type[Any] = None,
-) -> Union[Callable[[AnyType], 'DataclassType'], 'DataclassType']:
+) -> Union[Callable[[AnyType], "DataclassType"], "DataclassType"]:
     """
     Like the python standard lib dataclasses but with type validation.
 
@@ -136,7 +152,7 @@ def dataclass(
     as Config.validate_assignment.
     """
 
-    def wrap(cls: AnyType) -> 'DataclassType':
+    def wrap(cls: AnyType) -> "DataclassType":
         return _process_class(cls, init, repr, eq, order, unsafe_hash, frozen, config)
 
     if _cls is None:

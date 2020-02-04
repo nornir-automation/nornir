@@ -2,7 +2,14 @@ import datetime
 from dataclasses import asdict, is_dataclass
 from decimal import Decimal
 from enum import Enum
-from ipaddress import IPv4Address, IPv4Interface, IPv4Network, IPv6Address, IPv6Interface, IPv6Network
+from ipaddress import (
+    IPv4Address,
+    IPv4Interface,
+    IPv4Network,
+    IPv6Address,
+    IPv6Interface,
+    IPv6Network,
+)
 from pathlib import Path
 from types import GeneratorType
 from typing import Any, Callable, Dict, Type, Union
@@ -11,7 +18,7 @@ from uuid import UUID
 from .color import Color
 from .types import SecretBytes, SecretStr
 
-__all__ = 'pydantic_encoder', 'custom_pydantic_encoder', 'timedelta_isoformat'
+__all__ = "pydantic_encoder", "custom_pydantic_encoder", "timedelta_isoformat"
 
 
 def isoformat(o: Union[datetime.date, datetime.time]) -> str:
@@ -56,12 +63,16 @@ def pydantic_encoder(obj: Any) -> Any:
     try:
         encoder = ENCODERS_BY_TYPE[type(obj)]
     except KeyError:
-        raise TypeError(f"Object of type '{obj.__class__.__name__}' is not JSON serializable")
+        raise TypeError(
+            f"Object of type '{obj.__class__.__name__}' is not JSON serializable"
+        )
     else:
         return encoder(obj)
 
 
-def custom_pydantic_encoder(type_encoders: Dict[Any, Callable[[Type[Any]], Any]], obj: Any) -> Any:
+def custom_pydantic_encoder(
+    type_encoders: Dict[Any, Callable[[Type[Any]], Any]], obj: Any
+) -> Any:
     encoder = type_encoders.get(type(obj))
     if encoder:
         return encoder(obj)
@@ -75,4 +86,4 @@ def timedelta_isoformat(td: datetime.timedelta) -> str:
     """
     minutes, seconds = divmod(td.seconds, 60)
     hours, minutes = divmod(minutes, 60)
-    return f'P{td.days}DT{hours:d}H{minutes:d}M{seconds:d}.{td.microseconds:06d}S'
+    return f"P{td.days}DT{hours:d}H{minutes:d}M{seconds:d}.{td.microseconds:06d}S"

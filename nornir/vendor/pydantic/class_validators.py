@@ -4,7 +4,20 @@ from functools import wraps
 from inspect import Signature, signature
 from itertools import chain
 from types import FunctionType
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Set, Tuple, Type, Union, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    overload,
+)
 
 from .errors import ConfigError
 from .typing import AnyCallable
@@ -12,7 +25,7 @@ from .utils import in_ipython
 
 
 class Validator:
-    __slots__ = 'func', 'pre', 'each_item', 'always', 'check_fields', 'skip_on_failure'
+    __slots__ = "func", "pre", "each_item", "always", "check_fields", "skip_on_failure"
 
     def __init__(
         self,
@@ -36,14 +49,16 @@ if TYPE_CHECKING:
     from .fields import ModelField
     from .types import ModelOrDc
 
-    ValidatorCallable = Callable[[Optional[ModelOrDc], Any, Dict[str, Any], ModelField, Type[BaseConfig]], Any]
+    ValidatorCallable = Callable[
+        [Optional[ModelOrDc], Any, Dict[str, Any], ModelField, Type[BaseConfig]], Any
+    ]
     ValidatorsList = List[ValidatorCallable]
     ValidatorListDict = Dict[str, List[Validator]]
 
 _FUNCS: Set[str] = set()
-ROOT_KEY = '__root__'
-VALIDATOR_CONFIG_KEY = '__validator_config__'
-ROOT_VALIDATOR_CONFIG_KEY = '__root_validator_config__'
+ROOT_KEY = "__root__"
+VALIDATOR_CONFIG_KEY = "__validator_config__"
+ROOT_VALIDATOR_CONFIG_KEY = "__root_validator_config__"
 
 
 def validator(
@@ -66,7 +81,7 @@ def validator(
     :param allow_reuse: whether to track and raise an error if another validator refers to the decorated function
     """
     if not fields:
-        raise ConfigError('validator with no fields specified')
+        raise ConfigError("validator with no fields specified")
     elif isinstance(fields[0], FunctionType):
         raise ConfigError(
             "validators should be used with fields and keyword arguments, not bare. "  # noqa: Q000
@@ -88,7 +103,13 @@ def validator(
             VALIDATOR_CONFIG_KEY,
             (
                 fields,
-                Validator(func=f_cls.__func__, pre=pre, each_item=each_item, always=always, check_fields=check_fields),
+                Validator(
+                    func=f_cls.__func__,
+                    pre=pre,
+                    each_item=each_item,
+                    always=always,
+                    check_fields=check_fields,
+                ),
             ),
         )
         return f_cls
@@ -107,7 +128,11 @@ def root_validator(*, pre: bool = False) -> Callable[[AnyCallable], classmethod]
 
 
 def root_validator(
-    _func: Optional[AnyCallable] = None, *, pre: bool = False, allow_reuse: bool = False, skip_on_failure: bool = False
+    _func: Optional[AnyCallable] = None,
+    *,
+    pre: bool = False,
+    allow_reuse: bool = False,
+    skip_on_failure: bool = False,
 ) -> Union[classmethod, Callable[[AnyCallable], classmethod]]:
     """
     Decorate methods on a model indicating that they should be used to validate (and perhaps modify) data either
@@ -116,14 +141,18 @@ def root_validator(
     if _func:
         f_cls = _prepare_validator(_func, allow_reuse)
         setattr(
-            f_cls, ROOT_VALIDATOR_CONFIG_KEY, Validator(func=f_cls.__func__, pre=pre, skip_on_failure=skip_on_failure)
+            f_cls,
+            ROOT_VALIDATOR_CONFIG_KEY,
+            Validator(func=f_cls.__func__, pre=pre, skip_on_failure=skip_on_failure),
         )
         return f_cls
 
     def dec(f: AnyCallable) -> classmethod:
         f_cls = _prepare_validator(f, allow_reuse)
         setattr(
-            f_cls, ROOT_VALIDATOR_CONFIG_KEY, Validator(func=f_cls.__func__, pre=pre, skip_on_failure=skip_on_failure)
+            f_cls,
+            ROOT_VALIDATOR_CONFIG_KEY,
+            Validator(func=f_cls.__func__, pre=pre, skip_on_failure=skip_on_failure),
         )
         return f_cls
 
@@ -137,23 +166,25 @@ def _prepare_validator(function: AnyCallable, allow_reuse: bool) -> classmethod:
     """
     f_cls = function if isinstance(function, classmethod) else classmethod(function)
     if not in_ipython() and not allow_reuse:
-        ref = f_cls.__func__.__module__ + '.' + f_cls.__func__.__qualname__
+        ref = f_cls.__func__.__module__ + "." + f_cls.__func__.__qualname__
         if ref in _FUNCS:
-            raise ConfigError(f'duplicate validator function "{ref}"; if this is intended, set `allow_reuse=True`')
+            raise ConfigError(
+                f'duplicate validator function "{ref}"; if this is intended, set `allow_reuse=True`'
+            )
         _FUNCS.add(ref)
     return f_cls
 
 
 class ValidatorGroup:
-    def __init__(self, validators: 'ValidatorListDict') -> None:
+    def __init__(self, validators: "ValidatorListDict") -> None:
         self.validators = validators
-        self.used_validators = {'*'}
+        self.used_validators = {"*"}
 
     def get_validators(self, name: str) -> Optional[Dict[str, Validator]]:
         self.used_validators.add(name)
         validators = self.validators.get(name, [])
         if name != ROOT_KEY:
-            validators += self.validators.get('*', [])
+            validators += self.validators.get("*", [])
         if validators:
             return {v.func.__name__: v for v in validators}
         else:
@@ -169,7 +200,7 @@ class ValidatorGroup:
             )
         )
         if unused_validators:
-            fn = ', '.join(unused_validators)
+            fn = ", ".join(unused_validators)
             raise ConfigError(
                 f"Validators defined with incorrect fields: {fn} "  # noqa: Q000
                 f"(use check_fields=False if you're inheriting from the model and intended this)"
@@ -190,30 +221,40 @@ def extract_validators(namespace: Dict[str, Any]) -> Dict[str, List[Validator]]:
     return validators
 
 
-def extract_root_validators(namespace: Dict[str, Any]) -> Tuple[List[AnyCallable], List[Tuple[bool, AnyCallable]]]:
+def extract_root_validators(
+    namespace: Dict[str, Any]
+) -> Tuple[List[AnyCallable], List[Tuple[bool, AnyCallable]]]:
     pre_validators: List[AnyCallable] = []
     post_validators: List[Tuple[bool, AnyCallable]] = []
     for name, value in namespace.items():
-        validator_config: Optional[Validator] = getattr(value, ROOT_VALIDATOR_CONFIG_KEY, None)
+        validator_config: Optional[Validator] = getattr(
+            value, ROOT_VALIDATOR_CONFIG_KEY, None
+        )
         if validator_config:
             sig = signature(validator_config.func)
             args = list(sig.parameters.keys())
-            if args[0] == 'self':
+            if args[0] == "self":
                 raise ConfigError(
                     f'Invalid signature for root validator {name}: {sig}, "self" not permitted as first argument, '
-                    f'should be: (cls, values).'
+                    f"should be: (cls, values)."
                 )
             if len(args) != 2:
-                raise ConfigError(f'Invalid signature for root validator {name}: {sig}, should be: (cls, values).')
+                raise ConfigError(
+                    f"Invalid signature for root validator {name}: {sig}, should be: (cls, values)."
+                )
             # check function signature
             if validator_config.pre:
                 pre_validators.append(validator_config.func)
             else:
-                post_validators.append((validator_config.skip_on_failure, validator_config.func))
+                post_validators.append(
+                    (validator_config.skip_on_failure, validator_config.func)
+                )
     return pre_validators, post_validators
 
 
-def inherit_validators(base_validators: 'ValidatorListDict', validators: 'ValidatorListDict') -> 'ValidatorListDict':
+def inherit_validators(
+    base_validators: "ValidatorListDict", validators: "ValidatorListDict"
+) -> "ValidatorListDict":
     for field, field_validators in base_validators.items():
         if field not in validators:
             validators[field] = []
@@ -221,7 +262,7 @@ def inherit_validators(base_validators: 'ValidatorListDict', validators: 'Valida
     return validators
 
 
-def make_generic_validator(validator: AnyCallable) -> 'ValidatorCallable':
+def make_generic_validator(validator: AnyCallable) -> "ValidatorCallable":
     """
     Make a generic function which calls a validator with the right arguments.
 
@@ -234,12 +275,12 @@ def make_generic_validator(validator: AnyCallable) -> 'ValidatorCallable':
     sig = signature(validator)
     args = list(sig.parameters.keys())
     first_arg = args.pop(0)
-    if first_arg == 'self':
+    if first_arg == "self":
         raise ConfigError(
             f'Invalid signature for validator {validator}: {sig}, "self" not permitted as first argument, '
             f'should be: (cls, value, values, config, field), "values", "config" and "field" are all optional.'
         )
-    elif first_arg == 'cls':
+    elif first_arg == "cls":
         # assume the second argument is value
         return wraps(validator)(_generic_validator_cls(validator, sig, set(args[1:])))
     else:
@@ -247,81 +288,105 @@ def make_generic_validator(validator: AnyCallable) -> 'ValidatorCallable':
         return wraps(validator)(_generic_validator_basic(validator, sig, set(args)))
 
 
-def prep_validators(v_funcs: Iterable[AnyCallable]) -> 'ValidatorsList':
+def prep_validators(v_funcs: Iterable[AnyCallable]) -> "ValidatorsList":
     return [make_generic_validator(f) for f in v_funcs if f]
 
 
-all_kwargs = {'values', 'field', 'config'}
+all_kwargs = {"values", "field", "config"}
 
 
-def _generic_validator_cls(validator: AnyCallable, sig: Signature, args: Set[str]) -> 'ValidatorCallable':
+def _generic_validator_cls(
+    validator: AnyCallable, sig: Signature, args: Set[str]
+) -> "ValidatorCallable":
     # assume the first argument is value
     has_kwargs = False
-    if 'kwargs' in args:
+    if "kwargs" in args:
         has_kwargs = True
-        args -= {'kwargs'}
+        args -= {"kwargs"}
 
     if not args.issubset(all_kwargs):
         raise ConfigError(
-            f'Invalid signature for validator {validator}: {sig}, should be: '
+            f"Invalid signature for validator {validator}: {sig}, should be: "
             f'(cls, value, values, config, field), "values", "config" and "field" are all optional.'
         )
 
     if has_kwargs:
-        return lambda cls, v, values, field, config: validator(cls, v, values=values, field=field, config=config)
+        return lambda cls, v, values, field, config: validator(
+            cls, v, values=values, field=field, config=config
+        )
     elif args == set():
         return lambda cls, v, values, field, config: validator(cls, v)
-    elif args == {'values'}:
+    elif args == {"values"}:
         return lambda cls, v, values, field, config: validator(cls, v, values=values)
-    elif args == {'field'}:
+    elif args == {"field"}:
         return lambda cls, v, values, field, config: validator(cls, v, field=field)
-    elif args == {'config'}:
+    elif args == {"config"}:
         return lambda cls, v, values, field, config: validator(cls, v, config=config)
-    elif args == {'values', 'field'}:
-        return lambda cls, v, values, field, config: validator(cls, v, values=values, field=field)
-    elif args == {'values', 'config'}:
-        return lambda cls, v, values, field, config: validator(cls, v, values=values, config=config)
-    elif args == {'field', 'config'}:
-        return lambda cls, v, values, field, config: validator(cls, v, field=field, config=config)
+    elif args == {"values", "field"}:
+        return lambda cls, v, values, field, config: validator(
+            cls, v, values=values, field=field
+        )
+    elif args == {"values", "config"}:
+        return lambda cls, v, values, field, config: validator(
+            cls, v, values=values, config=config
+        )
+    elif args == {"field", "config"}:
+        return lambda cls, v, values, field, config: validator(
+            cls, v, field=field, config=config
+        )
     else:
         # args == {'values', 'field', 'config'}
-        return lambda cls, v, values, field, config: validator(cls, v, values=values, field=field, config=config)
+        return lambda cls, v, values, field, config: validator(
+            cls, v, values=values, field=field, config=config
+        )
 
 
-def _generic_validator_basic(validator: AnyCallable, sig: Signature, args: Set[str]) -> 'ValidatorCallable':
+def _generic_validator_basic(
+    validator: AnyCallable, sig: Signature, args: Set[str]
+) -> "ValidatorCallable":
     has_kwargs = False
-    if 'kwargs' in args:
+    if "kwargs" in args:
         has_kwargs = True
-        args -= {'kwargs'}
+        args -= {"kwargs"}
 
     if not args.issubset(all_kwargs):
         raise ConfigError(
-            f'Invalid signature for validator {validator}: {sig}, should be: '
+            f"Invalid signature for validator {validator}: {sig}, should be: "
             f'(value, values, config, field), "values", "config" and "field" are all optional.'
         )
 
     if has_kwargs:
-        return lambda cls, v, values, field, config: validator(v, values=values, field=field, config=config)
+        return lambda cls, v, values, field, config: validator(
+            v, values=values, field=field, config=config
+        )
     elif args == set():
         return lambda cls, v, values, field, config: validator(v)
-    elif args == {'values'}:
+    elif args == {"values"}:
         return lambda cls, v, values, field, config: validator(v, values=values)
-    elif args == {'field'}:
+    elif args == {"field"}:
         return lambda cls, v, values, field, config: validator(v, field=field)
-    elif args == {'config'}:
+    elif args == {"config"}:
         return lambda cls, v, values, field, config: validator(v, config=config)
-    elif args == {'values', 'field'}:
-        return lambda cls, v, values, field, config: validator(v, values=values, field=field)
-    elif args == {'values', 'config'}:
-        return lambda cls, v, values, field, config: validator(v, values=values, config=config)
-    elif args == {'field', 'config'}:
-        return lambda cls, v, values, field, config: validator(v, field=field, config=config)
+    elif args == {"values", "field"}:
+        return lambda cls, v, values, field, config: validator(
+            v, values=values, field=field
+        )
+    elif args == {"values", "config"}:
+        return lambda cls, v, values, field, config: validator(
+            v, values=values, config=config
+        )
+    elif args == {"field", "config"}:
+        return lambda cls, v, values, field, config: validator(
+            v, field=field, config=config
+        )
     else:
         # args == {'values', 'field', 'config'}
-        return lambda cls, v, values, field, config: validator(v, values=values, field=field, config=config)
+        return lambda cls, v, values, field, config: validator(
+            v, values=values, field=field, config=config
+        )
 
 
-def gather_all_validators(type_: 'ModelOrDc') -> Dict[str, classmethod]:
+def gather_all_validators(type_: "ModelOrDc") -> Dict[str, classmethod]:
     all_attributes = ChainMap(*[cls.__dict__ for cls in type_.__mro__])
     return {
         k: v

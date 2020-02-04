@@ -7,13 +7,13 @@ from nornir.vendor.pydantic.parse import Protocol, load_file
 
 from .typing import display_as_type
 
-__all__ = ('parse_file_as', 'parse_obj_as')
+__all__ = ("parse_file_as", "parse_obj_as")
 
 NameFactory = Union[str, Callable[[Type[Any]], str]]
 
 
 def _generate_parsing_type_name(type_: Any) -> str:
-    return f'ParsingModel[{display_as_type(type_)}]'
+    return f"ParsingModel[{display_as_type(type_)}]"
 
 
 @lru_cache(maxsize=2048)
@@ -27,10 +27,12 @@ def _get_parsing_type(type_: Any, *, type_name: Optional[NameFactory] = None) ->
     return create_model(type_name, __root__=(type_, ...))
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
-def parse_obj_as(type_: Type[T], obj: Any, *, type_name: Optional[NameFactory] = None) -> T:
+def parse_obj_as(
+    type_: Type[T], obj: Any, *, type_name: Optional[NameFactory] = None
+) -> T:
     model_type = _get_parsing_type(type_, type_name=type_name)
     return model_type(__root__=obj).__root__
 
@@ -40,7 +42,7 @@ def parse_file_as(
     path: Union[str, Path],
     *,
     content_type: str = None,
-    encoding: str = 'utf8',
+    encoding: str = "utf8",
     proto: Protocol = None,
     allow_pickle: bool = False,
     json_loads: Callable[[str], Any] = json.loads,

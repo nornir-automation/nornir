@@ -1,5 +1,15 @@
 from configparser import ConfigParser
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple, Type as TypingType, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Set,
+    Tuple,
+    Type as TypingType,
+    Union,
+)
 
 from mypy.errorcodes import ErrorCode
 from mypy.nodes import (
@@ -34,7 +44,13 @@ from mypy.nodes import (
     Var,
 )
 from mypy.options import Options
-from mypy.plugin import CheckerPluginInterface, ClassDefContext, MethodContext, Plugin, SemanticAnalyzerPluginInterface
+from mypy.plugin import (
+    CheckerPluginInterface,
+    ClassDefContext,
+    MethodContext,
+    Plugin,
+    SemanticAnalyzerPluginInterface,
+)
 from mypy.plugins import dataclasses
 from mypy.semanal import set_callable_name  # type: ignore
 from mypy.server.trigger import make_wildcard_trigger
@@ -54,15 +70,15 @@ from mypy.types import (
 from mypy.typevars import fill_typevars
 from mypy.util import get_unique_redefinition_name
 
-CONFIGFILE_KEY = 'pydantic-mypy'
-METADATA_KEY = 'pydantic-mypy-metadata'
-BASEMODEL_FULLNAME = 'pydantic.main.BaseModel'
-BASESETTINGS_FULLNAME = 'pydantic.env_settings.BaseSettings'
-FIELD_FULLNAME = 'pydantic.fields.Field'
-DATACLASS_FULLNAME = 'pydantic.dataclasses.dataclass'
+CONFIGFILE_KEY = "pydantic-mypy"
+METADATA_KEY = "pydantic-mypy-metadata"
+BASEMODEL_FULLNAME = "pydantic.main.BaseModel"
+BASESETTINGS_FULLNAME = "pydantic.env_settings.BaseSettings"
+FIELD_FULLNAME = "pydantic.fields.Field"
+DATACLASS_FULLNAME = "pydantic.dataclasses.dataclass"
 
 
-def plugin(version: str) -> 'TypingType[Plugin]':
+def plugin(version: str) -> "TypingType[Plugin]":
     """
     `version` is the mypy version string
 
@@ -77,7 +93,9 @@ class PydanticPlugin(Plugin):
         self.plugin_config = PydanticPluginConfig(options)
         super().__init__(options)
 
-    def get_base_class_hook(self, fullname: str) -> 'Optional[Callable[[ClassDefContext], None]]':
+    def get_base_class_hook(
+        self, fullname: str
+    ) -> "Optional[Callable[[ClassDefContext], None]]":
         sym = self.lookup_fully_qualified(fullname)
         if sym and isinstance(sym.node, TypeInfo):  # pragma: no branch
             # No branching may occur if the mypy cache has not been cleared
@@ -85,12 +103,16 @@ class PydanticPlugin(Plugin):
                 return self._pydantic_model_class_maker_callback
         return None
 
-    def get_method_hook(self, fullname: str) -> Optional[Callable[[MethodContext], Type]]:
-        if fullname.endswith('.from_orm'):
+    def get_method_hook(
+        self, fullname: str
+    ) -> Optional[Callable[[MethodContext], Type]]:
+        if fullname.endswith(".from_orm"):
             return from_orm_callback
         return None
 
-    def get_class_decorator_hook(self, fullname: str) -> Optional[Callable[[ClassDefContext], None]]:
+    def get_class_decorator_hook(
+        self, fullname: str
+    ) -> Optional[Callable[[ClassDefContext], None]]:
         if fullname == DATACLASS_FULLNAME:
             return dataclasses.dataclass_class_maker_callback
         return None
@@ -101,7 +123,12 @@ class PydanticPlugin(Plugin):
 
 
 class PydanticPluginConfig:
-    __slots__ = ('init_forbid_extra', 'init_typed', 'warn_required_dynamic_aliases', 'warn_untyped_fields')
+    __slots__ = (
+        "init_forbid_extra",
+        "init_typed",
+        "warn_required_dynamic_aliases",
+        "warn_untyped_fields",
+    )
     init_forbid_extra: bool
     init_typed: bool
     warn_required_dynamic_aliases: bool
@@ -127,13 +154,13 @@ def from_orm_callback(ctx: MethodContext) -> Type:
     elif isinstance(ctx.type, Instance):
         model_type = ctx.type  # called on an instance (unusual, but still valid)
     else:  # pragma: no cover
-        detail = f'ctx.type: {ctx.type} (of type {type(ctx.type).__name__})'
+        detail = f"ctx.type: {ctx.type} (of type {type(ctx.type).__name__})"
         error_unexpected_behavior(detail, ctx.api, ctx.context)
         return ctx.default_return_type
     pydantic_metadata = model_type.type.metadata.get(METADATA_KEY)
     if pydantic_metadata is None:
         return ctx.default_return_type
-    orm_mode = pydantic_metadata.get('config', {}).get('orm_mode')
+    orm_mode = pydantic_metadata.get("config", {}).get("orm_mode")
     if orm_mode is not True:
         error_from_orm(get_name(model_type.type), ctx.api, ctx.context)
     return ctx.default_return_type
@@ -141,14 +168,16 @@ def from_orm_callback(ctx: MethodContext) -> Type:
 
 class PydanticModelTransformer:
     tracked_config_fields: Set[str] = {
-        'extra',
-        'allow_mutation',
-        'orm_mode',
-        'allow_population_by_field_name',
-        'alias_generator',
+        "extra",
+        "allow_mutation",
+        "orm_mode",
+        "allow_population_by_field_name",
+        "alias_generator",
     }
 
-    def __init__(self, ctx: ClassDefContext, plugin_config: PydanticPluginConfig) -> None:
+    def __init__(
+        self, ctx: ClassDefContext, plugin_config: PydanticPluginConfig
+    ) -> None:
         self._ctx = ctx
         self.plugin_config = plugin_config
 
@@ -171,16 +200,18 @@ class PydanticModelTransformer:
             if info[field.name].type is None:
                 if not ctx.api.final_iteration:
                     ctx.api.defer()
-        is_settings = any(get_fullname(base) == BASESETTINGS_FULLNAME for base in info.mro[:-1])
+        is_settings = any(
+            get_fullname(base) == BASESETTINGS_FULLNAME for base in info.mro[:-1]
+        )
         self.add_initializer(fields, config, is_settings)
         self.add_construct_method(fields)
         self.set_frozen(fields, frozen=config.allow_mutation is False)
         info.metadata[METADATA_KEY] = {
-            'fields': {field.name: field.serialize() for field in fields},
-            'config': config.set_values_dict(),
+            "fields": {field.name: field.serialize() for field in fields},
+            "config": config.set_values_dict(),
         }
 
-    def collect_config(self) -> 'ModelConfigData':
+    def collect_config(self) -> "ModelConfigData":
         """
         Collects the values of the config attributes that are used by the plugin, accounting for parent classes.
         """
@@ -190,7 +221,7 @@ class PydanticModelTransformer:
         for stmt in cls.defs.body:
             if not isinstance(stmt, ClassDef):
                 continue
-            if stmt.name == 'Config':
+            if stmt.name == "Config":
                 for substmt in stmt.defs.body:
                     if not isinstance(substmt, AssignmentStmt):
                         continue
@@ -207,11 +238,13 @@ class PydanticModelTransformer:
 
             # Each class depends on the set of fields in its ancestors
             ctx.api.add_plugin_dependency(make_wildcard_trigger(get_fullname(info)))
-            for name, value in info.metadata[METADATA_KEY]['config'].items():
+            for name, value in info.metadata[METADATA_KEY]["config"].items():
                 config.setdefault(name, value)
         return config
 
-    def collect_fields(self, model_config: 'ModelConfigData') -> List['PydanticModelField']:
+    def collect_fields(
+        self, model_config: "ModelConfigData"
+    ) -> List["PydanticModelField"]:
         """
         Collects the fields for the model, accounting for parent classes
         """
@@ -221,7 +254,9 @@ class PydanticModelTransformer:
         fields = []  # type: List[PydanticModelField]
         known_fields = set()  # type: Set[str]
         for stmt in cls.defs.body:
-            if not isinstance(stmt, AssignmentStmt):  # `and stmt.new_syntax` to require annotation
+            if not isinstance(
+                stmt, AssignmentStmt
+            ):  # `and stmt.new_syntax` to require annotation
                 continue
 
             lhs = stmt.lvalues[0]
@@ -272,7 +307,9 @@ class PydanticModelTransformer:
             )
             known_fields.add(lhs.name)
         all_fields = fields.copy()
-        for info in cls.info.mro[1:]:  # 0 is the current class, -2 is BaseModel, -1 is object
+        for info in cls.info.mro[
+            1:
+        ]:  # 0 is the current class, -2 is BaseModel, -1 is object
             if METADATA_KEY not in info.metadata:
                 continue
 
@@ -280,7 +317,7 @@ class PydanticModelTransformer:
             # Each class depends on the set of fields in its ancestors
             ctx.api.add_plugin_dependency(make_wildcard_trigger(get_fullname(info)))
 
-            for name, data in info.metadata[METADATA_KEY]['fields'].items():
+            for name, data in info.metadata[METADATA_KEY]["fields"].items():
                 if name not in known_fields:
                     field = PydanticModelField.deserialize(info, data)
                     known_fields.add(name)
@@ -292,7 +329,12 @@ class PydanticModelTransformer:
             all_fields = superclass_fields + all_fields
         return all_fields
 
-    def add_initializer(self, fields: List['PydanticModelField'], config: 'ModelConfigData', is_settings: bool) -> None:
+    def add_initializer(
+        self,
+        fields: List["PydanticModelField"],
+        config: "ModelConfigData",
+        is_settings: bool,
+    ) -> None:
         """
         Adds a fields-aware `__init__` method to the class.
 
@@ -305,14 +347,19 @@ class PydanticModelTransformer:
             config.has_alias_generator and not config.allow_population_by_field_name
         )
         init_arguments = self.get_field_arguments(
-            fields, typed=typed, force_all_optional=force_all_optional, use_alias=use_alias
+            fields,
+            typed=typed,
+            force_all_optional=force_all_optional,
+            use_alias=use_alias,
         )
         if not self.should_init_forbid_extra(fields, config):
-            var = Var('kwargs')
-            init_arguments.append(Argument(var, AnyType(TypeOfAny.explicit), None, ARG_STAR2))
-        add_method(ctx, '__init__', init_arguments, NoneType())
+            var = Var("kwargs")
+            init_arguments.append(
+                Argument(var, AnyType(TypeOfAny.explicit), None, ARG_STAR2)
+            )
+        add_method(ctx, "__init__", init_arguments, NoneType())
 
-    def add_construct_method(self, fields: List['PydanticModelField']) -> None:
+    def add_construct_method(self, fields: List["PydanticModelField"]) -> None:
         """
         Adds a fully typed `construct` classmethod to the class.
 
@@ -320,22 +367,28 @@ class PydanticModelTransformer:
         and does not treat settings fields as optional.
         """
         ctx = self._ctx
-        set_str = ctx.api.named_type('__builtins__.set', [ctx.api.named_type('__builtins__.str')])
+        set_str = ctx.api.named_type(
+            "__builtins__.set", [ctx.api.named_type("__builtins__.str")]
+        )
         optional_set_str = UnionType([set_str, NoneType()])
-        fields_set_argument = Argument(Var('_fields_set', optional_set_str), optional_set_str, None, ARG_OPT)
-        construct_arguments = self.get_field_arguments(fields, typed=True, force_all_optional=False, use_alias=False)
+        fields_set_argument = Argument(
+            Var("_fields_set", optional_set_str), optional_set_str, None, ARG_OPT
+        )
+        construct_arguments = self.get_field_arguments(
+            fields, typed=True, force_all_optional=False, use_alias=False
+        )
         construct_arguments = [fields_set_argument] + construct_arguments
 
-        obj_type = ctx.api.named_type('__builtins__.object')
-        self_tvar_name = 'Model'
-        tvar_fullname = ctx.cls.fullname + '.' + self_tvar_name
+        obj_type = ctx.api.named_type("__builtins__.object")
+        self_tvar_name = "Model"
+        tvar_fullname = ctx.cls.fullname + "." + self_tvar_name
         tvd = TypeVarDef(self_tvar_name, tvar_fullname, -1, [], obj_type)
         self_tvar_expr = TypeVarExpr(self_tvar_name, tvar_fullname, [], obj_type)
         ctx.cls.info.names[self_tvar_name] = SymbolTableNode(MDEF, self_tvar_expr)
         self_type = TypeVarType(tvd)
         add_method(
             ctx,
-            'construct',
+            "construct",
             construct_arguments,
             return_type=self_type,
             self_type=self_type,
@@ -343,7 +396,7 @@ class PydanticModelTransformer:
             is_classmethod=True,
         )
 
-    def set_frozen(self, fields: List['PydanticModelField'], frozen: bool) -> None:
+    def set_frozen(self, fields: List["PydanticModelField"], frozen: bool) -> None:
         """
         Marks all fields as properties so that attempts to set them trigger mypy errors.
 
@@ -360,10 +413,10 @@ class PydanticModelTransformer:
                 var = field.to_var(info, use_alias=False)
                 var.info = info
                 var.is_property = frozen
-                var._fullname = get_fullname(info) + '.' + get_name(var)
+                var._fullname = get_fullname(info) + "." + get_name(var)
                 info.names[get_name(var)] = SymbolTableNode(MDEF, var)
 
-    def get_config_update(self, substmt: AssignmentStmt) -> Optional['ModelConfigData']:
+    def get_config_update(self, substmt: AssignmentStmt) -> Optional["ModelConfigData"]:
         """
         Determines the config update due to a single statement in the Config class definition.
 
@@ -372,22 +425,30 @@ class PydanticModelTransformer:
         lhs = substmt.lvalues[0]
         if not (isinstance(lhs, NameExpr) and lhs.name in self.tracked_config_fields):
             return None
-        if lhs.name == 'extra':
+        if lhs.name == "extra":
             if isinstance(substmt.rvalue, StrExpr):
-                forbid_extra = substmt.rvalue.value == 'forbid'
+                forbid_extra = substmt.rvalue.value == "forbid"
             elif isinstance(substmt.rvalue, MemberExpr):
-                forbid_extra = substmt.rvalue.name == 'forbid'
+                forbid_extra = substmt.rvalue.name == "forbid"
             else:
                 error_invalid_config_value(lhs.name, self._ctx.api, substmt)
                 return None
             return ModelConfigData(forbid_extra=forbid_extra)
-        if lhs.name == 'alias_generator':
+        if lhs.name == "alias_generator":
             has_alias_generator = True
-            if isinstance(substmt.rvalue, NameExpr) and substmt.rvalue.fullname == 'builtins.None':
+            if (
+                isinstance(substmt.rvalue, NameExpr)
+                and substmt.rvalue.fullname == "builtins.None"
+            ):
                 has_alias_generator = False
             return ModelConfigData(has_alias_generator=has_alias_generator)
-        if isinstance(substmt.rvalue, NameExpr) and substmt.rvalue.fullname in ('builtins.True', 'builtins.False'):
-            return ModelConfigData(**{lhs.name: substmt.rvalue.fullname == 'builtins.True'})
+        if isinstance(substmt.rvalue, NameExpr) and substmt.rvalue.fullname in (
+            "builtins.True",
+            "builtins.False",
+        ):
+            return ModelConfigData(
+                **{lhs.name: substmt.rvalue.fullname == "builtins.True"}
+            )
         error_invalid_config_value(lhs.name, self._ctx.api, substmt)
         return None
 
@@ -400,11 +461,17 @@ class PydanticModelTransformer:
         if isinstance(expr, TempNode):
             # TempNode means annotation-only, so only non-required if Optional
             value_type = get_proper_type(cls.info[lhs.name].type)
-            if isinstance(value_type, UnionType) and any(isinstance(item, NoneType) for item in value_type.items):
+            if isinstance(value_type, UnionType) and any(
+                isinstance(item, NoneType) for item in value_type.items
+            ):
                 # Annotated as Optional, or otherwise having NoneType in the union
                 return False
             return True
-        if isinstance(expr, CallExpr) and isinstance(expr.callee, RefExpr) and expr.callee.fullname == FIELD_FULLNAME:
+        if (
+            isinstance(expr, CallExpr)
+            and isinstance(expr.callee, RefExpr)
+            and expr.callee.fullname == FIELD_FULLNAME
+        ):
             # The "default value" is a call to `Field`; at this point, the field is
             # only required if default is Ellipsis (i.e., `field_name: Annotation = Field(...)`)
             return len(expr.args) > 0 and type(expr.args[0]) is EllipsisExpr
@@ -425,13 +492,15 @@ class PydanticModelTransformer:
             return None, False
 
         if not (
-            isinstance(expr, CallExpr) and isinstance(expr.callee, RefExpr) and expr.callee.fullname == FIELD_FULLNAME
+            isinstance(expr, CallExpr)
+            and isinstance(expr.callee, RefExpr)
+            and expr.callee.fullname == FIELD_FULLNAME
         ):
             # Assigned value is not a call to pydantic.fields.Field
             return None, False
 
         for i, arg_name in enumerate(expr.arg_names):
-            if arg_name != 'alias':
+            if arg_name != "alias":
                 continue
             arg = expr.args[i]
             if isinstance(arg, StrExpr):
@@ -441,7 +510,11 @@ class PydanticModelTransformer:
         return None, False
 
     def get_field_arguments(
-        self, fields: List['PydanticModelField'], typed: bool, force_all_optional: bool, use_alias: bool
+        self,
+        fields: List["PydanticModelField"],
+        typed: bool,
+        force_all_optional: bool,
+        use_alias: bool,
     ) -> List[Argument]:
         """
         Helper function used during the construction of the `__init__` and `construct` method signatures.
@@ -450,13 +523,20 @@ class PydanticModelTransformer:
         """
         info = self._ctx.cls.info
         arguments = [
-            field.to_argument(info, typed=typed, force_optional=force_all_optional, use_alias=use_alias)
+            field.to_argument(
+                info,
+                typed=typed,
+                force_optional=force_all_optional,
+                use_alias=use_alias,
+            )
             for field in fields
             if not (use_alias and field.has_dynamic_alias)
         ]
         return arguments
 
-    def should_init_forbid_extra(self, fields: List['PydanticModelField'], config: 'ModelConfigData') -> bool:
+    def should_init_forbid_extra(
+        self, fields: List["PydanticModelField"], config: "ModelConfigData"
+    ) -> bool:
         """
         Indicates whether the generated `__init__` should get a `**kwargs` at the end of its signature
 
@@ -471,7 +551,9 @@ class PydanticModelTransformer:
         return self.plugin_config.init_forbid_extra
 
     @staticmethod
-    def is_dynamic_alias_present(fields: List['PydanticModelField'], has_alias_generator: bool) -> bool:
+    def is_dynamic_alias_present(
+        fields: List["PydanticModelField"], has_alias_generator: bool
+    ) -> bool:
         """
         Returns whether any fields on the model have a "dynamic alias", i.e., an alias that cannot be
         determined during static analysis.
@@ -488,7 +570,13 @@ class PydanticModelTransformer:
 
 class PydanticModelField:
     def __init__(
-        self, name: str, is_required: bool, alias: Optional[str], has_dynamic_alias: bool, line: int, column: int
+        self,
+        name: str,
+        is_required: bool,
+        alias: Optional[str],
+        has_dynamic_alias: bool,
+        line: int,
+        column: int,
     ):
         self.name = name
         self.is_required = is_required
@@ -503,7 +591,9 @@ class PydanticModelField:
             name = self.alias
         return Var(name, info[self.name].type)
 
-    def to_argument(self, info: TypeInfo, typed: bool, force_optional: bool, use_alias: bool) -> Argument:
+    def to_argument(
+        self, info: TypeInfo, typed: bool, force_optional: bool, use_alias: bool
+    ) -> Argument:
         if typed and info[self.name].type is not None:
             type_annotation = info[self.name].type
         else:
@@ -519,7 +609,7 @@ class PydanticModelField:
         return self.__dict__
 
     @classmethod
-    def deserialize(cls, info: TypeInfo, data: JsonDict) -> 'PydanticModelField':
+    def deserialize(cls, info: TypeInfo, data: JsonDict) -> "PydanticModelField":
         return cls(**data)
 
 
@@ -541,7 +631,7 @@ class ModelConfigData:
     def set_values_dict(self) -> Dict[str, Any]:
         return {k: v for k, v in self.__dict__.items() if v is not None}
 
-    def update(self, config: Optional['ModelConfigData']) -> None:
+    def update(self, config: Optional["ModelConfigData"]) -> None:
         if config is None:
             return
         for k, v in config.set_values_dict().items():
@@ -552,35 +642,47 @@ class ModelConfigData:
             setattr(self, key, value)
 
 
-ERROR_ORM = ErrorCode('pydantic-orm', 'Invalid from_orm call', 'Pydantic')
-ERROR_CONFIG = ErrorCode('pydantic-config', 'Invalid config value', 'Pydantic')
-ERROR_ALIAS = ErrorCode('pydantic-alias', 'Dynamic alias disallowed', 'Pydantic')
-ERROR_UNEXPECTED = ErrorCode('pydantic-unexpected', 'Unexpected behavior', 'Pydantic')
-ERROR_UNTYPED = ErrorCode('pydantic-field', 'Untyped field disallowed', 'Pydantic')
+ERROR_ORM = ErrorCode("pydantic-orm", "Invalid from_orm call", "Pydantic")
+ERROR_CONFIG = ErrorCode("pydantic-config", "Invalid config value", "Pydantic")
+ERROR_ALIAS = ErrorCode("pydantic-alias", "Dynamic alias disallowed", "Pydantic")
+ERROR_UNEXPECTED = ErrorCode("pydantic-unexpected", "Unexpected behavior", "Pydantic")
+ERROR_UNTYPED = ErrorCode("pydantic-field", "Untyped field disallowed", "Pydantic")
 
 
-def error_from_orm(model_name: str, api: CheckerPluginInterface, context: Context) -> None:
+def error_from_orm(
+    model_name: str, api: CheckerPluginInterface, context: Context
+) -> None:
     api.fail(f'"{model_name}" does not have orm_mode=True', context, code=ERROR_ORM)
 
 
-def error_invalid_config_value(name: str, api: SemanticAnalyzerPluginInterface, context: Context) -> None:
+def error_invalid_config_value(
+    name: str, api: SemanticAnalyzerPluginInterface, context: Context
+) -> None:
     api.fail(f'Invalid value for "Config.{name}"', context, code=ERROR_CONFIG)
 
 
-def error_required_dynamic_aliases(api: SemanticAnalyzerPluginInterface, context: Context) -> None:
-    api.fail('Required dynamic aliases disallowed', context, code=ERROR_ALIAS)
+def error_required_dynamic_aliases(
+    api: SemanticAnalyzerPluginInterface, context: Context
+) -> None:
+    api.fail("Required dynamic aliases disallowed", context, code=ERROR_ALIAS)
 
 
-def error_unexpected_behavior(detail: str, api: CheckerPluginInterface, context: Context) -> None:  # pragma: no cover
+def error_unexpected_behavior(
+    detail: str, api: CheckerPluginInterface, context: Context
+) -> None:  # pragma: no cover
     # Can't think of a good way to test this, but I confirmed it renders as desired by adding to a non-error path
-    link = 'https://github.com/samuelcolvin/pydantic/issues/new/choose'
-    full_message = f'The pydantic mypy plugin ran into unexpected behavior: {detail}\n'
-    full_message += f'Please consider reporting this bug at {link} so we can try to fix it!'
+    link = "https://github.com/samuelcolvin/pydantic/issues/new/choose"
+    full_message = f"The pydantic mypy plugin ran into unexpected behavior: {detail}\n"
+    full_message += (
+        f"Please consider reporting this bug at {link} so we can try to fix it!"
+    )
     api.fail(full_message, context, code=ERROR_UNEXPECTED)
 
 
-def error_untyped_fields(api: SemanticAnalyzerPluginInterface, context: Context) -> None:
-    api.fail('Untyped fields disallowed', context, code=ERROR_UNTYPED)
+def error_untyped_fields(
+    api: SemanticAnalyzerPluginInterface, context: Context
+) -> None:
+    api.fail("Untyped fields disallowed", context, code=ERROR_UNTYPED)
 
 
 def add_method(
@@ -610,22 +712,26 @@ def add_method(
 
     self_type = self_type or fill_typevars(info)
     if is_classmethod or is_new:
-        first = [Argument(Var('_cls'), TypeType.make_normalized(self_type), None, ARG_POS)]
+        first = [
+            Argument(Var("_cls"), TypeType.make_normalized(self_type), None, ARG_POS)
+        ]
     # elif is_staticmethod:
     #     first = []
     else:
         self_type = self_type or fill_typevars(info)
-        first = [Argument(Var('self'), self_type, None, ARG_POS)]
+        first = [Argument(Var("self"), self_type, None, ARG_POS)]
     args = first + args
     arg_types, arg_names, arg_kinds = [], [], []
     for arg in args:
-        assert arg.type_annotation, 'All arguments must be fully typed.'
+        assert arg.type_annotation, "All arguments must be fully typed."
         arg_types.append(arg.type_annotation)
         arg_names.append(get_name(arg.variable))
         arg_kinds.append(arg.kind)
 
-    function_type = ctx.api.named_type('__builtins__.function')
-    signature = CallableType(arg_types, arg_kinds, arg_names, return_type, function_type)
+    function_type = ctx.api.named_type("__builtins__.function")
+    signature = CallableType(
+        arg_types, arg_kinds, arg_names, return_type, function_type
+    )
     if tvar_def:
         signature.variables = [tvar_def]
 
@@ -634,7 +740,7 @@ def add_method(
     func.type = set_callable_name(signature, func)
     func.is_class = is_classmethod
     # func.is_static = is_staticmethod
-    func._fullname = get_fullname(info) + '.' + name
+    func._fullname = get_fullname(info) + "." + name
     func.line = info.line
 
     # NOTE: we would like the plugin generated node to dominate, but we still
@@ -651,7 +757,7 @@ def add_method(
         v._fullname = func._fullname
         # if is_classmethod:
         v.is_classmethod = True
-        dec = Decorator(func, [NameExpr('classmethod')], v)
+        dec = Decorator(func, [NameExpr("classmethod")], v)
         # else:
         #     v.is_staticmethod = True
         #     dec = Decorator(func, [NameExpr('staticmethod')], v)

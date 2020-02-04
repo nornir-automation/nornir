@@ -4,7 +4,14 @@ from collections import OrderedDict
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal, DecimalException
 from enum import Enum, IntEnum
-from ipaddress import IPv4Address, IPv4Interface, IPv4Network, IPv6Address, IPv6Interface, IPv6Network
+from ipaddress import (
+    IPv4Address,
+    IPv4Interface,
+    IPv4Network,
+    IPv6Address,
+    IPv6Interface,
+    IPv6Network,
+)
 from pathlib import Path
 from typing import (
     TYPE_CHECKING,
@@ -26,7 +33,15 @@ from uuid import UUID
 
 from . import errors
 from .datetime_parse import parse_date, parse_datetime, parse_duration, parse_time
-from .typing import AnyCallable, AnyType, ForwardRef, display_as_type, get_class, is_callable_type, is_literal_type
+from .typing import (
+    AnyCallable,
+    AnyType,
+    ForwardRef,
+    display_as_type,
+    get_class,
+    is_callable_type,
+    is_literal_type,
+)
 from .utils import almost_equal_floats, lenient_issubclass, sequence_like
 
 if TYPE_CHECKING:
@@ -74,8 +89,8 @@ def bytes_validator(v: Any) -> bytes:
         raise errors.BytesError()
 
 
-BOOL_FALSE = {0, '0', 'off', 'f', 'false', 'n', 'no'}
-BOOL_TRUE = {1, '1', 'on', 't', 'true', 'y', 'yes'}
+BOOL_FALSE = {0, "0", "off", "f", "false", "n", "no"}
+BOOL_TRUE = {1, "1", "on", "t", "true", "y", "yes"}
 
 
 def bool_validator(v: Any) -> bool:
@@ -127,7 +142,7 @@ def strict_float_validator(v: Any) -> float:
     raise errors.FloatError()
 
 
-def number_multiple_validator(v: 'Number', field: 'ModelField') -> 'Number':
+def number_multiple_validator(v: "Number", field: "ModelField") -> "Number":
     field_type: ConstrainedNumber = field.type_
     if field_type.multiple_of is not None:
         mod = float(v) / float(field_type.multiple_of) % 1
@@ -136,7 +151,7 @@ def number_multiple_validator(v: 'Number', field: 'ModelField') -> 'Number':
     return v
 
 
-def number_size_validator(v: 'Number', field: 'ModelField') -> 'Number':
+def number_size_validator(v: "Number", field: "ModelField") -> "Number":
     field_type: ConstrainedNumber = field.type_
     if field_type.gt is not None and not v > field_type.gt:
         raise errors.NumberNotGtError(limit_value=field_type.gt)
@@ -151,7 +166,7 @@ def number_size_validator(v: 'Number', field: 'ModelField') -> 'Number':
     return v
 
 
-def constant_validator(v: 'Any', field: 'ModelField') -> 'Any':
+def constant_validator(v: "Any", field: "ModelField") -> "Any":
     """Validate ``const`` fields.
 
     The value provided for a ``const`` field must be equal to the default value
@@ -164,7 +179,7 @@ def constant_validator(v: 'Any', field: 'ModelField') -> 'Any':
     return v
 
 
-def anystr_length_validator(v: 'StrBytes', config: 'BaseConfig') -> 'StrBytes':
+def anystr_length_validator(v: "StrBytes", config: "BaseConfig") -> "StrBytes":
     v_len = len(v)
 
     min_length = config.min_anystr_length
@@ -178,11 +193,11 @@ def anystr_length_validator(v: 'StrBytes', config: 'BaseConfig') -> 'StrBytes':
     return v
 
 
-def anystr_strip_whitespace(v: 'StrBytes') -> 'StrBytes':
+def anystr_strip_whitespace(v: "StrBytes") -> "StrBytes":
     return v.strip()
 
 
-def ordered_dict_validator(v: Any) -> 'AnyOrderedDict':
+def ordered_dict_validator(v: Any) -> "AnyOrderedDict":
     if isinstance(v, OrderedDict):
         return v
 
@@ -238,7 +253,7 @@ def frozenset_validator(v: Any) -> FrozenSet[Any]:
         raise errors.FrozenSetError()
 
 
-def enum_validator(v: Any, field: 'ModelField', config: 'BaseConfig') -> Enum:
+def enum_validator(v: Any, field: "ModelField", config: "BaseConfig") -> Enum:
     try:
         enum_v = field.type_(v)
     except ValueError:
@@ -247,7 +262,7 @@ def enum_validator(v: Any, field: 'ModelField', config: 'BaseConfig') -> Enum:
     return enum_v.value if config.use_enum_values else enum_v
 
 
-def uuid_validator(v: Any, field: 'ModelField') -> UUID:
+def uuid_validator(v: Any, field: "ModelField") -> UUID:
     try:
         if isinstance(v, str):
             v = UUID(v)
@@ -259,7 +274,7 @@ def uuid_validator(v: Any, field: 'ModelField') -> UUID:
     if not isinstance(v, UUID):
         raise errors.UUIDError()
 
-    required_version = getattr(field.type_, '_required_version', None)
+    required_version = getattr(field.type_, "_required_version", None)
     if required_version and v.version != required_version:
         raise errors.UUIDVersionError(required_version=required_version)
 
@@ -401,7 +416,9 @@ def make_literal_validator(type_: Any) -> Callable[[Any], Any]:
     return literal_validator
 
 
-def constr_length_validator(v: 'StrBytes', field: 'ModelField', config: 'BaseConfig') -> 'StrBytes':
+def constr_length_validator(
+    v: "StrBytes", field: "ModelField", config: "BaseConfig"
+) -> "StrBytes":
     v_len = len(v)
 
     min_length = field.type_.min_length or config.min_anystr_length
@@ -415,7 +432,9 @@ def constr_length_validator(v: 'StrBytes', field: 'ModelField', config: 'BaseCon
     return v
 
 
-def constr_strip_whitespace(v: 'StrBytes', field: 'ModelField', config: 'BaseConfig') -> 'StrBytes':
+def constr_strip_whitespace(
+    v: "StrBytes", field: "ModelField", config: "BaseConfig"
+) -> "StrBytes":
     strip_whitespace = field.type_.strip_whitespace or config.anystr_strip_whitespace
     if strip_whitespace:
         v = v.strip()
@@ -423,7 +442,7 @@ def constr_strip_whitespace(v: 'StrBytes', field: 'ModelField', config: 'BaseCon
     return v
 
 
-def validate_json(v: Any, config: 'BaseConfig') -> Any:
+def validate_json(v: Any, config: "BaseConfig") -> Any:
     if v is None:
         # pass None through to other validators
         return v
@@ -435,7 +454,7 @@ def validate_json(v: Any, config: 'BaseConfig') -> Any:
         raise errors.JsonTypeError()
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def make_arbitrary_type_validator(type_: Type[T]) -> Callable[[T], T]:
@@ -474,8 +493,11 @@ class IfConfig:
         self.validator = validator
         self.config_attr_names = config_attr_names
 
-    def check(self, config: Type['BaseConfig']) -> bool:
-        return any(getattr(config, name) not in {None, False} for name in self.config_attr_names)
+    def check(self, config: Type["BaseConfig"]) -> bool:
+        return any(
+            getattr(config, name) not in {None, False}
+            for name in self.config_attr_names
+        )
 
 
 pattern_validators = [str_validator, pattern_validator]
@@ -488,16 +510,16 @@ _VALIDATORS: List[Tuple[AnyType, List[Any]]] = [
         str,
         [
             str_validator,
-            IfConfig(anystr_strip_whitespace, 'anystr_strip_whitespace'),
-            IfConfig(anystr_length_validator, 'min_anystr_length', 'max_anystr_length'),
+            IfConfig(anystr_strip_whitespace, "anystr_strip_whitespace"),
+            IfConfig(anystr_length_validator, "min_anystr_length", "max_anystr_length"),
         ],
     ),
     (
         bytes,
         [
             bytes_validator,
-            IfConfig(anystr_strip_whitespace, 'anystr_strip_whitespace'),
-            IfConfig(anystr_length_validator, 'min_anystr_length', 'max_anystr_length'),
+            IfConfig(anystr_strip_whitespace, "anystr_strip_whitespace"),
+            IfConfig(anystr_length_validator, "min_anystr_length", "max_anystr_length"),
         ],
     ),
     (bool, [bool_validator]),
@@ -526,7 +548,7 @@ _VALIDATORS: List[Tuple[AnyType, List[Any]]] = [
 
 
 def find_validators(  # noqa: C901 (ignore complexity)
-    type_: AnyType, config: Type['BaseConfig']
+    type_: AnyType, config: Type["BaseConfig"]
 ) -> Generator[AnyCallable, None, None]:
     if type_ is Any:
         return
@@ -566,12 +588,16 @@ def find_validators(  # noqa: C901 (ignore complexity)
                         yield v
                 return
         except TypeError:
-            raise RuntimeError(f'error checking inheritance of {type_!r} (type: {display_as_type(type_)})')
+            raise RuntimeError(
+                f"error checking inheritance of {type_!r} (type: {display_as_type(type_)})"
+            )
 
     if config.arbitrary_types_allowed:
         yield make_arbitrary_type_validator(type_)
     else:
-        raise RuntimeError(f'no validator found for {type_}, see `arbitrary_types_allowed` in Config')
+        raise RuntimeError(
+            f"no validator found for {type_}, see `arbitrary_types_allowed` in Config"
+        )
 
 
 def _find_supertype(type_: AnyType) -> Optional[AnyType]:
@@ -586,4 +612,4 @@ def _find_supertype(type_: AnyType) -> Optional[AnyType]:
 
 
 def _is_new_type(type_: AnyType) -> bool:
-    return hasattr(type_, '__name__') and hasattr(type_, '__supertype__')
+    return hasattr(type_, "__name__") and hasattr(type_, "__supertype__")

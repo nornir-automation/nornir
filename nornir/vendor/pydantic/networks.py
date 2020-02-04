@@ -9,7 +9,19 @@ from ipaddress import (
     _BaseAddress,
     _BaseNetwork,
 )
-from typing import TYPE_CHECKING, Any, Dict, Generator, Optional, Set, Tuple, Type, Union, cast, no_type_check
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Dict,
+    Generator,
+    Optional,
+    Set,
+    Tuple,
+    Type,
+    Union,
+    cast,
+    no_type_check,
+)
 
 from . import errors
 from .utils import Representation, update_not_none
@@ -30,41 +42,45 @@ except ImportError:
 NetworkType = Union[str, bytes, int, Tuple[Union[str, bytes, int], Union[str, int]]]
 
 __all__ = [
-    'AnyUrl',
-    'AnyHttpUrl',
-    'HttpUrl',
-    'stricturl',
-    'EmailStr',
-    'NameEmail',
-    'IPvAnyAddress',
-    'IPvAnyInterface',
-    'IPvAnyNetwork',
-    'PostgresDsn',
-    'RedisDsn',
-    'validate_email',
+    "AnyUrl",
+    "AnyHttpUrl",
+    "HttpUrl",
+    "stricturl",
+    "EmailStr",
+    "NameEmail",
+    "IPvAnyAddress",
+    "IPvAnyInterface",
+    "IPvAnyNetwork",
+    "PostgresDsn",
+    "RedisDsn",
+    "validate_email",
 ]
 
-host_part_names = ('domain', 'ipv4', 'ipv6')
+host_part_names = ("domain", "ipv4", "ipv6")
 url_regex = re.compile(
-    r'(?:(?P<scheme>[a-z0-9]+?)://)?'  # scheme
-    r'(?:(?P<user>[^\s:]+)(?::(?P<password>\S*))?@)?'  # user info
-    r'(?:'
-    r'(?P<ipv4>(?:\d{1,3}\.){3}\d{1,3})|'  # ipv4
-    r'(?P<ipv6>\[[A-F0-9]*:[A-F0-9:]+\])|'  # ipv6
-    r'(?P<domain>[^\s/:?#]+)'  # domain, validation occurs later
-    r')?'
-    r'(?::(?P<port>\d+))?'  # port
-    r'(?P<path>/[^\s?]*)?'  # path
-    r'(?:\?(?P<query>[^\s#]+))?'  # query
-    r'(?:#(?P<fragment>\S+))?',  # fragment
+    r"(?:(?P<scheme>[a-z0-9]+?)://)?"  # scheme
+    r"(?:(?P<user>[^\s:]+)(?::(?P<password>\S*))?@)?"  # user info
+    r"(?:"
+    r"(?P<ipv4>(?:\d{1,3}\.){3}\d{1,3})|"  # ipv4
+    r"(?P<ipv6>\[[A-F0-9]*:[A-F0-9:]+\])|"  # ipv6
+    r"(?P<domain>[^\s/:?#]+)"  # domain, validation occurs later
+    r")?"
+    r"(?::(?P<port>\d+))?"  # port
+    r"(?P<path>/[^\s?]*)?"  # path
+    r"(?:\?(?P<query>[^\s#]+))?"  # query
+    r"(?:#(?P<fragment>\S+))?",  # fragment
     re.IGNORECASE,
 )
-_ascii_chunk = r'[_0-9a-z](?:[-_0-9a-z]{0,61}[_0-9a-z])?'
-_domain_ending = r'(?P<tld>\.[a-z]{2,63})?\.?'
-ascii_domain_regex = re.compile(fr'(?:{_ascii_chunk}\.)*?{_ascii_chunk}{_domain_ending}', re.IGNORECASE)
+_ascii_chunk = r"[_0-9a-z](?:[-_0-9a-z]{0,61}[_0-9a-z])?"
+_domain_ending = r"(?P<tld>\.[a-z]{2,63})?\.?"
+ascii_domain_regex = re.compile(
+    fr"(?:{_ascii_chunk}\.)*?{_ascii_chunk}{_domain_ending}", re.IGNORECASE
+)
 
-_int_chunk = r'[_0-9a-\U00040000](?:[-_0-9a-\U00040000]{0,61}[_0-9a-\U00040000])?'
-int_domain_regex = re.compile(fr'(?:{_int_chunk}\.)*?{_int_chunk}{_domain_ending}', re.IGNORECASE)
+_int_chunk = r"[_0-9a-\U00040000](?:[-_0-9a-\U00040000]{0,61}[_0-9a-\U00040000])?"
+int_domain_regex = re.compile(
+    fr"(?:{_int_chunk}\.)*?{_int_chunk}{_domain_ending}", re.IGNORECASE
+)
 
 
 class AnyUrl(str):
@@ -75,7 +91,18 @@ class AnyUrl(str):
     tld_required: bool = False
     user_required: bool = False
 
-    __slots__ = ('scheme', 'user', 'password', 'host', 'tld', 'host_type', 'port', 'path', 'query', 'fragment')
+    __slots__ = (
+        "scheme",
+        "user",
+        "password",
+        "host",
+        "tld",
+        "host_type",
+        "port",
+        "path",
+        "query",
+        "fragment",
+    )
 
     @no_type_check
     def __new__(cls, url: Optional[str], **kwargs) -> object:
@@ -90,7 +117,7 @@ class AnyUrl(str):
         password: Optional[str] = None,
         host: str,
         tld: Optional[str] = None,
-        host_type: str = 'domain',
+        host_type: str = "domain",
         port: Optional[str] = None,
         path: Optional[str] = None,
         query: Optional[str] = None,
@@ -122,33 +149,40 @@ class AnyUrl(str):
         fragment: Optional[str] = None,
         **kwargs: str,
     ) -> str:
-        url = scheme + '://'
+        url = scheme + "://"
         if user:
             url += user
             if password:
-                url += ':' + password
-            url += '@'
+                url += ":" + password
+            url += "@"
         url += host
         if port:
-            url += ':' + port
+            url += ":" + port
         if path:
             url += path
         if query:
-            url += '?' + query
+            url += "?" + query
         if fragment:
-            url += '#' + fragment
+            url += "#" + fragment
         return url
 
     @classmethod
     def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
-        update_not_none(field_schema, minLength=cls.min_length, maxLength=cls.max_length, format='uri')
+        update_not_none(
+            field_schema,
+            minLength=cls.min_length,
+            maxLength=cls.max_length,
+            format="uri",
+        )
 
     @classmethod
-    def __get_validators__(cls) -> 'CallableGenerator':
+    def __get_validators__(cls) -> "CallableGenerator":
         yield cls.validate
 
     @classmethod
-    def validate(cls, value: Any, field: 'ModelField', config: 'BaseConfig') -> 'AnyUrl':
+    def validate(
+        cls, value: Any, field: "ModelField", config: "BaseConfig"
+    ) -> "AnyUrl":
         if type(value) == cls:
             return value
         value = str_validator(value)
@@ -158,16 +192,16 @@ class AnyUrl(str):
 
         m = url_regex.match(url)
         # the regex should always match, if it doesn't please report with details of the URL tried
-        assert m, 'URL regex failed unexpectedly'
+        assert m, "URL regex failed unexpectedly"
 
         parts = m.groupdict()
-        scheme = parts['scheme']
+        scheme = parts["scheme"]
         if scheme is None:
             raise errors.UrlSchemeError()
         if cls.allowed_schemes and scheme.lower() not in cls.allowed_schemes:
             raise errors.UrlSchemePermittedError(cls.allowed_schemes)
 
-        user = parts['user']
+        user = parts["user"]
         if cls.user_required and user is None:
             raise errors.UrlUserInfoError()
 
@@ -180,20 +214,22 @@ class AnyUrl(str):
             None if rebuild else url,
             scheme=scheme,
             user=user,
-            password=parts['password'],
+            password=parts["password"],
             host=host,
             tld=tld,
             host_type=host_type,
-            port=parts['port'],
-            path=parts['path'],
-            query=parts['query'],
-            fragment=parts['fragment'],
+            port=parts["port"],
+            path=parts["path"],
+            query=parts["query"],
+            fragment=parts["fragment"],
         )
 
     @classmethod
-    def validate_host(cls, parts: Dict[str, str]) -> Tuple[str, Optional[str], str, bool]:
+    def validate_host(
+        cls, parts: Dict[str, str]
+    ) -> Tuple[str, Optional[str], str, bool]:
         host, tld, host_type, rebuild = None, None, None, False
-        for f in ('domain', 'ipv4', 'ipv6'):
+        for f in ("domain", "ipv4", "ipv6"):
             host = parts[f]
             if host:
                 host_type = f
@@ -201,17 +237,17 @@ class AnyUrl(str):
 
         if host is None:
             raise errors.UrlHostError()
-        elif host_type == 'domain':
+        elif host_type == "domain":
             d = ascii_domain_regex.fullmatch(host)
             if d is None:
                 d = int_domain_regex.fullmatch(host)
                 if not d:
                     raise errors.UrlHostError()
-                host_type = 'int_domain'
+                host_type = "int_domain"
                 rebuild = True
-                host = host.encode('idna').decode('ascii')
+                host = host.encode("idna").decode("ascii")
 
-            tld = d.group('tld')
+            tld = d.group("tld")
             if tld is not None:
                 tld = tld[1:]
             elif cls.tld_required:
@@ -219,28 +255,32 @@ class AnyUrl(str):
         return host, tld, host_type, rebuild  # type: ignore
 
     def __repr__(self) -> str:
-        extra = ', '.join(f'{n}={getattr(self, n)!r}' for n in self.__slots__ if getattr(self, n) is not None)
-        return f'{self.__class__.__name__}({super().__repr__()}, {extra})'
+        extra = ", ".join(
+            f"{n}={getattr(self, n)!r}"
+            for n in self.__slots__
+            if getattr(self, n) is not None
+        )
+        return f"{self.__class__.__name__}({super().__repr__()}, {extra})"
 
 
 class AnyHttpUrl(AnyUrl):
-    allowed_schemes = {'http', 'https'}
+    allowed_schemes = {"http", "https"}
 
 
 class HttpUrl(AnyUrl):
-    allowed_schemes = {'http', 'https'}
+    allowed_schemes = {"http", "https"}
     tld_required = True
     # https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
     max_length = 2083
 
 
 class PostgresDsn(AnyUrl):
-    allowed_schemes = {'postgres', 'postgresql'}
+    allowed_schemes = {"postgres", "postgresql"}
     user_required = True
 
 
 class RedisDsn(AnyUrl):
-    allowed_schemes = {'redis'}
+    allowed_schemes = {"redis"}
     user_required = True
 
 
@@ -260,19 +300,21 @@ def stricturl(
         tld_required=tld_required,
         allowed_schemes=allowed_schemes,
     )
-    return type('UrlValue', (AnyUrl,), namespace)
+    return type("UrlValue", (AnyUrl,), namespace)
 
 
 class EmailStr(str):
     @classmethod
     def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
-        field_schema.update(type='string', format='email')
+        field_schema.update(type="string", format="email")
 
     @classmethod
-    def __get_validators__(cls) -> 'CallableGenerator':
+    def __get_validators__(cls) -> "CallableGenerator":
         # included here and below so the error happens straight away
         if email_validator is None:
-            raise ImportError('email-validator is not installed, run `pip install pydantic[email]`')
+            raise ImportError(
+                "email-validator is not installed, run `pip install pydantic[email]`"
+            )
 
         yield str_validator
         yield cls.validate
@@ -283,7 +325,7 @@ class EmailStr(str):
 
 
 class NameEmail(Representation):
-    __slots__ = 'name', 'email'
+    __slots__ = "name", "email"
 
     def __init__(self, name: str, email: str):
         self.name = name
@@ -291,31 +333,33 @@ class NameEmail(Representation):
 
     @classmethod
     def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
-        field_schema.update(type='string', format='name-email')
+        field_schema.update(type="string", format="name-email")
 
     @classmethod
-    def __get_validators__(cls) -> 'CallableGenerator':
+    def __get_validators__(cls) -> "CallableGenerator":
         if email_validator is None:
-            raise ImportError('email-validator is not installed, run `pip install pydantic[email]`')
+            raise ImportError(
+                "email-validator is not installed, run `pip install pydantic[email]`"
+            )
 
         yield str_validator
         yield cls.validate
 
     @classmethod
-    def validate(cls, value: str) -> 'NameEmail':
+    def validate(cls, value: str) -> "NameEmail":
         return cls(*validate_email(value))
 
     def __str__(self) -> str:
-        return f'{self.name} <{self.email}>'
+        return f"{self.name} <{self.email}>"
 
 
 class IPvAnyAddress(_BaseAddress):
     @classmethod
     def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
-        field_schema.update(type='string', format='ipvanyaddress')
+        field_schema.update(type="string", format="ipvanyaddress")
 
     @classmethod
-    def __get_validators__(cls) -> 'CallableGenerator':
+    def __get_validators__(cls) -> "CallableGenerator":
         yield cls.validate
 
     @classmethod
@@ -334,10 +378,10 @@ class IPvAnyAddress(_BaseAddress):
 class IPvAnyInterface(_BaseAddress):
     @classmethod
     def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
-        field_schema.update(type='string', format='ipvanyinterface')
+        field_schema.update(type="string", format="ipvanyinterface")
 
     @classmethod
-    def __get_validators__(cls) -> 'CallableGenerator':
+    def __get_validators__(cls) -> "CallableGenerator":
         yield cls.validate
 
     @classmethod
@@ -356,10 +400,10 @@ class IPvAnyInterface(_BaseAddress):
 class IPvAnyNetwork(_BaseNetwork):  # type: ignore
     @classmethod
     def __modify_schema__(cls, field_schema: Dict[str, Any]) -> None:
-        field_schema.update(type='string', format='ipvanynetwork')
+        field_schema.update(type="string", format="ipvanynetwork")
 
     @classmethod
-    def __get_validators__(cls) -> 'CallableGenerator':
+    def __get_validators__(cls) -> "CallableGenerator":
         yield cls.validate
 
     @classmethod
@@ -377,7 +421,7 @@ class IPvAnyNetwork(_BaseNetwork):  # type: ignore
             raise errors.IPvAnyNetworkError()
 
 
-pretty_email_regex = re.compile(r'([\w ]*?) *<(.*)> *')
+pretty_email_regex = re.compile(r"([\w ]*?) *<(.*)> *")
 
 
 def validate_email(value: str) -> Tuple[str, str]:
@@ -392,7 +436,9 @@ def validate_email(value: str) -> Tuple[str, str]:
     See RFC 5322 but treat it with suspicion, there seems to exist no universally acknowledged test for a valid email!
     """
     if email_validator is None:
-        raise ImportError('email-validator is not installed, run `pip install pydantic[email]`')
+        raise ImportError(
+            "email-validator is not installed, run `pip install pydantic[email]`"
+        )
 
     m = pretty_email_regex.fullmatch(value)
     name: Optional[str] = None
@@ -406,7 +452,7 @@ def validate_email(value: str) -> Tuple[str, str]:
     except email_validator.EmailNotValidError as e:
         raise errors.EmailError() from e
 
-    at_index = email.index('@')
+    at_index = email.index("@")
     local_part = email[:at_index]  # RFC 5321, local part must be case-sensitive.
     global_part = email[at_index:].lower()
 
