@@ -16,7 +16,7 @@ What Nornir brings to the table is that it takes care of dealing with your inven
 Install
 =======
 
-Please note that Nornir requires Python 3.6 or higher. Install Nornir with pip.
+Please note that Nornir requires Python 3.6.2 or higher. Install Nornir with pip.
 
 ```
 pip install nornir
