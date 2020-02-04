@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, Optional, Type, Union, List, cast
 from nornir.core import configuration
 from nornir.core.deserializer.inventory import Inventory
 
-from pydantic import BaseSettings, Field
+from nornir._vendor.pydantic import BaseSettings, Field
 
 import ruamel.yaml
 

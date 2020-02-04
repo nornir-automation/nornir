@@ -24,7 +24,6 @@ paramiko = "^2.7"
 requests = "^2"
 "ruamel.yaml" = "^0.16"
 mypy_extensions = "^0.4.1"
-pydantic = "^1"
 # The following dependencies are used for docs generation when installed as extras
 # (e.g. pip install nornir[docs])
 # Currently they have to be specified as non-dev dependencies with optional = true
@@ -38,6 +37,9 @@ pygments = { version = "^2", optional = true }
 sphinx-issues = { version = "^1.2", optional = true }
 typing_extensions = "^3.7"
 ncclient = "^0.6.6"
+
+# for pydantic
+dataclasses = {version = "^0.7", python = "~3.6"}
 
 [tool.poetry.dev-dependencies]
 decorator = "*"
