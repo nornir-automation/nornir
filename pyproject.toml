@@ -59,6 +59,7 @@ jupyter = "^1"
 nbsphinx = "^0.5"
 pygments = "^2"
 sphinx-issues = "^1.2"
+capirca = "^1.122"
 
 [tool.poetry.extras]
 # The following section is required to install docs dependencies
