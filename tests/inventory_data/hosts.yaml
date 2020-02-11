@@ -73,6 +73,11 @@ dev3.group_2:
     data:
         www_server: apache
         role: www
+        capirca:
+            platform: arista
+            expiration: 2
+            shade_check: true
+            optimize: true
     groups:
         - group_2
     connection_options:
@@ -92,6 +97,11 @@ dev4.group_2:
     data:
         my_var: comes_from_dev4.group_2
         role: db
+        capirca:
+            platform: juniper
+            expiration: 2
+            shade_check: true
+            optimize: true
     groups:
         - group_2
         - parent_group

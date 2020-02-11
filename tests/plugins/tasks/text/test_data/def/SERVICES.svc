@@ -1,0 +1,63 @@
+#
+# Sample naming service definitions
+#
+WHOIS = 43/udp
+SSH = 22/tcp
+TELNET = 23/tcp
+SMTP = 25/tcp
+MAIL_SERVICES = SMTP
+                ESMTP
+                SMTP_SSL
+                POP_SSL
+TIME = 37/tcp 37/udp
+TACACS = 49/tcp
+DNS = 53/tcp 53/udp
+BOOTPS = 67/udp   # BOOTP server
+BOOTPC = 68/udp   # BOOTP client
+DHCP = BOOTPS
+       BOOTPC
+TFTP = 69/tcp 69/udp
+HTTP = 80/tcp
+WEB_SERVICES = HTTP HTTPS
+POP3 = 110/tcp
+RPC = 111/udp
+IDENT = 113/tcp 113/udp
+NNTP = 119/tcp
+NTP = 123/tcp 123/udp
+MS_RPC_EPMAP = 135/udp 135/tcp
+MS_137 = 137/udp
+MS_138 = 138/udp
+MS_139 = 139/tcp
+IMAP = 143/tcp
+SNMP = 161/udp
+SNMP_TRAP = 162/udp
+BGP = 179/tcp
+IMAP3 = 220/tcp
+LDAP = 389/tcp
+LDAP_SERVICE = LDAP
+               LDAPS
+HTTPS = 443/tcp
+MS_445 = 445/tcp
+SMTP_SSL = 465/tcp
+IKE = 500/udp
+SYSLOG = 514/udp
+RTSP = 554/tcp
+ESMTP = 587/tcp
+LDAPS = 636/tcp
+IMAPS = 993/tcp
+POP_SSL = 995/tcp
+HIGH_PORTS = 1024-65535/tcp 1024-65535/udp
+MSSQL = 1433/tcp
+MSSQL_MONITOR = 1434/tcp
+RADIUS = 1812/tcp 1812/udp
+HSRP = 1985/udp
+NFSD = 2049/tcp 2049/udp
+NETFLOW = 2056/udp
+SQUID_PROXY = 3128/tcp
+MYSQL = 3306/tcp
+RDP = 3389/tcp
+IPSEC = 4500/udp
+POSTGRESQL = 5432/tcp
+TRACEROUTE = 33434-33534/udp
+
+

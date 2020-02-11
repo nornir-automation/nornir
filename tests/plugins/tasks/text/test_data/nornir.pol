@@ -1,0 +1,37 @@
+header {
+  comment:: "Sample multitarget loopback filter"
+  target:: juniper LOOPBACK
+  target:: arista LOOPBACK
+  target:: ciscoxr LOOPBACK
+}
+
+term accept-icmp {
+  protocol:: icmp
+  counter:: icmp-loopback
+  policer:: rate-limit-icmp
+  action:: accept
+}
+
+term accept-traceroute {
+  comment:: "Allow inbound traceroute from any source."
+  destination-port:: TRACEROUTE
+  protocol:: udp
+  counter:: inbound-traceroute
+  policer:: rate-limit-to-router
+  action:: accept
+  expiration:: 2021-12-31
+  owner:: jeff
+}
+
+term accept-ospf {
+  comment:: "Allow outbound OSPF traffic from other RFC1918 routers."
+  source-address:: INTERNAL
+  protocol:: ospf
+  counter:: ospf
+  action:: accept
+}
+
+term discard-default {
+  counter:: discard-default
+  action:: deny
+}

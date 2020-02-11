@@ -1,0 +1,90 @@
+#
+# Sample naming defintions for network objects
+#
+RFC1918 = 10.0.0.0/8      # non-public
+          172.16.0.0/12   # non-public
+          192.168.0.0/16  # non-public
+
+INTERNAL = RFC1918
+
+LOOPBACK = 127.0.0.0/8  # loopback
+           ::1/128       # ipv6 loopback
+
+RFC_3330 = 169.254.0.0/16  # special use IPv4 addresses - netdeploy
+
+RFC_6598 = 100.64.0.0/10   # Shared Address Space
+
+LINKLOCAL = FE80::/10  # IPv6 link-local
+
+SITELOCAL = FEC0::/10    # Ipv6 Site-local
+
+MULTICAST = 224.0.0.0/4  # IP multicast
+            FF00::/8     # IPv6 multicast
+
+CLASS-E   = 240.0.0.0/4
+
+RESERVED = 0.0.0.0/8           # reserved
+           RFC1918
+           LOOPBACK
+           RFC_3330
+           RFC_6598
+           MULTICAST
+           CLASS-E
+           0000::/8            # reserved by IETF
+           0100::/8            # reserved by IETF
+           0200::/7            # reserved by IETF
+           0400::/6            # reserved by IETF
+           0800::/5            # reserved by IETF
+           1000::/4            # reserved by IETF
+           4000::/3            # reserved by IETF
+           6000::/3            # reserved by IETF
+           8000::/3            # reserved by IETF
+           A000::/3            # reserved by IETF
+           C000::/3            # reserved by IETF
+           E000::/4            # reserved by IETF
+           F000::/5            # reserved by IETF
+           F800::/6            # reserved by IETF
+           FC00::/7            # unique local unicast
+           FE00::/9            # reserved by IETF
+           LINKLOCAL           # link local unicast
+           SITELOCAL           # IPv6 site-local
+
+ANY = 0.0.0.0/0
+
+# http://www.team-cymru.org/Services/Bogons/bogon-bn-agg.txt
+# 22-Apr-2011
+BOGON = 0.0.0.0/8
+        192.0.0.0/24
+        192.0.2.0/24
+        198.18.0.0/15
+        198.51.100.0/24
+        203.0.113.0/24
+        MULTICAST
+        CLASS-E
+        3FFE::/16      # 6bone
+        5F00::/8       # 6bone
+        2001:DB8::/32  # IPv6 documentation prefix
+
+GOOGLE_PUBLIC_DNS_ANYCAST = 8.8.4.4/32               # IPv4 Anycast
+                            8.8.8.8/32               # IPv4 Anycast
+                            2001:4860:4860::8844/128 # IPv6 Anycast
+                            2001:4860:4860::8888/128 # IPv6 Anycast
+GOOGLE_DNS = GOOGLE_PUBLIC_DNS_ANYCAST
+
+
+# The following are sample entires intended for us in the included
+# sample policy file.  These should be removed.
+
+WEB_SERVERS = 200.1.1.1/32  # Example web server 1
+              200.1.1.2/32  # Example web server 2
+
+MAIL_SERVERS = 200.1.1.4/32 # Example mail server 1
+               200.1.1.5/32 # Example mail server 2
+
+PUBLIC_NAT = 200.1.1.3/32   # Example company NAT address
+
+NTP_SERVERS = 10.0.0.1/32   # Example NTP server
+              10.0.0.2/32   # Example NTP server
+
+TACACS_SERVERS = 10.1.0.1/32  # Example tacacs server
+                 10.1.0.2/32  # Example tacacs server
