@@ -1,9 +1,9 @@
 import socket
 import time
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Union
 
-from nornir.core.task import Result, Task
+from nornir.core.task import Result, Task, Host
 
 
 class TimedOut(Exception):
@@ -16,7 +16,7 @@ def wait_for_connection(
     delay: int = 0,
     timeout: int = 600,
     interval: int = 1,
-    host: Optional[str] = None,
+    host: Union[str, Host] = None,
 ) -> Result:
     """
     Wait for connection on a tcp port.
