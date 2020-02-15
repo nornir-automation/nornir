@@ -189,7 +189,7 @@ test = ["pytest (>=3.6.0,<3.9.0 || >3.9.0,<3.9.1 || >3.9.1,<3.9.2 || >3.9.2)", "
 [[package]]
 category = "main"
 description = "A backport of the dataclasses module for Python 3.6"
-marker = "python_version == \"3.6\""
+marker = "python_version >= \"3.6\" and python_version < \"3.7\""
 name = "dataclasses"
 optional = false
 python-versions = ">=3.6, <3.7"
@@ -900,25 +900,6 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "2.19"
 
 [[package]]
-<<<<<<< HEAD
-category = "main"
-description = "Data validation and settings management using python 3.6 type hinting"
-name = "pydantic"
-optional = false
-python-versions = ">=3.6"
-version = "1.4"
-
-[package.dependencies]
-[package.dependencies.dataclasses]
-python = "<3.7"
-version = ">=0.6"
-
-[package.extras]
-dotenv = ["python-dotenv (>=0.10.4)"]
-email = ["email-validator (>=1.0.3)"]
-typing_extensions = ["typing-extensions (>=3.7.2)"]
-
-[[package]]
 category = "dev"
 description = "Python docstring style checker"
 name = "pydocstyle"
@@ -1491,7 +1472,7 @@ testing = ["jaraco.itertools"]
 docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-napoleon", "jupyter", "nbsphinx", "pygments", "sphinx-issues"]
 
 [metadata]
-content-hash = "46c3449877cc2774a6f44a4d14895a2fe38933b23e76aefda7a7a9fcf252dd85"
+content-hash = "38c773e7fecd974bd9acda9df76d57e46fd4026e0e0d771b65b5745a4a0d2387"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -2100,8 +2081,8 @@ requests-mock = [
     {file = "requests_mock-1.7.0-py2.py3-none-any.whl", hash = "sha256:510df890afe08d36eca5bb16b4aa6308a6f85e3159ad3013bac8b9de7bd5a010"},
 ]
 "ruamel.yaml" = [
-    {file = "ruamel.yaml-0.16.7-py2.py3-none-any.whl", hash = "sha256:dba517a7e330b6caf476b757022d21efa13c32694bfba1e057ce59a374f18f0a"},
-    {file = "ruamel.yaml-0.16.7.tar.gz", hash = "sha256:9d59fa89985c55155d35c886663e357813404ae8f94638cb673135b8c8c1a7c7"},
+    {file = "ruamel.yaml-0.16.10-py2.py3-none-any.whl", hash = "sha256:0962fd7999e064c4865f96fb1e23079075f4a2a14849bcdc5cdba53a24f9759b"},
+    {file = "ruamel.yaml-0.16.10.tar.gz", hash = "sha256:099c644a778bf72ffa00524f78dd0b6476bca94a1da344130f4bf3381ce5b954"},
 ]
 "ruamel.yaml.clib" = [
     {file = "ruamel.yaml.clib-0.2.0-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:9c6d040d0396c28d3eaaa6cb20152cb3b2f15adf35a0304f4f40a3cf9f1d2448"},
