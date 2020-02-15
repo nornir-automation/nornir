@@ -19,8 +19,8 @@ jobs:
         id: cache
         with:
           path: ~/.virtualenvs
-          key: poetry
-          restore-keys: poetry
+          key: poetry-linters
+          restore-keys: poetry-linters
 
       - name: Set Poetry config
         run: |
@@ -68,8 +68,8 @@ jobs:
         id: cache
         with:
           path: ~/.virtualenvs
-          key: poetry
-          restore-keys: poetry
+          key: poetry-${{ matrix.python-version }}
+          restore-keys: poetry-${{ matrix.python-version }}
 
       - name: Set Poetry config
         run: |
