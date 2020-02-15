@@ -3,7 +3,8 @@ import time
 from datetime import datetime, timedelta
 from typing import Union
 
-from nornir.core.task import Result, Task, Host
+from nornir.core.task import Result, Task
+from nornir.core.inventory import Host
 
 
 class TimedOut(Exception):
