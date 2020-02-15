@@ -3,7 +3,7 @@ import os
 from nornir.core import inventory
 from nornir.core.deserializer import inventory as deserializer
 
-from pydantic import ValidationError
+from nornir._vendor.pydantic import ValidationError
 
 import pytest
 
