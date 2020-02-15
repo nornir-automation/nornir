@@ -87,7 +87,7 @@ jobs:
 
       - name: Run nbval
         run: |
-          poetry pytest --nbval --sanitize-with docs/nbval_sanitize.cfg \
+          poetry run pytest --nbval --sanitize-with docs/nbval_sanitize.cfg \
             docs/plugins \
             docs/howto \
             docs/tutorials/intro/initializing_nornir.ipynb \
