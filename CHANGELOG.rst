@@ -2,7 +2,7 @@ Changelog
 ==========
 
 2.4.0 - February 15 2020
------------------------
+------------------------
 
 * vendor pydantic :issue:`482` :user:`dbarrosop`
 * Netconf connection plugin does not respect ssh config :issue:`481` :user:`fach`
