@@ -2,7 +2,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 from nornir.core import inventory
 
-from pydantic import BaseModel
+from nornir._vendor.pydantic import BaseModel
 
 
 VarsDict = Dict[str, Any]
@@ -53,7 +53,7 @@ class InventoryElement(BaseAttributes):
         platform: Optional[str] = None,
         groups: Optional[List[str]] = None,
         data: Optional[Dict[str, Any]] = None,
-        connection_options: Optional[Dict[str, ConnectionOptions]] = None,
+        connection_options: Optional[Dict[str, Dict[str, Any]]] = None,
         defaults: inventory.Defaults = None,
     ) -> Dict[str, Any]:
         parent_groups = inventory.ParentGroups(groups)
@@ -100,7 +100,7 @@ class Defaults(BaseAttributes):
     connection_options: Dict[str, ConnectionOptions] = {}
 
     @classmethod
-    def serialize(cls, defaults: inventory.Defaults) -> "InventoryElement":
+    def serialize(cls, defaults: inventory.Defaults) -> "Defaults":
         d = {}
         for f in cls.__fields__:
             d[f] = getattr(defaults, f)

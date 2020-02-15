@@ -10,7 +10,7 @@ ENV PATH="/root/.poetry/bin:$PATH" \
 RUN apt-get update \
     && apt-get install -yq curl git pandoc \
     && curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python \
-    && poetry config settings.virtualenvs.create false
+    && poetry config virtualenvs.create false
 
 COPY pyproject.toml .
 COPY poetry.lock .

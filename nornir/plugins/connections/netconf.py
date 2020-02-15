@@ -110,10 +110,10 @@ class Netconf(ConnectionPlugin):
             try:
                 parameters["ssh_config"] = configuration.ssh.config_file  # type: ignore
             except AttributeError:
+                parameters["ssh_config"] = None
                 pass
 
         parameters.update(extras)
-        parameters["ssh_config"] = None
 
         connection = manager.connect_ssh(**parameters)
         self.connection = connection

@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, Optional, Type, Union, List, cast
 from nornir.core import configuration
 from nornir.core.deserializer.inventory import Inventory
 
-from pydantic import BaseSettings, Schema
+from nornir._vendor.pydantic import BaseSettings, Field
 
 import ruamel.yaml
 
@@ -21,7 +21,7 @@ class BaseNornirSettings(BaseSettings):
 
 
 class SSHConfig(BaseNornirSettings):
-    config_file: str = Schema(
+    config_file: str = Field(
         default="~/.ssh/config", description="Path to ssh configuration file"
     )
 
@@ -37,21 +37,21 @@ class SSHConfig(BaseNornirSettings):
 
 
 class InventoryConfig(BaseNornirSettings):
-    plugin: str = Schema(
+    plugin: str = Field(
         default="nornir.plugins.inventory.simple.SimpleInventory",
         description="Import path to inventory plugin",
     )
-    options: Dict[str, Any] = Schema(
+    options: Dict[str, Any] = Field(
         default={}, description="kwargs to pass to the inventory plugin"
     )
-    transform_function: str = Schema(
+    transform_function: str = Field(
         default="",
         description=(
             "Path to transform function. The transform_function "
             "you provide will run against each host in the inventory"
         ),
     )
-    transform_function_options: Dict[str, Any] = Schema(
+    transform_function_options: Dict[str, Any] = Field(
         default={}, description="kwargs to pass to the transform_function"
     )
 
@@ -71,19 +71,19 @@ class InventoryConfig(BaseNornirSettings):
 
 
 class LoggingConfig(BaseNornirSettings):
-    enabled: Optional[bool] = Schema(
+    enabled: Optional[bool] = Field(
         default=None, description="Whether to configure logging or not"
     )
-    level: str = Schema(default="INFO", description="Logging level")
-    file: str = Schema(default="nornir.log", description="Logging file")
-    format: str = Schema(
+    level: str = Field(default="INFO", description="Logging level")
+    file: str = Field(default="nornir.log", description="Logging file")
+    format: str = Field(
         default="%(asctime)s - %(name)12s - %(levelname)8s - %(funcName)10s() - %(message)s",
         description="Logging format",
     )
-    to_console: bool = Schema(
+    to_console: bool = Field(
         default=False, description="Whether to log to console or not"
     )
-    loggers: List[str] = Schema(default=["nornir"], description="Loggers to configure")
+    loggers: List[str] = Field(default=["nornir"], description="Loggers to configure")
 
     class Config:
         env_prefix = "NORNIR_LOGGING_"
@@ -103,7 +103,7 @@ class LoggingConfig(BaseNornirSettings):
 
 
 class Jinja2Config(BaseNornirSettings):
-    filters: str = Schema(
+    filters: str = Field(
         default="", description="Path to callable returning jinja filters to be used"
     )
 
@@ -120,11 +120,11 @@ class Jinja2Config(BaseNornirSettings):
 
 
 class CoreConfig(BaseNornirSettings):
-    num_workers: int = Schema(
+    num_workers: int = Field(
         default=20,
         description="Number of Nornir worker threads that are run at the same time by default",
     )
-    raise_on_error: bool = Schema(
+    raise_on_error: bool = Field(
         default=False,
         description=(
             "If set to ``True``, (:obj:`nornir.core.Nornir.run`) method of "
@@ -149,7 +149,7 @@ class Config(BaseNornirSettings):
     ssh: SSHConfig = SSHConfig()
     logging: LoggingConfig = LoggingConfig()
     jinja2: Jinja2Config = Jinja2Config()
-    user_defined: Dict[str, Any] = Schema(
+    user_defined: Dict[str, Any] = Field(
         default={}, description="User-defined <k, v> pairs"
     )
 
