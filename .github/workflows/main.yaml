@@ -40,10 +40,7 @@ jobs:
         uses: ammaraskar/sphinx-action@master
         with:
           docs-folder: "docs/"
-          pre-build-command: |
-            pwd
-            ls -la
-            pip install -e .
+          pre-build-command: pip install .
           build-command: sphinx-build -W -b html . _build
 
   pytest:
