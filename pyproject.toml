@@ -4,7 +4,7 @@ build-backend = "poetry.masonry.api"
 
 [tool.poetry]
 name = "nornir"
-version = "2.4.0"
+version = "3.0.0b0"
 description = "Pluggable multi-threaded framework with inventory management to help operate collections of devices"
 authors = ["David Barroso <dbarrosop@dravetech.com>"]
 readme = "README.md"
@@ -18,7 +18,6 @@ classifiers = [
 python = "^3.6"
 colorama = "^0.4.1"
 jinja2 = "^2"
-napalm = "^2"
 netmiko = ">=2.4"
 paramiko = "^2.7"
 requests = "^2"
@@ -59,6 +58,9 @@ jupyter = "^1"
 nbsphinx = "^0.5"
 pygments = "^2"
 sphinx-issues = "^1.2"
+
+# for docs only
+nornir_napalm = { git = "https://github.com/nornir-automation/nornir_napalm.git", branch = "proposal" }
 
 [tool.poetry.extras]
 # The following section is required to install docs dependencies
