@@ -30,7 +30,6 @@ jobs:
 
       - name: Install Dependencies
         run: poetry install
-        if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Run pylama
         run: poetry run pylama nornir docs tests
