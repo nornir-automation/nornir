@@ -1,7 +1,3 @@
-ifeq ($(PYTHON), )
-override PYTHON=3.6
-endif
-
 DOCKER_COMPOSE_FILE=docker-compose.yaml
 DOCKER_COMPOSE=PYTHON=${PYTHON} docker-compose -f ${DOCKER_COMPOSE_FILE}
 NORNIR_DIRS=nornir tests docs

@@ -31,17 +31,15 @@ jobs:
         run: poetry install
 
       - name: Run pylama
-        run: poetry run pylama nornir docs tests
+        run: make pylama
       - name: Run black
-        run: poetry run black --check nornir docs tests
+        run: make black
       - name: Run mypy
-        run: poetry run mypy .
-      - name: Run sphinx-build
-        uses: ammaraskar/sphinx-action@master
-        with:
-          docs-folder: "docs/"
-          pre-build-command: pip install .
-          build-command: sphinx-build -W -b html . _build
+        run: make mypy
+      - name: Run sphinx
+        run: |
+          apt-get install pandoc
+          make sphinx
 
   pytest:
     runs-on: ubuntu-latest
@@ -80,12 +78,7 @@ jobs:
         run: poetry install
 
       - name: Run pytest
-        run: poetry run pytest --cov=nornir --cov-report=term-missing -vs
+        run: make pytest
 
       - name: Run nbval
-        run: |
-          poetry run pytest --nbval --sanitize-with docs/nbval_sanitize.cfg \
-            docs/plugins \
-            docs/howto \
-            docs/tutorials/intro/initializing_nornir.ipynb \
-            docs/tutorials/intro/inventory.ipynb
+        run: make nbval
