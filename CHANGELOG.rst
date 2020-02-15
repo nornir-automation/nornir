@@ -1,9 +1,12 @@
 Changelog
 ==========
 
-2.4.0 - January 26 2020
+2.4.0 - February 15 2020
 -----------------------
 
+* vendor pydantic :issue:`482` :user:`dbarrosop`
+* Netconf connection plugin does not respect ssh config :issue:`481` :user:`fach`
+* Added napalm_ping.py plugin :issue:`472` :user:`tejasmokashi1992`
 * Add skip mark to netconf tests :issue:`469` :user:`dmfigol`
 * Update dependencies :issue:`468` :user:`dmfigol`
 * Replace multiprocessing.dummy with concurrent.futures :issue:`467` :user:`dmfigol`
