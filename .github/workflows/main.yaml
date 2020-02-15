@@ -19,8 +19,8 @@ jobs:
         id: cache
         with:
           path: ~/.virtualenvs
-          key: poetry-linters
-          restore-keys: poetry-linters
+          key: poetry-linters-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: poetry-linters-${{ hashFiles('**/poetry.lock') }}
 
       - name: Set Poetry config
         run: |
@@ -68,8 +68,8 @@ jobs:
         id: cache
         with:
           path: ~/.virtualenvs
-          key: poetry-${{ matrix.python-version }}
-          restore-keys: poetry-${{ matrix.python-version }}
+          key: poetry-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          restore-keys: poetry-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Set Poetry config
         run: |
