@@ -14,14 +14,14 @@ jobs:
       - name: Install Poetry
         uses: dschep/install-poetry-action@v1.2
 
-      # - name: Cache Poetry virtualenv
-      #   uses: actions/cache@v1
-      #   id: cache
-      #   with:
-      #     path: ~/.virtualenvs
-      #     key: poetry-${{ hashFiles('**/poetry.lock') }}
-      #     restore-keys: |
-      #       poetry-${{ hashFiles('**/poetry.lock') }}
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v1
+        id: cache
+        with:
+          path: ~/.virtualenvs
+          key: poetry
+          restore-keys: |
+            poetry
 
       - name: Set Poetry config
         run: |
@@ -64,14 +64,14 @@ jobs:
       - name: Install Poetry
         uses: dschep/install-poetry-action@v1.2
 
-      # - name: Cache Poetry virtualenv
-      #   uses: actions/cache@v1
-      #   id: cache
-      #   with:
-      #     path: ~/.virtualenvs
-      #     key: poetry-${{ hashFiles('**/poetry.lock') }}
-      #     restore-keys: |
-      #       poetry-${{ hashFiles('**/poetry.lock') }}
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v1
+        id: cache
+        with:
+          path: ~/.virtualenvs
+          key: poetry
+          restore-keys: |
+            poetry
 
       - name: Set Poetry config
         run: |
