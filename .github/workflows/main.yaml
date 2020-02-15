@@ -3,7 +3,7 @@ name: test nornir_napalm
 on: [push,pull_request]
 
 jobs:
-  black_mypy:
+  linters:
     name: Code and documentation checks
     runs-on: ubuntu-latest
     steps:
@@ -39,7 +39,10 @@ jobs:
       - name: Run mypy
         run: poetry run mypy .
       - name: Run sphinx-build
-        run: poetry run sphinx-build -W -b html -d docs/_build/doctrees docs docs/_build/html
+        uses: ammaraskar/sphinx-action@master
+        with:
+          docs-folder: "docs/"
+          build-command: poetry run sphinx-build -W -b html . _build
 
   pytest:
     runs-on: ubuntu-latest
@@ -54,6 +57,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
+
+      - name: Start containers
+        run: docker-compose up -d
 
       - name: Install Poetry
         uses: dschep/install-poetry-action@v1.2
