@@ -10,7 +10,7 @@ class Test(object):
         )
         assert isinstance(result, AggregatedResult)
 
-    #@skip  # This test can be run against inventory hosts which will not respond on TCP port 2222.
+    @skip  # This test can be run against inventory hosts which will not respond on TCP port 2222.
     def test_dead_hosts(self, nornir):
         result = nornir.run(
             wait_for_connection, port=2222, timeout=1, interval=0, delay=0
