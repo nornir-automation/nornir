@@ -8,7 +8,7 @@ In this how to we want to show an example on how to integrate ``nornir`` with `t
 And now the code::
 
    from nornir import InitNornir
-   from nornir.plugins.tasks.networking import napalm_get
+   from nornir_napalm.tasks import napalm_get
 
    from tqdm import tqdm
 

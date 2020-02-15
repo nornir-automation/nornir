@@ -399,7 +399,7 @@ format = ["idna", "jsonpointer (>1.13)", "rfc3987", "strict-rfc3339", "webcolors
 format_nongpl = ["idna", "jsonpointer (>1.13)", "webcolors", "rfc3986-validator (>0.1.0)", "rfc3339-validator"]
 
 [[package]]
-category = "main"
+category = "dev"
 description = "Junos 'EZ' automation for non-programmers"
 name = "junos-eznc"
 optional = false
@@ -556,7 +556,7 @@ python-versions = "*"
 version = "0.4.3"
 
 [[package]]
-category = "main"
+category = "dev"
 description = "Network Automation and Programmability Abstraction Layer with Multivendor support"
 name = "napalm"
 optional = false
@@ -671,7 +671,7 @@ setuptools = ">0.6"
 six = "*"
 
 [[package]]
-category = "main"
+category = "dev"
 description = "A network address manipulation library for Python"
 name = "netaddr"
 optional = false
@@ -696,6 +696,22 @@ textfsm = "*"
 [package.extras]
 test = ["pyyaml (5.1.2)", "pytest (>=5.1.2)"]
 
+[[package]]
+category = "dev"
+description = ""
+name = "nornir-napalm"
+optional = false
+python-versions = "^3.6"
+version = "0.1.0"
+
+[package.dependencies]
+napalm = "^2"
+nornir = "^2"
+
+[package.source]
+reference = "c34fad17be997f71cc755504fe0741b8340220f3"
+type = "git"
+url = "https://github.com/nornir-automation/nornir_napalm.git"
 [[package]]
 category = "main"
 description = "A web-based notebook environment for interactive computing"
@@ -723,7 +739,7 @@ traitlets = ">=4.2.1"
 test = ["nose", "coverage", "requests", "nose-warnings-filters", "nbval", "nose-exclude", "selenium", "pytest", "pytest-cov", "nose-exclude"]
 
 [[package]]
-category = "main"
+category = "dev"
 description = "A library for managing Cisco devices through NX-API using XML or jsonrpc."
 name = "nxapi-plumbing"
 optional = false
@@ -911,7 +927,7 @@ version = "5.0.2"
 snowballstemmer = "*"
 
 [[package]]
-category = "main"
+category = "dev"
 description = "Python Client for eAPI"
 name = "pyeapi"
 optional = false
@@ -942,7 +958,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 version = "2.5.2"
 
 [[package]]
-category = "main"
+category = "dev"
 description = "Python API to interact with network devices running IOS-XR"
 name = "pyiosxr"
 optional = false
@@ -1089,7 +1105,7 @@ python-versions = "*"
 version = "0.5.7"
 
 [[package]]
-category = "main"
+category = "dev"
 description = "YAML parser and emitter for Python"
 name = "pyyaml"
 optional = false
@@ -1374,7 +1390,7 @@ six = "*"
 test = ["pytest", "mock"]
 
 [[package]]
-category = "main"
+category = "dev"
 description = "A lightweight, object-oriented Python state machine implementation."
 name = "transitions"
 optional = false
@@ -1445,7 +1461,7 @@ version = "3.5.1"
 notebook = ">=4.4.1"
 
 [[package]]
-category = "main"
+category = "dev"
 description = "YAML loader and dump for PyYAML allowing to keep keys order."
 name = "yamlordereddictloader"
 optional = false
@@ -1472,7 +1488,7 @@ testing = ["jaraco.itertools"]
 docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-napoleon", "jupyter", "nbsphinx", "pygments", "sphinx-issues"]
 
 [metadata]
-content-hash = "38c773e7fecd974bd9acda9df76d57e46fd4026e0e0d771b65b5745a4a0d2387"
+content-hash = "2fa8d6f5f07c31ccef60c21d798d339739a3ca06a9d7ce01cf44ecf0b64cb47d"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -1840,6 +1856,7 @@ netmiko = [
     {file = "netmiko-3.0.0-py2.py3-none-any.whl", hash = "sha256:f5426cd9726100432a82f674ff1d017f0c10f493463cf818efaa05ffd730eda8"},
     {file = "netmiko-3.0.0.tar.gz", hash = "sha256:ac33f17c4eb2fcf8331c2a5d00331bf1e9ce3672b40e5736c17cdb62ce92761b"},
 ]
+nornir-napalm = []
 notebook = [
     {file = "notebook-6.0.3-py3-none-any.whl", hash = "sha256:3edc616c684214292994a3af05eaea4cc043f6b4247d830f3a2f209fa7639a80"},
     {file = "notebook-6.0.3.tar.gz", hash = "sha256:47a9092975c9e7965ada00b9a20f0cf637d001db60d241d479f53c0be117ad48"},

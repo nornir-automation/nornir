@@ -1,12 +1,6 @@
 Connections
 ===========
 
-NAPALM
-------
-
-.. automodule:: nornir.plugins.connections.napalm
-    :members:
-
 Netmiko
 -------
 
