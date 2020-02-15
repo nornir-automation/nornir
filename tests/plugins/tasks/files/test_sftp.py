@@ -1,9 +1,6 @@
 import uuid
 
 from nornir.plugins.tasks import files
-from tests import skip
-
-pytestmark = skip
 
 
 def get_file(task):

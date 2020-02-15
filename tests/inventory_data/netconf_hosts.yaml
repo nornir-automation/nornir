@@ -1,8 +1,9 @@
 ---
 netconf1.no_group:
-    hostname: netconf1.no_group
+    hostname: localhost
     username: netconf
     password: netconf
+    port: 65025
     connection_options:
         netconf:
             extras:

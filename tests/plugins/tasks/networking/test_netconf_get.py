@@ -1,8 +1,6 @@
 from nornir.plugins.tasks import networking
-from tests import skip
 
 
-@skip
 def test_netconf_get(netconf):
     result = netconf.run(networking.netconf_get)
 
@@ -10,7 +8,6 @@ def test_netconf_get(netconf):
         assert "<turing-machine" in v.result
 
 
-@skip
 def test_netconf_get_subtree(netconf):
     result = netconf.run(
         networking.netconf_get,

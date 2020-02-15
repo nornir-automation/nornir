@@ -83,4 +83,12 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Run pytest
-        run: poetry run pytest -vs --nbval
+        run: poetry run pytest --cov=nornir --cov-report=term-missing -vs
+
+      - name: Run nbval
+        run: |
+          poetry pytest --nbval --sanitize-with docs/nbval_sanitize.cfg \
+            docs/plugins \
+            docs/howto \
+            docs/tutorials/intro/initializing_nornir.ipynb \
+            docs/tutorials/intro/inventory.ipynb
