@@ -3,11 +3,8 @@ import pytest
 from requests.exceptions import HTTPError
 
 from nornir.plugins.tasks.apis import http_method
-from tests import skip
 
-BASE_URL = "http://httpbin"
-
-pytestmark = skip
+BASE_URL = "http://localhost:65080"
 
 
 class Test(object):
