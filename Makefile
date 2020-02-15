@@ -46,4 +46,4 @@ nbval:
 		docs/tutorials/intro/inventory.ipynb
 
 .PHONY: tests
-tests: stop_dev_env start_dev_env black pylama mypy nbval pytest
+tests: stop_dev_env start_dev_env black sphinx pylama mypy nbval pytest
