@@ -1,5 +1,4 @@
 from nornir.plugins.tasks import networking
-from tests import skip
 
 CONFIG = """
 <nc:config
@@ -20,7 +19,6 @@ CONFIG = """
 """
 
 
-@skip
 def test_netconf_edit_config(netconf):
     result = netconf.run(networking.netconf_get_config)
 

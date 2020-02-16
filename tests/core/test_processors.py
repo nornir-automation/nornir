@@ -6,7 +6,7 @@ from nornir.core.task import AggregatedResult, MultiResult, Result, Task
 
 
 def mock_task(task: Task) -> Result:
-    if task.host.hostname == "dev3.group_2":
+    if task.host.name == "dev3.group_2":
         raise Exception("failed!!!")
     return Result(host=task.host, result=True)
 
@@ -33,13 +33,13 @@ class MockProcessor:
         self.data[task.name]["completed"] = True
 
     def task_instance_started(self, task: Task, host: Host) -> None:
-        self.data[task.name][host.hostname] = {"started": True, "subtasks": {}}
+        self.data[task.name][host.name] = {"started": True, "subtasks": {}}
 
     def task_instance_completed(
         self, task: Task, host: Host, result: MultiResult
     ) -> None:
-        self.data[task.name][host.hostname]["completed"] = True
-        self.data[task.name][host.hostname]["failed"] = result.failed
+        self.data[task.name][host.name]["completed"] = True
+        self.data[task.name][host.name]["failed"] = result.failed
 
     def _get_subtask_dict(self, task: Task, host: Host) -> Dict[str, Any]:
         parents = []
@@ -50,7 +50,7 @@ class MockProcessor:
             parents.insert(0, parent.name)
             parent = parent.parent_task
 
-        data = self.data[parents[0]][host.hostname]["subtasks"]
+        data = self.data[parents[0]][host.name]["subtasks"]
         for p in parents[1:]:
             data = data[p]["subtasks"]
         return data

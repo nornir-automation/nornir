@@ -1,7 +1,7 @@
 ---
 dev1.group_1:
-    port: 22
-    hostname: dev1.group_1
+    port: 65020
+    hostname: localhost
     username:
     password: a_password
     platform: eos
@@ -19,7 +19,7 @@ dev1.group_1:
         - group_1
     connection_options:
         paramiko:
-            port: 22
+            port: 65020
             hostname:
             username: root
             password: docker
@@ -34,8 +34,8 @@ dev1.group_1:
             extras:
                 blah: from_host
 dev2.group_1:
-    port: 22
-    hostname: dev2.group_1
+    port: 65021
+    hostname: localhost
     username:
     password:
     platform: junos
@@ -65,8 +65,8 @@ dev2.group_1:
             platform:
             extras:
 dev3.group_2:
-    port: 22
-    hostname: dev3.group_2
+    port: 65022
+    hostname: localhost
     username:
     password:
     platform: linux
@@ -84,8 +84,8 @@ dev3.group_2:
             password:
             extras: {}
 dev4.group_2:
-    port: 22
-    hostname: dev4.group_2
+    port: 65023
+    hostname: localhost
     username:
     password:
     platform: linux
@@ -98,21 +98,21 @@ dev4.group_2:
     connection_options:
         paramiko:
             port:
-            hostname: dev4.group_2
+            hostname: localhost
             username: root
             password: docker
             platform: linux
             extras: {}
         netmiko:
             port:
-            hostname: dev4.group_2
+            hostname: localhost
             username: root
             password: docker
             platform: linux
             extras: {}
 dev5.no_group:
-    port: 22
-    hostname: dev5.no_group
+    port: 65024
+    hostname: localhost
     username:
     password:
     platform: linux

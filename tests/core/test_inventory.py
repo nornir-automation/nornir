@@ -165,7 +165,7 @@ class Test(object):
         inv = deserializer.Inventory.deserialize(**inv_dict)
         p1 = inv.hosts["dev1.group_1"].get_connection_parameters("dummy")
         assert deserializer.ConnectionOptions.serialize(p1).dict() == {
-            "port": 22,
+            "port": 65020,
             "hostname": "dummy_from_host",
             "username": "root",
             "password": "a_password",
@@ -174,8 +174,8 @@ class Test(object):
         }
         p2 = inv.hosts["dev1.group_1"].get_connection_parameters("asd")
         assert deserializer.ConnectionOptions.serialize(p2).dict() == {
-            "port": 22,
-            "hostname": "dev1.group_1",
+            "port": 65020,
+            "hostname": "localhost",
             "username": "root",
             "password": "a_password",
             "platform": "eos",
@@ -183,7 +183,7 @@ class Test(object):
         }
         p3 = inv.hosts["dev2.group_1"].get_connection_parameters("dummy")
         assert deserializer.ConnectionOptions.serialize(p3).dict() == {
-            "port": 22,
+            "port": 65021,
             "hostname": "dummy_from_parent_group",
             "username": "root",
             "password": "from_group1",
@@ -192,7 +192,7 @@ class Test(object):
         }
         p4 = inv.hosts["dev3.group_2"].get_connection_parameters("dummy")
         assert deserializer.ConnectionOptions.serialize(p4).dict() == {
-            "port": 22,
+            "port": 65022,
             "hostname": "dummy_from_defaults",
             "username": "root",
             "password": "docker",
