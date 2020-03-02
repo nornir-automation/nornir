@@ -11,6 +11,7 @@ from .netmiko_file_transfer import netmiko_file_transfer
 from .netmiko_send_command import netmiko_send_command
 from .netmiko_send_config import netmiko_send_config
 from .netmiko_save_config import netmiko_save_config
+from .ftd_send_command import ftd_send_command
 from .tcp_ping import tcp_ping
 from .napalm_ping import napalm_ping
 
@@ -28,6 +29,7 @@ __all__ = (
     "netmiko_send_command",
     "netmiko_send_config",
     "netmiko_save_config",
+    "ftd_send_command",
     "tcp_ping",
     "napalm_ping",
 )
