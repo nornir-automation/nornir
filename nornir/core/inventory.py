@@ -4,7 +4,11 @@ from typing import Any, Dict, List, Optional, Set, Union
 
 from nornir.core import deserializer
 from nornir.core.configuration import Config
-from nornir.core.connections import ConnectionPlugin, Connections
+from nornir.core.connections import (
+    ConnectionPlugin,
+    Connections,
+    UNESTABLISHED_CONNECTION,
+)
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
 
 
@@ -336,39 +340,43 @@ class Host(InventoryElement):
         Returns:
             An already established connection
         """
-        if connection in self.connections:
-            raise ConnectionAlreadyOpen(connection)
+        conn_name = connection
+        existing_conn = self.connections.get(conn_name)
+        if existing_conn is not None and existing_conn is not UNESTABLISHED_CONNECTION:
+            raise ConnectionAlreadyOpen(conn_name)
 
-        self.connections[connection] = self.connections.get_plugin(connection)()
+        plugin = self.connections.get_plugin(conn_name)
+        conn_obj = plugin()
         if default_to_host_attributes:
-            conn_params = self.get_connection_parameters(connection)
-            self.connections[connection].open(
-                hostname=hostname if hostname is not None else conn_params.hostname,
-                username=username if username is not None else conn_params.username,
-                password=password if password is not None else conn_params.password,
-                port=port if port is not None else conn_params.port,
-                platform=platform if platform is not None else conn_params.platform,
-                extras=extras if extras is not None else conn_params.extras,
-                configuration=configuration,
-            )
-        else:
-            self.connections[connection].open(
-                hostname=hostname,
-                username=username,
-                password=password,
-                port=port,
-                platform=platform,
-                extras=extras,
-                configuration=configuration,
-            )
-        return self.connections[connection]
+            conn_params = self.get_connection_parameters(conn_name)
+            hostname = hostname if hostname is not None else conn_params.hostname
+            username = username if username is not None else conn_params.username
+            password = password if password is not None else conn_params.password
+            port = port if port is not None else conn_params.port
+            platform = platform if platform is not None else conn_params.platform
+            extras = extras if extras is not None else conn_params.extras
+
+        conn_obj.open(
+            hostname=hostname,
+            username=username,
+            password=password,
+            port=port,
+            platform=platform,
+            extras=extras,
+            configuration=configuration,
+        )
+        self.connections[conn_name] = conn_obj
+        return connection
 
     def close_connection(self, connection: str) -> None:
         """ Close the connection"""
-        if connection not in self.connections:
-            raise ConnectionNotOpen(connection)
+        conn_name = connection
+        if conn_name not in self.connections:
+            raise ConnectionNotOpen(conn_name)
 
-        self.connections.pop(connection).close()
+        connection = self.connections.pop(conn_name)
+        if connection is not UNESTABLISHED_CONNECTION:
+            connection.close()
 
     def close_connections(self) -> None:
         # Decouple deleting dictionary elements from iterating over connections dict

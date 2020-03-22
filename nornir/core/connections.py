@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, NoReturn, Optional, Type
+from typing import Any, Dict, Optional, Type
 
 
 from nornir.core.configuration import Config
@@ -7,6 +7,8 @@ from nornir.core.exceptions import (
     ConnectionPluginAlreadyRegistered,
     ConnectionPluginNotRegistered,
 )
+
+UNESTABLISHED_CONNECTION = object()
 
 
 class ConnectionPlugin(ABC):
@@ -23,7 +25,7 @@ class ConnectionPlugin(ABC):
     __slots__ = ("connection", "state")
 
     def __init__(self) -> None:
-        self.connection: Any = UnestablishedConnection()
+        self.connection: Any = UNESTABLISHED_CONNECTION
         self.state: Dict[str, Any] = {}
 
     @abstractmethod
@@ -47,13 +49,6 @@ class ConnectionPlugin(ABC):
     def close(self) -> None:
         """Close the connection with the device"""
         pass
-
-
-class UnestablishedConnection(object):
-    def close(self) -> NoReturn:
-        raise ValueError("Connection not established")
-
-    disconnect = close
 
 
 class Connections(Dict[str, ConnectionPlugin]):
