@@ -8,8 +8,6 @@ from nornir.core.exceptions import (
     ConnectionPluginNotRegistered,
 )
 
-UNESTABLISHED_CONNECTION = object()
-
 
 class ConnectionPlugin(ABC):
     """
@@ -25,7 +23,7 @@ class ConnectionPlugin(ABC):
     __slots__ = ("connection", "state")
 
     def __init__(self) -> None:
-        self.connection: Any = UNESTABLISHED_CONNECTION
+        self.connection: Any = None
         self.state: Dict[str, Any] = {}
 
     @abstractmethod
