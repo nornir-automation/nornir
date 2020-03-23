@@ -7,7 +7,6 @@ from nornir.core.configuration import Config
 from nornir.core.connections import (
     ConnectionPlugin,
     Connections,
-    UNESTABLISHED_CONNECTION,
 )
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
 
@@ -342,7 +341,7 @@ class Host(InventoryElement):
         """
         conn_name = connection
         existing_conn = self.connections.get(conn_name)
-        if existing_conn is not None and existing_conn is not UNESTABLISHED_CONNECTION:
+        if existing_conn is not None:
             raise ConnectionAlreadyOpen(conn_name)
 
         plugin = self.connections.get_plugin(conn_name)
@@ -374,9 +373,9 @@ class Host(InventoryElement):
         if conn_name not in self.connections:
             raise ConnectionNotOpen(conn_name)
 
-        connection = self.connections.pop(conn_name)
-        if connection is not UNESTABLISHED_CONNECTION:
-            connection.close()
+        conn_obj = self.connections.pop(conn_name)
+        if conn_obj is not None:
+            conn_obj.close()
 
     def close_connections(self) -> None:
         # Decouple deleting dictionary elements from iterating over connections dict
