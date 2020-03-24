@@ -52,7 +52,8 @@
 				"site": "san-jose-ca",
 				"role": "sw",
 				"model": "3650-48tq-l",
-				"platform": "ios"
+				"platform": "ios",
+				"tags": null
 			},
 			"connection_options": {},
 			"groups": []
@@ -70,7 +71,8 @@
 				"site": "sunnyvale-ca",
 				"role": "rt",
 				"model": "mx480",
-			        "platform": "junos"
+				"platform": "junos",
+				"tags": null
 			},
 			"connection_options": {},
 			"groups": []

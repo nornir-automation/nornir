@@ -49,7 +49,8 @@
 				"asset_tag": null,
 				"site": "san-jose-ca",
 				"role": "sw",
-				"model": "3650-48tq-l"
+				"model": "3650-48tq-l",
+				"tags": null
 			},
 			"connection_options": {},
 			"groups": []
@@ -66,7 +67,8 @@
 				"asset_tag": null,
 				"site": "sunnyvale-ca",
 				"role": "rt",
-				"model": "mx480"
+				"model": "mx480",
+				"tags": null
 			},
 			"connection_options": {},
 			"groups": []

@@ -62,6 +62,7 @@
       "vc_priority": null,
       "comments": "",
       "custom_fields": {},
+      "tags": ["tag1","tag2"],
       "created": "2018-07-12",
       "last_updated": "2018-07-12T11:53:54.742412Z"
     },
@@ -124,6 +125,7 @@
       "vc_priority": null,
       "comments": "",
       "custom_fields": {},
+      "tags": null,
       "created": "2018-07-12",
       "last_updated": "2018-07-12T11:53:54.802934Z"
     },
@@ -186,6 +188,7 @@
       "vc_priority": null,
       "comments": "",
       "custom_fields": {"user_defined": 1},
+      "tags": null,
       "created": "2018-07-12",
       "last_updated": "2018-07-12T11:53:54.866133Z"
     },
@@ -248,6 +251,7 @@
       "vc_priority": null,
       "comments": "",
       "custom_fields": {},
+      "tags": null,
       "created": "2018-07-12",
       "last_updated": "2018-07-12T11:53:54.742412Z"
     }
