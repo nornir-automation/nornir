@@ -69,6 +69,7 @@ class NBInventory(Inventory):
             host["data"]["serial"] = d["serial"]
             host["data"]["vendor"] = d["device_type"]["manufacturer"]["name"]
             host["data"]["asset_tag"] = d["asset_tag"]
+            host["data"]["tags"] = d["tags"]
 
             if flatten_custom_fields:
                 for cf, value in d["custom_fields"].items():

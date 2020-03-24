@@ -12,7 +12,8 @@
 				"asset_tag": null,
 				"site": "sunnyvale-ca",
 				"role": "rt",
-				"model": "mx480"
+				"model": "mx480",
+				"tags": ["tag1","tag2"]
 			},
 			"connection_options": {},
 			"groups": []
@@ -29,7 +30,8 @@
 				"asset_tag": null,
 				"site": "sunnyvale-ca",
 				"role": "rt",
-				"model": "ex4550-32f"
+				"model": "ex4550-32f",
+				"tags": null
 			},
 			"connection_options": {},
 			"groups": []

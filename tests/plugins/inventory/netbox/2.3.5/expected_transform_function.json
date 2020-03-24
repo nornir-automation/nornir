@@ -13,7 +13,8 @@
 				"site": "sunnyvale-ca",
 				"role": "rt",
 				"model": "mx480",
-				"platform": "junos"
+				"platform": "junos",
+				"tags": ["tag1","tag2"]
 			},
 			"connection_options": {},
 			"groups": []
@@ -31,7 +32,8 @@
 				"site": "sunnyvale-ca",
 				"role": "rt",
 				"model": "ex4550-32f",
-				"platform": "junos"
+				"platform": "junos",
+				"tags": null
 			},
 			"connection_options": {},
 			"groups": []
