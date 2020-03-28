@@ -14,6 +14,11 @@ classifiers = [
         "Programming Language :: Python :: 3.7",
 ]
 
+[tool.poetry.plugins."nornir.plugins.connections"]
+"netmiko" = "nornir.plugins.connections.netmiko:Netmiko"
+"paramiko" = "nornir.plugins.connections.paramiko:Paramiko"
+"netconf" = "nornir.plugins.connections.netconf:Netconf"
+
 [tool.poetry.dependencies]
 python = "^3.6"
 colorama = "^0.4.1"
@@ -58,9 +63,6 @@ jupyter = "^1"
 nbsphinx = "^0.5"
 pygments = "^2"
 sphinx-issues = "^1.2"
-
-# for docs only
-nornir_napalm = { git = "https://github.com/nornir-automation/nornir_napalm.git", branch = "proposal" }
 
 [tool.poetry.extras]
 # The following section is required to install docs dependencies
