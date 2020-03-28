@@ -708,7 +708,7 @@ napalm = "^2"
 nornir = "branch 3.0.0-entrypoints"
 
 [package.source]
-reference = "f9a6957ad39a4b9559b61d24a3031db7e6c75d01"
+reference = "2b5db05f40fbbdac5ffc14ca661dbaa9620af9ce"
 type = "git"
 url = "https://github.com/nornir-automation/nornir_napalm.git"
 [[package]]
