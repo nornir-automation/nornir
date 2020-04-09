@@ -1,19 +1,20 @@
+import pkg_resources
 import warnings
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, Optional, Type
 
 from nornir.core import Nornir
-from nornir.core.connections import Connections
+from nornir.core.connections import Connections, ConnectionPlugin
 from nornir.core.deserializer.configuration import Config
 from nornir.core.state import GlobalState
-from nornir.plugins.connections.netconf import Netconf
-from nornir.plugins.connections.netmiko import Netmiko
-from nornir.plugins.connections.paramiko import Paramiko
 
 
 def register_default_connection_plugins() -> None:
-    Connections.register("netconf", Netconf)
-    Connections.register("netmiko", Netmiko)
-    Connections.register("paramiko", Paramiko)
+    discovered_plugins: Dict[str, Type[ConnectionPlugin]] = {
+        entry_point.name: entry_point.load()
+        for entry_point in pkg_resources.iter_entry_points("nornir.plugins.connections")
+    }
+    for k, v in discovered_plugins.items():
+        Connections.register(k, v)
 
 
 def cls_to_string(cls: Callable[..., Any]) -> str:

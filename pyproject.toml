@@ -14,6 +14,11 @@ classifiers = [
         "Programming Language :: Python :: 3.7",
 ]
 
+[tool.poetry.plugins."nornir.plugins.connections"]
+"netmiko" = "nornir.plugins.connections.netmiko:Netmiko"
+"paramiko" = "nornir.plugins.connections.paramiko:Paramiko"
+"netconf" = "nornir.plugins.connections.netconf:Netconf"
+
 [tool.poetry.dependencies]
 python = "^3.6"
 colorama = "^0.4.1"
