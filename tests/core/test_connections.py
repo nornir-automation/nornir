@@ -42,6 +42,31 @@ class AnotherDummyConnectionPlugin(DummyConnectionPlugin):
     pass
 
 
+class FailedConnection(Exception):
+    pass
+
+
+class FailedConnectionPlugin(ConnectionPlugin):
+    name = "fail"
+
+    def open(
+        self,
+        hostname: Optional[str],
+        username: Optional[str],
+        password: Optional[str],
+        port: Optional[int],
+        platform: Optional[str],
+        extras: Optional[Dict[str, Any]] = None,
+        configuration: Optional[Config] = None,
+    ) -> None:
+        raise FailedConnection(
+            f"Failed to open connection to {self.hostname}:{self.port}"
+        )
+
+    def close(self) -> None:
+        pass
+
+
 def open_and_close_connection(task):
     task.host.open_connection("dummy", task.nornir.config)
     assert "dummy" in task.host.connections
@@ -69,6 +94,10 @@ def close_not_opened_connection(task):
         assert "dummy" not in task.host.connections
 
 
+def failed_connection(task):
+    task.host.open_connection(FailedConnectionPlugin.name, task.nornir.config)
+
+
 def a_task(task):
     task.host.get_connection("dummy", task.nornir.config)
 
@@ -86,6 +115,7 @@ class Test(object):
         Connections.register("dummy", DummyConnectionPlugin)
         Connections.register("dummy2", DummyConnectionPlugin)
         Connections.register("dummy_no_overrides", DummyConnectionPlugin)
+        Connections.register(FailedConnectionPlugin.name, FailedConnectionPlugin)
 
     def test_open_and_close_connection(self, nornir):
         nr = nornir.filter(name="dev2.group_1")
@@ -104,6 +134,14 @@ class Test(object):
         r = nr.run(task=close_not_opened_connection, num_workers=1)
         assert len(r) == 1
         assert not r.failed
+
+    def test_failed_connection(self, nornir):
+        nr = nornir.filter(name="dev2.group_1")
+        nr.run(task=failed_connection, num_workers=1)
+        assert (
+            FailedConnectionPlugin.name
+            not in nornir.inventory.hosts["dev2.group_1"].connections
+        )
 
     def test_context_manager(self, nornir):
         with nornir.filter(name="dev2.group_1") as nr:
