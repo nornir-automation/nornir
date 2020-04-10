@@ -2,15 +2,11 @@ DOCKER_COMPOSE_FILE=docker-compose.yaml
 DOCKER_COMPOSE=PYTHON=${PYTHON} docker-compose -f ${DOCKER_COMPOSE_FILE}
 NORNIR_DIRS=nornir tests docs
 
-.PHONY: start_dev_env
-start_dev_env:
-	${DOCKER_COMPOSE} \
-		up -d
+PYTHON:=3.7
 
-.PHONY: stop_dev_env
-stop_dev_env:
-	${DOCKER_COMPOSE} \
-		down
+.PHONY: docker
+docker:
+	docker build --build-arg PYTHON=$(PYTHON) -t nornir-dev:latest -f Dockerfile .
 
 .PHONY: pytest
 pytest:
@@ -36,10 +32,13 @@ mypy:
 .PHONY: nbval
 nbval:
 	poetry run pytest --nbval --sanitize-with docs/nbval_sanitize.cfg \
-		docs/plugins \
 		docs/howto \
 		docs/tutorials/intro/initializing_nornir.ipynb \
 		docs/tutorials/intro/inventory.ipynb
 
 .PHONY: tests
-tests: stop_dev_env start_dev_env black sphinx pylama mypy nbval pytest
+tests: black sphinx pylama mypy nbval pytest
+
+.PHONY: docker-tests
+docker-tests: docker
+	docker run --name nornir-tests --rm nornir-dev:latest make tests
