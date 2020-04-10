@@ -65,7 +65,6 @@ Contents
    Tutorials <tutorials/intro/index>
    Howto <howto/index>
    configuration/index
-   plugins/index
    ref/index
    upgrading/index
    Contribute <contributing/index>
