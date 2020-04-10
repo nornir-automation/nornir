@@ -1,13 +1,21 @@
 import datetime
 import time
 
-from nornir.core.exceptions import NornirExecutionError, CommandError
-from nornir.plugins.tasks import commands
+from nornir.core.exceptions import NornirExecutionError
 
 import pytest
 
 
 NUM_WORKERS = 20
+
+
+class CustomException(Exception):
+    pass
+
+
+def a_task_for_testing(task, command):
+    if command == "failme":
+        raise CustomException()
 
 
 def blocking_task(task, wait):
@@ -19,7 +27,7 @@ def failing_task_simple(task):
 
 
 def failing_task_complex(task):
-    commands.command(task, command="ls /folderdoesntexist")
+    a_task_for_testing(task, command="failme")
 
 
 def change_data(task):
@@ -69,7 +77,7 @@ class Test(object):
         for k, v in result.items():
             processed = True
             assert isinstance(k, str), k
-            assert isinstance(v.exception, CommandError), v
+            assert isinstance(v.exception, CustomException), v
         assert processed
 
     def test_failing_task_complex_multithread(self, nornir):
@@ -78,7 +86,7 @@ class Test(object):
         for k, v in result.items():
             processed = True
             assert isinstance(k, str), k
-            assert isinstance(v.exception, CommandError), v
+            assert isinstance(v.exception, CustomException), v
         assert processed
 
     def test_failing_task_complex_multithread_raise_on_error(self, nornir):
@@ -88,7 +96,7 @@ class Test(object):
             )
         for k, v in e.value.result.items():
             assert isinstance(k, str), k
-            assert isinstance(v.exception, CommandError), v
+            assert isinstance(v.exception, CustomException), v
 
     def test_change_data_in_thread(self, nornir):
         nornir.run(change_data, num_workers=NUM_WORKERS)

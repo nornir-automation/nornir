@@ -3,7 +3,6 @@ from pathlib import Path
 
 from nornir.core.configuration import Config
 from nornir.plugins.inventory.simple import SimpleInventory
-from nornir.plugins.inventory.ansible import AnsibleInventory
 from nornir.core.deserializer.configuration import Config as ConfigDeserializer
 
 from tests.core.deserializer import my_jinja_filters
@@ -18,6 +17,10 @@ dir_path = os.path.join(
 DEFAULT_LOG_FORMAT = (
     "%(asctime)s - %(name)12s - %(levelname)8s - %(funcName)10s() - %(message)s"
 )
+
+
+class DummyInventory(SimpleInventory):
+    pass
 
 
 class Test(object):
@@ -98,7 +101,9 @@ class Test(object):
             user_defined={"my_opt": True},
             logging={"file": "", "level": "DEBUG"},
             ssh={"config_file": "~/.ssh/alt_config"},
-            inventory={"plugin": "nornir.plugins.inventory.ansible.AnsibleInventory"},
+            inventory={
+                "plugin": "tests.core.deserializer.test_configuration.DummyInventory"
+            },
         )
         assert isinstance(c, Config)
 
@@ -114,7 +119,7 @@ class Test(object):
 
         assert c.ssh.config_file == str(Path("~/.ssh/alt_config").expanduser())
 
-        assert c.inventory.plugin == AnsibleInventory
+        assert c.inventory.plugin == DummyInventory
         assert c.inventory.options == {}
         assert c.inventory.transform_function is None
         assert c.inventory.transform_function_options == {}
@@ -144,7 +149,7 @@ class Test(object):
         )
         assert config.core.num_workers == 10
         assert not config.core.raise_on_error
-        assert config.inventory.plugin == AnsibleInventory
+        assert config.inventory.plugin == DummyInventory
 
     def test_configuration_file_override_argument(self):
         config = ConfigDeserializer.load_from_file(
