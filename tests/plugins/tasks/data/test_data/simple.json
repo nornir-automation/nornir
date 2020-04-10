@@ -1,8 +1,0 @@
-{
-    "env": "test",
-    "services": [
-        "dhcp",
-        "dns"
-    ],
-    "a_dict": {"a": 1, "b": 2}
-}
