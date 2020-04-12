@@ -1,0 +1,80 @@
+Upgrading to nornir 3.x from 2.x
+================================
+
+Changes in the plugin ecosystem
+------------------------
+
+Since nornir 3.0.0 plugins are relocated in separate project to reduce the dependency list of nornir.
+In short it means you have to install nornir and the plugins you need for your project.
+
+Connection plugins
+~~~~~~~~~~~~~~~~~~~~~
+
+Connection plugins need to register the connection class to the entry point ``nornir.plugins.connections`` in the installation process.
+``InitNornir()`` detects and registers the plugins under the entry point automatically.
+For consistency the plugin name should be stored in the variable ``CONNECTION_NAME ``.
+
+You can check the following how to for more details on `how to <../howto/handling_connections.rst>`_ create a plugin.
+
+Install the napalm connection plugin::
+
+    pip install nornir-napalm
+
+Manual registration::
+
+    from nornir.core.connections import Connections
+    from my_plugin.connections import MyPlugin
+
+    Connections.register("my_plugin", MyPlugin)
+
+Verify registration::
+
+    from nornir.core.connections import Connections
+
+    Connections.get_plugin("my_plugin")
+
+Inventory plugins
+~~~~~~~~~~~~~~~~~~~~~
+
+Expect of the ``SimpleInventory`` the inventory plugins are moved to separate projects.
+
+Install the netbox inventory plugin::
+
+    pip install nornir-inventory
+
+
+Task plugins
+~~~~~~~~~~~~~~~~~~~~~
+
+Task plugins are moved to separate projects and must be installed.
+
+Install the napalm tasks::
+
+    pip install nornir-napalm
+
+
+In order of this change the import statement changes for example from::
+
+    from nornir.plugins.tasks.networking import napalm_cli
+
+to::
+
+    from nornir_napalm.tasks import napalm_cli
+
+Process plugins
+~~~~~~~~~~~~~~~~~~~~~
+
+Processor plugins are moved to separate projects and must be installed.
+
+Install the napalm tasks::
+
+    pip install nornir-print-result
+
+
+In order of this change the import statement changes for example from::
+
+    from nornir.plugins.processors.print_result import PrintResult
+
+to::
+
+    from nornir_print_result.processors import PrintResult
