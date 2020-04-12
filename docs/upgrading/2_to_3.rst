@@ -2,17 +2,17 @@ Upgrading to nornir 3.x from 2.x
 ================================
 
 Changes in the plugin ecosystem
-------------------------
+-------------------------------
 
 Since nornir 3.0.0 plugins are relocated in separate project to reduce the dependency list of nornir.
 In short it means you have to install nornir and the plugins you need for your project.
 
 Connection plugins
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
 
 Connection plugins need to register the connection class to the entry point ``nornir.plugins.connections`` in the installation process.
 ``InitNornir()`` detects and registers the plugins under the entry point automatically.
-For consistency the plugin name should be stored in the variable ``CONNECTION_NAME ``.
+For consistency the plugin name should be stored in the variable ``CONNECTION_NAME``.
 
 You can check the following how to for more details on `how to <../howto/handling_connections.rst>`_ create a plugin.
 
@@ -34,7 +34,7 @@ Verify registration::
     Connections.get_plugin("my_plugin")
 
 Inventory plugins
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 Expect of the ``SimpleInventory`` the inventory plugins are moved to separate projects.
 
@@ -44,7 +44,7 @@ Install the netbox inventory plugin::
 
 
 Task plugins
-~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~
 
 Task plugins are moved to separate projects and must be installed.
 
