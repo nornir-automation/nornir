@@ -26,7 +26,12 @@ def render_from_string(
     template: str, jinja_filters: Optional[Dict[str, Any]] = None, **kwargs: Any
 ) -> str:
     jinja_filters = jinja_filters or {}
-    env = Environment(undefined=StrictUndefined, trim_blocks=True)
+    env = Environment(
+        undefined=StrictUndefined,
+        trim_blocks=True,
+        lstrip_blocks=True,
+        keep_trailing_newline=True,
+    )
     env.filters.update(jinja_filters)
     t = env.from_string(template)
     return t.render(**kwargs)
