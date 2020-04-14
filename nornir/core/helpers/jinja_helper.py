@@ -11,7 +11,11 @@ def render_from_file(
 ) -> str:
     jinja_filters = jinja_filters or {}
     env = Environment(
-        loader=FileSystemLoader(path), undefined=StrictUndefined, trim_blocks=True
+        loader=FileSystemLoader(path),
+        undefined=StrictUndefined,
+        trim_blocks=True,
+        lstrip_blocks=True,
+        keep_trailing_newline=True,
     )
     env.filters.update(jinja_filters)
     t = env.get_template(template)
