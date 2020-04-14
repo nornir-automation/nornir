@@ -1,14 +1,29 @@
-import warnings
-from collections import UserList
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Set,
+    Union,
+    KeysView,
+    ValuesView,
+    ItemsView,
+    Iterator,
+    TypeVar,
+)
 
-from nornir.core import deserializer
 from nornir.core.configuration import Config
 from nornir.core.connections import (
     ConnectionPlugin,
     Connections,
 )
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
+
+from mypy_extensions import Arg, KwArg
+
+
+HostOrGroup = TypeVar("HostOrGroup", "Host", "Group")
 
 
 class BaseAttributes(object):
@@ -28,33 +43,50 @@ class BaseAttributes(object):
         self.password = password
         self.platform = platform
 
-    def dict(self):
-        w = f"{self.dict.__qualname__} is deprecated, use nornir.core.deserializer instead"
-        warnings.warn(w)
-        return (
-            getattr(deserializer.inventory, self.__class__.__name__)
-            .serialize(self)
-            .dict()
-        )
+    def dict(self) -> Dict[str, Any]:
+        return {
+            "hostname": self.hostname,
+            "port": self.port,
+            "username": self.username,
+            "password": self.password,
+            "platform": self.platform,
+        }
 
 
 class ConnectionOptions(BaseAttributes):
     __slots__ = ("extras",)
 
-    def __init__(self, extras: Optional[Dict[str, Any]] = None, **kwargs) -> None:
+    def __init__(
+        self,
+        hostname: Optional[str] = None,
+        port: Optional[int] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        platform: Optional[str] = None,
+        extras: Optional[Dict[str, Any]] = None,
+    ) -> None:
         self.extras = extras
-        super().__init__(**kwargs)
+        super().__init__(
+            hostname=hostname,
+            port=port,
+            username=username,
+            password=password,
+            platform=platform,
+        )
+
+    def dict(self) -> Dict[str, Any]:
+        return {
+            "extras": self.extras,
+            **super().dict(),
+        }
 
 
-class ParentGroups(UserList):
-    __slots__ = "refs"
-
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self.refs: List["Group"] = kwargs.get("refs", [])
-
-    def __contains__(self, value) -> bool:
-        return value in self.data or value in self.refs
+class ParentGroups(List["Group"]):
+    def __contains__(self, value: object) -> bool:
+        if isinstance(value, str):
+            return any([value == g.name for g in self])
+        else:
+            return any([value == g for g in self])
 
 
 class InventoryElement(BaseAttributes):
@@ -62,15 +94,35 @@ class InventoryElement(BaseAttributes):
 
     def __init__(
         self,
+        hostname: Optional[str] = None,
+        port: Optional[int] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        platform: Optional[str] = None,
         groups: Optional[ParentGroups] = None,
         data: Optional[Dict[str, Any]] = None,
         connection_options: Optional[Dict[str, ConnectionOptions]] = None,
-        **kwargs,
     ) -> None:
         self.groups = groups or ParentGroups()
         self.data = data or {}
         self.connection_options = connection_options or {}
-        super().__init__(**kwargs)
+        super().__init__(
+            hostname=hostname,
+            port=port,
+            username=username,
+            password=password,
+            platform=platform,
+        )
+
+    def dict(self) -> Dict[str, Any]:
+        return {
+            "groups": [g.name for g in self.groups],
+            "data": self.data,
+            "connection_options": {
+                k: v.dict() for k, v in self.connection_options.items()
+            },
+            **super().dict(),
+        }
 
 
 class Defaults(BaseAttributes):
@@ -78,33 +130,71 @@ class Defaults(BaseAttributes):
 
     def __init__(
         self,
+        hostname: Optional[str] = None,
+        port: Optional[int] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        platform: Optional[str] = None,
         data: Optional[Dict[str, Any]] = None,
         connection_options: Optional[Dict[str, ConnectionOptions]] = None,
-        **kwargs,
     ) -> None:
         self.data = data or {}
         self.connection_options = connection_options or {}
-        super().__init__(**kwargs)
+        super().__init__(
+            hostname=hostname,
+            port=port,
+            username=username,
+            password=password,
+            platform=platform,
+        )
+
+    def dict(self) -> Dict[str, Any]:
+        return {
+            "data": self.data,
+            "connection_options": {
+                k: v.dict() for k, v in self.connection_options.items()
+            },
+            **super().dict(),
+        }
 
 
 class Host(InventoryElement):
     __slots__ = ("name", "connections", "defaults")
 
     def __init__(
-        self, name: str, defaults: Optional[Defaults] = None, **kwargs
+        self,
+        name: str,
+        hostname: Optional[str] = None,
+        port: Optional[int] = None,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
+        platform: Optional[str] = None,
+        groups: Optional[ParentGroups] = None,
+        data: Optional[Dict[str, Any]] = None,
+        connection_options: Optional[Dict[str, ConnectionOptions]] = None,
+        defaults: Optional[Defaults] = None,
     ) -> None:
         self.name = name
-        self.defaults = defaults or Defaults()
+        self.defaults = defaults or Defaults(None, None, None, None, None, None, None)
         self.connections: Connections = Connections()
-        super().__init__(**kwargs)
+        super().__init__(
+            hostname=hostname,
+            port=port,
+            username=username,
+            password=password,
+            platform=platform,
+            groups=groups,
+            data=data,
+            connection_options=connection_options,
+        )
 
-    def _resolve_data(self):
+    def _resolve_data(self) -> Dict[str, Any]:
         processed = []
         result = {}
         for k, v in self.data.items():
             processed.append(k)
             result[k] = v
-        for g in self.groups.refs:
+        for g in self.groups:
             for k, v in g.items():
                 if k not in processed:
                     processed.append(k)
@@ -115,22 +205,31 @@ class Host(InventoryElement):
                 result[k] = v
         return result
 
-    def keys(self):
+    def dict(self) -> Dict[str, Any]:
+        return {
+            "name": self.name,
+            "connection_options": {
+                k: v.dict() for k, v in self.connection_options.items()
+            },
+            **super().dict(),
+        }
+
+    def keys(self) -> KeysView[str]:
         """Returns the keys of the attribute ``data`` and of the parent(s) groups."""
         return self._resolve_data().keys()
 
-    def values(self):
+    def values(self) -> ValuesView[Any]:
         """Returns the values of the attribute ``data`` and of the parent(s) groups."""
         return self._resolve_data().values()
 
-    def items(self):
+    def items(self) -> ItemsView[str, Any]:
         """
         Returns all the data accessible from a device, including
         the one inherited from parent groups
         """
         return self._resolve_data().items()
 
-    def has_parent_group(self, group):
+    def has_parent_group(self, group: Union[str, "Group"]) -> bool:
         """Returns whether the object is a child of the :obj:`Group` ``group``"""
         if isinstance(group, str):
             return self._has_parent_group_by_name(group)
@@ -138,22 +237,24 @@ class Host(InventoryElement):
         else:
             return self._has_parent_group_by_object(group)
 
-    def _has_parent_group_by_name(self, group):
-        for g in self.groups.refs:
+    def _has_parent_group_by_name(self, group: str) -> bool:
+        for g in self.groups:
             if g.name == group or g.has_parent_group(group):
                 return True
+        return False
 
-    def _has_parent_group_by_object(self, group):
-        for g in self.groups.refs:
+    def _has_parent_group_by_object(self, group: "Group") -> bool:
+        for g in self.groups:
             if g is group or g.has_parent_group(group):
                 return True
+        return False
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str) -> Any:
         try:
             return self.data[item]
 
         except KeyError:
-            for g in self.groups.refs:
+            for g in self.groups:
                 try:
                     r = g[item]
                     return r
@@ -166,12 +267,12 @@ class Host(InventoryElement):
 
             raise
 
-    def __getattribute__(self, name):
+    def __getattribute__(self, name: str) -> Any:
         if name not in ("hostname", "port", "username", "password", "platform"):
             return object.__getattribute__(self, name)
         v = object.__getattribute__(self, name)
         if v is None:
-            for g in self.groups.refs:
+            for g in self.groups:
                 r = getattr(g, name)
                 if r is not None:
                     return r
@@ -180,25 +281,25 @@ class Host(InventoryElement):
         else:
             return v
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self.name)
 
-    def __setitem__(self, item, value):
+    def __setitem__(self, item: str, value: Any) -> None:
         self.data[item] = value
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._resolve_data().keys())
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:
         return self.data.__iter__()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "{}: {}".format(self.__class__.__name__, self.name or "")
 
-    def get(self, item, default=None):
+    def get(self, item: str, default: Any = None) -> Any:
         """
         Returns the value ``item`` from the host or hosts group variables.
 
@@ -253,9 +354,9 @@ class Host(InventoryElement):
     ) -> Optional[ConnectionOptions]:
         p = self.connection_options.get(connection)
         if p is None:
-            p = ConnectionOptions()
+            p = ConnectionOptions(None, None, None, None, None, None)
 
-        for g in self.groups.refs:
+        for g in self.groups:
             sp = g._get_connection_options_recursively(connection)
             if sp is not None:
                 p.hostname = p.hostname if p.hostname is not None else sp.hostname
@@ -365,7 +466,7 @@ class Host(InventoryElement):
             configuration=configuration,
         )
         self.connections[conn_name] = conn_obj
-        return connection
+        return conn_obj
 
     def close_connection(self, connection: str) -> None:
         """ Close the connection"""
@@ -396,6 +497,10 @@ class Groups(Dict[str, Group]):
     pass
 
 
+TransformFunction = Callable[[Arg(Host), KwArg(Any)], None]
+FilterObj = Callable[[Arg(Host), KwArg(Any)], bool]
+
+
 class Inventory(object):
     __slots__ = ("hosts", "groups", "defaults")
 
@@ -404,111 +509,57 @@ class Inventory(object):
         hosts: Hosts,
         groups: Optional[Groups] = None,
         defaults: Optional[Defaults] = None,
-        transform_function=None,
-        transform_function_options=None,
+        transform_function: TransformFunction = None,
+        transform_function_options: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.hosts = hosts
         self.groups = groups or Groups()
-        self.defaults = defaults or Defaults()
+        self.defaults = defaults or Defaults(None, None, None, None, None, None, None)
 
-        for host in self.hosts.values():
-            host.groups.refs = [self.groups[p] for p in host.groups]
-        for group in self.groups.values():
-            group.groups.refs = [self.groups[p] for p in group.groups]
+        # TODO move me to InitNornir
+        #  if transform_function:
+        #      transform_function_options = transform_function_options or {}
+        #      for h in self.hosts.values():
+        #          transform_function(h, **transform_function_options)
 
-        if transform_function:
-            for h in self.hosts.values():
-                transform_function(h, **transform_function_options)
-
-    def filter(self, filter_obj=None, filter_func=None, *args, **kwargs):
+    def filter(
+        self, filter_obj: FilterObj = None, filter_func: FilterObj = None, **kwargs: Any
+    ) -> "Inventory":
         filter_func = filter_obj or filter_func
         if filter_func:
-            filtered = {n: h for n, h in self.hosts.items() if filter_func(h, **kwargs)}
+            filtered = Hosts(
+                {n: h for n, h in self.hosts.items() if filter_func(h, **kwargs)}
+            )
         else:
-            filtered = {
-                n: h
-                for n, h in self.hosts.items()
-                if all(h.get(k) == v for k, v in kwargs.items())
-            }
+            filtered = Hosts(
+                {
+                    n: h
+                    for n, h in self.hosts.items()
+                    if all(h.get(k) == v for k, v in kwargs.items())
+                }
+            )
         return Inventory(hosts=filtered, groups=self.groups, defaults=self.defaults)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.hosts.__len__()
-
-    def _update_group_refs(self, inventory_element: InventoryElement) -> None:
-        """
-        Returns inventory_element with updated group references for the supplied
-        inventory element
-        """
-        if hasattr(inventory_element, "groups"):
-            inventory_element.groups.refs = [
-                self.groups[p] for p in inventory_element.groups
-            ]
-        return inventory_element
 
     def children_of_group(self, group: Union[str, Group]) -> Set[Host]:
         """
         Returns set of hosts that belongs to a group including those that belong
         indirectly via inheritance
         """
-        hosts: List[Host] = set()
+        hosts: Set[Host] = set()
         for host in self.hosts.values():
             if host.has_parent_group(group):
                 hosts.add(host)
         return hosts
 
-    def add_host(self, name: str, **kwargs) -> None:
-        """
-        Add a host to the inventory after initialization
-        """
-        host_element = deserializer.inventory.InventoryElement.deserialize_host(
-            name=name, defaults=self.defaults, **kwargs
-        )
-        host = {name: self._update_group_refs(host_element)}
-        self.hosts.update(host)
-
-    def add_group(self, name: str, **kwargs) -> None:
-        """
-        Add a group to the inventory after initialization
-        """
-        group_element = deserializer.inventory.InventoryElement.deserialize_group(
-            name=name, defaults=self.defaults, **kwargs
-        )
-        group = {name: self._update_group_refs(group_element)}
-        self.groups.update(group)
-
-    def dict(self) -> Dict:
+    def dict(self) -> Dict[str, Any]:
         """
         Return serialized dictionary of inventory
         """
-        return deserializer.inventory.Inventory.serialize(self).dict()
-
-    def get_inventory_dict(self) -> Dict:
-        """
-        Return serialized dictionary of inventory
-        """
-        return self.dict()
-
-    def get_defaults_dict(self) -> Dict:
-        """
-        Returns serialized dictionary of defaults from inventory
-        """
-        return deserializer.inventory.Defaults.serialize(self.defaults).dict()
-
-    def get_groups_dict(self) -> Dict:
-        """
-        Returns serialized dictionary of groups from inventory
-        """
         return {
-            k: deserializer.inventory.InventoryElement.serialize(v).dict()
-            for k, v in self.groups.items()
-        }
-
-    def get_hosts_dict(self) -> Dict:
-        """
-        Returns serialized dictionary of hosts from inventory
-        """
-        return {
-            k: deserializer.inventory.InventoryElement.serialize(v).dict()
-            for k, v in self.hosts.items()
+            "hosts": {n: h.dict() for n, h in self.hosts.items()},
+            "groups": {n: g.dict() for n, g in self.groups.items()},
+            "defaults": self.defaults.dict(),
         }

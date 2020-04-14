@@ -4,8 +4,8 @@ from typing import Any, Dict, Optional, Type
 
 from nornir.core.configuration import Config
 from nornir.core.exceptions import (
-    ConnectionPluginAlreadyRegistered,
-    ConnectionPluginNotRegistered,
+    PluginAlreadyRegistered,
+    PluginNotRegistered,
 )
 
 
@@ -68,7 +68,7 @@ class Connections(Dict[str, ConnectionPlugin]):
         if existing_plugin is None:
             cls.available[name] = plugin
         elif existing_plugin != plugin:
-            raise ConnectionPluginAlreadyRegistered(
+            raise PluginAlreadyRegistered(
                 f"Connection plugin {plugin.__name__} can't be registered as "
                 f"{name!r} because plugin {existing_plugin.__name__} "
                 f"was already registered under this name"
@@ -85,9 +85,7 @@ class Connections(Dict[str, ConnectionPlugin]):
             :obj:`nornir.core.exceptions.ConnectionPluginNotRegistered`
         """
         if name not in cls.available:
-            raise ConnectionPluginNotRegistered(
-                f"Connection {name!r} is not registered"
-            )
+            raise PluginNotRegistered(f"Connection {name!r} is not registered")
         cls.available.pop(name)
 
     @classmethod
@@ -106,7 +104,5 @@ class Connections(Dict[str, ConnectionPlugin]):
             :obj:`nornir.core.exceptions.ConnectionPluginNotRegistered`
         """
         if name not in cls.available:
-            raise ConnectionPluginNotRegistered(
-                f"Connection {name!r} is not registered"
-            )
+            raise PluginNotRegistered(f"Connection {name!r} is not registered")
         return cls.available[name]

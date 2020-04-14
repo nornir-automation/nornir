@@ -1,0 +1,29 @@
+Plugin Register
+===============
+
+Introduced plugin register nornir.core.plugins.register.PluginRegister
+
+Connections
+===========
+
+Moved to use the generic plugin register
+
+
+Inventory
+=========
+
+1. Remove inventory deserializer
+1. Fixed mypy
+1. ParentGroups is simplified
+1. __init__ functions are more explicit in order to improve correctness
+1. Removed `add_host` and `add_group`
+1. Removed `get_inventory_dict`, `get_defaults_dict`, `get_groups_dict`, `get_hosts_dict`. Only `dict` remains
+
+
+Todo
+----
+
+1. Remove Hosts/Groups objects? Otherwise add `dict()` methods
+1. Move transform_func logic to InitNornir
+1. Implement proper system for discovering inventory plugins
+1. Adapt InitNornir

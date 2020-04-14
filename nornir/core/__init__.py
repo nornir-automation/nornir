@@ -42,7 +42,7 @@ class Nornir(object):
     ) -> None:
         self.data = data if data is not None else GlobalState()
         self.inventory = inventory
-        self.config = config or Config()
+        self.config = config  # or Config()  TODO FIXME
         self.processors = processors or Processors()
 
     def __enter__(self):

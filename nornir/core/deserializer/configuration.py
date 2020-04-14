@@ -1,10 +1,9 @@
 import importlib
 import logging
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, Type, Union, List, cast
+from typing import Any, Callable, Dict, Optional, Union, List
 
 from nornir.core import configuration
-from nornir.core.deserializer.inventory import Inventory
 
 from nornir._vendor.pydantic import BaseSettings, Field
 
@@ -63,7 +62,7 @@ class InventoryConfig(BaseNornirSettings):
     def deserialize(cls, **kwargs: Any) -> configuration.InventoryConfig:
         inv = InventoryConfig(**kwargs)
         return configuration.InventoryConfig(
-            plugin=cast(Type[Inventory], _resolve_import_from_string(inv.plugin)),
+            plugin=_resolve_import_from_string(inv.plugin),
             options=inv.options,
             transform_function=_resolve_import_from_string(inv.transform_function),
             transform_function_options=inv.transform_function_options,
