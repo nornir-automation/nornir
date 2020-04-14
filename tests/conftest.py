@@ -55,6 +55,24 @@ def inventory_from_yaml():
 
         return defaults
 
+    def get_inventory_element(typ, data, name, defaults):
+        return typ(
+            name=name,
+            hostname=data.get("hostname"),
+            port=data.get("port"),
+            username=data.get("username"),
+            password=data.get("password"),
+            platform=data.get("platform"),
+            data=data.get("data"),
+            groups=data.get(
+                "groups"
+            ),  # this is a hack, we will convert it later to the correct type
+            defaults=defaults,
+            connection_options=get_connection_options(
+                data.get("connection_options", {})
+            ),
+        )
+
     host_file = f"{dir_path}/inventory_data/hosts.yaml"
     group_file = f"{dir_path}/inventory_data/groups.yaml"
 
@@ -65,39 +83,14 @@ def inventory_from_yaml():
         hosts_dict = yml.load(f)
 
     for n, h in hosts_dict.items():
-        hosts[n] = Host(
-            name=n,
-            hostname=h.get("hostname"),
-            port=h.get("port"),
-            username=h.get("username"),
-            password=h.get("password"),
-            platform=h.get("platform"),
-            data=h.get("data"),
-            groups=h.get(
-                "groups"
-            ),  # this is a hack, we will convert it later to the correct type
-            defaults=defaults,
-            connection_options=get_connection_options(h.get("connection_options", {})),
-        )
+        hosts[n] = get_inventory_element(Host, h, n, defaults)
 
     groups = Groups()
     with open(group_file, "r") as f:
         groups_dict = yml.load(f)
+
     for n, g in groups_dict.items():
-        groups[n] = Group(
-            name=n,
-            hostname=g.get("hostname"),
-            port=g.get("port"),
-            username=g.get("username"),
-            password=g.get("password"),
-            platform=g.get("platform"),
-            data=g.get("data"),
-            groups=g.get(
-                "groups"
-            ),  # this is a hack, we will convert it later to the correct type
-            defaults=defaults,
-            connection_options=get_connection_options(g.get("connection_options", {})),
-        )
+        groups[n] = get_inventory_element(Group, g, n, defaults)
 
     for h in hosts.values():
         h.groups = ParentGroups([groups[g] for g in h.groups])
