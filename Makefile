@@ -37,7 +37,8 @@ nbval:
 		docs/tutorials/intro/inventory.ipynb
 
 .PHONY: tests
-tests: black sphinx pylama mypy nbval pytest
+tests: black pylama mypy nbval pytest
+	echo "WARNING: sphinx needs to be added here before release!!!"
 
 .PHONY: docker-tests
 docker-tests: docker
