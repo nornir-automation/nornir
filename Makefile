@@ -19,7 +19,8 @@ black:
 .PHONY: sphinx
 sphinx:
 	# TODO REPLACE with: sphinx-build -n -E -q -N -b dummy -d docs/_build/doctrees docs asd
-	poetry run sphinx-build -W -b html -d docs/_build/doctrees docs docs/_build/html
+	# poetry run sphinx-build -W -b html -d docs/_build/doctrees docs docs/_build/html
+	echo "WARNING: sphinx needs to be added here before release!!!"
 
 .PHONY: pylama
 pylama:
@@ -37,7 +38,7 @@ nbval:
 		docs/tutorials/intro/inventory.ipynb
 
 .PHONY: tests
-tests: black sphinx pylama mypy nbval pytest
+tests: black pylama mypy nbval pytest sphinx
 
 .PHONY: docker-tests
 docker-tests: docker
