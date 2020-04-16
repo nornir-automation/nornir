@@ -32,7 +32,6 @@ def render_from_string(
     jinja_filters = jinja_filters or {}
     if jinja_env:
         env = jinja_env
-        env.loader = FileSystemLoader(path)
     else:
         env = Environment(undefined=StrictUndefined, trim_blocks=True,)
     env.filters.update(jinja_filters)
