@@ -28,7 +28,6 @@ class Demo(ConnectionPlugin):
         """
         pass
 
-
     def close(self) -> None:
         """Close the connection with the device"""
         pass
