@@ -1,12 +1,12 @@
 Plugin Register
 ===============
 
-Introduced plugin register nornir.core.plugins.register.PluginRegister
+1. Introduced plugin register nornir.core.plugins.register.PluginRegister
 
 Connections
 ===========
 
-Moved to use the generic plugin register
+1. Connections need to be registred
 
 
 Inventory
@@ -18,12 +18,14 @@ Inventory
 1. __init__ functions are more explicit in order to improve correctness
 1. Removed `add_host` and `add_group`
 1. Removed `get_inventory_dict`, `get_defaults_dict`, `get_groups_dict`, `get_hosts_dict`. Only `dict` remains
+1. Inventory plugins need to be registered
+1. Transform functions need to be registered
 
 InitNornir
 ==========
 
 1. Passing callables as inventory plugin and transform functions is no longer supported
-2. configure_logging has been removed (it used to indicate it was to be deprecated)
+1. configure_logging has been removed (it used to indicate it was to be deprecated)
 
 Configuration
 =============
