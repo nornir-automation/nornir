@@ -4,8 +4,12 @@ import os
 import pytest
 
 from nornir import InitNornir
-from nornir.core.deserializer.inventory import Inventory
 from nornir.core.exceptions import ConflictingConfigurationWarning
+from nornir.core.inventory import Inventory, Host, Hosts, Groups, Group, Defaults
+from nornir.core.plugins.inventory import (
+    InventoryPluginRegister,
+    TransformFunctionRegister,
+)
 
 
 dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_InitNornir")
@@ -42,16 +46,29 @@ def transform_func_with_options(host, a):
     host["a"] = a
 
 
-class StringInventory(Inventory):
-    def __init__(self, **kwargs):
-        inv_dict = {"hosts": {"host1": {}, "host2": {}}, "groups": {}, "defaults": {}}
-        super().__init__(**inv_dict, **kwargs)
+class InventoryTest:
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def load(self):
+        return Inventory(
+            hosts=Hosts({"h1": Host("h1"), "h2": Host("h2"), "h3": Host("h3")}),
+            groups=Groups({"g1": Group("g1")}),
+            defaults=Defaults(),
+        )
+
+
+InventoryPluginRegister.register("inventory-test", InventoryTest)
+TransformFunctionRegister.register("transform_func", transform_func)
+TransformFunctionRegister.register(
+    "transform_func_with_options", transform_func_with_options
+)
 
 
 class Test(object):
     def test_InitNornir_defaults(self):
         os.chdir("tests/inventory_data/")
-        nr = InitNornir()
+        nr = InitNornir(inventory={"plugin": "inventory-test"})
         os.chdir("../../")
         assert not nr.data.dry_run
         assert nr.config.core.num_workers == 20
@@ -69,7 +86,7 @@ class Test(object):
         nr = InitNornir(
             core={"num_workers": 100},
             inventory={
-                "plugin": "nornir.plugins.inventory.simple.SimpleInventory",
+                "plugin": "inventory-test",
                 "options": {
                     "host_file": "tests/inventory_data/hosts.yaml",
                     "group_file": "tests/inventory_data/groups.yaml",
@@ -99,41 +116,12 @@ class Test(object):
         assert len(nr.inventory.hosts)
         assert len(nr.inventory.groups)
 
-    def test_InitNornir_different_inventory_by_string(self):
-        nr = InitNornir(
-            config_file=os.path.join(dir_path, "a_config.yaml"),
-            inventory={"plugin": "tests.core.test_InitNornir.StringInventory"},
-        )
-        assert "host1" in nr.inventory.hosts
-
-    def test_InitNornir_different_inventory_imported(self):
-        nr = InitNornir(
-            config_file=os.path.join(dir_path, "a_config.yaml"),
-            inventory={"plugin": StringInventory},
-        )
-        assert "host1" in nr.inventory.hosts
-
     def test_InitNornir_different_transform_function_by_string(self):
         nr = InitNornir(
             config_file=os.path.join(dir_path, "a_config.yaml"),
             inventory={
-                "plugin": "nornir.plugins.inventory.simple.SimpleInventory",
-                "transform_function": "tests.core.test_InitNornir.transform_func",
-                "options": {
-                    "host_file": "tests/inventory_data/hosts.yaml",
-                    "group_file": "tests/inventory_data/groups.yaml",
-                },
-            },
-        )
-        for host in nr.inventory.hosts.values():
-            assert host["processed_by_transform_function"]
-
-    def test_InitNornir_different_transform_function_imported(self):
-        nr = InitNornir(
-            config_file=os.path.join(dir_path, "a_config.yaml"),
-            inventory={
-                "plugin": "nornir.plugins.inventory.simple.SimpleInventory",
-                "transform_function": transform_func,
+                "plugin": "inventory-test",
+                "transform_function": "transform_func",
                 "options": {
                     "host_file": "tests/inventory_data/hosts.yaml",
                     "group_file": "tests/inventory_data/groups.yaml",
@@ -147,8 +135,8 @@ class Test(object):
         nr = InitNornir(
             config_file=os.path.join(dir_path, "a_config.yaml"),
             inventory={
-                "plugin": "nornir.plugins.inventory.simple.SimpleInventory",
-                "transform_function": "tests.core.test_InitNornir.transform_func_with_options",
+                "plugin": "inventory-test",
+                "transform_function": "transform_func_with_options",
                 "transform_function_options": {"a": 1},
                 "options": {
                     "host_file": "tests/inventory_data/hosts.yaml",
@@ -164,8 +152,8 @@ class Test(object):
             nr = InitNornir(
                 config_file=os.path.join(dir_path, "a_config.yaml"),
                 inventory={
-                    "plugin": "nornir.plugins.inventory.simple.SimpleInventory",
-                    "transform_function": "tests.core.test_InitNornir.transform_func_with_options",
+                    "plugin": "inventory-test",
+                    "transform_function": "transform_func_with_options",
                     "transform_function_options": {"a": 1, "b": 0},
                     "options": {
                         "host_file": "tests/inventory_data/hosts.yaml",
@@ -236,16 +224,6 @@ class TestLogging:
         )
         nornir_logger = logging.getLogger("nornir")
 
-        assert nornir_logger.level == logging.NOTSET
-
-    def test_InitNornir_logging_disabled_alt(self):
-        self.cleanup()
-        with pytest.warns(DeprecationWarning):
-            InitNornir(
-                config_file=os.path.join(dir_path, "a_config.yaml"),
-                configure_logging=False,
-            )
-        nornir_logger = logging.getLogger("nornir")
         assert nornir_logger.level == logging.NOTSET
 
     def test_InitNornir_logging_basicConfig(self):

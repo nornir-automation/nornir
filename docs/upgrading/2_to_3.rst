@@ -19,6 +19,16 @@ Inventory
 1. Removed `add_host` and `add_group`
 1. Removed `get_inventory_dict`, `get_defaults_dict`, `get_groups_dict`, `get_hosts_dict`. Only `dict` remains
 
+InitNornir
+==========
+
+1. Passing callables as inventory plugin and transform functions is no longer supported
+2. configure_logging has been removed (it used to indicate it was to be deprecated)
+
+Configuration
+=============
+
+1. Order of resolution is now file -> paramters to InitNornir -> env var
 
 Todo
 ----

@@ -516,12 +516,6 @@ class Inventory(object):
         self.groups = groups or Groups()
         self.defaults = defaults or Defaults(None, None, None, None, None, None, None)
 
-        # TODO move me to InitNornir
-        #  if transform_function:
-        #      transform_function_options = transform_function_options or {}
-        #      for h in self.hosts.values():
-        #          transform_function(h, **transform_function_options)
-
     def filter(
         self, filter_obj: FilterObj = None, filter_func: FilterObj = None, **kwargs: Any
     ) -> "Inventory":

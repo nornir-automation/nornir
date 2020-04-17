@@ -1,10 +1,15 @@
 import pkg_resources
 import warnings
-from typing import Any, Callable, Dict, Optional, Type
+from typing import Any, Dict, Optional, Type
 
 from nornir.core import Nornir
+from nornir.core.configuration import Config
 from nornir.core.connections import Connections, ConnectionPlugin
-from nornir.core.deserializer.configuration import Config
+from nornir.core.inventory import Inventory
+from nornir.core.plugins.inventory import (
+    InventoryPluginRegister,
+    TransformFunctionRegister,
+)
 from nornir.core.state import GlobalState
 
 
@@ -17,16 +22,21 @@ def register_default_connection_plugins() -> None:
         Connections.register(k, v)
 
 
-def cls_to_string(cls: Callable[..., Any]) -> str:
-    return f"{cls.__module__}.{cls.__name__}"
+def load_inventory(config: Config,) -> Inventory:
+    inventory_plugin = InventoryPluginRegister.get_plugin(config.inventory.plugin or "")
+    inv = inventory_plugin(**config.inventory.options).load()
+
+    if config.inventory.transform_function:
+        transform_function = TransformFunctionRegister.get_plugin(
+            config.inventory.transform_function
+        )
+        for h in inv.hosts.values():
+            transform_function(h, **(config.inventory.transform_function_options or {}))
+
+    return inv
 
 
-def InitNornir(
-    config_file: str = "",
-    dry_run: bool = False,
-    configure_logging: Optional[bool] = None,
-    **kwargs: Dict[str, Any],
-) -> Nornir:
+def InitNornir(config_file: str = "", dry_run: bool = False, **kwargs: Any,) -> Nornir:
     """
     Arguments:
         config_file(str): Path to the configuration file (optional)
@@ -42,39 +52,13 @@ def InitNornir(
     """
     register_default_connection_plugins()
 
-    if callable(kwargs.get("inventory", {}).get("plugin", "")):
-        kwargs["inventory"]["plugin"] = cls_to_string(kwargs["inventory"]["plugin"])
-
-    if callable(kwargs.get("inventory", {}).get("transform_function", "")):
-        kwargs["inventory"]["transform_function"] = cls_to_string(
-            kwargs["inventory"]["transform_function"]
-        )
-
-    conf = Config.load_from_file(config_file, **kwargs)
+    if config_file:
+        config = Config.from_file(config_file, **kwargs)
+    else:
+        config = Config.from_dict(**kwargs)
 
     data = GlobalState(dry_run=dry_run)
 
-    if configure_logging is not None:
-        msg = (
-            "'configure_logging' argument is deprecated, please use "
-            "'logging.enabled' parameter in the configuration instead: "
-            "https://nornir.readthedocs.io/en/stable/configuration/index.html"
-        )
-        warnings.warn(msg, DeprecationWarning)
+    config.logging.configure()
 
-    if conf.logging.enabled is None:
-        if configure_logging is not None:
-            conf.logging.enabled = configure_logging
-        else:
-            conf.logging.enabled = True
-
-    conf.logging.configure()
-
-    inv = conf.inventory.plugin.deserialize(
-        transform_function=conf.inventory.transform_function,
-        transform_function_options=conf.inventory.transform_function_options,
-        config=conf,
-        **conf.inventory.options,
-    )
-
-    return Nornir(inventory=inv, config=conf, data=data)
+    return Nornir(inventory=load_inventory(config), config=config, data=data,)

@@ -1,5 +1,5 @@
 import pkg_resources
-from typing import Dict, Type, TypeVar, Generic
+from typing import Dict, TypeVar, Generic
 
 
 from nornir.core.exceptions import (
@@ -11,20 +11,20 @@ T = TypeVar("T")
 
 
 class PluginRegister(Generic[T]):
-    available: Dict[str, Type[T]] = {}
+    available: Dict[str, T] = {}
 
     def __init__(self, entry_point: str) -> None:
         self._entry_point = entry_point
 
     def auto_register(self) -> None:
-        discovered_plugins: Dict[str, Type[T]] = {
+        discovered_plugins: Dict[str, T] = {
             entry_point.name: entry_point.load()
             for entry_point in pkg_resources.iter_entry_points(self._entry_point)
         }
         for k, v in discovered_plugins.items():
             self.register(k, v)
 
-    def register(self, name: str, plugin: Type[T]) -> None:
+    def register(self, name: str, plugin: T) -> None:
         """Registers a plugin with a specified name
 
         Args:
@@ -40,8 +40,8 @@ class PluginRegister(Generic[T]):
             self.available[name] = plugin
         elif existing_plugin != plugin:
             raise PluginAlreadyRegistered(
-                f"plugin {plugin.__name__} can't be registered as "
-                f"{name!r} because plugin {existing_plugin.__name__} "
+                f"plugin {plugin} can't be registered as "
+                f"{name!r} because plugin {existing_plugin} "
                 f"was already registered under this name"
             )
 
@@ -62,7 +62,7 @@ class PluginRegister(Generic[T]):
         """Deregisters all registered plugins"""
         self.available = {}
 
-    def get_plugin(self, name: str) -> Type[T]:
+    def get_plugin(self, name: str) -> T:
         """Fetches the plugin by name if already registered
 
         Args:

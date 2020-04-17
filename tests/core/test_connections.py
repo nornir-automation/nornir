@@ -5,8 +5,8 @@ from nornir.core.connections import ConnectionPlugin, Connections
 from nornir.core.exceptions import (
     ConnectionAlreadyOpen,
     ConnectionNotOpen,
-    ConnectionPluginAlreadyRegistered,
-    ConnectionPluginNotRegistered,
+    PluginAlreadyRegistered,
+    PluginNotRegistered,
 )
 from nornir.init_nornir import register_default_connection_plugins
 
@@ -219,7 +219,7 @@ class TestConnectionPluginsRegistration(object):
         assert Connections.available["dummy"] == DummyConnectionPlugin
 
     def test_register_already_registered_new(self):
-        with pytest.raises(ConnectionPluginAlreadyRegistered):
+        with pytest.raises(PluginAlreadyRegistered):
             Connections.register("dummy", AnotherDummyConnectionPlugin)
 
     def test_deregister_existing(self):
@@ -228,7 +228,7 @@ class TestConnectionPluginsRegistration(object):
         assert "dummy" not in Connections.available
 
     def test_deregister_nonexistent(self):
-        with pytest.raises(ConnectionPluginNotRegistered):
+        with pytest.raises(PluginNotRegistered):
             Connections.deregister("nonexistent_dummy")
 
     def test_deregister_all(self):
@@ -241,5 +241,5 @@ class TestConnectionPluginsRegistration(object):
         assert len(Connections.available) == 2
 
     def test_nonexistent_plugin(self):
-        with pytest.raises(ConnectionPluginNotRegistered):
+        with pytest.raises(PluginNotRegistered):
             Connections.get_plugin("nonexistent_dummy")
