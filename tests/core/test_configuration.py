@@ -20,9 +20,9 @@ class Test(object):
         assert c.dict() == {
             "core": {"num_workers": 20, "raise_on_error": False},
             "inventory": {
-                "plugin": None,
+                "plugin": "",
                 "options": {},
-                "transform_function": None,
+                "transform_function": "",
                 "transform_function_options": {},
             },
             "ssh": {"config_file": str(Path("~/.ssh/config").expanduser())},
@@ -42,9 +42,9 @@ class Test(object):
         assert c.dict() == {
             "core": {"num_workers": 20, "raise_on_error": False},
             "inventory": {
-                "plugin": None,
+                "plugin": "",
                 "options": {},
-                "transform_function": None,
+                "transform_function": "",
                 "transform_function_options": {},
             },
             "ssh": {"config_file": str(Path("~/.ssh/config").expanduser())},
@@ -70,7 +70,7 @@ class Test(object):
             "inventory": {
                 "plugin": "an-inventory",
                 "options": {},
-                "transform_function": None,
+                "transform_function": "",
                 "transform_function_options": {},
             },
             "ssh": {"config_file": str(Path("~/.ssh/config").expanduser())},

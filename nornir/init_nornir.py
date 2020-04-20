@@ -1,6 +1,5 @@
 import pkg_resources
-import warnings
-from typing import Any, Dict, Optional, Type
+from typing import Any, Dict, Type
 
 from nornir.core import Nornir
 from nornir.core.configuration import Config

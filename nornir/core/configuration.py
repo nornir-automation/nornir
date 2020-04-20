@@ -1,3 +1,4 @@
+import ast
 import logging
 import logging.handlers
 import os
@@ -22,34 +23,35 @@ T = TypeVar("T")
 class Parameter:
     def __init__(
         self,
+        envvar: str,
         typ: Optional[Type[T]] = None,
         help: str = "",
-        envvar: Optional[str] = None,
         default: Optional[T] = None,
-        required: bool = False,
     ) -> None:
-        if typ is None and default is None:
+        if typ is not None:
+            self.type: Type[T] = typ
+        elif default is not None:
+            self.type = default.__class__
+        else:
             raise TypeError("either typ or default needs to be specified")
-        self.type: Type[T] = typ if typ is not None else default.__class__
         self.envvar = envvar
         self.help = help
-        self.default = default
-        self.required = required
+        self.default = default or self.type()
 
-    def resolve(self, value: Optional[T]) -> Optional[T]:
-        v = value
-        if value is None and self.envvar:
-            if self.type is bool:
-                e = os.environ.get(self.envvar)
-                if e:
-                    v = e in ["true", "True", "1", "yes"]
-            else:
-                v = os.environ.get(self.envvar)
+    def resolve(self, value: Optional[T]) -> T:
+        v: Optional[Any] = value
+        if value is None:
+            t = os.environ.get(self.envvar)
+            if self.type is bool and t:
+                v = t in ["true", "True", "1", "yes"]
+            elif self.type is str and t:
+                v = t
+            elif t:
+                v = ast.literal_eval(t) if t is not None else None
 
-        if v is None and self.default is not None:
+        if v is None:
             v = self.default
-
-        return self.type(v) if v is not None else v
+        return v
 
 
 class SSHConfig(object):
@@ -71,7 +73,7 @@ class InventoryConfig(object):
     __slots__ = "plugin", "options", "transform_function", "transform_function_options"
 
     class Parameters:
-        plugin = Parameter(required=True, typ=str, envvar="NORNIR_INVENTORY_PLUGIN")
+        plugin = Parameter(typ=str, envvar="NORNIR_INVENTORY_PLUGIN")
         options = Parameter(default={}, envvar="NORNIR_INVENTORY_OPTIONS")
         transform_function = Parameter(
             typ=str, envvar="NORNIR_INVENTORY_TRANSFORM_FUNCTION"
