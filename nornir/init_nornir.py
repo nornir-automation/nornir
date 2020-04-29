@@ -22,6 +22,7 @@ def register_default_connection_plugins() -> None:
 
 
 def load_inventory(config: Config,) -> Inventory:
+    InventoryPluginRegister.auto_register()
     inventory_plugin = InventoryPluginRegister.get_plugin(config.inventory.plugin or "")
     inv = inventory_plugin(**config.inventory.options).load()
 
