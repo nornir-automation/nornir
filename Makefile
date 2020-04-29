@@ -1,3 +1,5 @@
+NAME=$(shell basename $(PWD))
+
 DOCKER_COMPOSE_FILE=docker-compose.yaml
 DOCKER_COMPOSE=PYTHON=${PYTHON} docker-compose -f ${DOCKER_COMPOSE_FILE}
 NORNIR_DIRS=nornir tests docs
@@ -6,7 +8,7 @@ PYTHON:=3.7
 
 .PHONY: docker
 docker:
-	docker build --build-arg PYTHON=$(PYTHON) -t nornir-dev:latest -f Dockerfile .
+	docker build --build-arg PYTHON=$(PYTHON) -t $(NAME):latest -f Dockerfile .
 
 .PHONY: pytest
 pytest:
@@ -43,4 +45,4 @@ tests: black pylama mypy nbval pytest sphinx
 
 .PHONY: docker-tests
 docker-tests: docker
-	docker run --name nornir-tests --rm nornir-dev:latest make tests
+	docker run --name nornir-tests --rm $(NAME):latest make tests
