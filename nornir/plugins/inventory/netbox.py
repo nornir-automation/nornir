@@ -65,7 +65,7 @@ class NBInventory(Inventory):
             if d.get("primary_ip", {}):
                 host["hostname"] = d["primary_ip"]["address"].split("/")[0]
             else:
-                # Set to the hostname in NetBox if there is not a primary IP, that DNS will be in place
+                # Set to the hostname in NetBox if not a primary IP, expect DNS will be in place
                 host["hostname"] = d.get("name")
 
             # Add values that don't have an option for 'slug'
