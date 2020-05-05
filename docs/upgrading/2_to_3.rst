@@ -1,11 +1,57 @@
 Upgrading to nornir 3.x from 2.x
 ================================
 
+Plugin Register
+===============
+
+1. Introduced plugin register :obj:`nornir.core.plugins.register.PluginRegister`_
+
+Connections
+===========
+
+1. Connections need to be registered
+
+Inventory
+=========
+
+1. Remove inventory deserializer
+1. Fixed mypy
+1. ParentGroups is simplified
+1. __init__ functions are more explicit in order to improve correctness
+1. Removed `add_host` and `add_group`
+1. Removed `get_inventory_dict`, `get_defaults_dict`, `get_groups_dict`, `get_hosts_dict`. Only `dict` remains
+1. Inventory plugins need to be registered
+1. Transform functions need to be registered
+
+InitNornir
+==========
+
+1. Passing callables as inventory plugin and transform functions is no longer supported
+1. configure_logging has been removed (it used to indicate it was to be deprecated)
+
+Configuration
+=============
+
+1. Order of resolution is now file -> paramters to InitNornir -> env var
+
+Todo
+----
+
+1. Remove Hosts/Groups objects? Otherwise add `dict()` methods
+1. Move transform_func logic to InitNornir
+1. Implement proper system for discovering inventory plugins
+1. Adapt InitNornir`
+
+
+
+---
+
+NOTE: SAVING THE TEXT BELOW TO CREATE A HOW TO LATER OUT OF IT
+
 Changes in the plugin ecosystem
 -------------------------------
 
-Since nornir 3.0.0 plugins are relocated in separate project to reduce the dependency list of nornir.
-In short it means you have to install nornir and the plugins you need for your project.
+Since nornir 3.0.0 plugins are relocated in separate projects to reduce the amount of dependencies required by nornir.
 
 Connection plugins
 ~~~~~~~~~~~~~~~~~~

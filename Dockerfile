@@ -1,7 +1,6 @@
 ARG PYTHON
 FROM python:${PYTHON}-slim-stretch
 
-WORKDIR /nornir
 ENV PATH="/root/.poetry/bin:$PATH" \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -18,9 +17,13 @@ COPY poetry.lock .
 # Dependencies change more often, so we break RUN to cache the previous layer
 RUN poetry install --no-interaction
 
+ARG NAME
+WORKDIR /${NAME}
+
 COPY . .
 
 # Install the project as a package
 RUN poetry install --no-interaction
 
 CMD ["/bin/bash"]
+

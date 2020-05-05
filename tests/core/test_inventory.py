@@ -1,9 +1,6 @@
 import os
 
 from nornir.core import inventory
-from nornir.core.deserializer import inventory as deserializer
-
-from nornir._vendor.pydantic import ValidationError
 
 import pytest
 
@@ -50,8 +47,8 @@ class Test(object):
 
     def test_inventory(self):
         g1 = inventory.Group(name="g1")
-        g2 = inventory.Group(name="g2", groups=inventory.ParentGroups(["g1"]))
-        h1 = inventory.Host(name="h1", groups=inventory.ParentGroups(["g1", "g2"]))
+        g2 = inventory.Group(name="g2", groups=inventory.ParentGroups([g1]))
+        h1 = inventory.Host(name="h1", groups=inventory.ParentGroups([g1, g2]))
         h2 = inventory.Host(name="h2")
         hosts = {"h1": h1, "h2": h2}
         groups = {"g1": g1, "g2": g2}
@@ -63,19 +60,8 @@ class Test(object):
         assert inv.groups["g1"] in inv.hosts["h1"].groups
         assert inv.groups["g1"] in inv.groups["g2"].groups
 
-    def test_inventory_deserializer_wrong(self):
-        with pytest.raises(ValidationError):
-            deserializer.Inventory.deserialize(
-                **{"hosts": {"wrong": {"host": "should_be_hostname"}}}
-            )
-
-    def test_inventory_deserializer(self):
-        inv = deserializer.Inventory.deserialize(**inv_dict)
-        assert inv.groups["group_1"] in inv.hosts["dev1.group_1"].groups
-
-    def test_inventory_data(self):
+    def test_inventory_data(self, inv):
         """Test Host values()/keys()/items()"""
-        inv = deserializer.Inventory.deserialize(**inv_dict)
         h = inv.hosts["dev1.group_1"]
         assert "comes_from_dev1.group_1" in h.values()
         assert "blah" in h.values()
@@ -83,8 +69,228 @@ class Test(object):
         assert "only_default" in h.keys()
         assert "comes_from_dev1.group_1" == dict(h.items())["my_var"]
 
-    def test_filtering(self):
-        inv = deserializer.Inventory.deserialize(**inv_dict)
+    def test_inventory_dict(self, inv):
+        assert inv.dict() == {
+            "defaults": {
+                "connection_options": {
+                    "dummy": {
+                        "extras": {"blah": "from_defaults"},
+                        "hostname": "dummy_from_defaults",
+                        "password": None,
+                        "platform": None,
+                        "port": None,
+                        "username": None,
+                    }
+                },
+                "data": {
+                    "my_var": "comes_from_defaults",
+                    "only_default": "only_defined_in_default",
+                },
+                "hostname": None,
+                "password": "docker",
+                "platform": "linux",
+                "port": None,
+                "username": "root",
+            },
+            "groups": {
+                "group_1": {
+                    "connection_options": {},
+                    "data": {"my_var": "comes_from_group_1", "site": "site1"},
+                    "groups": ["parent_group"],
+                    "hostname": None,
+                    "name": "group_1",
+                    "password": "from_group1",
+                    "platform": "linux",
+                    "port": None,
+                    "username": "root",
+                },
+                "group_2": {
+                    "connection_options": {},
+                    "data": {"site": "site2"},
+                    "groups": [],
+                    "hostname": None,
+                    "name": "group_2",
+                    "password": "docker",
+                    "platform": "linux",
+                    "port": None,
+                    "username": "root",
+                },
+                "group_3": {
+                    "connection_options": {},
+                    "data": {"site": "site2"},
+                    "groups": [],
+                    "hostname": None,
+                    "name": "group_3",
+                    "password": "docker",
+                    "platform": "linux",
+                    "port": None,
+                    "username": "root",
+                },
+                "parent_group": {
+                    "connection_options": {
+                        "dummy": {
+                            "extras": {"blah": "from_group"},
+                            "hostname": "dummy_from_parent_group",
+                            "password": None,
+                            "platform": None,
+                            "port": None,
+                            "username": None,
+                        },
+                        "dummy2": {
+                            "extras": {"blah": "from_group"},
+                            "hostname": "dummy2_from_parent_group",
+                            "password": None,
+                            "platform": None,
+                            "port": None,
+                            "username": None,
+                        },
+                    },
+                    "data": {"a_false_var": False, "a_var": "blah"},
+                    "groups": [],
+                    "hostname": None,
+                    "name": "parent_group",
+                    "password": "from_parent_group",
+                    "platform": "linux",
+                    "port": None,
+                    "username": "root",
+                },
+            },
+            "hosts": {
+                "dev1.group_1": {
+                    "connection_options": {
+                        "dummy": {
+                            "extras": {"blah": "from_host"},
+                            "hostname": "dummy_from_host",
+                            "password": None,
+                            "platform": None,
+                            "port": None,
+                            "username": None,
+                        },
+                        "paramiko": {
+                            "extras": {},
+                            "hostname": None,
+                            "password": "docker",
+                            "platform": "linux",
+                            "port": 65020,
+                            "username": "root",
+                        },
+                    },
+                    "data": {
+                        "my_var": "comes_from_dev1.group_1",
+                        "nested_data": {
+                            "a_dict": {"a": 1, "b": 2},
+                            "a_list": [1, 2],
+                            "a_string": "asdasd",
+                        },
+                        "role": "www",
+                        "www_server": "nginx",
+                    },
+                    "groups": ["group_1"],
+                    "hostname": "localhost",
+                    "name": "dev1.group_1",
+                    "password": "a_password",
+                    "platform": "eos",
+                    "port": 65020,
+                    "username": "root",
+                },
+                "dev2.group_1": {
+                    "connection_options": {
+                        "dummy2": {
+                            "extras": None,
+                            "hostname": None,
+                            "password": None,
+                            "platform": None,
+                            "port": None,
+                            "username": "dummy2_from_host",
+                        },
+                        "paramiko": {
+                            "extras": {},
+                            "hostname": None,
+                            "password": "docker",
+                            "platform": "linux",
+                            "port": None,
+                            "username": "root",
+                        },
+                    },
+                    "data": {
+                        "nested_data": {
+                            "a_dict": {"b": 2, "c": 3},
+                            "a_list": [2, 3],
+                            "a_string": "qwe",
+                        },
+                        "role": "db",
+                    },
+                    "groups": ["group_1"],
+                    "hostname": "localhost",
+                    "name": "dev2.group_1",
+                    "password": "from_group1",
+                    "platform": "junos",
+                    "port": 65021,
+                    "username": "root",
+                },
+                "dev3.group_2": {
+                    "connection_options": {
+                        "nornir_napalm.napalm": {
+                            "extras": {},
+                            "hostname": None,
+                            "password": None,
+                            "platform": "mock",
+                            "port": None,
+                            "username": None,
+                        }
+                    },
+                    "data": {"role": "www", "www_server": "apache"},
+                    "groups": ["group_2"],
+                    "hostname": "localhost",
+                    "name": "dev3.group_2",
+                    "password": "docker",
+                    "platform": "linux",
+                    "port": 65022,
+                    "username": "root",
+                },
+                "dev4.group_2": {
+                    "connection_options": {
+                        "netmiko": {
+                            "extras": {},
+                            "hostname": "localhost",
+                            "password": "docker",
+                            "platform": "linux",
+                            "port": None,
+                            "username": "root",
+                        },
+                        "paramiko": {
+                            "extras": {},
+                            "hostname": "localhost",
+                            "password": "docker",
+                            "platform": "linux",
+                            "port": None,
+                            "username": "root",
+                        },
+                    },
+                    "data": {"my_var": "comes_from_dev4.group_2", "role": "db"},
+                    "groups": ["parent_group", "group_2"],
+                    "hostname": "localhost",
+                    "name": "dev4.group_2",
+                    "password": "from_parent_group",
+                    "platform": "linux",
+                    "port": 65023,
+                    "username": "root",
+                },
+                "dev5.no_group": {
+                    "connection_options": {},
+                    "data": {},
+                    "groups": [],
+                    "hostname": "localhost",
+                    "name": "dev5.no_group",
+                    "password": "docker",
+                    "platform": "linux",
+                    "port": 65024,
+                    "username": "root",
+                },
+            },
+        }
+
+    def test_filtering(self, inv):
         unfiltered = sorted(list(inv.hosts.keys()))
         assert unfiltered == [
             "dev1.group_1",
@@ -105,8 +311,7 @@ class Test(object):
         )
         assert www_site1 == ["dev1.group_1"]
 
-    def test_filtering_func(self):
-        inv = deserializer.Inventory.deserialize(**inv_dict)
+    def test_filtering_func(self, inv):
         long_names = sorted(
             list(inv.filter(filter_func=lambda x: len(x["my_var"]) > 20).hosts.keys())
         )
@@ -120,13 +325,11 @@ class Test(object):
         )
         assert long_names == ["dev1.group_1", "dev4.group_2"]
 
-    def test_filter_unique_keys(self):
-        inv = deserializer.Inventory.deserialize(**inv_dict)
+    def test_filter_unique_keys(self, inv):
         filtered = sorted(list(inv.filter(www_server="nginx").hosts.keys()))
         assert filtered == ["dev1.group_1"]
 
-    def test_var_resolution(self):
-        inv = deserializer.Inventory.deserialize(**inv_dict)
+    def test_var_resolution(self, inv):
         assert inv.hosts["dev1.group_1"]["my_var"] == "comes_from_dev1.group_1"
         assert inv.hosts["dev2.group_1"]["my_var"] == "comes_from_group_1"
         assert inv.hosts["dev3.group_2"]["my_var"] == "comes_from_defaults"
@@ -140,68 +343,50 @@ class Test(object):
             inv.hosts["dev3.group_2"].data["my_var"]
         assert inv.hosts["dev4.group_2"].data["my_var"] == "comes_from_dev4.group_2"
 
-    def test_attributes_resolution(self):
-        inv = deserializer.Inventory.deserialize(**inv_dict)
+    def test_attributes_resolution(self, inv):
         assert inv.hosts["dev1.group_1"].password == "a_password"
         assert inv.hosts["dev2.group_1"].password == "from_group1"
         assert inv.hosts["dev3.group_2"].password == "docker"
         assert inv.hosts["dev4.group_2"].password == "from_parent_group"
         assert inv.hosts["dev5.no_group"].password == "docker"
 
-    def test_has_parents(self):
-        inv = deserializer.Inventory.deserialize(**inv_dict)
+    def test_has_parents(self, inv):
         assert inv.hosts["dev1.group_1"].has_parent_group(inv.groups["group_1"])
         assert not inv.hosts["dev1.group_1"].has_parent_group(inv.groups["group_2"])
         assert inv.hosts["dev1.group_1"].has_parent_group("group_1")
         assert not inv.hosts["dev1.group_1"].has_parent_group("group_2")
 
-    def test_to_dict(self):
-        inv = deserializer.Inventory.deserialize(**inv_dict)
-        inv_serialized = deserializer.Inventory.serialize(inv).dict()
-        for k, v in inv_dict.items():
-            assert v == inv_serialized[k]
-
-    def test_get_connection_parameters(self):
-        inv = deserializer.Inventory.deserialize(**inv_dict)
+    def test_get_connection_parameters(self, inv):
         p1 = inv.hosts["dev1.group_1"].get_connection_parameters("dummy")
-        assert deserializer.ConnectionOptions.serialize(p1).dict() == {
-            "port": 65020,
-            "hostname": "dummy_from_host",
-            "username": "root",
-            "password": "a_password",
-            "platform": "eos",
-            "extras": {"blah": "from_host"},
-        }
+        assert p1.port == 65020
+        assert p1.hostname == "dummy_from_host"
+        assert p1.username == "root"
+        assert p1.password == "a_password"
+        assert p1.platform == "eos"
+        assert p1.extras == {"blah": "from_host"}
         p2 = inv.hosts["dev1.group_1"].get_connection_parameters("asd")
-        assert deserializer.ConnectionOptions.serialize(p2).dict() == {
-            "port": 65020,
-            "hostname": "localhost",
-            "username": "root",
-            "password": "a_password",
-            "platform": "eos",
-            "extras": {},
-        }
+        assert p2.port == 65020
+        assert p2.hostname == "localhost"
+        assert p2.username == "root"
+        assert p2.password == "a_password"
+        assert p2.platform == "eos"
+        assert p2.extras == {}
         p3 = inv.hosts["dev2.group_1"].get_connection_parameters("dummy")
-        assert deserializer.ConnectionOptions.serialize(p3).dict() == {
-            "port": 65021,
-            "hostname": "dummy_from_parent_group",
-            "username": "root",
-            "password": "from_group1",
-            "platform": "junos",
-            "extras": {"blah": "from_group"},
-        }
+        assert p3.port == 65021
+        assert p3.hostname == "dummy_from_parent_group"
+        assert p3.username == "root"
+        assert p3.password == "from_group1"
+        assert p3.platform == "junos"
+        assert p3.extras == {"blah": "from_group"}
         p4 = inv.hosts["dev3.group_2"].get_connection_parameters("dummy")
-        assert deserializer.ConnectionOptions.serialize(p4).dict() == {
-            "port": 65022,
-            "hostname": "dummy_from_defaults",
-            "username": "root",
-            "password": "docker",
-            "platform": "linux",
-            "extras": {"blah": "from_defaults"},
-        }
+        assert p4.port == 65022
+        assert p4.hostname == "dummy_from_defaults"
+        assert p4.username == "root"
+        assert p4.password == "docker"
+        assert p4.platform == "linux"
+        assert p4.extras == {"blah": "from_defaults"}
 
-    def test_defaults(self):
-        inv = deserializer.Inventory.deserialize(**inv_dict)
+    def test_defaults(self, inv):
         inv.defaults.password = "asd"
         assert inv.defaults.password == "asd"
         assert inv.hosts["dev2.group_1"].password == "from_group1"
@@ -209,8 +394,7 @@ class Test(object):
         assert inv.hosts["dev4.group_2"].password == "from_parent_group"
         assert inv.hosts["dev5.no_group"].password == "asd"
 
-    def test_children_of_str(self):
-        inv = deserializer.Inventory.deserialize(**inv_dict)
+    def test_children_of_str(self, inv):
         assert inv.children_of_group("parent_group") == {
             inv.hosts["dev1.group_1"],
             inv.hosts["dev2.group_1"],
@@ -229,8 +413,7 @@ class Test(object):
 
         assert inv.children_of_group("blah") == set()
 
-    def test_children_of_obj(self):
-        inv = deserializer.Inventory.deserialize(**inv_dict)
+    def test_children_of_obj(self, inv):
         assert inv.children_of_group(inv.groups["parent_group"]) == {
             inv.hosts["dev1.group_1"],
             inv.hosts["dev2.group_1"],
@@ -251,21 +434,24 @@ class Test(object):
         data = {"test_var": "test_value"}
         defaults = inventory.Defaults(data=data)
         g1 = inventory.Group(name="g1")
-        g2 = inventory.Group(name="g2", groups=inventory.ParentGroups(["g1"]))
-        h1 = inventory.Host(name="h1", groups=inventory.ParentGroups(["g1", "g2"]))
+        g2 = inventory.Group(name="g2", groups=inventory.ParentGroups([g1]))
+        h1 = inventory.Host(name="h1", groups=inventory.ParentGroups([g1, g2]))
         h2 = inventory.Host(name="h2")
         hosts = {"h1": h1, "h2": h2}
         groups = {"g1": g1, "g2": g2}
         inv = inventory.Inventory(hosts=hosts, groups=groups, defaults=defaults)
-        h3_connection_options = {"netmiko": {"extras": {"device_type": "cisco_ios"}}}
-        inv.add_host(
+        h3_connection_options = inventory.ConnectionOptions(
+            extras={"device_type": "cisco_ios"}
+        )
+        inv.hosts["h3"] = inventory.Host(
             name="h3",
-            groups=["g1"],
+            groups=[g1],
             platform="TestPlatform",
-            connection_options=h3_connection_options,
+            connection_options={"netmiko": h3_connection_options},
+            defaults=defaults,
         )
         assert "h3" in inv.hosts
-        assert "g1" in [i.name for i in inv.hosts["h3"].groups.refs]
+        assert "g1" in [i.name for i in inv.hosts["h3"].groups]
         assert "test_var" in inv.hosts["h3"].defaults.data.keys()
         assert inv.hosts["h3"].defaults.data.get("test_var") == "test_value"
         assert inv.hosts["h3"].platform == "TestPlatform"
@@ -273,28 +459,28 @@ class Test(object):
             inv.hosts["h3"].connection_options["netmiko"].extras["device_type"]
             == "cisco_ios"
         )
-        with pytest.raises(KeyError):
-            inv.add_host(name="h4", groups=["not_defined"])
-        # Test with one good and one undefined group
-        with pytest.raises(KeyError):
-            inv.add_host(name="h5", groups=["g1", "not_defined"])
 
     def test_add_group(self):
         connection_options = {"username": "test_user", "password": "test_pass"}
         data = {"test_var": "test_value"}
         defaults = inventory.Defaults(data=data, connection_options=connection_options)
         g1 = inventory.Group(name="g1")
-        g2 = inventory.Group(name="g2", groups=inventory.ParentGroups(["g1"]))
-        h1 = inventory.Host(name="h1", groups=inventory.ParentGroups(["g1", "g2"]))
+        g2 = inventory.Group(name="g2", groups=inventory.ParentGroups([g1]))
+        h1 = inventory.Host(name="h1", groups=inventory.ParentGroups([g1, g2]))
         h2 = inventory.Host(name="h2")
         hosts = {"h1": h1, "h2": h2}
         groups = {"g1": g1, "g2": g2}
         inv = inventory.Inventory(hosts=hosts, groups=groups, defaults=defaults)
-        g3_connection_options = {"netmiko": {"extras": {"device_type": "cisco_ios"}}}
-        inv.add_group(
-            name="g3", username="test_user", connection_options=g3_connection_options
+        g3_connection_options = inventory.ConnectionOptions(
+            extras={"device_type": "cisco_ios"}
         )
-        assert "g1" in [i.name for i in inv.groups["g2"].groups.refs]
+        inv.groups["g3"] = inventory.Group(
+            name="g3",
+            username="test_user",
+            connection_options={"netmiko": g3_connection_options},
+            defaults=defaults,
+        )
+        assert "g1" in [i.name for i in inv.groups["g2"].groups]
         assert "g3" in inv.groups
         assert (
             inv.groups["g3"].defaults.connection_options.get("username") == "test_user"
@@ -308,15 +494,8 @@ class Test(object):
             inv.groups["g3"].connection_options["netmiko"].extras["device_type"]
             == "cisco_ios"
         )
-        # Test with one undefined parent group
-        with pytest.raises(KeyError):
-            inv.add_group(name="g4", groups=["undefined"])
-        # Test with one defined and one undefined parent group
-        with pytest.raises(KeyError):
-            inv.add_group(name="g4", groups=["g1", "undefined"])
 
-    def test_dict(self):
-        inv = deserializer.Inventory.deserialize(**inv_dict)
+    def test_dict(self, inv):
         inventory_dict = inv.dict()
         def_extras = inventory_dict["defaults"]["connection_options"]["dummy"]["extras"]
         grp_data = inventory_dict["groups"]["group_1"]["data"]
@@ -327,37 +506,22 @@ class Test(object):
         assert "my_var" and "site" in grp_data
         assert "www_server" and "role" in host_data
 
-    def test_get_inventory_dict(self):
-        inv = deserializer.Inventory.deserialize(**inv_dict)
-        inventory_dict = inv.get_inventory_dict()
-        def_extras = inventory_dict["defaults"]["connection_options"]["dummy"]["extras"]
-        grp_data = inventory_dict["groups"]["group_1"]["data"]
-        host_data = inventory_dict["hosts"]["dev1.group_1"]["data"]
-        assert type(inventory_dict) == dict
-        assert inventory_dict["defaults"]["username"] == "root"
-        assert def_extras["blah"] == "from_defaults"
-        assert "my_var" and "site" in grp_data
-        assert "www_server" and "role" in host_data
-
-    def test_get_defaults_dict(self):
-        inv = deserializer.Inventory.deserialize(**inv_dict)
-        defaults_dict = inv.get_defaults_dict()
+    def test_get_defaults_dict(self, inv):
+        defaults_dict = inv.defaults.dict()
         con_options = defaults_dict["connection_options"]["dummy"]
         assert type(defaults_dict) == dict
         assert defaults_dict["username"] == "root"
         assert con_options["hostname"] == "dummy_from_defaults"
         assert "blah" in con_options["extras"]
 
-    def test_get_groups_dict(self):
-        inv = deserializer.Inventory.deserialize(**inv_dict)
-        groups_dict = inv.get_groups_dict()
+    def test_get_groups_dict(self, inv):
+        groups_dict = {n: g.dict() for n, g in inv.groups.items()}
         assert type(groups_dict) == dict
         assert groups_dict["group_1"]["password"] == "from_group1"
         assert groups_dict["group_2"]["data"]["site"] == "site2"
 
-    def test_get_hosts_dict(self):
-        inv = deserializer.Inventory.deserialize(**inv_dict)
-        hosts_dict = inv.get_hosts_dict()
+    def test_get_hosts_dict(self, inv):
+        hosts_dict = {n: h.dict() for n, h in inv.hosts.items()}
         dev1_groups = hosts_dict["dev1.group_1"]["groups"]
         dev2_paramiko_opts = hosts_dict["dev2.group_1"]["connection_options"][
             "paramiko"
