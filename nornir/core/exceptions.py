@@ -31,7 +31,7 @@ class ConnectionNotOpen(ConnectionException):
     pass
 
 
-class ConnectionPluginAlreadyRegistered(ConnectionException):
+class PluginAlreadyRegistered(Exception):
     """
     Raised when trying to register an already registered plugin
     """
@@ -39,7 +39,7 @@ class ConnectionPluginAlreadyRegistered(ConnectionException):
     pass
 
 
-class ConnectionPluginNotRegistered(ConnectionException):
+class PluginNotRegistered(Exception):
     """
     Raised when trying to access a plugin that is not registered
     """
