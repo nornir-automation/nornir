@@ -1,6 +1,6 @@
 ---
 core:
-    num_workers: 100
+    raise_on_error: true
 inventory:
     plugin: "inventory-test"
     options:

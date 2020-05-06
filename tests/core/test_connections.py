@@ -67,18 +67,18 @@ class FailedConnectionPlugin(ConnectionPlugin):
         pass
 
 
-def open_and_close_connection(task):
-    task.host.open_connection("dummy", task.nornir.config)
+def open_and_close_connection(task, nornir_config):
+    task.host.open_connection("dummy", nornir_config)
     assert "dummy" in task.host.connections
     task.host.close_connection("dummy")
     assert "dummy" not in task.host.connections
 
 
-def open_connection_twice(task):
-    task.host.open_connection("dummy", task.nornir.config)
+def open_connection_twice(task, nornir_config):
+    task.host.open_connection("dummy", nornir_config)
     assert "dummy" in task.host.connections
     try:
-        task.host.open_connection("dummy", task.nornir.config)
+        task.host.open_connection("dummy", nornir_config)
         raise Exception("I shouldn't make it here")
     except ConnectionAlreadyOpen:
         task.host.close_connection("dummy")
@@ -94,16 +94,16 @@ def close_not_opened_connection(task):
         assert "dummy" not in task.host.connections
 
 
-def failed_connection(task):
-    task.host.open_connection(FailedConnectionPlugin.name, task.nornir.config)
+def failed_connection(task, nornir_config):
+    task.host.open_connection(FailedConnectionPlugin.name, nornir_config)
 
 
-def a_task(task):
-    task.host.get_connection("dummy", task.nornir.config)
+def a_task(task, nornir_config):
+    task.host.get_connection("dummy", nornir_config)
 
 
-def validate_params(task, conn, params):
-    task.host.get_connection(conn, task.nornir.config)
+def validate_params(task, conn, params, nornir_config):
+    task.host.get_connection(conn, nornir_config)
     for k, v in params.items():
         assert getattr(task.host.connections[conn], k) == v
 
@@ -119,25 +119,25 @@ class Test(object):
 
     def test_open_and_close_connection(self, nornir):
         nr = nornir.filter(name="dev2.group_1")
-        r = nr.run(task=open_and_close_connection, num_workers=1)
+        r = nr.run(task=open_and_close_connection, nornir_config=nornir.config)
         assert len(r) == 1
         assert not r.failed
 
     def test_open_connection_twice(self, nornir):
         nr = nornir.filter(name="dev2.group_1")
-        r = nr.run(task=open_connection_twice, num_workers=1)
+        r = nr.run(task=open_connection_twice, nornir_config=nornir.config)
         assert len(r) == 1
         assert not r.failed
 
     def test_close_not_opened_connection(self, nornir):
         nr = nornir.filter(name="dev2.group_1")
-        r = nr.run(task=close_not_opened_connection, num_workers=1)
+        r = nr.run(task=close_not_opened_connection)
         assert len(r) == 1
         assert not r.failed
 
     def test_failed_connection(self, nornir):
         nr = nornir.filter(name="dev2.group_1")
-        nr.run(task=failed_connection, num_workers=1)
+        nr.run(task=failed_connection, nornir_config=nornir.config)
         assert (
             FailedConnectionPlugin.name
             not in nornir.inventory.hosts["dev2.group_1"].connections
@@ -145,7 +145,7 @@ class Test(object):
 
     def test_context_manager(self, nornir):
         with nornir.filter(name="dev2.group_1") as nr:
-            nr.run(task=a_task)
+            nr.run(task=a_task, nornir_config=nornir.config)
             assert "dummy" in nr.inventory.hosts["dev2.group_1"].connections
         assert "dummy" not in nr.inventory.hosts["dev2.group_1"].connections
 
@@ -163,7 +163,7 @@ class Test(object):
             task=validate_params,
             conn="dummy_no_overrides",
             params=params,
-            num_workers=1,
+            nornir_config=nornir.config,
         )
         assert len(r) == 1
         assert not r.failed
@@ -178,7 +178,12 @@ class Test(object):
             "extras": {"blah": "from_group"},
         }
         nr = nornir.filter(name="dev2.group_1")
-        r = nr.run(task=validate_params, conn="dummy", params=params, num_workers=1)
+        r = nr.run(
+            task=validate_params,
+            conn="dummy",
+            params=params,
+            nornir_config=nornir.config,
+        )
         assert len(r) == 1
         assert not r.failed
 
@@ -192,7 +197,12 @@ class Test(object):
             "extras": {"blah": "from_group"},
         }
         nr = nornir.filter(name="dev2.group_1")
-        r = nr.run(task=validate_params, conn="dummy2", params=params, num_workers=1)
+        r = nr.run(
+            task=validate_params,
+            conn="dummy2",
+            params=params,
+            nornir_config=nornir.config,
+        )
         assert len(r) == 1
         assert not r.failed
 

@@ -9,6 +9,7 @@ from nornir.core.plugins.inventory import (
     InventoryPluginRegister,
     TransformFunctionRegister,
 )
+from nornir.core.plugins.runners import RunnerPlugin, RunnersPluginRegister
 from nornir.core.state import GlobalState
 
 
@@ -36,6 +37,13 @@ def load_inventory(config: Config,) -> Inventory:
     return inv
 
 
+def load_runner(config: Config,) -> RunnerPlugin:
+    RunnersPluginRegister.auto_register()
+    runner_plugin = RunnersPluginRegister.get_plugin(config.runner.plugin)
+    runner = runner_plugin(**config.runner.options)
+    return runner
+
+
 def InitNornir(config_file: str = "", dry_run: bool = False, **kwargs: Any,) -> Nornir:
     """
     Arguments:
@@ -61,4 +69,9 @@ def InitNornir(config_file: str = "", dry_run: bool = False, **kwargs: Any,) -> 
 
     config.logging.configure()
 
-    return Nornir(inventory=load_inventory(config), config=config, data=data,)
+    return Nornir(
+        inventory=load_inventory(config),
+        runner=load_runner(config),
+        config=config,
+        data=data,
+    )

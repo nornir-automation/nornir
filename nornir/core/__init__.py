@@ -1,13 +1,13 @@
 import logging
 import logging.config
-from concurrent.futures import ThreadPoolExecutor
-from typing import List, Optional, TYPE_CHECKING, Dict, Any
+from typing import List, Optional, TYPE_CHECKING
 
 from nornir.core.configuration import Config
 from nornir.core.inventory import Inventory
+from nornir.core.plugins.runners import RunnerPlugin
 from nornir.core.processor import Processor, Processors
 from nornir.core.state import GlobalState
-from nornir.core.task import AggregatedResult, Task
+from nornir.core.task import Task
 
 if TYPE_CHECKING:
     from nornir.core.inventory import Host  # noqa: W0611
@@ -39,11 +39,13 @@ class Nornir(object):
         config: Config = None,
         data: GlobalState = None,
         processors: Optional[Processors] = None,
+        runner: Optional[RunnerPlugin] = None,
     ) -> None:
         self.data = data if data is not None else GlobalState()
         self.inventory = inventory
         self.config = config or Config()
         self.processors = processors or Processors()
+        self.runner = runner
 
     def __enter__(self):
         return self
@@ -58,6 +60,13 @@ class Nornir(object):
         """
         return Nornir(**{**self.__dict__, **{"processors": Processors(processors)}})
 
+    def with_runner(self, runner: RunnerPlugin) -> "Nornir":
+        """
+        Given a runner return a copy of the nornir object with the runner
+        assigned to the copy. The orinal object is left unmodified.
+        """
+        return Nornir(**{**self.__dict__, **{"runner": runner}})
+
     def filter(self, *args, **kwargs):
         """
         See :py:meth:`nornir.core.inventory.Inventory.filter`
@@ -69,38 +78,13 @@ class Nornir(object):
         b.inventory = self.inventory.filter(*args, **kwargs)
         return b
 
-    def _run_serial(self, task: Task, hosts, **kwargs):
-        result = AggregatedResult(kwargs.get("name") or task.name)
-        for host in hosts:
-            result[host.name] = task.copy().start(host, self)
-        return result
-
-    def _run_parallel(
-        self,
-        task: Task,
-        hosts: List["Host"],
-        num_workers: int,
-        **kwargs: Dict[str, Any],
-    ) -> AggregatedResult:
-        agg_result = AggregatedResult(kwargs.get("name") or task.name)
-        futures = []
-        with ThreadPoolExecutor(num_workers) as pool:
-            for host in hosts:
-                future = pool.submit(task.copy().start, host, self)
-                futures.append(future)
-
-        for future in futures:
-            worker_result = future.result()
-            agg_result[worker_result.host.name] = worker_result
-        return agg_result
-
     def run(
         self,
         task,
-        num_workers=None,
         raise_on_error=None,
         on_good=True,
         on_failed=False,
+        name: Optional[str] = None,
         **kwargs,
     ):
         """
@@ -109,7 +93,6 @@ class Nornir(object):
         Arguments:
             task (``callable``): function or callable that will be run against each device in
               the inventory
-            num_workers(``int``): Override for how many hosts to run in parallel for this task
             raise_on_error (``bool``): Override raise_on_error behavior
             on_good(``bool``): Whether to run or not this task on hosts marked as good
             on_failed(``bool``): Whether to run or not this task on hosts marked as failed
@@ -122,10 +105,14 @@ class Nornir(object):
         Returns:
             :obj:`nornir.core.task.AggregatedResult`: results of each execution
         """
-        task = Task(task, **kwargs)
+        task = Task(
+            task,
+            global_dry_run=self.data.dry_run,
+            name=name,
+            processors=self.processors,
+            **kwargs,
+        )
         self.processors.task_started(task)
-
-        num_workers = num_workers or self.config.core.num_workers
 
         run_on = []
         if on_good:
@@ -138,21 +125,17 @@ class Nornir(object):
                     run_on.append(host)
 
         num_hosts = len(self.inventory.hosts)
-        task_name = kwargs.get("name") or task.name
         if num_hosts:
             logger.info(
                 "Running task %r with args %s on %d hosts",
-                task_name,
+                task.name,
                 kwargs,
                 num_hosts,
             )
         else:
-            logger.warning("Task %r has not been run – 0 hosts selected", task_name)
+            logger.warning("Task %r has not been run – 0 hosts selected", task.name)
 
-        if num_workers == 1:
-            result = self._run_serial(task, run_on, **kwargs)
-        else:
-            result = self._run_parallel(task, run_on, num_workers, **kwargs)
+        result = self.runner.run(task, run_on)
 
         raise_on_error = (
             raise_on_error

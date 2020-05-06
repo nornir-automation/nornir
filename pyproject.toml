@@ -2,6 +2,10 @@
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
 
+[tool.poetry.plugins."nornir.plugins.runners"]
+"serial" = "nornir.plugins.runners:SerialRunner"
+"parallel" = "nornir.plugins.runners:ParallelRunner"
+
 [tool.poetry]
 name = "nornir"
 version = "3.0.0a2"

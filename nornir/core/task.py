@@ -7,7 +7,7 @@ from nornir.core.exceptions import NornirSubTaskError
 
 if TYPE_CHECKING:
     from nornir.core.inventory import Host
-    from nornir.core import Nornir
+    from nornir.core.processor import Processors
 
 
 logger = logging.getLogger(__name__)
@@ -40,27 +40,37 @@ class Task(object):
     def __init__(
         self,
         task: Callable[..., Any],
+        global_dry_run: bool,
+        processors: "Processors",
         name: str = None,
         severity_level: int = logging.INFO,
         parent_task: Optional["Task"] = None,
         **kwargs: str
     ):
-        self.name = name or task.__name__
         self.task = task
+        self.name = name or task.__name__
+        self.global_dry_run = global_dry_run
         self.parent_task = parent_task
         self.params = kwargs
         self.results = MultiResult(self.name)
         self.severity_level = severity_level
+        self.processors = processors
 
     def copy(self) -> "Task":
         return Task(
-            self.task, self.name, self.severity_level, self.parent_task, **self.params
+            self.task,
+            self.global_dry_run,
+            self.processors,
+            self.name,
+            self.severity_level,
+            self.parent_task,
+            **self.params
         )
 
     def __repr__(self) -> str:
         return self.name
 
-    def start(self, host: "Host", nornir: "Nornir") -> "MultiResult":
+    def start(self, host: "Host") -> "MultiResult":
         """
         Run the task for the given host.
 
@@ -74,12 +84,11 @@ class Task(object):
             host (:obj:`nornir.core.task.MultiResult`): Results of the task and its subtasks
         """
         self.host = host
-        self.nornir = nornir
 
         if self.parent_task is not None:
-            self.nornir.processors.subtask_instance_started(self, host)
+            self.processors.subtask_instance_started(self, host)
         else:
-            self.nornir.processors.task_instance_started(self, host)
+            self.processors.task_instance_started(self, host)
         try:
             logger.debug("Host %r: running task %r", self.host.name, self.name)
             r = self.task(self, **self.params)
@@ -112,9 +121,9 @@ class Task(object):
         self.results.insert(0, r)
 
         if self.parent_task is not None:
-            self.nornir.processors.subtask_instance_completed(self, host, self.results)
+            self.processors.subtask_instance_completed(self, host, self.results)
         else:
-            self.nornir.processors.task_instance_completed(self, host, self.results)
+            self.processors.task_instance_completed(self, host, self.results)
         return self.results
 
     def run(self, task: Callable[..., Any], **kwargs: Any) -> "MultiResult":
@@ -129,7 +138,7 @@ class Task(object):
 
         This method will ensure the subtask is run only for the host in the current thread.
         """
-        if not self.host or not self.nornir:
+        if not self.host:
             msg = (
                 "You have to call this after setting host and nornir attributes. ",
                 "You probably called this from outside a nested task",
@@ -138,8 +147,15 @@ class Task(object):
 
         if "severity_level" not in kwargs:
             kwargs["severity_level"] = self.severity_level
-        run_task = Task(task, parent_task=self, **kwargs)
-        r = run_task.start(self.host, self.nornir)
+
+        run_task = Task(
+            task,
+            global_dry_run=self.global_dry_run,
+            processors=self.processors,
+            parent_task=self,
+            **kwargs
+        )
+        r = run_task.start(self.host)
         self.results.append(r[0] if len(r) == 1 else r)
 
         if r.failed:
@@ -152,7 +168,7 @@ class Task(object):
         """
         Returns whether current task is a dry_run or not.
         """
-        return override if override is not None else self.nornir.data.dry_run
+        return override if override is not None else self.global_dry_run
 
 
 class Result(object):

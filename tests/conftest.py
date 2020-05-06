@@ -1,3 +1,4 @@
+from typing import List
 import os
 from nornir.core import Nornir
 from nornir.core.inventory import (
@@ -10,6 +11,7 @@ from nornir.core.inventory import (
     ParentGroups,
     ConnectionOptions,
 )
+from nornir.core.task import AggregatedResult, Task
 from nornir.core.state import GlobalState
 
 import ruamel.yaml
@@ -101,6 +103,21 @@ def inventory_from_yaml():
     return Inventory(hosts=hosts, groups=groups, defaults=defaults)
 
 
+class SerialRunner:
+    """
+    SerialRunner runs the task over each host one after the other without any parellelization
+    """
+
+    def __init__(self) -> None:
+        pass
+
+    def run(self, task: Task, hosts: List[Host]) -> AggregatedResult:
+        result = AggregatedResult(task.name)
+        for host in hosts:
+            result[host.name] = task.copy().start(host)
+        return result
+
+
 @pytest.fixture(scope="session", autouse=True)
 def inv(request):
     return inventory_from_yaml()
@@ -109,7 +126,9 @@ def inv(request):
 @pytest.fixture(scope="session", autouse=True)
 def nornir(request):
     """Initializes nornir"""
-    nr = Nornir(inventory=inventory_from_yaml(), data=global_data)
+    nr = Nornir(
+        inventory=inventory_from_yaml(), runner=SerialRunner(), data=global_data
+    )
     return nr
 
 
