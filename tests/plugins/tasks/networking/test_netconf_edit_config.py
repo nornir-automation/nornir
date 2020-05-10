@@ -20,6 +20,9 @@ CONFIG = """
 
 
 def test_netconf_edit_config(netconf):
+    netconf = netconf.filter(name="netconf1.no_group")
+    assert netconf.inventory.hosts
+
     result = netconf.run(networking.netconf_get_config)
 
     for _, v in result.items():
