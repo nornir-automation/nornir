@@ -119,7 +119,6 @@ class Test(object):
             sub_task_for_testing_overrides_severity,
             fail_on=["dev3.group_2"],
             severity_level=logging.WARN,
-            num_workers=1,
         )
         for host, result in r.items():
             if host == "dev3.group_2":

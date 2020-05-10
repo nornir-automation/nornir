@@ -2,6 +2,7 @@ import datetime
 import time
 
 from nornir.core.exceptions import NornirExecutionError
+from nornir.plugins.runners import ParallelRunner
 
 import pytest
 
@@ -39,49 +40,30 @@ def verify_data_change(task):
 
 
 class Test(object):
-    def test_blocking_task_single_thread(self, nornir):
-        t1 = datetime.datetime.now()
-        nornir.run(blocking_task, wait=0.5, num_workers=1)
-        t2 = datetime.datetime.now()
-        delta = t2 - t1
-        assert delta.seconds == 2, delta
-
     def test_blocking_task_multithreading(self, nornir):
         t1 = datetime.datetime.now()
-        nornir.run(blocking_task, wait=2, num_workers=NUM_WORKERS)
+        nornir.with_runner(ParallelRunner(num_workers=NUM_WORKERS)).run(
+            blocking_task, wait=2
+        )
         t2 = datetime.datetime.now()
         delta = t2 - t1
         assert delta.seconds == 2, delta
 
-    def test_failing_task_simple_singlethread(self, nornir):
-        result = nornir.run(failing_task_simple, num_workers=1)
-        processed = False
-        for k, v in result.items():
-            processed = True
-            assert isinstance(k, str), k
-            assert isinstance(v.exception, Exception), v
-        assert processed
-
     def test_failing_task_simple_multithread(self, nornir):
-        result = nornir.run(failing_task_simple, num_workers=NUM_WORKERS)
+        result = nornir.with_runner(ParallelRunner(num_workers=NUM_WORKERS)).run(
+            failing_task_simple,
+        )
         processed = False
         for k, v in result.items():
             processed = True
             assert isinstance(k, str), k
             assert isinstance(v.exception, Exception), v
-        assert processed
-
-    def test_failing_task_complex_singlethread(self, nornir):
-        result = nornir.run(failing_task_complex, num_workers=1)
-        processed = False
-        for k, v in result.items():
-            processed = True
-            assert isinstance(k, str), k
-            assert isinstance(v.exception, CustomException), v
         assert processed
 
     def test_failing_task_complex_multithread(self, nornir):
-        result = nornir.run(failing_task_complex, num_workers=NUM_WORKERS)
+        result = nornir.with_runner(ParallelRunner(num_workers=NUM_WORKERS)).run(
+            failing_task_complex,
+        )
         processed = False
         for k, v in result.items():
             processed = True
@@ -91,13 +73,15 @@ class Test(object):
 
     def test_failing_task_complex_multithread_raise_on_error(self, nornir):
         with pytest.raises(NornirExecutionError) as e:
-            nornir.run(
-                failing_task_complex, num_workers=NUM_WORKERS, raise_on_error=True
+            nornir.with_runner(ParallelRunner(num_workers=NUM_WORKERS)).run(
+                failing_task_complex, raise_on_error=True
             )
         for k, v in e.value.result.items():
             assert isinstance(k, str), k
             assert isinstance(v.exception, CustomException), v
 
     def test_change_data_in_thread(self, nornir):
-        nornir.run(change_data, num_workers=NUM_WORKERS)
-        nornir.run(verify_data_change, num_workers=NUM_WORKERS)
+        nornir.with_runner(ParallelRunner(num_workers=NUM_WORKERS)).run(change_data,)
+        nornir.with_runner(ParallelRunner(num_workers=NUM_WORKERS)).run(
+            verify_data_change,
+        )

@@ -32,7 +32,7 @@ InitNornir
 Configuration
 =============
 
-1. Order of resolution is now file -> paramters to InitNornir -> env var
+1. Order of resolution is parameters to InitNornit > config > env
 
 Todo
 ----
