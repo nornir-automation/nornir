@@ -200,28 +200,51 @@ class LoggingConfig(object):
                 logger_.addHandler(stderr_handler)
 
 
-class CoreConfig(object):
-    __slots__ = ("num_workers", "raise_on_error")
+class RunnerConfig(object):
+    __slots__ = ("plugin", "options")
 
     class Parameters:
-        num_workers = Parameter(default=20, envvar="NORNIR_CORE_NUM_WORKERS")
-        raise_on_error = Parameter(default=False, envvar="NORNIR_CORE_RAISE_ON_ERROR")
+        plugin = Parameter(default="parallel", envvar="NORNIR_RUNNER_PLUGIN")
+        options = Parameter(default={}, envvar="NORNIR_RUNNER_OPTIONS")
 
     def __init__(
-        self, num_workers: Optional[int] = None, raise_on_error: Optional[bool] = None
+        self, plugin: Optional[str] = None, options: Optional[Dict[str, Any]] = None
     ) -> None:
-        self.num_workers = self.Parameters.num_workers.resolve(num_workers)
+        self.plugin = self.Parameters.plugin.resolve(plugin)
+        self.options = self.Parameters.options.resolve(options)
+
+    def dict(self) -> Dict[str, Any]:
+        return {
+            "plugin": self.plugin,
+            "options": self.options,
+        }
+
+
+class CoreConfig(object):
+    __slots__ = "raise_on_error"
+
+    class Parameters:
+        raise_on_error = Parameter(default=False, envvar="NORNIR_CORE_RAISE_ON_ERROR")
+
+    def __init__(self, raise_on_error: Optional[bool] = None) -> None:
         self.raise_on_error = self.Parameters.raise_on_error.resolve(raise_on_error)
 
     def dict(self) -> Dict[str, Any]:
         return {
-            "num_workers": self.num_workers,
             "raise_on_error": self.raise_on_error,
         }
 
 
 class Config(object):
-    __slots__ = ("core", "ssh", "inventory", "jinja2", "logging", "user_defined")
+    __slots__ = (
+        "core",
+        "runner",
+        "ssh",
+        "inventory",
+        "jinja2",
+        "logging",
+        "user_defined",
+    )
 
     def __init__(
         self,
@@ -229,12 +252,14 @@ class Config(object):
         ssh: Optional[SSHConfig] = None,
         logging: Optional[LoggingConfig] = None,
         core: Optional[CoreConfig] = None,
+        runner: Optional[RunnerConfig] = None,
         user_defined: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.inventory = inventory or InventoryConfig()
         self.ssh = ssh or SSHConfig()
         self.logging = logging or LoggingConfig()
         self.core = core or CoreConfig()
+        self.runner = runner or RunnerConfig()
         self.user_defined = user_defined or {}
 
     @classmethod
@@ -244,6 +269,7 @@ class Config(object):
         ssh: Optional[Dict[str, Any]] = None,
         logging: Optional[Dict[str, Any]] = None,
         core: Optional[Dict[str, Any]] = None,
+        runner: Optional[Dict[str, Any]] = None,
         user_defined: Optional[Dict[str, Any]] = None,
     ) -> "Config":
         return cls(
@@ -251,6 +277,7 @@ class Config(object):
             ssh=SSHConfig(**ssh or {}),
             logging=LoggingConfig(**logging or {}),
             core=CoreConfig(**core or {}),
+            runner=RunnerConfig(**runner or {}),
             user_defined=user_defined or {},
         )
 
@@ -262,12 +289,14 @@ class Config(object):
         ssh: Optional[Dict[str, Any]] = None,
         logging: Optional[Dict[str, Any]] = None,
         core: Optional[Dict[str, Any]] = None,
+        runner: Optional[Dict[str, Any]] = None,
         user_defined: Optional[Dict[str, Any]] = None,
     ) -> "Config":
         inventory = inventory or {}
         ssh = ssh or {}
         logging = logging or {}
         core = core or {}
+        runner = runner or {}
         user_defined = user_defined or {}
         with open(config_file, "r") as f:
             yml = ruamel.yaml.YAML(typ="safe")
@@ -277,6 +306,7 @@ class Config(object):
             ssh=SSHConfig(**{**data.get("ssh", {}), **ssh}),
             logging=LoggingConfig(**{**data.get("loggin", {}), **logging}),
             core=CoreConfig(**{**data.get("core", {}), **core}),
+            runner=RunnerConfig(**{**data.get("runner", {}), **runner}),
             user_defined={**data.get("user_defined", {}), **user_defined},
         )
 
@@ -286,5 +316,6 @@ class Config(object):
             "ssh": self.ssh.dict(),
             "logging": self.logging.dict(),
             "core": self.core.dict(),
+            "runner": self.runner.dict(),
             "user_defined": self.user_defined,
         }

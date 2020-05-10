@@ -1,6 +1,5 @@
 ---
 core:
-    num_workers: 10
     raise_on_error: false
 inventory:
     plugin: tests.core.deserializer.test_configuration.DummyInventory

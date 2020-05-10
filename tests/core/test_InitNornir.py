@@ -71,20 +71,19 @@ class Test(object):
         nr = InitNornir(inventory={"plugin": "inventory-test"})
         os.chdir("../../")
         assert not nr.data.dry_run
-        assert nr.config.core.num_workers == 20
+        assert not nr.config.core.raise_on_error
         assert len(nr.inventory.hosts)
         assert len(nr.inventory.groups)
 
     def test_InitNornir_file(self):
         nr = InitNornir(config_file=os.path.join(dir_path, "a_config.yaml"))
         assert not nr.data.dry_run
-        assert nr.config.core.num_workers == 100
         assert len(nr.inventory.hosts)
         assert len(nr.inventory.groups)
 
     def test_InitNornir_programmatically(self):
         nr = InitNornir(
-            core={"num_workers": 100},
+            core={"raise_on_error": True},
             inventory={
                 "plugin": "inventory-test",
                 "options": {
@@ -94,7 +93,7 @@ class Test(object):
             },
         )
         assert not nr.data.dry_run
-        assert nr.config.core.num_workers == 100
+        assert nr.config.core.raise_on_error
         assert len(nr.inventory.hosts)
         assert len(nr.inventory.groups)
 
@@ -103,16 +102,15 @@ class Test(object):
             config_file=os.path.join(dir_path, "a_config.yaml"),
             core={"raise_on_error": True},
         )
-        assert nr.config.core.num_workers == 100
         assert nr.config.core.raise_on_error
 
     def test_InitNornir_combined(self):
         nr = InitNornir(
             config_file=os.path.join(dir_path, "a_config.yaml"),
-            core={"num_workers": 200},
+            core={"raise_on_error": True},
         )
         assert not nr.data.dry_run
-        assert nr.config.core.num_workers == 200
+        assert nr.config.core.raise_on_error
         assert len(nr.inventory.hosts)
         assert len(nr.inventory.groups)
 
@@ -187,10 +185,7 @@ class TestLogging:
 
     def test_InitNornir_logging_defaults(self):
         self.cleanup()
-        InitNornir(
-            config_file=os.path.join(dir_path, "a_config.yaml"),
-            core={"num_workers": 200},
-        )
+        InitNornir(config_file=os.path.join(dir_path, "a_config.yaml"),)
         nornir_logger = logging.getLogger("nornir")
 
         assert nornir_logger.level == logging.INFO
