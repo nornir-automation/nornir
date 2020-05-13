@@ -107,6 +107,7 @@ class Nornir(object):
         """
         task = Task(
             task,
+            self,
             global_dry_run=self.data.dry_run,
             name=name,
             processors=self.processors,
