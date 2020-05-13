@@ -68,7 +68,25 @@
 				"site": "sunnyvale-ca",
 				"role": "rt",
 				"model": "mx480",
-			        "platform": "junos"
+			  "platform": "junos"
+			},
+			"connection_options": {},
+			"groups": []
+		},
+		"5-VirtualMachines": {
+			"port": null,
+			"hostname": "10.2.1.25",
+			"username": null,
+			"password": null,
+			"platform": null,
+			"data": {
+                "user_defined": 1,
+				"serial": "",
+				"vendor": "Redhat",
+				"asset_tag": null,
+				"site": "san-jose-ca",
+				"model": "RHEL8",
+				"platform": "junos"
 			},
 			"connection_options": {},
 			"groups": []
