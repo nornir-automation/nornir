@@ -7,6 +7,7 @@ from nornir.plugins.inventory import netbox
 # We need import below to load fixtures
 import pytest  # noqa
 
+from requests_mock import ANY
 
 BASE_PATH = os.path.join(os.path.dirname(__file__), "netbox")
 
@@ -15,16 +16,16 @@ def get_inv(requests_mock, case, pagination, **kwargs):
     if not pagination:
         with open(f"{BASE_PATH}/{case}/mocked/devices.json", "r") as f:
             requests_mock.get(
-                "http://localhost:8080/api/dcim/devices/?limit=0",
+                ANY,
                 json=json.load(f),
                 headers={"Content-type": "application/json"},
             )
     else:
-        for offset in range(3):
+        for offset in range(4):
             with open(f"{BASE_PATH}/{case}/mocked/devices-{offset}.json", "r") as f:
                 url = "http://localhost:8080/api/dcim/devices/?limit=0"
                 requests_mock.get(
-                    f"{url}&offset={offset}" if offset else url,
+                    ANY,
                     json=json.load(f),
                     headers={"Content-type": "application/json"},
                 )
