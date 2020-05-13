@@ -46,3 +46,7 @@ tests: black pylama mypy nbval pytest sphinx
 .PHONY: docker-tests
 docker-tests: docker
 	docker run --name nornir-tests --rm $(NAME):latest make tests
+
+.PHONY: docs
+docs:
+	make -C docs html
