@@ -63,7 +63,9 @@ class NBInventory(Inventory):
             r = session.get(url_vm, params=filter_parameters)
 
             if not r.status_code == 200:
-                raise ValueError(f"Failed to get Virtual devices from Netbox instance {nb_url}")
+                raise ValueError(
+                    f"Failed to get Virtual devices from Netbox instance {nb_url}"
+                )
 
             resp = r.json()
             nb_virtual_machines.extend(resp.get("results"))
