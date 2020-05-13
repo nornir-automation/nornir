@@ -23,7 +23,6 @@ def get_inv(requests_mock, case, pagination, **kwargs):
     else:
         for offset in range(4):
             with open(f"{BASE_PATH}/{case}/mocked/devices-{offset}.json", "r") as f:
-                url = "http://localhost:8080/api/dcim/devices/?limit=0"
                 requests_mock.get(
                     ANY,
                     json=json.load(f),
