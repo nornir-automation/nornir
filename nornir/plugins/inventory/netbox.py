@@ -45,6 +45,8 @@ class NBInventory(Inventory):
 
         url = f"{nb_url}/api/dcim/devices/?limit=0"
         nb_devices: List[Dict[str, Any]] = []
+        url_vm = f"{nb_url}/api/virtualization/virtual-machines/?limit=0"
+        nb_virtual_machines: List[Dict[str, Any]] = []
 
         while url:
             r = session.get(url, params=filter_parameters)
@@ -56,6 +58,17 @@ class NBInventory(Inventory):
             nb_devices.extend(resp.get("results"))
 
             url = resp.get("next")
+
+        while url_vm:
+            r = session.get(url_vm, params=filter_parameters)
+
+            if not r.status_code == 200:
+                raise ValueError(f"Failed to get Virtual devices from Netbox instance {nb_url}")
+
+            resp = r.json()
+            nb_virtual_machines.extend(resp.get("results"))
+
+            url_vm = resp.get("next")
 
         hosts = {}
         for d in nb_devices:
@@ -95,6 +108,37 @@ class NBInventory(Inventory):
             # Netbox allows devices to be unnamed, but the Nornir model does not allow this
             # If a device is unnamed we will set the name to the id of the device in netbox
             hosts[d.get("name") or d.get("id")] = host
+
+        for v in nb_virtual_machines:
+            host: HostsDict = {"data": {}}
+
+            # Add value for IP address
+            if v.get("primary_ip", {}):
+                host["hostname"] = v["primary_ip"]["address"].split("/")[0]
+
+            if flatten_custom_fields:
+                for cf, value in v["custom_fields"].items():
+                    host["data"][cf] = value
+            else:
+                host["data"]["custom_fields"] = v["custom_fields"]
+
+            # Add values that do have an option for 'slug'
+            if use_slugs:
+                host["data"]["site"] = v["site"]["slug"]
+                host["data"]["role"] = v["role"]["slug"]
+
+                # Attempt to add 'platform' based of value in 'slug'
+                host["platform"] = v["platform"]["slug"] if v["platform"] else None
+
+            else:
+                host["data"]["site"] = v["site"]["name"]
+                host["data"]["role"] = v["role"]
+                host["platform"] = v["platform"]
+
+            # Assign temporary dict to outer dict
+            # Netbox allows devices to be unnamed, but the Nornir model does not allow this
+            # If a device is unnamed we will set the name to the id of the device in netbox
+            hosts[v.get("name") or v.get("id")] = host
 
         # Pass the data back to the parent class
         super().__init__(hosts=hosts, groups={}, defaults={}, **kwargs)
