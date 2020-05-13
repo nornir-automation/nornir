@@ -81,6 +81,7 @@
 				"vendor": "Redhat",
 				"asset_tag": null,
 				"site": "san-jose-ca",
+				"role":"a-virtual-machine",
 				"model": "RHEL8"
 			},
 			"connection_options": {},
