@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any, Dict, Optional
 
 from ncclient import manager
@@ -108,9 +109,10 @@ class Netconf(ConnectionPlugin):
 
         if "ssh_config" not in extras:
             try:
-                parameters["ssh_config"] = configuration.ssh.config_file  # type: ignore
+                ssh_config_file = Path(configuration.ssh.config_file)  # type: ignore
+                if ssh_config_file.exists():
+                    parameters["ssh_config"] = ssh_config_file
             except AttributeError:
-                parameters["ssh_config"] = None
                 pass
 
         parameters.update(extras)

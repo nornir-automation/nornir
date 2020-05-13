@@ -11,3 +11,9 @@ netconf1.no_group:
                 hostkey_verify: False
                 look_for_keys: False
                 ssh_config: null
+
+netconf2.no_group:
+    hostname: localhost
+    username: netconf
+    password: netconf
+    port: 65025
