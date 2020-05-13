@@ -130,7 +130,9 @@ class NBInventory(Inventory):
                 virtual_host["data"]["role"] = v["role"]["slug"]
 
                 # Attempt to add 'platform' based of value in 'slug'
-                virtual_host["platform"] = v["platform"]["slug"] if v["platform"] else None
+                virtual_host["platform"] = (
+                    v["platform"]["slug"] if v["platform"] else None
+                )
 
             else:
                 virtual_host["data"]["site"] = v["site"]["name"]
