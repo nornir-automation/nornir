@@ -37,8 +37,14 @@
       "cluster": {
         "id": 5,
         "url": "http://localhost:8080/api/virtualization/clusters/5/",
-        "name": "The 5 Cluster"
+        "name": "The 5 Cluster",
         "slug":"the-5-cluster"
+      },
+      "role": {
+        "id": 5,
+        "url": "http://localhost:8080/api/dcim/device-roles/5/",
+        "name": "A Virtual Machine",
+        "slug": "a-virtual-machine"
       },
       "comments": "",
       "custom_fields": {"user_defined": 1},
