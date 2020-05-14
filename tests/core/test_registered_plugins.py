@@ -2,7 +2,7 @@ from nornir.core.plugins.inventory import InventoryPluginRegister
 from nornir.core.plugins.runners import RunnersPluginRegister
 
 from nornir.plugins.inventory import SimpleInventory
-from nornir.plugins.runners import SerialRunner, ParallelRunner
+from nornir.plugins.runners import SerialRunner, ThreadedRunner
 
 
 class Test:
@@ -10,7 +10,7 @@ class Test:
         RunnersPluginRegister.deregister_all()
         RunnersPluginRegister.auto_register()
         assert RunnersPluginRegister.available == {
-            "parallel": ParallelRunner,
+            "threaded": ThreadedRunner,
             "serial": SerialRunner,
         }
 
