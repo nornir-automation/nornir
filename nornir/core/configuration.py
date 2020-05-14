@@ -204,7 +204,7 @@ class RunnerConfig(object):
     __slots__ = ("plugin", "options")
 
     class Parameters:
-        plugin = Parameter(default="parallel", envvar="NORNIR_RUNNER_PLUGIN")
+        plugin = Parameter(default="threaded", envvar="NORNIR_RUNNER_PLUGIN")
         options = Parameter(default={}, envvar="NORNIR_RUNNER_OPTIONS")
 
     def __init__(

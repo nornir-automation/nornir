@@ -19,7 +19,7 @@ class Test(object):
         c = Config()
         assert c.dict() == {
             "core": {"raise_on_error": False},
-            "runner": {"options": {}, "plugin": "parallel"},
+            "runner": {"options": {}, "plugin": "threaded"},
             "inventory": {
                 "plugin": "",
                 "options": {},
@@ -42,7 +42,7 @@ class Test(object):
         c = Config.from_dict()
         assert c.dict() == {
             "core": {"raise_on_error": False},
-            "runner": {"options": {}, "plugin": "parallel"},
+            "runner": {"options": {}, "plugin": "threaded"},
             "inventory": {
                 "plugin": "",
                 "options": {},
