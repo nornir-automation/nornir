@@ -4,7 +4,7 @@ build-backend = "poetry.masonry.api"
 
 [tool.poetry.plugins."nornir.plugins.runners"]
 "serial" = "nornir.plugins.runners:SerialRunner"
-"parallel" = "nornir.plugins.runners:ParallelRunner"
+"threaded" = "nornir.plugins.runners:ThreadedRunner"
 
 [tool.poetry.plugins."nornir.plugins.inventory"]
 "SimpleInventory" = "nornir.plugins.inventory.simple:SimpleInventory"
