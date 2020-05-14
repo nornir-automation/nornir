@@ -20,9 +20,9 @@ class SerialRunner:
         return result
 
 
-class ParallelRunner:
+class ThreadedRunner:
     """
-    ParallelRunner runs the task over each host using threads
+    ThreadedRunner runs the task over each host using threads
 
     Arguments:
         num_workers: number of threads to use
