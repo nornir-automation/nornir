@@ -2,7 +2,7 @@ import datetime
 import time
 
 from nornir.core.exceptions import NornirExecutionError
-from nornir.plugins.runners import ParallelRunner
+from nornir.plugins.runners import ThreadedRunner
 
 import pytest
 
@@ -42,7 +42,7 @@ def verify_data_change(task):
 class Test(object):
     def test_blocking_task_multithreading(self, nornir):
         t1 = datetime.datetime.now()
-        nornir.with_runner(ParallelRunner(num_workers=NUM_WORKERS)).run(
+        nornir.with_runner(ThreadedRunner(num_workers=NUM_WORKERS)).run(
             blocking_task, wait=2
         )
         t2 = datetime.datetime.now()
@@ -50,7 +50,7 @@ class Test(object):
         assert delta.seconds == 2, delta
 
     def test_failing_task_simple_multithread(self, nornir):
-        result = nornir.with_runner(ParallelRunner(num_workers=NUM_WORKERS)).run(
+        result = nornir.with_runner(ThreadedRunner(num_workers=NUM_WORKERS)).run(
             failing_task_simple,
         )
         processed = False
@@ -61,7 +61,7 @@ class Test(object):
         assert processed
 
     def test_failing_task_complex_multithread(self, nornir):
-        result = nornir.with_runner(ParallelRunner(num_workers=NUM_WORKERS)).run(
+        result = nornir.with_runner(ThreadedRunner(num_workers=NUM_WORKERS)).run(
             failing_task_complex,
         )
         processed = False
@@ -73,7 +73,7 @@ class Test(object):
 
     def test_failing_task_complex_multithread_raise_on_error(self, nornir):
         with pytest.raises(NornirExecutionError) as e:
-            nornir.with_runner(ParallelRunner(num_workers=NUM_WORKERS)).run(
+            nornir.with_runner(ThreadedRunner(num_workers=NUM_WORKERS)).run(
                 failing_task_complex, raise_on_error=True
             )
         for k, v in e.value.result.items():
@@ -81,7 +81,7 @@ class Test(object):
             assert isinstance(v.exception, CustomException), v
 
     def test_change_data_in_thread(self, nornir):
-        nornir.with_runner(ParallelRunner(num_workers=NUM_WORKERS)).run(change_data,)
-        nornir.with_runner(ParallelRunner(num_workers=NUM_WORKERS)).run(
+        nornir.with_runner(ThreadedRunner(num_workers=NUM_WORKERS)).run(change_data,)
+        nornir.with_runner(ThreadedRunner(num_workers=NUM_WORKERS)).run(
             verify_data_change,
         )

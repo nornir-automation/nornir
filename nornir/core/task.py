@@ -6,6 +6,7 @@ from nornir.core.exceptions import NornirExecutionError
 from nornir.core.exceptions import NornirSubTaskError
 
 if TYPE_CHECKING:
+    from nornir.core import Nornir
     from nornir.core.inventory import Host
     from nornir.core.processor import Processors
 
@@ -40,6 +41,7 @@ class Task(object):
     def __init__(
         self,
         task: Callable[..., Any],
+        nornir: "Nornir",
         global_dry_run: bool,
         processors: "Processors",
         name: str = None,
@@ -48,6 +50,7 @@ class Task(object):
         **kwargs: str
     ):
         self.task = task
+        self.nornir = nornir
         self.name = name or task.__name__
         self.global_dry_run = global_dry_run
         self.parent_task = parent_task
@@ -59,6 +62,7 @@ class Task(object):
     def copy(self) -> "Task":
         return Task(
             self.task,
+            self.nornir,
             self.global_dry_run,
             self.processors,
             self.name,
@@ -150,6 +154,7 @@ class Task(object):
 
         run_task = Task(
             task,
+            self.nornir,
             global_dry_run=self.global_dry_run,
             processors=self.processors,
             parent_task=self,

@@ -1,0 +1,13 @@
+---
+netconf1.no_group:
+    hostname: localhost
+    username: netconf
+    password: netconf
+    port: 65025
+    connection_options:
+        netconf:
+            extras:
+                allow_agent: False
+                hostkey_verify: False
+                look_for_keys: False
+                ssh_config: null

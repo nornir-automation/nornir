@@ -4,11 +4,14 @@ build-backend = "poetry.masonry.api"
 
 [tool.poetry.plugins."nornir.plugins.runners"]
 "serial" = "nornir.plugins.runners:SerialRunner"
-"parallel" = "nornir.plugins.runners:ParallelRunner"
+"threaded" = "nornir.plugins.runners:ThreadedRunner"
+
+[tool.poetry.plugins."nornir.plugins.inventory"]
+"SimpleInventory" = "nornir.plugins.inventory.simple:SimpleInventory"
 
 [tool.poetry]
 name = "nornir"
-version = "3.0.0a2"
+version = "3.0.0a3"
 description = "Pluggable multi-threaded framework with inventory management to help operate collections of devices"
 authors = ["David Barroso <dbarrosop@dravetech.com>"]
 readme = "README.md"
