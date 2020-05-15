@@ -12,14 +12,15 @@ repository = "https://github.com/nornir-automation/nornir"
 classifiers = [
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
 ]
 
 [tool.poetry.dependencies]
 python = "^3.6"
 colorama = "^0.4.1"
 jinja2 = "^2"
-napalm = "^2"
-netmiko = ">=2.4"
+napalm = ">=2.5.0"
+netmiko = ">=2.4.2"
 paramiko = "^2.7"
 requests = "^2"
 "ruamel.yaml" = "^0.16"
