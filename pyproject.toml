@@ -23,7 +23,6 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.6"
-colorama = "^0.4.1"
 "ruamel.yaml" = "^0.16"
 mypy_extensions = "^0.4.1"
 typing_extensions = "^3.7"

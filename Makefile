@@ -34,10 +34,9 @@ mypy:
 
 .PHONY: nbval
 nbval:
-	# poetry run pytest --nbval --sanitize-with docs/nbval_sanitize.cfg \
-	#     docs/howto \
-	#     docs/tutorials/intro/initializing_nornir.ipynb \
-	#     docs/tutorials/intro/inventory.ipynb
+	poetry run pytest --nbval --sanitize-with docs/nbval_sanitize.cfg \
+		docs/tutorial/
+		# docs/howto \
 	echo "WARNING: nbval needs to be added here before release!!!"
 
 .PHONY: tests
@@ -49,4 +48,5 @@ docker-tests: docker
 
 .PHONY: docs
 docs:
-	make -C docs html
+	./docs/build_api.sh
+	make -C docs clean html

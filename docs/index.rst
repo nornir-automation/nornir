@@ -31,6 +31,8 @@ Contents
    :maxdepth: 1
 
    Home <self>
+   tutorial/index
+   plugins/index
    api/index
    old/index
 

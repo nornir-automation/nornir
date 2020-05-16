@@ -60,7 +60,6 @@ Contents
    :maxdepth: 1
 
    Home <self>
-   Tutorials <tutorials/intro/index>
    Howto <howto/index>
    configuration/index
    ref/index

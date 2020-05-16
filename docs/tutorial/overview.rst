@@ -1,7 +1,7 @@
 What is Nornir?
 ================
 
-Nornir is an automation framework written in Python. These days there exists several automation frameworks. What makes Nornir different is that you write Python code in order to use Nornir. This is to be compared to other frameworks which typically use their own configuration language.
+Nornir is an automation framework written in Python. These days there are several automation frameworks. What makes Nornir different is that you write Python code in order to use Nornir. This is to be compared to other frameworks which typically use their own configuration language.
 
 Why does this matter?
 ---------------------

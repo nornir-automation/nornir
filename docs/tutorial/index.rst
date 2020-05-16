@@ -1,5 +1,5 @@
-Learning Nornir
-================
+Tutorial
+========
 
 We're glad you made it here! This is a great place to learn the basics of Nornir. Good luck on your journey.
 
