@@ -45,4 +45,4 @@ Now we can verify that Nornir is installed and that you are able to import the p
 Plugins
 -------
 
-Nornir is a pluggable system and most, if not all, of its functionality can be extended via plugins. To understand how plugins work and where you can find some of the plugins we recommend you to visit the `plugins <../plugins/>`_ section
+Nornir is a pluggable system and most, if not all, of its functionality can be extended via plugins. To understand how plugins work and where you can find some of the plugins we recommend you to visit the `plugins <../plugins/>`_ section.

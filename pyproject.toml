@@ -61,7 +61,8 @@ pygments = "^2"
 sphinx-issues = "^1.2"
 
 # for docs only
-nornir_napalm = { git = "https://github.com/nornir-automation/nornir_napalm.git", branch = "proposal" }
+nornir_utils = "^0.1.0-alpha.0"
+nornir_napalm = "^0.1.0"
 
 [tool.poetry.extras]
 # The following section is required to install docs dependencies

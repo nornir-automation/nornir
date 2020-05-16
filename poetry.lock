@@ -551,7 +551,7 @@ description = "More routines for operating on iterables, beyond itertools"
 name = "more-itertools"
 optional = false
 python-versions = ">=3.5"
-version = "8.2.0"
+version = "8.3.0"
 
 [[package]]
 category = "dev"
@@ -721,20 +721,28 @@ test = ["pyyaml (5.1)", "pytest (>=4.6.3)"]
 
 [[package]]
 category = "dev"
-description = ""
+description = "NAPALM's plugins for nornir"
 name = "nornir-napalm"
 optional = false
-python-versions = "^3.6"
+python-versions = ">=3.6,<4.0"
+version = "0.1.0"
+
+[package.dependencies]
+napalm = ">=2,<3"
+nornir = ">=3.0.0a0,<3.1.0"
+
+[[package]]
+category = "dev"
+description = "Collection of plugins and functions for nornir that don't require external dependencies"
+name = "nornir-utils"
+optional = false
+python-versions = ">=3.6,<4.0"
 version = "0.1.0a0"
 
 [package.dependencies]
-napalm = "^2"
-nornir = "~3.0.0a2"
+colorama = ">=0.4.3,<0.5.0"
+nornir = ">=3.0.0a2,<3.1.0"
 
-[package.source]
-reference = "ac0785a271efc6234666db9241c4323257a424e6"
-type = "git"
-url = "https://github.com/nornir-automation/nornir_napalm.git"
 [[package]]
 category = "main"
 description = "A web-based notebook environment for interactive computing"
@@ -1509,7 +1517,7 @@ testing = ["jaraco.itertools", "func-timeout"]
 docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-napoleon", "jupyter", "nbsphinx", "pygments", "sphinx-issues"]
 
 [metadata]
-content-hash = "a21f2006205a576a95380a1a604ff3f1cfa3fcb85fe446cea566af513a0b0cc4"
+content-hash = "8908825c9322f3c0ef6a1d74f620bb594ff73bc7b69c00fc1387942be9137897"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -1834,8 +1842,8 @@ mistune = [
     {file = "mistune-0.8.4.tar.gz", hash = "sha256:59a3429db53c50b5c6bcc8a07f8848cb00d7dc8bdb431a4ab41920d201d4756e"},
 ]
 more-itertools = [
-    {file = "more-itertools-8.2.0.tar.gz", hash = "sha256:b1ddb932186d8a6ac451e1d95844b382f55e12686d51ca0c68b6f61f2ab7a507"},
-    {file = "more_itertools-8.2.0-py3-none-any.whl", hash = "sha256:5dd8bcf33e5f9513ffa06d5ad33d78f31e1931ac9a18f33d37e77a180d393a7c"},
+    {file = "more-itertools-8.3.0.tar.gz", hash = "sha256:558bb897a2232f5e4f8e2399089e35aecb746e1f9191b6584a151647e89267be"},
+    {file = "more_itertools-8.3.0-py3-none-any.whl", hash = "sha256:7818f596b1e87be009031c7653d01acc46ed422e6656b394b0f765ce66ed4982"},
 ]
 mypy = [
     {file = "mypy-0.770-cp35-cp35m-macosx_10_6_x86_64.whl", hash = "sha256:a34b577cdf6313bf24755f7a0e3f3c326d5c1f4fe7422d1d06498eb25ad0c600"},
@@ -1888,7 +1896,14 @@ netmiko = [
     {file = "netmiko-2.4.2-py2.py3-none-any.whl", hash = "sha256:bc284272d76defd5af59a748478aae99af462793f0898f4ab43c28c9a2000e42"},
     {file = "netmiko-2.4.2.tar.gz", hash = "sha256:e6b0cb98afb51fd1fb1d04d024d7572a0b5297dfa0bd18405ee36580deea65a1"},
 ]
-nornir-napalm = []
+nornir-napalm = [
+    {file = "nornir_napalm-0.1.0-py3-none-any.whl", hash = "sha256:15e805597f7cf0478932f4bb65e05b3df72c18bed151e189461446651356c9db"},
+    {file = "nornir_napalm-0.1.0.tar.gz", hash = "sha256:e2bb527d4cf055a5d83e7530838786212264d179ed520197a337c891872fc8e9"},
+]
+nornir-utils = [
+    {file = "nornir_utils-0.1.0a0-py3-none-any.whl", hash = "sha256:cecb3724c71b9b6efd1bdcd65fb2cd442be83fa6d6ff4d74e410ae791816bc90"},
+    {file = "nornir_utils-0.1.0a0.tar.gz", hash = "sha256:dbff5ac2a4435cfd042d0d678c4dc0af885d3fc5fb478b299e88cefde1a4e2d4"},
+]
 notebook = [
     {file = "notebook-6.0.3-py3-none-any.whl", hash = "sha256:3edc616c684214292994a3af05eaea4cc043f6b4247d830f3a2f209fa7639a80"},
     {file = "notebook-6.0.3.tar.gz", hash = "sha256:47a9092975c9e7965ada00b9a20f0cf637d001db60d241d479f53c0be117ad48"},

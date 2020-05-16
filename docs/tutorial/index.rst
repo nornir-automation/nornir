@@ -12,8 +12,8 @@ We're glad you made it here! This is a great place to learn the basics of Nornir
    Installation guide <install>
    initializing_nornir.ipynb
    inventory.ipynb
-   executing_tasks.ipynb
-   grouping_tasks.ipynb
+   tasks.ipynb
    task_results.ipynb
    failed_tasks.ipynb
    processors.ipynb
+   advanced_example.ipynb
