@@ -84,6 +84,10 @@ jobs:
     name: Releasing to pypi
     runs-on: ubuntu-latest
     steps:
+      - name: Build package
+        uses: abatilo/actions-poetry@v1.5.0
+        with:
+          args: build
       - name: Publish package
         if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@master
