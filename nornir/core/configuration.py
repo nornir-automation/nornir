@@ -73,7 +73,7 @@ class InventoryConfig(object):
     __slots__ = "plugin", "options", "transform_function", "transform_function_options"
 
     class Parameters:
-        plugin = Parameter(typ=str, envvar="NORNIR_INVENTORY_PLUGIN")
+        plugin = Parameter(typ=str, default="SimpleInventory", envvar="NORNIR_INVENTORY_PLUGIN")
         options = Parameter(default={}, envvar="NORNIR_INVENTORY_OPTIONS")
         transform_function = Parameter(
             typ=str, envvar="NORNIR_INVENTORY_TRANSFORM_FUNCTION"
