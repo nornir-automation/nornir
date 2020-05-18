@@ -21,7 +21,7 @@ class Test(object):
             "core": {"raise_on_error": False},
             "runner": {"options": {}, "plugin": "threaded"},
             "inventory": {
-                "plugin": "",
+                "plugin": "SimpleInventory",
                 "options": {},
                 "transform_function": "",
                 "transform_function_options": {},
@@ -44,7 +44,7 @@ class Test(object):
             "core": {"raise_on_error": False},
             "runner": {"options": {}, "plugin": "threaded"},
             "inventory": {
-                "plugin": "",
+                "plugin": "SimpleInventory",
                 "options": {},
                 "transform_function": "",
                 "transform_function_options": {},
