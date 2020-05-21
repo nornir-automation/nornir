@@ -66,6 +66,13 @@ TransformFunctionRegister.register(
 
 
 class Test(object):
+    def test_InitNornir_bare(self):
+        os.chdir("tests/inventory_data/")
+        nr = InitNornir()
+        os.chdir("../../")
+        assert len(nr.inventory.hosts)
+        assert len(nr.inventory.groups)
+
     def test_InitNornir_defaults(self):
         os.chdir("tests/inventory_data/")
         nr = InitNornir(inventory={"plugin": "inventory-test"})
