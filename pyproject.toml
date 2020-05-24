@@ -62,7 +62,8 @@ sphinx-issues = "^1.2"
 
 # for docs only
 nornir_utils = "^0.1.0-alpha.0"
-nornir_napalm = "^0.1.0"
+nornir_jinja2 = "^0.1.0-alpha.0"
+nornir-napalm = "0.1.0a1"
 
 [tool.poetry.extras]
 # The following section is required to install docs dependencies

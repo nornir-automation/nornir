@@ -32,6 +32,7 @@ Contents
 
    Home <self>
    tutorial/index
+   howto/index
    configuration/index
    plugins/index
    api/index

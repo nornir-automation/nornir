@@ -35,9 +35,8 @@ mypy:
 .PHONY: nbval
 nbval:
 	poetry run pytest --nbval --sanitize-with docs/nbval_sanitize.cfg \
-		docs/tutorial/
-		# docs/howto \
-	echo "WARNING: nbval needs to be added here before release!!!"
+		docs/tutorial/ \
+		docs/howto/
 
 .PHONY: tests
 tests: black pylama mypy nbval pytest sphinx
