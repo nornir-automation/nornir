@@ -1,26 +1,5 @@
-
-
-
-
 core
 ----
-
-``num_workers``
-_______________
-
-.. list-table::
-   :widths: 15 85
-
-   * - **Description**
-     - Number of Nornir worker threads that are run at the same time by default
-   * - **Type**
-     - ``integer``
-   * - **Default**
-     - ``20``
-   * - **Required**
-     - ``False``
-   * - **Environment Variable**
-     - ``NORNIR_CORE_NUM_WORKERS``
 
 ``raise_on_error``
 __________________
@@ -39,9 +18,42 @@ __________________
    * - **Environment Variable**
      - ``NORNIR_CORE_RAISE_ON_ERROR``
 
+runner
+---------
 
+``plugin``
+__________
 
+.. list-table::
+   :widths: 15 85
 
+   * - **Description**
+     - Plugin to use as Runner. Must be registered
+   * - **Type**
+     - ``string``
+   * - **Default**
+     - ``Threaded``
+   * - **Required**
+     - ``False``
+   * - **Environment Variable**
+     - ``NORNIR_RUNNER_PLUGIN``
+
+``options``
+___________
+
+.. list-table::
+   :widths: 15 85
+
+   * - **Description**
+     - kwargs to pass to the plugin
+   * - **Type**
+     - ``object``
+   * - **Default**
+     - ``{}``
+   * - **Required**
+     - ``False``
+   * - **Environment Variable**
+     - ``NORNIR_RUNNER_OPTIONS``
 
 inventory
 ---------
@@ -53,11 +65,11 @@ __________
    :widths: 15 85
 
    * - **Description**
-     - Import path to inventory plugin
+     - Plugin to use. Must be registered
    * - **Type**
      - ``string``
    * - **Default**
-     - ``nornir.plugins.inventory.simple.SimpleInventory``
+     - ``SimpleInventory``
    * - **Required**
      - ``False``
    * - **Environment Variable**
@@ -70,7 +82,7 @@ ___________
    :widths: 15 85
 
    * - **Description**
-     - kwargs to pass to the inventory plugin
+     - kwargs to pass to the plugin
    * - **Type**
      - ``object``
    * - **Default**
@@ -87,7 +99,7 @@ ______________________
    :widths: 15 85
 
    * - **Description**
-     - Path to transform function. The transform_function you provide will run against each host in the inventory
+     - Plugin to use. Must be registered
    * - **Type**
      - ``string``
    * - **Default**
@@ -246,30 +258,3 @@ ___________
      - ``False``
    * - **Environment Variable**
      - ``NORNIR_LOGGING_LOGGERS``
-
-
-
-
-
-jinja2
-------
-
-``filters``
-___________
-
-.. list-table::
-   :widths: 15 85
-
-   * - **Description**
-     - Path to callable returning jinja filters to be used
-   * - **Type**
-     - ``string``
-   * - **Default**
-     - 
-   * - **Required**
-     - ``False``
-   * - **Environment Variable**
-     - ``NORNIR_JINJA2_FILTERS``
-
-
-
