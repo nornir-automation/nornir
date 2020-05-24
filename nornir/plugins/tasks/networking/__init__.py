@@ -2,6 +2,7 @@ from .napalm_cli import napalm_cli
 from .napalm_configure import napalm_configure
 from .napalm_get import napalm_get
 from .napalm_validate import napalm_validate
+from .napalm_rollback import napalm_rollback
 from .netconf_capabilities import netconf_capabilities
 from .netconf_edit_config import netconf_edit_config
 from .netconf_get import netconf_get
@@ -19,6 +20,7 @@ __all__ = (
     "napalm_configure",
     "napalm_get",
     "napalm_validate",
+    "napalm_rollback",
     "netconf_capabilities",
     "netconf_edit_config",
     "netconf_get",
