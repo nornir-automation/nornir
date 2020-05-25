@@ -23,7 +23,7 @@ class Test(object):
         d = nornir.filter(name="dev3.group_2")
         d.run(connect, extras=opt)
         result = d.run(
-            networking.napalm_rollback, dry=False, configuration=configuration
+            networking.napalm_rollback, dry=False
         )
         assert result
         for h, r in result.items():
@@ -35,7 +35,7 @@ class Test(object):
         d = nornir.filter(name="dev3.group_2")
         d.run(connect, extras=opt)
         result = d.run(
-            networking.napalm_rollback, dry=True, configuration=configuration
+            networking.napalm_rollback, dry=True
         )
         assert result
         for h, r in result.items():
