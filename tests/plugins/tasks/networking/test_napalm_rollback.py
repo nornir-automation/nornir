@@ -20,7 +20,6 @@ def connect(task, extras):
 class Test(object):
     def test_napalm_rollback_commit(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_rollback_commit"}
-        configuration = "hostname changed-hostname"
         d = nornir.filter(name="dev3.group_2")
         d.run(connect, extras=opt)
         result = d.run(
@@ -28,12 +27,11 @@ class Test(object):
         )
         assert result
         for h, r in result.items():
-            assert "-hostname changed-hostname" in r.diff
+            # Need to figure out what if a diff is returned
             assert r.changed
 
     def test_napalm_rollback_dry_run(self, nornir):
         opt = {"path": THIS_DIR + "/test_napalm_rollback_dry_run"}
-        configuration = "hostname changed-hostname"
         d = nornir.filter(name="dev3.group_2")
         d.run(connect, extras=opt)
         result = d.run(
@@ -41,5 +39,5 @@ class Test(object):
         )
         assert result
         for h, r in result.items():
-            assert "-hostname changed-hostname" in r.diff
+            # Need to figure out what if a diff is returned
             assert not r.changed
