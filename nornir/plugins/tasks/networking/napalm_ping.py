@@ -5,7 +5,7 @@ from nornir.core.task import Result, Task
 def napalm_ping(
     task: Task,
     dest: str,
-    source: Optional[str] = None,
+    source: Optional[str] = "",
     ttl: Optional[int] = 255,
     timeout: Optional[int] = 2,
     size: Optional[int] = 100,
