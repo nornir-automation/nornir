@@ -1,25 +1,15 @@
-import pkg_resources
-from typing import Any, Dict, Type
+from typing import Any
 
 from nornir.core import Nornir
 from nornir.core.configuration import Config
-from nornir.core.connections import Connections, ConnectionPlugin
 from nornir.core.inventory import Inventory
 from nornir.core.plugins.inventory import (
     InventoryPluginRegister,
     TransformFunctionRegister,
 )
+from nornir.core.plugins.connections import ConnectionsPluginRegister
 from nornir.core.plugins.runners import RunnerPlugin, RunnersPluginRegister
 from nornir.core.state import GlobalState
-
-
-def register_default_connection_plugins() -> None:
-    discovered_plugins: Dict[str, Type[ConnectionPlugin]] = {
-        entry_point.name: entry_point.load()
-        for entry_point in pkg_resources.iter_entry_points("nornir.plugins.connections")
-    }
-    for k, v in discovered_plugins.items():
-        Connections.register(k, v)
 
 
 def load_inventory(config: Config,) -> Inventory:
@@ -58,7 +48,7 @@ def InitNornir(config_file: str = "", dry_run: bool = False, **kwargs: Any,) -> 
     Returns:
         :obj:`nornir.core.Nornir`: fully instantiated and configured
     """
-    register_default_connection_plugins()
+    ConnectionsPluginRegister.auto_register()
 
     if config_file:
         config = Config.from_file(config_file, **kwargs)
