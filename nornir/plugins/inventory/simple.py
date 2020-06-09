@@ -84,9 +84,9 @@ class SimpleInventory:
                 If it doesn't exist it will be skipped
         """
 
-        self.host_file = pathlib.Path(host_file)
-        self.group_file = pathlib.Path(group_file)
-        self.defaults_file = pathlib.Path(defaults_file)
+        self.host_file = pathlib.Path(host_file).expanduser()
+        self.group_file = pathlib.Path(group_file).expanduser()
+        self.defaults_file = pathlib.Path(defaults_file).expanduser()
 
     def load(self) -> Inventory:
         yml = ruamel.yaml.YAML(typ="safe")
