@@ -405,7 +405,7 @@ class Host(InventoryElement):
                 platform=conn.platform,
                 extras=conn.extras,
             )
-        return self.connections[connection]
+        return self.connections[connection].connection
 
     def open_connection(
         self,

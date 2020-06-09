@@ -24,11 +24,18 @@ class ConnectionPlugin(Protocol):
         Connect to the device and populate the attribute :attr:`connection` with
         the underlying connection
         """
-        raise NotImplementedError("needs to be implemented by the plugin")
+        pass
 
     def close(self) -> None:
         """Close the connection with the device"""
-        raise NotImplementedError("needs to be implemented by the plugin")
+        pass
+
+    @property
+    def connection(self) -> Any:
+        """
+        Established connection
+        """
+        pass
 
 
 ConnectionPluginRegister: PluginRegister[Type[ConnectionPlugin]] = PluginRegister(
