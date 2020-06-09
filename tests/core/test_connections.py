@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional
 
 from nornir.core.configuration import Config
-from nornir.core.plugins.connections import ConnectionsPluginRegister
+from nornir.core.plugins.connections import ConnectionPluginRegister
 from nornir.core.exceptions import (
     ConnectionAlreadyOpen,
     ConnectionNotOpen,
@@ -109,11 +109,11 @@ def validate_params(task, conn, params, nornir_config):
 class Test(object):
     @classmethod
     def setup_class(cls):
-        ConnectionsPluginRegister.deregister_all()
-        ConnectionsPluginRegister.register("dummy", DummyConnectionPlugin)
-        ConnectionsPluginRegister.register("dummy2", DummyConnectionPlugin)
-        ConnectionsPluginRegister.register("dummy_no_overrides", DummyConnectionPlugin)
-        ConnectionsPluginRegister.register(
+        ConnectionPluginRegister.deregister_all()
+        ConnectionPluginRegister.register("dummy", DummyConnectionPlugin)
+        ConnectionPluginRegister.register("dummy2", DummyConnectionPlugin)
+        ConnectionPluginRegister.register("dummy_no_overrides", DummyConnectionPlugin)
+        ConnectionPluginRegister.register(
             FailedConnectionPlugin.name, FailedConnectionPlugin
         )
 
@@ -209,52 +209,50 @@ class Test(object):
 
 class TestConnectionPluginsRegistration(object):
     def setup_method(self, method):
-        ConnectionsPluginRegister.deregister_all()
-        ConnectionsPluginRegister.register("dummy", DummyConnectionPlugin)
-        ConnectionsPluginRegister.register(
-            "another_dummy", AnotherDummyConnectionPlugin
-        )
+        ConnectionPluginRegister.deregister_all()
+        ConnectionPluginRegister.register("dummy", DummyConnectionPlugin)
+        ConnectionPluginRegister.register("another_dummy", AnotherDummyConnectionPlugin)
 
     def teardown_method(self, method):
-        ConnectionsPluginRegister.deregister_all()
-        ConnectionsPluginRegister.auto_register()
+        ConnectionPluginRegister.deregister_all()
+        ConnectionPluginRegister.auto_register()
 
     def test_count(self):
-        assert len(ConnectionsPluginRegister.available) == 2
+        assert len(ConnectionPluginRegister.available) == 2
 
     def test_register_new(self):
-        ConnectionsPluginRegister.register("new_dummy", DummyConnectionPlugin)
-        assert "new_dummy" in ConnectionsPluginRegister.available
+        ConnectionPluginRegister.register("new_dummy", DummyConnectionPlugin)
+        assert "new_dummy" in ConnectionPluginRegister.available
 
     def test_register_already_registered_same(self):
-        ConnectionsPluginRegister.register("dummy", DummyConnectionPlugin)
-        assert ConnectionsPluginRegister.available["dummy"] == DummyConnectionPlugin
+        ConnectionPluginRegister.register("dummy", DummyConnectionPlugin)
+        assert ConnectionPluginRegister.available["dummy"] == DummyConnectionPlugin
 
     def test_register_already_registered_new(self):
         with pytest.raises(PluginAlreadyRegistered):
-            ConnectionsPluginRegister.register("dummy", AnotherDummyConnectionPlugin)
+            ConnectionPluginRegister.register("dummy", AnotherDummyConnectionPlugin)
 
     def test_deregister_existing(self):
-        ConnectionsPluginRegister.deregister("dummy")
-        assert len(ConnectionsPluginRegister.available) == 1
-        assert "dummy" not in ConnectionsPluginRegister.available
+        ConnectionPluginRegister.deregister("dummy")
+        assert len(ConnectionPluginRegister.available) == 1
+        assert "dummy" not in ConnectionPluginRegister.available
 
     def test_deregister_nonexistent(self):
         with pytest.raises(PluginNotRegistered):
-            ConnectionsPluginRegister.deregister("nonexistent_dummy")
+            ConnectionPluginRegister.deregister("nonexistent_dummy")
 
     def test_deregister_all(self):
-        ConnectionsPluginRegister.deregister_all()
-        assert ConnectionsPluginRegister.available == {}
+        ConnectionPluginRegister.deregister_all()
+        assert ConnectionPluginRegister.available == {}
 
     def test_get_plugin(self):
-        assert ConnectionsPluginRegister.get_plugin("dummy") == DummyConnectionPlugin
+        assert ConnectionPluginRegister.get_plugin("dummy") == DummyConnectionPlugin
         assert (
-            ConnectionsPluginRegister.get_plugin("another_dummy")
+            ConnectionPluginRegister.get_plugin("another_dummy")
             == AnotherDummyConnectionPlugin
         )
-        assert len(ConnectionsPluginRegister.available) == 2
+        assert len(ConnectionPluginRegister.available) == 2
 
     def test_nonexistent_plugin(self):
         with pytest.raises(PluginNotRegistered):
-            ConnectionsPluginRegister.get_plugin("nonexistent_dummy")
+            ConnectionPluginRegister.get_plugin("nonexistent_dummy")

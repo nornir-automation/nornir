@@ -31,6 +31,6 @@ class ConnectionPlugin(Protocol):
         raise NotImplementedError("needs to be implemented by the plugin")
 
 
-ConnectionsPluginRegister: PluginRegister[Type[ConnectionPlugin]] = PluginRegister(
+ConnectionPluginRegister: PluginRegister[Type[ConnectionPlugin]] = PluginRegister(
     CONNECTIONS_PLUGIN_PATH
 )

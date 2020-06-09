@@ -7,7 +7,7 @@ from nornir.core.plugins.inventory import (
     InventoryPluginRegister,
     TransformFunctionRegister,
 )
-from nornir.core.plugins.connections import ConnectionsPluginRegister
+from nornir.core.plugins.connections import ConnectionPluginRegister
 from nornir.core.plugins.runners import RunnerPlugin, RunnersPluginRegister
 from nornir.core.state import GlobalState
 
@@ -48,7 +48,7 @@ def InitNornir(config_file: str = "", dry_run: bool = False, **kwargs: Any,) -> 
     Returns:
         :obj:`nornir.core.Nornir`: fully instantiated and configured
     """
-    ConnectionsPluginRegister.auto_register()
+    ConnectionPluginRegister.auto_register()
 
     if config_file:
         config = Config.from_file(config_file, **kwargs)

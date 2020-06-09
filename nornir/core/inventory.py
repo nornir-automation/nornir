@@ -16,7 +16,7 @@ from typing import (
 from nornir.core.configuration import Config
 from nornir.core.plugins.connections import (
     ConnectionPlugin,
-    ConnectionsPluginRegister,
+    ConnectionPluginRegister,
 )
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
 
@@ -436,7 +436,7 @@ class Host(InventoryElement):
         if existing_conn is not None:
             raise ConnectionAlreadyOpen(conn_name)
 
-        plugin = ConnectionsPluginRegister.get_plugin(conn_name)
+        plugin = ConnectionPluginRegister.get_plugin(conn_name)
         conn_obj = plugin()
         if default_to_host_attributes:
             conn_params = self.get_connection_parameters(conn_name)
