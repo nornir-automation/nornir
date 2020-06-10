@@ -14,9 +14,9 @@ from typing import (
 )
 
 from nornir.core.configuration import Config
-from nornir.core.connections import (
+from nornir.core.plugins.connections import (
     ConnectionPlugin,
-    Connections,
+    ConnectionPluginRegister,
 )
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
 
@@ -176,7 +176,7 @@ class Host(InventoryElement):
     ) -> None:
         self.name = name
         self.defaults = defaults or Defaults(None, None, None, None, None, None, None)
-        self.connections: Connections = Connections()
+        self.connections: Dict[str, ConnectionPlugin] = {}
         super().__init__(
             hostname=hostname,
             port=port,
@@ -407,15 +407,6 @@ class Host(InventoryElement):
             )
         return self.connections[connection].connection
 
-    def get_connection_state(self, connection: str) -> Dict[str, Any]:
-        """
-        For an already established connection return its state.
-        """
-        if connection not in self.connections:
-            raise ConnectionNotOpen(connection)
-
-        return self.connections[connection].state
-
     def open_connection(
         self,
         connection: str,
@@ -445,7 +436,7 @@ class Host(InventoryElement):
         if existing_conn is not None:
             raise ConnectionAlreadyOpen(conn_name)
 
-        plugin = self.connections.get_plugin(conn_name)
+        plugin = ConnectionPluginRegister.get_plugin(conn_name)
         conn_obj = plugin()
         if default_to_host_attributes:
             conn_params = self.get_connection_parameters(conn_name)
