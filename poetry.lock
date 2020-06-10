@@ -17,7 +17,7 @@ version = "1.4.3"
 [[package]]
 category = "main"
 description = "Disable App Nap on OS X 10.9"
-marker = "python_version >= \"3.3\" and sys_platform == \"darwin\" or platform_system == \"Darwin\""
+marker = "sys_platform == \"darwin\" or platform_system == \"Darwin\" or python_version >= \"3.3\" and sys_platform == \"darwin\""
 name = "appnope"
 optional = false
 python-versions = "*"
@@ -60,7 +60,6 @@ pytz = ">=2015.7"
 [[package]]
 category = "main"
 description = "Specifications for callback functions passed in to an API"
-marker = "python_version >= \"3.3\""
 name = "backcall"
 optional = false
 python-versions = "*"
@@ -374,7 +373,6 @@ test = ["pytest (>=3.6.0)", "pytest-cov", "mock"]
 [[package]]
 category = "main"
 description = "An autocompletion tool for Python that can be used for text editors."
-marker = "python_version >= \"3.3\""
 name = "jedi"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
@@ -582,21 +580,21 @@ description = "Network Automation and Programmability Abstraction Layer with Mul
 name = "napalm"
 optional = false
 python-versions = "*"
-version = "2.5.0"
+version = "3.0.1"
 
 [package.dependencies]
 cffi = ">=1.11.3"
 ciscoconfparse = "*"
 future = "*"
 jinja2 = "*"
-junos-eznc = "2.2.1"
+junos-eznc = ">=2.2.1"
+lxml = ">=4.3.0"
 netaddr = "*"
-netmiko = "2.4.2"
-nxapi-plumbing = ">=0.5.2"
-paramiko = ">=2.4.2"
-pyIOSXR = ">=0.53"
+netmiko = ">=3.1.0"
+paramiko = ">=2.6.0"
 pyYAML = "*"
 pyeapi = ">=0.8.2"
+requests = ">=2.7.0"
 scp = "*"
 setuptools = ">=38.4.0"
 textfsm = "*"
@@ -706,7 +704,7 @@ description = "Multi-vendor library to simplify Paramiko SSH connections to netw
 name = "netmiko"
 optional = false
 python-versions = "*"
-version = "2.4.2"
+version = "3.1.1"
 
 [package.dependencies]
 paramiko = ">=2.4.3"
@@ -716,7 +714,7 @@ setuptools = ">=38.4.0"
 textfsm = "*"
 
 [package.extras]
-test = ["pyyaml (5.1)", "pytest (>=4.6.3)"]
+test = ["pyyaml (5.1.2)", "pytest (>=5.1.2)"]
 
 [[package]]
 category = "dev"
@@ -724,14 +722,14 @@ description = ""
 name = "nornir-napalm"
 optional = false
 python-versions = "^3.6"
-version = "0.1.0"
+version = "0.1.0a1"
 
 [package.dependencies]
-napalm = "^2"
-nornir = "branch 3.0.0-entrypoints"
+napalm = "^3"
+nornir = "~3.0.0a2"
 
 [package.source]
-reference = "2b5db05f40fbbdac5ffc14ca661dbaa9620af9ce"
+reference = "8061796cd248bbfb68fa4a8f24f0a2c7a40fa56d"
 type = "git"
 url = "https://github.com/nornir-automation/nornir_napalm.git"
 [[package]]
@@ -759,21 +757,6 @@ traitlets = ">=4.2.1"
 
 [package.extras]
 test = ["nose", "coverage", "requests", "nose-warnings-filters", "nbval", "nose-exclude", "selenium", "pytest", "pytest-cov", "nose-exclude"]
-
-[[package]]
-category = "dev"
-description = "A library for managing Cisco devices through NX-API using XML or jsonrpc."
-name = "nxapi-plumbing"
-optional = false
-python-versions = "*"
-version = "0.5.2"
-
-[package.dependencies]
-future = "*"
-lxml = "*"
-requests = ">=2.7.0"
-scp = "*"
-six = "*"
 
 [[package]]
 category = "main"
@@ -817,7 +800,6 @@ invoke = ["invoke (>=1.3)"]
 [[package]]
 category = "main"
 description = "A Python Parser"
-marker = "python_version >= \"3.3\""
 name = "parso"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
@@ -851,7 +833,7 @@ version = "0.8.0"
 [[package]]
 category = "main"
 description = "Pexpect allows easy control of interactive console applications."
-marker = "python_version >= \"3.3\" and sys_platform != \"win32\""
+marker = "python_version >= \"3.3\" and sys_platform != \"win32\" or sys_platform != \"win32\""
 name = "pexpect"
 optional = false
 python-versions = "*"
@@ -863,7 +845,6 @@ ptyprocess = ">=0.5"
 [[package]]
 category = "main"
 description = "Tiny 'shelve'-like database with concurrency support"
-marker = "python_version >= \"3.3\""
 name = "pickleshare"
 optional = false
 python-versions = "*"
@@ -921,7 +902,7 @@ wcwidth = "*"
 [[package]]
 category = "main"
 description = "Run a subprocess in a pseudo terminal"
-marker = "python_version >= \"3.3\" and sys_platform != \"win32\" or os_name != \"nt\""
+marker = "python_version >= \"3.3\" and sys_platform != \"win32\" or sys_platform != \"win32\" or os_name != \"nt\" or python_version >= \"3.3\" and sys_platform != \"win32\" and (python_version >= \"3.3\" and sys_platform != \"win32\" or sys_platform != \"win32\")"
 name = "ptyprocess"
 optional = false
 python-versions = "*"
@@ -992,18 +973,6 @@ name = "pygments"
 optional = false
 python-versions = ">=3.5"
 version = "2.6.1"
-
-[[package]]
-category = "dev"
-description = "Python API to interact with network devices running IOS-XR"
-name = "pyiosxr"
-optional = false
-python-versions = "*"
-version = "0.53"
-
-[package.dependencies]
-lxml = ">=3.2.4"
-netmiko = ">=1.4.3"
 
 [[package]]
 category = "dev"
@@ -1508,7 +1477,7 @@ testing = ["jaraco.itertools", "func-timeout"]
 docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-napoleon", "jupyter", "nbsphinx", "pygments", "sphinx-issues"]
 
 [metadata]
-content-hash = "437ef6bb524dd965b1d27fb3011ed0bfda08667f60a3caa13125e180ef72dad5"
+content-hash = "aacc823e065866bcc122bfff3f1fc1de2866763e1f695837648d4d1fbd7eb4f4"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -1817,6 +1786,11 @@ markupsafe = [
     {file = "MarkupSafe-1.1.1-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:ba59edeaa2fc6114428f1637ffff42da1e311e29382d81b339c1817d37ec93c6"},
     {file = "MarkupSafe-1.1.1-cp37-cp37m-win32.whl", hash = "sha256:b00c1de48212e4cc9603895652c5c410df699856a2853135b3967591e4beebc2"},
     {file = "MarkupSafe-1.1.1-cp37-cp37m-win_amd64.whl", hash = "sha256:9bf40443012702a1d2070043cb6291650a0841ece432556f784f004937f0f32c"},
+    {file = "MarkupSafe-1.1.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:6788b695d50a51edb699cb55e35487e430fa21f1ed838122d722e0ff0ac5ba15"},
+    {file = "MarkupSafe-1.1.1-cp38-cp38-manylinux1_i686.whl", hash = "sha256:cdb132fc825c38e1aeec2c8aa9338310d29d337bebbd7baa06889d09a60a1fa2"},
+    {file = "MarkupSafe-1.1.1-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:13d3144e1e340870b25e7b10b98d779608c02016d5184cfb9927a9f10c689f42"},
+    {file = "MarkupSafe-1.1.1-cp38-cp38-win32.whl", hash = "sha256:596510de112c685489095da617b5bcbbac7dd6384aeebeda4df6025d0256a81b"},
+    {file = "MarkupSafe-1.1.1-cp38-cp38-win_amd64.whl", hash = "sha256:e8313f01ba26fbbe36c7be1966a7b7424942f670f38e666995b88d012765b9be"},
     {file = "MarkupSafe-1.1.1.tar.gz", hash = "sha256:29872e92839765e546828bb7754a68c418d927cd064fd4708fab9fe9c8bb116b"},
 ]
 mccabe = [
@@ -1852,8 +1826,8 @@ mypy-extensions = [
     {file = "mypy_extensions-0.4.3.tar.gz", hash = "sha256:2d82818f5bb3e369420cb3c4060a7970edba416647068eb4c5343488a6c604a8"},
 ]
 napalm = [
-    {file = "napalm-2.5.0-py2.py3-none-any.whl", hash = "sha256:c2b34f8ae287329e44960d4c3c8902f00fd43ae8b049aa89b8ded5ba10c46fd9"},
-    {file = "napalm-2.5.0.tar.gz", hash = "sha256:f49a38cf4fb712642b7644c272b18be0c5c6fe97c076ec26d3bb378d1768901b"},
+    {file = "napalm-3.0.1-py2.py3-none-any.whl", hash = "sha256:8f8c9004bd1bc2d91acaf7a3b9070e4e456d16e740726a77ef8f57d26eb86574"},
+    {file = "napalm-3.0.1.tar.gz", hash = "sha256:43c0d09411c26baddd6f9a20129ec463ba02e9f101263d96ae19bbe7ff46ac8c"},
 ]
 nbconvert = [
     {file = "nbconvert-5.6.1-py2.py3-none-any.whl", hash = "sha256:f0d6ec03875f96df45aa13e21fd9b8450c42d7e1830418cccc008c0df725fcee"},
@@ -1879,16 +1853,13 @@ netaddr = [
     {file = "netaddr-0.7.19.tar.gz", hash = "sha256:38aeec7cdd035081d3a4c306394b19d677623bf76fa0913f6695127c7753aefd"},
 ]
 netmiko = [
-    {file = "netmiko-2.4.2-py2.py3-none-any.whl", hash = "sha256:bc284272d76defd5af59a748478aae99af462793f0898f4ab43c28c9a2000e42"},
-    {file = "netmiko-2.4.2.tar.gz", hash = "sha256:e6b0cb98afb51fd1fb1d04d024d7572a0b5297dfa0bd18405ee36580deea65a1"},
+    {file = "netmiko-3.1.1-py2.py3-none-any.whl", hash = "sha256:f9009b0b70b49422ee941db83c297155e5a0726dc58bef21f06b1fb38fb999b5"},
+    {file = "netmiko-3.1.1.tar.gz", hash = "sha256:c113b94affcfc8b80dff19ba7461bb99ba835242d749c1419c68ec9bb6adbe50"},
 ]
 nornir-napalm = []
 notebook = [
     {file = "notebook-6.0.3-py3-none-any.whl", hash = "sha256:3edc616c684214292994a3af05eaea4cc043f6b4247d830f3a2f209fa7639a80"},
     {file = "notebook-6.0.3.tar.gz", hash = "sha256:47a9092975c9e7965ada00b9a20f0cf637d001db60d241d479f53c0be117ad48"},
-]
-nxapi-plumbing = [
-    {file = "nxapi_plumbing-0.5.2.tar.gz", hash = "sha256:6f54f9983f023bd75b60acd907ff47f559541cc2b98f4fa638b8585ca0de0fb5"},
 ]
 packaging = [
     {file = "packaging-20.3-py2.py3-none-any.whl", hash = "sha256:82f77b9bee21c1bafbf35a84905d604d5d1223801d639cf3ed140bd651c08752"},
@@ -1966,9 +1937,6 @@ pyflakes = [
 pygments = [
     {file = "Pygments-2.6.1-py3-none-any.whl", hash = "sha256:ff7a40b4860b727ab48fad6360eb351cc1b33cbf9b15a0f689ca5353e9463324"},
     {file = "Pygments-2.6.1.tar.gz", hash = "sha256:647344a061c249a3b74e230c739f434d7ea4d8b1d5f3721bc0f3558049b38f44"},
-]
-pyiosxr = [
-    {file = "pyIOSXR-0.53.tar.gz", hash = "sha256:0e25d6871b48db81511c03261924ef23169c66e80321801b9bb221a3b74e370e"},
 ]
 pylama = [
     {file = "pylama-7.7.1-py2.py3-none-any.whl", hash = "sha256:fd61c11872d6256b019ef1235be37b77c922ef37ac9797df6bd489996dddeb15"},
