@@ -231,3 +231,14 @@ class Test:
                 },
             },
         }
+
+    def test_simple_inventory_empty(self):
+        """Verify completely empty groups.yaml and defaults.yaml doesn't generate exception."""
+        host_file = f"{dir_path}/data/hosts-nogroups.yaml"
+        group_file = f"{dir_path}/data/groups-empty.yaml"
+        defaults_file = f"{dir_path}/data/defaults-empty.yaml"
+
+        inv = SimpleInventory(host_file, group_file, defaults_file).load()
+        assert len(inv.hosts) == 1
+        assert inv.groups == {}
+        assert inv.defaults.data == {}
