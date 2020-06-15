@@ -1,0 +1,7 @@
+---
+dev1.group_1:
+    port: 65020
+    hostname: localhost
+    username:
+    password: a_password
+    platform: eos

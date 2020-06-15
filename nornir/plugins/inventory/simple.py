@@ -93,7 +93,7 @@ class SimpleInventory:
 
         if self.defaults_file.exists():
             with open(self.defaults_file, "r") as f:
-                defaults_dict = yml.load(f)
+                defaults_dict = yml.load(f) or {}
             defaults = _get_defaults(defaults_dict)
         else:
             defaults = Defaults()
@@ -108,7 +108,7 @@ class SimpleInventory:
         groups = Groups()
         if self.group_file.exists():
             with open(self.group_file, "r") as f:
-                groups_dict = yml.load(f)
+                groups_dict = yml.load(f) or {}
 
             for n, g in groups_dict.items():
                 groups[n] = _get_inventory_element(Group, g, n, defaults)
