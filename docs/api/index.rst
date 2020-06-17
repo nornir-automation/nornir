@@ -8,4 +8,3 @@ API Documentation
    nornir/*
    nornir/*/*
    nornir/*/*/*
-   nornir/*/*/*/*

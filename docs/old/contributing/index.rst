@@ -1,4 +1,0 @@
-CONTRIBUTING
-============
-
-..include:: ../../CONTRIBUTING.rst
