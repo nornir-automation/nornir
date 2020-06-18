@@ -11,7 +11,7 @@ docker:
 	docker build --build-arg PYTHON=$(PYTHON) -t $(NAME):latest -f Dockerfile .
 
 .PHONY: pytest
-pytest:
+pytest: install-deps
 	poetry run pytest --cov=nornir --cov-report=term-missing -vs ${ARGS}
 
 .PHONY: black
@@ -32,8 +32,12 @@ pylama:
 mypy:
 	poetry run mypy nornir tests
 
+.PHONY: install-deps
+install-deps:
+	pip install -U nornir-napalm nornir-utils nornir-jinja2 # poetry is giving weird issues due to nornir being in beta
+
 .PHONY: nbval
-nbval:
+nbval: install-deps
 	poetry run pytest --nbval --sanitize-with docs/nbval_sanitize.cfg \
 		docs/tutorial/ \
 		docs/howto/

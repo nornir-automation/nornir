@@ -11,7 +11,7 @@ build-backend = "poetry.masonry.api"
 
 [tool.poetry]
 name = "nornir"
-version = "3.0.0a5"
+version = "3.0.0b1"
 description = "Pluggable multi-threaded framework with inventory management to help operate collections of devices"
 authors = ["David Barroso <dbarrosop@dravetech.com>"]
 readme = "README.md"
@@ -61,9 +61,10 @@ pygments = "^2"
 sphinx-issues = "^1.2"
 
 # for docs only
-nornir_utils = "^0.1.0-alpha.0"
-nornir_jinja2 = "^0.1.0-alpha.0"
-nornir-napalm = "0.1.0a1"
+## this needs to be fixed, poetry is giving issues due to nornir being beta
+# nornir_utils = { version = "*" }
+# nornir_jinja2 = { version = "*" }
+# nornir-napalm = { version = "*" }
 
 [tool.poetry.extras]
 # The following section is required to install docs dependencies
