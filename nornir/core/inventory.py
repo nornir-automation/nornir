@@ -43,6 +43,16 @@ class BaseAttributes(object):
         self.password = password
         self.platform = platform
 
+    @classmethod
+    def schema(cls) -> Dict[str, Any]:
+        return {
+            "hostname": "str",
+            "port": "int",
+            "username": "str",
+            "password": "str",
+            "platform": "str",
+        }
+
     def dict(self) -> Dict[str, Any]:
         return {
             "hostname": self.hostname,
@@ -73,6 +83,13 @@ class ConnectionOptions(BaseAttributes):
             password=password,
             platform=platform,
         )
+
+    @classmethod
+    def schema(self) -> Dict[str, Any]:
+        return {
+            "extras": {"$key": "$value"},
+            **super().schema(),
+        }
 
     def dict(self) -> Dict[str, Any]:
         return {
@@ -114,6 +131,15 @@ class InventoryElement(BaseAttributes):
             platform=platform,
         )
 
+    @classmethod
+    def schema(self) -> Dict[str, Any]:
+        return {
+            "groups": ["$group_name"],
+            "data": {"$key": "$value"},
+            "connection_options": {"$connection_type": ConnectionOptions.schema()},
+            **super().schema(),
+        }
+
     def dict(self) -> Dict[str, Any]:
         return {
             "groups": [g.name for g in self.groups],
@@ -147,6 +173,14 @@ class Defaults(BaseAttributes):
             password=password,
             platform=platform,
         )
+
+    @classmethod
+    def schema(self) -> Dict[str, Any]:
+        return {
+            "data": {"$key": "$value"},
+            "connection_options": {"$connection_type": ConnectionOptions.schema()},
+            **super().schema(),
+        }
 
     def dict(self) -> Dict[str, Any]:
         return {
@@ -204,6 +238,14 @@ class Host(InventoryElement):
                 processed.append(k)
                 result[k] = v
         return result
+
+    @classmethod
+    def schema(cls) -> Dict[str, Any]:
+        return {
+            "name": "str",
+            "connection_options": {"$connection_type": ConnectionOptions.schema()},
+            **super().schema(),
+        }
 
     def dict(self) -> Dict[str, Any]:
         return {
@@ -538,6 +580,17 @@ class Inventory(object):
             if host.has_parent_group(group):
                 hosts.add(host)
         return hosts
+
+    @classmethod
+    def schema(cls) -> Dict[str, Any]:
+        """
+        Return serialized dictionary of inventory
+        """
+        return {
+            "hosts": {"$name": Host.schema()},
+            "groups": {"$group": Group.schema()},
+            "defaults": Defaults.schema(),
+        }
 
     def dict(self) -> Dict[str, Any]:
         """

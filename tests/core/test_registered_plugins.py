@@ -4,6 +4,8 @@ from nornir.core.plugins.runners import RunnersPluginRegister
 from nornir.plugins.inventory import SimpleInventory
 from nornir.plugins.runners import SerialRunner, ThreadedRunner
 
+from nornir_utils.plugins.inventory import YAMLInventory
+
 
 class Test:
     def test_registered_runners(self):
@@ -19,4 +21,5 @@ class Test:
         InventoryPluginRegister.auto_register()
         assert InventoryPluginRegister.available == {
             "SimpleInventory": SimpleInventory,
+            "YAMLInventory": YAMLInventory,
         }

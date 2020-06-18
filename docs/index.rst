@@ -1,8 +1,3 @@
-.. nornir documentation master file, created by
-   sphinx-quickstart on Sun Nov 19 10:41:40 2017.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to nornir's documentation!
 ===================================
 
@@ -27,11 +22,11 @@ Nornir requires Python 3.6.2 or higher to be installed.
 How the documentation is structured
 ===================================
 
-- The :doc:`Tutorial </tutorials/intro/index>` is a great place to start for new users.
-- :doc:`How-to guides </howto/index>` aim to solve a specific use case or answer key problems. These guides can be more advanced than the tutorial and can assume some knowledge about how Nornir and related technologies work.
-- :doc:`Reference guides </ref/index>` contains the API reference for Nornir and describe the core functions.
-- :doc:`Configuration </configuration/index>` describe the configuration parameters of Nornir and their default settings.
-- :doc:`Plugins </plugins/index>` shows which tasks and functions are available out of the box with Nornir and describe how they work.
+- The :doc:`Tutorial <tutorial/index>` is a great place to start for new users.
+- :doc:`How-to guides <howto/index>` aim to solve a specific use case or answer key problems. These guides can be more advanced than the tutorial and can assume some knowledge about how Nornir and related technologies work.
+- :doc:`The API section <api/index>` contains the API reference for Nornir and describe the core functions.
+- :doc:`Configuration <configuration/index>` describe the configuration parameters of Nornir and their default settings.
+- `nornit.tech <https://nornir.tech/nornir/plugins/>`_ is a good place to find plugins for nornir
 
 Is something missing from the documentation? Please open an issue and `tell us what you are missing <https://github.com/nornir-automation/nornir/issues>`_ or `open a pull request <https://github.com/nornir-automation/nornir/pulls>`_ and suggest an improvement.
 
@@ -41,8 +36,8 @@ A first glance
 Here is an example on how to quickly build a runbook leveraging Nornir to retrieve information from the network::
 
     from nornir import InitNornir
-    from nornir.plugins.functions.text import print_result
-    from nornir.plugins.tasks.networking import napalm_get
+    from nornir_utils.plugins.functions import print_result
+    from nornir_napalm.plugins.tasks import napalm_get
 
     nr = InitNornir(
         config_file="nornir.yaml", dry_run=True
@@ -53,7 +48,6 @@ Here is an example on how to quickly build a runbook leveraging Nornir to retrie
     )
     print_result(results)
 
-You can find this and other examples `here <https://github.com/nornir-automation/nornir-tools/>`_.
 
 Contents
 ========
@@ -62,14 +56,14 @@ Contents
    :maxdepth: 1
 
    Home <self>
-   Tutorials <tutorials/intro/index>
+   tutorial/index
    Howto <howto/index>
    configuration/index
-   ref/index
-   upgrading/index
+   plugins/index
+   Upgrading <upgrading/index>
    Contribute <contributing/index>
    Changelog <changelog/index>
-
+   api/index
 
 Indices and tables
 

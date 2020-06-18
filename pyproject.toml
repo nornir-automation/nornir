@@ -11,7 +11,7 @@ build-backend = "poetry.masonry.api"
 
 [tool.poetry]
 name = "nornir"
-version = "3.0.0a4"
+version = "3.0.0b1"
 description = "Pluggable multi-threaded framework with inventory management to help operate collections of devices"
 authors = ["David Barroso <dbarrosop@dravetech.com>"]
 readme = "README.md"
@@ -23,7 +23,6 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.6"
-colorama = "^0.4.1"
 "ruamel.yaml" = "^0.16"
 mypy_extensions = "^0.4.1"
 typing_extensions = "^3.7"
@@ -62,7 +61,11 @@ pygments = "^2"
 sphinx-issues = "^1.2"
 
 # for docs only
-nornir_napalm = { git = "https://github.com/nornir-automation/nornir_napalm.git", branch = "fix_connection_plugin" }
+## this needs to be fixed, poetry is giving issues due to nornir being beta
+nornir_utils = { version = "*" }
+nornir_jinja2 = { version = "*" }
+nornir-napalm = { version = "*" }
+textfsm = "0.4.1" # due to https://github.com/google/textfsm/issues/63
 
 [tool.poetry.extras]
 # The following section is required to install docs dependencies

@@ -1,6 +1,6 @@
 import logging
 import traceback
-from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING, Union
+from typing import Any, Callable, Dict, List, Optional, TYPE_CHECKING, Union, cast
 
 from nornir.core.exceptions import NornirExecutionError
 from nornir.core.exceptions import NornirSubTaskError
@@ -161,11 +161,11 @@ class Task(object):
             **kwargs
         )
         r = run_task.start(self.host)
-        self.results.append(r[0] if len(r) == 1 else r)
+        self.results.append(r[0] if len(r) == 1 else cast("Result", r))
 
         if r.failed:
             # Without this we will keep running the grouped task
-            raise NornirSubTaskError(task=task, result=r)
+            raise NornirSubTaskError(task=run_task, result=r)
 
         return r
 
@@ -236,41 +236,7 @@ class Result(object):
             return str(self.result)
 
 
-class AggregatedResult(Dict[str, Any]):
-    """
-    It basically is a dict-like object that aggregates the results for all devices.
-    You can access each individual result by doing ``my_aggr_result["hostname_of_device"]``.
-    """
-
-    def __init__(self, name: str, **kwargs: str):
-        self.name = name
-        super().__init__(**kwargs)
-
-    def __repr__(self) -> str:
-        return "{} ({}): {}".format(
-            self.__class__.__name__, self.name, super().__repr__()
-        )
-
-    @property
-    def failed(self) -> bool:
-        """If ``True`` at least a host failed."""
-        return any([h.failed for h in self.values()])
-
-    @property
-    def failed_hosts(self) -> Dict[str, "MultiResult"]:
-        """Hosts that failed during the execution of the task."""
-        return {h: r for h, r in self.items() if r.failed}
-
-    def raise_on_error(self) -> None:
-        """
-        Raises:
-            :obj:`nornir.core.exceptions.NornirExecutionError`: When at least a task failed
-        """
-        if self.failed:
-            raise NornirExecutionError(self)
-
-
-class MultiResult(List[Any]):
+class MultiResult(List[Result]):
     """
     It is basically is a list-like object that gives you access to the results of all subtasks for
     a particular device/task.
@@ -294,6 +260,40 @@ class MultiResult(List[Any]):
     def changed(self) -> bool:
         """If ``True`` at least a task changed the system."""
         return any([h.changed for h in self])
+
+    def raise_on_error(self) -> None:
+        """
+        Raises:
+            :obj:`nornir.core.exceptions.NornirExecutionError`: When at least a task failed
+        """
+        if self.failed:
+            raise NornirExecutionError(self)
+
+
+class AggregatedResult(Dict[str, MultiResult]):
+    """
+    It basically is a dict-like object that aggregates the results for all devices.
+    You can access each individual result by doing ``my_aggr_result["hostname_of_device"]``.
+    """
+
+    def __init__(self, name: str, **kwargs: MultiResult):
+        self.name = name
+        super().__init__(**kwargs)
+
+    def __repr__(self) -> str:
+        return "{} ({}): {}".format(
+            self.__class__.__name__, self.name, super().__repr__()
+        )
+
+    @property
+    def failed(self) -> bool:
+        """If ``True`` at least a host failed."""
+        return any([h.failed for h in self.values()])
+
+    @property
+    def failed_hosts(self) -> Dict[str, "MultiResult"]:
+        """Hosts that failed during the execution of the task."""
+        return {h: r for h, r in self.items() if r.failed}
 
     def raise_on_error(self) -> None:
         """

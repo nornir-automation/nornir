@@ -1,1 +1,1 @@
-../../CHANGELOG.rst
+.. include:: ../../CHANGELOG.rst

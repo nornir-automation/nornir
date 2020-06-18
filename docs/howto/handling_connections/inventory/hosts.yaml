@@ -1,7 +1,7 @@
 ---
 rtr00:
     connection_options:
-        nornir_napalm.napalm:
+        napalm:
             platform: mock
             extras:
                 optional_args:
