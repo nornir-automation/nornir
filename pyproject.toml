@@ -62,9 +62,9 @@ sphinx-issues = "^1.2"
 
 # for docs only
 ## this needs to be fixed, poetry is giving issues due to nornir being beta
-# nornir_utils = { version = "*" }
-# nornir_jinja2 = { version = "*" }
-# nornir-napalm = { version = "*" }
+nornir_utils = { version = "*" }
+nornir_jinja2 = { version = "*" }
+nornir-napalm = { version = "*" }
 
 [tool.poetry.extras]
 # The following section is required to install docs dependencies
