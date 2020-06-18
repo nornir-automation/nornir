@@ -23,7 +23,7 @@ Logging
 
 Next, you can find each section and their corresponding options.
 
-.. include:: generated/parameters.rst
+.. include:: parameters.rst
 
 user_defined
 ------------

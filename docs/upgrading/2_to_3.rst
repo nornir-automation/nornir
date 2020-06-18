@@ -1,126 +1,58 @@
 Upgrading to nornir 3.x from 2.x
-================================
+################################
+
+If you find some change not documented below don't hesitate to open a PR or issue about it :)
 
 Plugin Register
 ===============
 
-1. Introduced plugin register :obj:`nornir.core.plugins.register.PluginRegister`_
+Introduced `plugin register <../api/nornir/core/plugins/register.html#nornir.core.plugins.register.PluginRegister>`_
 
-Connections
-===========
-
-1. Connections need to be registered
+Starting with nornir3 some plugins need to be registered. See `plugins section <../plugins/index.html#registering-plugins>`_ for details.
 
 Inventory
 =========
 
-1. Remove inventory deserializer
-1. Fixed mypy
-1. ParentGroups is simplified
-1. __init__ functions are more explicit in order to improve correctness
-1. Removed `add_host` and `add_group`
-1. Removed `get_inventory_dict`, `get_defaults_dict`, `get_groups_dict`, `get_hosts_dict`. Only `dict` remains
-1. Inventory plugins need to be registered
-1. Transform functions need to be registered
+#. Remove inventory deserializer
+#. Fixed ``mypy``
+#. ``ParentGroups`` is simplified
+#. ``__init__`` functions are more explicit in order to improve correctness
+#. Removed ``add_host`` and ``add_group``
+#. Removed ``get_inventory_dict``, ``get_defaults_dict``, ``get_groups_dict``, ``get_hosts_dict``. Only ``dict`` remains
+#. Inventory plugins need to be registered
+#. Transform functions need to be registered
 
 InitNornir
 ==========
 
-1. Passing callables as inventory plugin and transform functions is no longer supported
-1. configure_logging has been removed (it used to indicate it was to be deprecated)
+#. Passing callables as inventory plugin and transform functions is no longer supported
+#. ``configure_logging`` has been removed (it used to indicate it was to be deprecated)
 
 Configuration
 =============
 
-1. Order of resolution is parameters to InitNornit > config > env
-
-Todo
-----
-
-1. Remove Hosts/Groups objects? Otherwise add `dict()` methods
-1. Move transform_func logic to InitNornir
-1. Implement proper system for discovering inventory plugins
-1. Adapt InitNornir`
+#. Order of resolution for parameters is now InitNornir > config > environment
+#. ``jinja2`` can no longer be configured using the configuration
+#. ``num_workers`` is no longer a ``core`` option
+#. ``logging.file`` is now ``logging.log_file``
+#. new ``runner`` section introduced
 
 
+``num_workers``
+---------------
 
----
+Nornir used to accept ``num_workers`` under the core configuration section. This used to instruct whether to use threads or not and how many. This has now changed with the introduction of `runners <../plugins/index.html#runners>`_. Now if you want to avoid using threads you would instruct nornir to use the ``SerialRunner`` like this::
 
-NOTE: SAVING THE TEXT BELOW TO CREATE A HOW TO LATER OUT OF IT
+    #config.yaml
+    runners:
+        plugin: serial
 
-Changes in the plugin ecosystem
--------------------------------
+To tweak the number of threads::
 
-Since nornir 3.0.0 plugins are relocated in separate projects to reduce the amount of dependencies required by nornir.
+    #config.yaml
+    runners:
+        plugin: threaded
+        options:
+            num_workers: 100
 
-Connection plugins
-~~~~~~~~~~~~~~~~~~
-
-Connection plugins need to register the connection class to the entry point ``nornir.plugins.connections`` in the installation process.
-``InitNornir()`` detects and registers the plugins under the entry point automatically.
-For consistency the plugin name should be stored in the variable ``CONNECTION_NAME``.
-
-You can check the following how to for more details on `how to <../howto/handling_connections.rst>`_ create a plugin.
-
-Install the napalm connection plugin::
-
-    pip install nornir-napalm
-
-Manual registration::
-
-    from nornir.core.connections import Connections
-    from my_plugin.connections import MyPlugin
-
-    Connections.register("my_plugin", MyPlugin)
-
-Verify registration::
-
-    from nornir.core.connections import Connections
-
-    Connections.get_plugin("my_plugin")
-
-Inventory plugins
-~~~~~~~~~~~~~~~~~
-
-Expect of the ``SimpleInventory`` the inventory plugins are moved to separate projects.
-
-Install the netbox inventory plugin::
-
-    pip install nornir-inventory
-
-
-Task plugins
-~~~~~~~~~~~~
-
-Task plugins are moved to separate projects and must be installed.
-
-Install the napalm tasks::
-
-    pip install nornir-napalm
-
-
-In order of this change the import statement changes for example from::
-
-    from nornir.plugins.tasks.networking import napalm_cli
-
-to::
-
-    from nornir_napalm.tasks import napalm_cli
-
-Process plugins
-~~~~~~~~~~~~~~~~~~~~~
-
-Processor plugins are moved to separate projects and must be installed.
-
-Install the napalm tasks::
-
-    pip install nornir-print-result
-
-
-In order of this change the import statement changes for example from::
-
-    from nornir.plugins.processors.print_result import PrintResult
-
-to::
-
-    from nornir_print_result.processors import PrintResult
+For this same reason ``NORNIR_CORE_NUM_WORKERS`` doesn't work anymore. You should be able to do ``NORNIR_RUNNER_OPTIONS='{"num_threads": 100}'`` instead.

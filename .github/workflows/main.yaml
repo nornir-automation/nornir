@@ -80,6 +80,7 @@ jobs:
 
       - name: Run nbval
         run: make nbval
+        if: platform != 'windows-latest'
 
   release:
     name: Releasing to pypi
