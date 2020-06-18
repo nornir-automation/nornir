@@ -16,4 +16,3 @@ We're glad you made it here! This is a great place to learn the basics of Nornir
    task_results.ipynb
    failed_tasks.ipynb
    processors.ipynb
-   advanced_example.ipynb

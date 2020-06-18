@@ -191,8 +191,8 @@ _________
    * - **Environment Variable**
      - ``NORNIR_LOGGING_LEVEL``
 
-``file``
-________
+``log_file``
+____________
 
 .. list-table::
    :widths: 15 85

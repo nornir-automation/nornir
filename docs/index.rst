@@ -60,11 +60,10 @@ Contents
    Howto <howto/index>
    configuration/index
    plugins/index
-   upgrading/index
+   Upgrading <upgrading/index>
    Contribute <contributing/index>
    Changelog <changelog/index>
    api/index
-   old/index
 
 Indices and tables
 
