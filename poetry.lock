@@ -791,10 +791,11 @@ description = "Package to return structured data from the output of network devi
 name = "ntc-templates"
 optional = false
 python-versions = "*"
-version = "1.5.0"
+version = "1.4.1"
 
 [package.dependencies]
-textfsm = ">=1.1.0"
+terminal = "*"
+textfsm = "*"
 
 [package.extras]
 dev = ["pyyaml", "black", "pytest", "ruamel.yaml", "yamllint"]
@@ -1393,6 +1394,14 @@ pywinpty = ">=0.5"
 tornado = ">=4"
 
 [[package]]
+category = "dev"
+description = "terminal\n    ~~~~~~~~\n\n    A terminal environment tools.\n\n    :copyright: (c) 2013 by Hsiaoming Yang."
+name = "terminal"
+optional = false
+python-versions = "*"
+version = "0.4.0"
+
+[[package]]
 category = "main"
 description = "Test utilities for code working with files and commands"
 name = "testpath"
@@ -1409,11 +1418,7 @@ description = "Python module for parsing semi-structured text into python tables
 name = "textfsm"
 optional = false
 python-versions = "*"
-version = "1.1.0"
-
-[package.dependencies]
-future = "*"
-six = "*"
+version = "0.4.1"
 
 [[package]]
 category = "dev"
@@ -1546,7 +1551,7 @@ testing = ["jaraco.itertools", "func-timeout"]
 docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-napoleon", "jupyter", "nbsphinx", "pygments", "sphinx-issues"]
 
 [metadata]
-content-hash = "e8f75ea9ec0f6cbd50f2a78f50250291b3b3de9b984d58f8b81d42a7268e941b"
+content-hash = "43d24fd9542bacf2c3bb67ee5e5e82c401a26493fa60a358cb4ea48fbf46e785"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -1942,8 +1947,8 @@ notebook = [
     {file = "notebook-6.0.3.tar.gz", hash = "sha256:47a9092975c9e7965ada00b9a20f0cf637d001db60d241d479f53c0be117ad48"},
 ]
 ntc-templates = [
-    {file = "ntc_templates-1.5.0-py3-none-any.whl", hash = "sha256:e234a89621f161512690b3e9fe90231795f60c26388643d1483443d58909cdb5"},
-    {file = "ntc_templates-1.5.0.tar.gz", hash = "sha256:ec4bb9e23d2e8c724613c699cd9a7413c22d02ff73a47868b970e24904f9d483"},
+    {file = "ntc_templates-1.4.1-py3-none-any.whl", hash = "sha256:309fd9513301ff4855e75700b812095842e5dcad649aea8c44d391e3a4748e5a"},
+    {file = "ntc_templates-1.4.1.tar.gz", hash = "sha256:d04f859f3db2abbb1b594b4507b14551ea5d1a7724b9f4f5843326c4277f5382"},
 ]
 packaging = [
     {file = "packaging-20.4-py2.py3-none-any.whl", hash = "sha256:998416ba6962ae7fbd6596850b80e17859a5753ba17c32284f67bfff33784181"},
@@ -2245,12 +2250,15 @@ terminado = [
     {file = "terminado-0.8.3-py2.py3-none-any.whl", hash = "sha256:a43dcb3e353bc680dd0783b1d9c3fc28d529f190bc54ba9a229f72fe6e7a54d7"},
     {file = "terminado-0.8.3.tar.gz", hash = "sha256:4804a774f802306a7d9af7322193c5390f1da0abb429e082a10ef1d46e6fb2c2"},
 ]
+terminal = [
+    {file = "terminal-0.4.0.tar.gz", hash = "sha256:29a1696ed4696a9c3e501076245c85a3789548db708bb2bd174dcc49f2b585c2"},
+]
 testpath = [
     {file = "testpath-0.4.4-py2.py3-none-any.whl", hash = "sha256:bfcf9411ef4bf3db7579063e0546938b1edda3d69f4e1fb8756991f5951f85d4"},
     {file = "testpath-0.4.4.tar.gz", hash = "sha256:60e0a3261c149755f4399a1fff7d37523179a70fdc3abdf78de9fc2604aeec7e"},
 ]
 textfsm = [
-    {file = "textfsm-1.1.0-py2.py3-none-any.whl", hash = "sha256:0aef3f9cad3d03905915fd62bff358c42b7dc35c863ff2cb0b5324c2b746cc24"},
+    {file = "textfsm-0.4.1.tar.gz", hash = "sha256:21a31e212d625d84a8c7a52f35055d536bd3a1c63d3d41ed65ee5d8bd5f29f00"},
 ]
 toml = [
     {file = "toml-0.10.1-py2.py3-none-any.whl", hash = "sha256:bda89d5935c2eac546d648028b9901107a595863cb36bae0c73ac804a9b4ce88"},

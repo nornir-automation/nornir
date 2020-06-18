@@ -65,6 +65,7 @@ sphinx-issues = "^1.2"
 nornir_utils = { version = "*" }
 nornir_jinja2 = { version = "*" }
 nornir-napalm = { version = "*" }
+textfsm = "0.4.1" # due to https://github.com/google/textfsm/issues/63
 
 [tool.poetry.extras]
 # The following section is required to install docs dependencies
