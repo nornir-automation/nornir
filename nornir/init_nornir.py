@@ -18,6 +18,7 @@ def load_inventory(config: Config,) -> Inventory:
     inv = inventory_plugin(**config.inventory.options).load()
 
     if config.inventory.transform_function:
+        TransformFunctionRegister.auto_register()
         transform_function = TransformFunctionRegister.get_plugin(
             config.inventory.transform_function
         )
