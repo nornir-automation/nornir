@@ -65,7 +65,8 @@ sphinx-issues = "^1.2"
 nornir_utils = { version = "*" }
 nornir_jinja2 = { version = "*" }
 nornir-napalm = { version = "*" }
-textfsm = "0.4.1" # due to https://github.com/google/textfsm/issues/63
+# due to https://github.com/google/textfsm/issues/63
+textfsm = { git = "https://github.com/ktbyers/textfsm.git", branch = "fix_windows_import_pin" }
 
 [tool.poetry.extras]
 # The following section is required to install docs dependencies
