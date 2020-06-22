@@ -306,7 +306,7 @@ class Config(object):
         return cls(
             inventory=InventoryConfig(**{**data.get("inventory", {}), **inventory}),
             ssh=SSHConfig(**{**data.get("ssh", {}), **ssh}),
-            logging=LoggingConfig(**{**data.get("loggin", {}), **logging}),
+            logging=LoggingConfig(**{**data.get("logging", {}), **logging}),
             core=CoreConfig(**{**data.get("core", {}), **core}),
             runner=RunnerConfig(**{**data.get("runner", {}), **runner}),
             user_defined={**data.get("user_defined", {}), **user_defined},
