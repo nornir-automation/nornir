@@ -1,5 +1,6 @@
-from typing import Any
+from typing import Any, Optional, Dict
 from nornir.core.connections import ConnectionPlugin
+from nornir.core.configuration import Config
 import requests
 
 
