@@ -1,9 +1,5 @@
 from typing import Any
 from nornir.core.connections import ConnectionPlugin
-from nornir.core.exceptions import (
-    HttpApiPluginAlreadyRegistered,
-    HttpApiPluginNotRegistered,
-)
 import requests
 
 
