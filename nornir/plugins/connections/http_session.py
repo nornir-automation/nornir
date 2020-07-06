@@ -2,9 +2,10 @@ from typing import Any
 from nornir.core.connections import ConnectionPlugin
 from nornir.core.exceptions import (
     HttpApiPluginAlreadyRegistered,
-    HttpApiPluginNotRegistered
+    HttpApiPluginNotRegistered,
 )
 import requests
+
 
 class HttpSession(ConnectionPlugin):
     """
@@ -18,6 +19,7 @@ class HttpSession(ConnectionPlugin):
             verify_https_certs: whether or not to verify ssl certificates
                 for this session (default: ``true``)
     """
+
     # Load an 'httpapi' plugin in __init__?
 
     def open(
@@ -34,7 +36,7 @@ class HttpSession(ConnectionPlugin):
         self.connection = requests.Session()
         # Configure the session's verify attribute
         if extras:
-            self.connection.verify = extras.get('verify_https_certs', True)
+            self.connection.verify = extras.get("verify_https_certs", True)
         else:
             self.connection.verify = True
 
