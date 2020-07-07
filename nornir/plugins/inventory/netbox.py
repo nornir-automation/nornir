@@ -22,9 +22,9 @@ class NBInventory(Inventory):
         Netbox plugin
 
         Arguments:
-            nb_url: Netbox url, defaults to http://localhost:8080.
+            nb_url: NetBox url, defaults to http://localhost:8080.
                 You can also use env variable NB_URL
-            nb_token: Netbokx token. You can also use env variable NB_TOKEN
+            nb_token: NetbBox token. You can also use env variable NB_TOKEN
             use_slugs: Whether to use slugs or not
             ssl_verify: Enable/disable certificate validation or provide path to CA bundle file
             flatten_custom_fields: Whether to assign custom fields directly to the host or not
@@ -64,6 +64,10 @@ class NBInventory(Inventory):
             # Add value for IP address
             if d.get("primary_ip", {}):
                 host["hostname"] = d["primary_ip"]["address"].split("/")[0]
+            else:
+                # Set to the hostname in NetBox if not a primary IP, expect DNS will be in place
+                if d.get("name") is not None:
+                    host["hostname"] = d["name"]
 
             # Add values that don't have an option for 'slug'
             host["data"]["serial"] = d["serial"]
