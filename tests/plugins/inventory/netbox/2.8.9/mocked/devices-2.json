@@ -1,0 +1,146 @@
+{
+    "count": 2,
+    "next": null,
+    "previous": "http://localhost:8080/api/dcim/devices/?limit=0&offset=1",
+    "results": [
+        {
+            "id": 3,
+            "name": "3-Access",
+            "display_name": "3-Access",
+            "device_type": {
+                "id": 2,
+                "url": "http://localhost:8080/api/dcim/device-types/2/",
+                "manufacturer": {
+                    "id": 2,
+                    "url": "http://localhost:8080/api/dcim/manufacturers/2/",
+                    "name": "Cisco",
+                    "slug": "cisco"
+                },
+                "model": "3650-48TQ-L",
+                "slug": "3650-48tq-l",
+                "display_name": "Cisco 3650-48TQ-L"
+            },
+            "device_role": {
+                "id": 2,
+                "url": "http://localhost:8080/api/dcim/device-roles/2/",
+                "name": "Switch",
+                "slug": "sw"
+            },
+            "tenant": null,
+            "platform": null,
+            "serial": "",
+            "asset_tag": null,
+            "site": {
+                "id": 2,
+                "url": "http://localhost:8080/api/dcim/sites/2/",
+                "name": "San Jose, CA",
+                "slug": "san-jose-ca"
+            },
+            "rack": null,
+            "position": null,
+            "face": null,
+            "parent_device": null,
+            "status": {
+                "value": "active",
+                "label": "Active",
+                "id": 1
+            },
+            "primary_ip": {
+                "id": 3,
+                "url": "http://localhost:8080/api/ipam/ip-addresses/3/",
+                "family": 4,
+                "address": "192.168.3.1/32"
+            },
+            "primary_ip4": {
+                "id": 3,
+                "url": "http://localhost:8080/api/ipam/ip-addresses/3/",
+                "family": 4,
+                "address": "192.168.3.1/32"
+            },
+            "primary_ip6": null,
+            "cluster": null,
+            "virtual_chassis": null,
+            "vc_position": null,
+            "vc_priority": null,
+            "comments": "",
+            "local_context_data": null,
+            "tags": [],
+            "custom_fields": {},
+            "config_context": {},
+            "created": "2020-03-29",
+            "last_updated": "2020-07-09T14:27:20.449532Z"
+        },
+        {
+            "id": 4,
+            "name": null,
+            "display_name": "MX480",
+            "device_type": {
+                "id": 3,
+                "url": "http://localhost:8080/api/dcim/device-types/11/",
+                "manufacturer": {
+                    "id": 2,
+                    "url": "http://localhost:8080/api/dcim/manufacturers/3/",
+                    "name": "Juniper",
+                    "slug": "juniper"
+                },
+                "model": "MX480",
+                "slug": "mx480",
+                "display_name": "Juniper MX480"
+            },
+            "device_role": {
+                "id": 1,
+                "url": "http://localhost:8080/api/dcim/device-roles/1/",
+                "name": "Router",
+                "slug": "rt"
+            },
+            "tenant": null,
+            "platform": {
+                "id": 1,
+                "url": "http://localhost:8080/api/dcim/platforms/1/",
+                "name": "junos",
+                "slug": "junos"
+            },
+            "serial": "",
+            "asset_tag": null,
+            "site": {
+                "id": 3,
+                "url": "http://localhost:8080/api/dcim/sites/3/",
+                "name": "Sunnyvale, CA",
+                "slug": "sunnyvale-ca"
+            },
+            "rack": null,
+            "position": null,
+            "face": null,
+            "parent_device": null,
+            "status": {
+                "value": "active",
+                "label": "Active",
+                "id": 1
+            },
+            "primary_ip": {
+                "id": 4,
+                "url": "http://localhost:8080/api/ipam/ip-addresses/4/",
+                "family": 4,
+                "address": "10.0.1.4/32"
+            },
+            "primary_ip4": {
+                "id": 4,
+                "url": "http://localhost:8080/api/ipam/ip-addresses/4/",
+                "family": 4,
+                "address": "10.0.1.4/32"
+            },
+            "primary_ip6": null,
+            "cluster": null,
+            "virtual_chassis": null,
+            "vc_position": null,
+            "vc_priority": null,
+            "comments": "",
+            "local_context_data": null,
+            "tags": [],
+            "custom_fields": {},
+            "config_context": {},
+            "created": "2020-03-29",
+            "last_updated": "2020-07-09T14:27:20.449532Z"
+        }
+    ]
+}

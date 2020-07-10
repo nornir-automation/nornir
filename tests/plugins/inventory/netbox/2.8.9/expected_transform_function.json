@@ -43,7 +43,6 @@
 			"password": null,
 			"platform": null,
 			"data": {
-                "user_defined": 1,
 				"serial": "",
 				"vendor": "Cisco",
 				"asset_tag": null,

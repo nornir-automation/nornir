@@ -1,0 +1,79 @@
+{
+    "count": 1,
+    "next": "http://localhost:8080/api/dcim/devices/?limit=0&offset=2",
+    "previous": "http://localhost:8080/api/dcim/devices/?limit=0&offset=0",
+    "results": [
+        {
+            "id": 2,
+            "name": "2-Distribution",
+            "display_name": "2-Distribution",
+            "device_type": {
+                "id": 9,
+                "url": "http://localhost:8080/api/dcim/device-types/9/",
+                "manufacturer": {
+                    "id": 3,
+                    "url": "http://localhost:8080/api/dcim/manufacturers/3/",
+                    "name": "Juniper",
+                    "slug": "juniper"
+                },
+                "model": "EX4550-32F",
+                "slug": "ex4550-32f",
+                "display_name": "Juniper EX4550-32F"
+            },
+            "device_role": {
+                "id": 1,
+                "url": "http://localhost:8080/api/dcim/device-roles/1/",
+                "name": "Router",
+                "slug": "rt"
+            },
+            "tenant": null,
+            "platform": {
+                "id": 1,
+                "url": "http://localhost:8080/api/dcim/platforms/1/",
+                "name": "junos",
+                "slug": "junos"
+            },
+            "serial": "",
+            "asset_tag": null,
+            "site": {
+                "id": 3,
+                "url": "http://localhost:8080/api/dcim/sites/3/",
+                "name": "Sunnyvale, CA",
+                "slug": "sunnyvale-ca"
+            },
+            "rack": null,
+            "position": null,
+            "face": null,
+            "parent_device": null,
+            "status": {
+                "value": "active",
+                "label": "Active",
+                "id": 1
+            },
+            "primary_ip": {
+                "id": 2,
+                "url": "http://localhost:8080/api/ipam/ip-addresses/2/",
+                "family": 4,
+                "address": "172.16.2.1/32"
+            },
+            "primary_ip4": {
+                "id": 2,
+                "url": "http://localhost:8080/api/ipam/ip-addresses/2/",
+                "family": 4,
+                "address": "172.16.2.1/32"
+            },
+            "primary_ip6": null,
+            "cluster": null,
+            "virtual_chassis": null,
+            "vc_position": null,
+            "vc_priority": null,
+            "comments": "",
+            "local_context_data": null,
+            "tags": [],
+            "custom_fields": {},
+            "config_context": {},
+            "created": "2020-03-29",
+            "last_updated": "2020-07-09T14:27:20.449532Z"
+        }
+    ]
+}

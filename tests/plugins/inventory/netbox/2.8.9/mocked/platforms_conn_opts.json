@@ -1,0 +1,29 @@
+{
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 1,
+      "name": "junos",
+      "slug": "junos",
+      "manufacturer": {
+        "id": 1,
+        "url": "http://localhost:8080/api/dcim/manufacturers/1/",
+        "name": "juniper",
+        "slug": "juniper"
+      },
+      "napalm_driver": "junos",
+      "napalm_args": {
+        "netmiko": {
+          "extras": {
+            "ssh_config_file": "~/.ssh/config",
+            "use_keys": true
+          }
+        }
+      },
+      "device_count": 3,
+      "virtualmachine_count": null
+    }
+  ]
+}

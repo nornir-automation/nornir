@@ -12,6 +12,17 @@ BASE_PATH = os.path.join(os.path.dirname(__file__), "netbox")
 
 
 def get_inv(requests_mock, case, pagination, **kwargs):
+    platform = (
+        "platforms_conn_opts"
+        if os.environ.get("NB_PLATFORM_AS_CONN_OPTS")
+        else "platforms"
+    )
+    with open(f"{BASE_PATH}/{case}/mocked/{platform}.json", "r") as f:
+        requests_mock.get(
+            "http://localhost:8080/api/dcim/platforms/?limit=0",
+            json=json.load(f),
+            headers={"Content-type": "application/json"},
+        )
     if not pagination:
         with open(f"{BASE_PATH}/{case}/mocked/devices.json", "r") as f:
             requests_mock.get(
@@ -37,28 +48,53 @@ def transform_function(host):
 
 
 class Test(object):
+    versions = ["2.3.5", "2.8.9"]
+
     def test_inventory(self, requests_mock):
-        inv = get_inv(requests_mock, "2.3.5", False)
-        with open("{}/{}/expected.json".format(BASE_PATH, "2.3.5"), "r") as f:
-            expected = json.load(f)
-        assert expected == Inventory.serialize(inv).dict()
+        for version in self.versions:
+            inv = get_inv(requests_mock, version, False)
+            with open("{}/{}/expected.json".format(BASE_PATH, version), "r") as f:
+                expected = json.load(f)
+            assert expected == Inventory.serialize(inv).dict()
 
     def test_inventory_pagination(self, requests_mock):
-        inv = get_inv(requests_mock, "2.3.5", True)
-        with open("{}/{}/expected.json".format(BASE_PATH, "2.3.5"), "r") as f:
-            expected = json.load(f)
-        assert expected == Inventory.serialize(inv).dict()
+        for version in self.versions:
+            inv = get_inv(requests_mock, version, True)
+            with open("{}/{}/expected.json".format(BASE_PATH, version), "r") as f:
+                expected = json.load(f)
+            assert expected == Inventory.serialize(inv).dict()
 
     def test_transform_function(self, requests_mock):
-        inv = get_inv(
-            requests_mock, "2.3.5", False, transform_function=transform_function
-        )
-        #  with open(
-        #      "{}/{}/expected_transform_function.json".format(BASE_PATH, "2.3.5"), "w"
-        #  ) as f:
-        #      f.write(InventorySerializer.serialize(inv).json())
-        with open(
-            "{}/{}/expected_transform_function.json".format(BASE_PATH, "2.3.5"), "r"
-        ) as f:
-            expected = json.load(f)
-        assert expected == Inventory.serialize(inv).dict()
+        for version in self.versions:
+            inv = get_inv(
+                requests_mock, version, False, transform_function=transform_function
+            )
+            with open(
+                "{}/{}/expected_transform_function.json".format(BASE_PATH, version), "r"
+            ) as f:
+                expected = json.load(f)
+            assert expected == Inventory.serialize(inv).dict()
+
+    def test_inventory_use_platform_args(self, requests_mock):
+        for version in self.versions:
+            inv = get_inv(requests_mock, version, False, use_platform_args=True)
+            with open(
+                "{}/{}/expected_use_platform_args.json".format(BASE_PATH, version), "r"
+            ) as f:
+                expected = json.load(f)
+            assert expected == Inventory.serialize(inv).dict()
+
+    def test_inventory_use_platform_args_as_conn_opts(self, requests_mock):
+        # Overload the Netbox Platform args and import them as connection options
+        # instead of for their intended use for the NAPALM driver
+        os.environ["NB_PLATFORM_AS_CONN_OPTS"] = "1"
+        for version in self.versions:
+            inv = get_inv(requests_mock, version, False, use_platform_args=True,)
+            with open(
+                "{}/{}/expected_use_platform_args_conn_opts.json".format(
+                    BASE_PATH, version
+                ),
+                "r",
+            ) as f:
+                expected = json.load(f)
+            assert expected == Inventory.serialize(inv).dict()

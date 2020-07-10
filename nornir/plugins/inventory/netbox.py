@@ -16,6 +16,7 @@ class NBInventory(Inventory):
         ssl_verify: Union[bool, str] = True,
         flatten_custom_fields: bool = True,
         filter_parameters: Optional[Dict[str, Any]] = None,
+        use_platform_args: bool = False,
         **kwargs: Any,
     ) -> None:
         """
@@ -29,6 +30,8 @@ class NBInventory(Inventory):
             ssl_verify: Enable/disable certificate validation or provide path to CA bundle file
             flatten_custom_fields: Whether to assign custom fields directly to the host or not
             filter_parameters: Key-value pairs to filter down hosts
+            use_platform_args: Whether to import NetBox NAPALM platform options as
+                connection options for the NAPALM driver
         """
         filter_parameters = filter_parameters or {}
         nb_url = nb_url or os.environ.get("NB_URL", "http://localhost:8080")
@@ -40,26 +43,22 @@ class NBInventory(Inventory):
         session.headers.update({"Authorization": f"Token {nb_token}"})
         session.verify = ssl_verify
 
+        # Fetch all platforms from Netbox
+        if use_platform_args:
+            nb_platforms = self._get_resources(
+                session, f"{nb_url}/api/dcim/platforms/?limit=0", {}
+            )
+            platform_field = "slug" if use_slugs else "name"
+            napalm_args = {p[platform_field]: p["napalm_args"] for p in nb_platforms}
+
         # Fetch all devices from Netbox
-        # Since the api uses pagination we have to fetch until no next is provided
-
-        url = f"{nb_url}/api/dcim/devices/?limit=0"
-        nb_devices: List[Dict[str, Any]] = []
-
-        while url:
-            r = session.get(url, params=filter_parameters)
-
-            if not r.status_code == 200:
-                raise ValueError(f"Failed to get devices from Netbox instance {nb_url}")
-
-            resp = r.json()
-            nb_devices.extend(resp.get("results"))
-
-            url = resp.get("next")
+        nb_devices = self._get_resources(
+            session, f"{nb_url}/api/dcim/devices/?limit=0", filter_parameters
+        )
 
         hosts = {}
         for d in nb_devices:
-            host: HostsDict = {"data": {}}
+            host: HostsDict = {"data": {}, "connection_options": {}}
 
             # Add value for IP address
             if d.get("primary_ip", {}):
@@ -87,13 +86,34 @@ class NBInventory(Inventory):
                 host["data"]["model"] = d["device_type"]["slug"]
 
                 # Attempt to add 'platform' based of value in 'slug'
-                host["platform"] = d["platform"]["slug"] if d["platform"] else None
+                host["platform"] = (
+                    d["platform"]["slug"]
+                    if isinstance(d["platform"], dict)
+                    else d["platform"]
+                )
 
             else:
                 host["data"]["site"] = d["site"]["name"]
                 host["data"]["role"] = d["device_role"]
                 host["data"]["model"] = d["device_type"]
-                host["platform"] = d["platform"]
+                host["platform"] = (
+                    d["platform"]["name"]
+                    if isinstance(d["platform"], dict)
+                    else d["platform"]
+                )
+
+            if use_platform_args:
+                # Add NAPALM connection options if they exist for the host platform
+                if napalm_args.get(host["platform"]):
+                    if os.environ.get("NB_PLATFORM_AS_CONN_OPTS", "0") == "1":
+                        # Abuse the platform NAPALM arguments field for use as
+                        # connection_options for any connection driver
+                        host["connection_options"] = napalm_args[host["platform"]]
+                    else:
+                        # Use the platform NAPALM arguments as intended by NetBox
+                        host["connection_options"]["napalm"] = {
+                            "extras": {"optional_args": napalm_args[host["platform"]]}
+                        }
 
             # Assign temporary dict to outer dict
             # Netbox allows devices to be unnamed, but the Nornir model does not allow this
@@ -102,3 +122,28 @@ class NBInventory(Inventory):
 
         # Pass the data back to the parent class
         super().__init__(hosts=hosts, groups={}, defaults={}, **kwargs)
+
+    def _get_resources(
+        self,
+        session: requests.sessions.Session,
+        url: str,
+        parameters: Optional[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        """Get data from Netbox API"""
+        nb_result: List[Dict[str, Any]] = []
+
+        # Since the api uses pagination we have to fetch until no next is provided
+        while url:
+            r = session.get(url, params=parameters)
+
+            if not r.status_code == 200:
+                raise ValueError(
+                    f"Failed to get valid response from Netbox instance {url}"
+                )
+
+            resp = r.json()
+            nb_result.extend(resp.get("results"))
+
+            url = resp.get("next")
+
+        return nb_result
