@@ -67,7 +67,32 @@ class AnsibleParser(object):
             dest_group["groups"].append(parent)
 
         group_data = data.get("vars", {})
-        vars_file_data = self.read_vars_file(group_file, self.path, False) or {}
+
+        # If group_vars/{{ group_name }} is a file
+        vars_file_data = {}
+        if self._vars_file_exists(f"{self.path}/group_vars/{group_file}"):
+            vars_file_data = self.read_vars_file(group_file, self.path, False) or {}
+
+        # Elif group_vars/{{ group_name }} is a directory
+        elif Path(f"{self.path}/group_vars/{group_file}").is_dir:
+            for root, subdirs, files in os.walk(f"{self.path}/group_vars/{group_file}"):
+                for file in files:
+                    if (
+                        file[file.rfind("."):] in VARS_FILENAME_EXTENSIONS
+                        and Path(f"{root}/{file}").is_file()
+                    ):
+                        t_vars_file_data = self.read_vars_file(
+                            element=group_file,
+                            path=f"{root}/{file}",
+                            is_host=False,
+                            is_dir=True,
+                        )
+                        if isinstance(t_vars_file_data, dict):
+                            vars_file_data = {
+                                **t_vars_file_data,
+                                **vars_file_data,
+                            }
+
         self.normalize_data(dest_group, group_data, vars_file_data)
         self.map_nornir_vars(dest_group)
 
@@ -77,6 +102,11 @@ class AnsibleParser(object):
             self.parse_group(
                 children, cast(AnsibleGroupDataDict, children_data), parent=group
             )
+
+    def _vars_file_exists(self, path: str) -> bool:
+        for ext in VARS_FILENAME_EXTENSIONS:
+            if os.path.isfile(f"{path}{ext}"):
+                return True
 
     def parse(self) -> None:
         if self.original_data is not None:
@@ -92,7 +122,26 @@ class AnsibleParser(object):
             if parent and parent != "defaults":
                 self.hosts[host]["groups"].append(parent)
 
-            vars_file_data = self.read_vars_file(host, self.path, True)
+            vars_file_data = {}
+            if self._vars_file_exists(f"{self.path}/group_vars/{host}"):
+                vars_file_data = self.read_vars_file(host, self.path, True)
+
+            elif Path(f"{self.path}/host_vars/{host}").is_dir:
+                for root, subdirs, files in os.walk(f"{self.path}/host_vars/{host}"):
+                    for file in files:
+                        if (
+                            file[file.rfind("."):] in VARS_FILENAME_EXTENSIONS
+                            and Path(f"{root}/{file}").is_file()
+                        ):
+                            t_vars_file_data = self.read_vars_file(
+                                element=host,
+                                path=f"{root}/{file}",
+                                is_host=True,
+                                is_dir=True,
+                            )
+                        if isinstance(t_vars_file_data, dict):
+                            vars_file_data = {**t_vars_file_data, **vars_file_data}
+
             self.normalize_data(self.hosts[host], data, vars_file_data)
             self.map_nornir_vars(self.hosts[host])
 
@@ -124,10 +173,18 @@ class AnsibleParser(object):
             group["groups"].sort()
 
     @staticmethod
-    def read_vars_file(element: str, path: str, is_host: bool = True) -> VarsDict:
+    def read_vars_file(
+        element: str, path: str, is_host: bool = True, is_dir: bool = False
+    ) -> VarsDict:
         sub_dir = "host_vars" if is_host else "group_vars"
         vars_dir = Path(path) / sub_dir
-        if vars_dir.is_dir():
+
+        if is_dir:
+            with open(path) as f:
+                logger.debug("AnsibleInventory: reading var file %r", path)
+                return cast(Dict[str, Any], YAML.load(f))
+
+        if is_dir is False and vars_dir.is_dir():
             vars_file_base = vars_dir / element
             for extension in VARS_FILENAME_EXTENSIONS:
                 vars_file = vars_file_base.with_suffix(

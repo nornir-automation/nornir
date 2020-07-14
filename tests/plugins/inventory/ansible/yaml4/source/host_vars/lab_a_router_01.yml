@@ -1,0 +1,4 @@
+---
+interfaces:
+  loopback1:
+    ip: 4.3.2.1/32

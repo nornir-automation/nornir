@@ -1,0 +1,12 @@
+all:
+  children:
+    lab_hosts:
+      hosts:
+        lab_a_router_01: {}
+        lab_a_router_02: {}
+    iosxr:
+      hosts:
+        lab_a_router_01: {}
+    eric_eccli:
+      hosts:
+        lab_a_router_02: {}

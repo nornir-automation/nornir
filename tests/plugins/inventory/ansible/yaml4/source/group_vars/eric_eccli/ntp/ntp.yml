@@ -1,0 +1,12 @@
+---
+ntp_mode:
+  servers:
+    - server_choice: 1.1.1.1
+      version: 3
+      source: management
+    - server_choice: 2.2.2.2
+      version: 3
+      source: management
+    - server_choice: 3.3.3.3
+      version: 3
+      source: management

@@ -1,0 +1,26 @@
+lab_a_router_02:
+  connection_options: {}
+  data:
+    interfaces:
+      loopback1:
+        ip: 1.2.3.4/32
+  groups:
+  - eric_eccli
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null
+lab_a_router_01:
+  connection_options: {}
+  data:
+    interfaces:
+      loopback1:
+        ip: 4.3.2.1/32
+  groups:
+    - iosxr
+  hostname: null
+  password: null
+  platform: null
+  port: null
+  username: null
