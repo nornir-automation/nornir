@@ -7,7 +7,7 @@ import json
 import sys
 from io import StringIO
 from colorama import Fore, Style, init
-
+from typing import Union
 from nornir.core.task import AggregatedResult, MultiResult, Result
 
 
@@ -90,7 +90,7 @@ def _print_result(
     failed: bool = False,
     severity_level: int = logging.INFO,
     return_output: bool = False,
-):
+) -> Union[None, str]:
     global OUT_BUFFER
     out_buffer = None
     if return_output:
@@ -162,7 +162,7 @@ def print_result(
     failed: bool = False,
     severity_level: int = logging.INFO,
     return_output: bool = False,
-):
+) -> Union[None, str]:
     """
     Prints the :obj:`nornir.core.task.Result` from a previous task to screen
 
