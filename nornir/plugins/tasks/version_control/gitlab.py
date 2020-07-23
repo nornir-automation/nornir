@@ -1,8 +1,10 @@
 import base64
 import difflib
 import threading
+
 from pathlib import Path
 from typing import Tuple
+from urllib.parse import quote
 
 from nornir.core.task import Optional, Result, Task
 
@@ -20,7 +22,8 @@ def _generate_diff(original: str, fromfile: str, tofile: str, content: str) -> s
 
 
 def _get_repository(session: requests.Session, url: str, repository: str) -> int:
-    resp = session.get(f"{url}/api/v4/projects?search={repository}")
+    quoted_repository = quote(repository, safe="")
+    resp = session.get(f"{url}/api/v4/projects?search={quoted_repository}")
     if resp.status_code != 200:
         raise RuntimeError(f"Unexpected Gitlab status code {resp.status_code}")
 
@@ -28,7 +31,7 @@ def _get_repository(session: requests.Session, url: str, repository: str) -> int
     found = False
     respjson = resp.json()
     if not len(respjson):
-        raise RuntimeError("Gitlab repository not found")
+        raise RuntimeError(f"Gitlab repository {repository} not found")
 
     for p in respjson:
         if p.get("name", "") == repository:
@@ -36,7 +39,7 @@ def _get_repository(session: requests.Session, url: str, repository: str) -> int
             pid = p.get("id", 0)
 
     if not pid or not found:
-        raise RuntimeError("Gitlab repository not found")
+        raise RuntimeError(f"Gitlab repository {repository} not found")
 
     return pid
 
@@ -44,6 +47,7 @@ def _get_repository(session: requests.Session, url: str, repository: str) -> int
 def _remote_exists(
     task: Task, session: requests.Session, url: str, pid: int, filename: str, ref: str
 ) -> Tuple[bool, str]:
+    filename = quote(filename, safe="")
     resp = session.get(
         f"{url}/api/v4/projects/{pid}/repository/files/{filename}?ref={ref}"
     )
@@ -75,11 +79,12 @@ def _create(
     commit_message: str,
     dry_run: bool,
 ) -> str:
+    quoted_filename = quote(filename, safe="")
     if dry_run:
         return _generate_diff("", "", filename, content)
 
     with LOCK:
-        url = f"{url}/api/v4/projects/{pid}/repository/files/{filename}"
+        url = f"{url}/api/v4/projects/{pid}/repository/files/{quoted_filename}"
         data = {"branch": branch, "content": content, "commit_message": commit_message}
         resp = session.post(url, data=data)
 
@@ -99,6 +104,8 @@ def _update(
     commit_message: str,
     dry_run: bool,
 ) -> str:
+
+    quoted_filename = quote(filename, safe="")
     exists, original = _remote_exists(task, session, url, pid, filename, branch)
 
     if not exists:
@@ -109,7 +116,7 @@ def _update(
 
     if original != content:
         with LOCK:
-            url = f"{url}/api/v4/projects/{pid}/repository/files/{filename}"
+            url = f"{url}/api/v4/projects/{pid}/repository/files/{quoted_filename}"
             data = {
                 "branch": branch,
                 "content": content,
