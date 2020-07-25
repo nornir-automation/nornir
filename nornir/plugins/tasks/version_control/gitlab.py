@@ -21,35 +21,18 @@ def _generate_diff(original: str, fromfile: str, tofile: str, content: str) -> s
     return "\n".join(diff)
 
 
-def _get_repository(session: requests.Session, url: str, repository: str) -> int:
-    quoted_repository = quote(repository, safe="")
-    resp = session.get(f"{url}/api/v4/projects?search={quoted_repository}")
-    if resp.status_code != 200:
-        raise RuntimeError(f"Unexpected Gitlab status code {resp.status_code}")
-
-    pid = 0
-    found = False
-    respjson = resp.json()
-    if not len(respjson):
-        raise RuntimeError(f"Gitlab repository {repository} not found")
-
-    for p in respjson:
-        if p.get("name", "") == repository:
-            found = True
-            pid = p.get("id", 0)
-
-    if not pid or not found:
-        raise RuntimeError(f"Gitlab repository {repository} not found")
-
-    return pid
-
-
 def _remote_exists(
-    task: Task, session: requests.Session, url: str, pid: int, filename: str, ref: str
+    task: Task,
+    session: requests.Session,
+    url: str,
+    repository: str,
+    filename: str,
+    ref: str,
 ) -> Tuple[bool, str]:
-    filename = quote(filename, safe="")
+    quoted_repository = quote(repository, safe="")
+    quoted_filename = quote(filename, safe="")
     resp = session.get(
-        f"{url}/api/v4/projects/{pid}/repository/files/{filename}?ref={ref}"
+        f"{url}/api/v4/projects/{quoted_repository}/repository/files/{quoted_filename}?ref={ref}"
     )
     if resp.status_code == 200:
         return (
@@ -72,19 +55,20 @@ def _create(
     task: Task,
     session: requests.Session,
     url: str,
-    pid: int,
+    repository: str,
     filename: str,
     content: str,
     branch: str,
     commit_message: str,
     dry_run: bool,
 ) -> str:
+    quoted_repository = quote(repository, safe="")
     quoted_filename = quote(filename, safe="")
     if dry_run:
         return _generate_diff("", "", filename, content)
 
     with LOCK:
-        url = f"{url}/api/v4/projects/{pid}/repository/files/{quoted_filename}"
+        url = f"{url}/api/v4/projects/{quoted_repository}/repository/files/{quoted_filename}"
         data = {"branch": branch, "content": content, "commit_message": commit_message}
         resp = session.post(url, data=data)
 
@@ -97,7 +81,7 @@ def _update(
     task: Task,
     session: requests.Session,
     url: str,
-    pid: int,
+    repository: str,
     filename: str,
     content: str,
     branch: str,
@@ -105,8 +89,9 @@ def _update(
     dry_run: bool,
 ) -> str:
 
+    quoted_repository = quote(repository, safe="")
     quoted_filename = quote(filename, safe="")
-    exists, original = _remote_exists(task, session, url, pid, filename, branch)
+    exists, original = _remote_exists(task, session, url, repository, filename, branch)
 
     if not exists:
         raise RuntimeError(f"File '{filename}' does not exist!")
@@ -116,7 +101,7 @@ def _update(
 
     if original != content:
         with LOCK:
-            url = f"{url}/api/v4/projects/{pid}/repository/files/{quoted_filename}"
+            url = f"{url}/api/v4/projects/{quoted_repository}/repository/files/{quoted_filename}"
             data = {
                 "branch": branch,
                 "content": content,
@@ -132,7 +117,7 @@ def _get(
     task: Task,
     session: requests.Session,
     url: str,
-    pid: int,
+    repository: str,
     filename: str,
     destination: str,
     ref: str,
@@ -146,7 +131,7 @@ def _get(
 
     (_, local) = _local_exists(task, destination)
 
-    (status, content) = _remote_exists(task, session, url, pid, filename, ref)
+    (status, content) = _remote_exists(task, session, url, repository, filename, ref)
 
     if not status:
         raise RuntimeError(f"Unable to get file: {filename}")
@@ -214,16 +199,32 @@ def gitlab(
     if commit_message == "":
         commit_message = "File created with nornir"
 
-    pid = _get_repository(session, url, repository)
+    # pid = _get_repository(session, url, repository)
 
     if action == "create":
         diff = _create(
-            task, session, url, pid, filename, content, branch, commit_message, dry_run
+            task,
+            session,
+            url,
+            repository,
+            filename,
+            content,
+            branch,
+            commit_message,
+            dry_run,
         )
     elif action == "update":
         diff = _update(
-            task, session, url, pid, filename, content, branch, commit_message, dry_run
+            task,
+            session,
+            url,
+            repository,
+            filename,
+            content,
+            branch,
+            commit_message,
+            dry_run,
         )
     elif action == "get":
-        diff = _get(task, session, url, pid, filename, destination, ref, dry_run)
+        diff = _get(task, session, url, repository, filename, destination, ref, dry_run)
     return Result(host=task.host, diff=diff, changed=bool(diff))
