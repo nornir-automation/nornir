@@ -199,8 +199,6 @@ def gitlab(
     if commit_message == "":
         commit_message = "File created with nornir"
 
-    # pid = _get_repository(session, url, repository)
-
     if action == "create":
         diff = _create(
             task,
