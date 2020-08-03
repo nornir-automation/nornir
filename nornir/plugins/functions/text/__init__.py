@@ -40,6 +40,7 @@ def _print_individual_result(
     attrs: List[str],
     failed: bool,
     severity_level: int,
+    host_level: bool = True,
     task_group: bool = False,
 ) -> None:
     if result.severity_level < severity_level:
@@ -51,7 +52,8 @@ def _print_individual_result(
     )
     level_name = logging.getLevelName(result.severity_level)
     symbol = "v" if task_group else "-"
-    msg = "{} {}{}".format(symbol * 4, result.name, subtitle)
+    host_msg = "{} ** ".format(host) if (host_level and host is not None) else ""
+    msg = "{} {}{}{}".format(symbol * 4, host_msg, result.name, subtitle)
     print(
         "{}{}{}{} {}".format(
             Style.BRIGHT, color, msg, symbol * (80 - len(msg)), level_name
@@ -77,6 +79,7 @@ def _print_result(
     attrs: List[str] = None,
     failed: bool = False,
     severity_level: int = logging.INFO,
+    host_level: bool = True
 ) -> None:
     attrs = attrs or ["diff", "result", "stdout"]
     if isinstance(attrs, str):
@@ -95,18 +98,18 @@ def _print_result(
             print(
                 "{}{}{}{}".format(Style.BRIGHT, Fore.BLUE, msg, "*" * (80 - len(msg)))
             )
-            _print_result(host_data, host, attrs, failed, severity_level)
+            _print_result(host_data, host, attrs, failed, severity_level, host_level=False)
     elif isinstance(result, MultiResult):
         _print_individual_result(
-            result[0], host, attrs, failed, severity_level, task_group=True
+            result[0], host, attrs, failed, severity_level, host_level, task_group=True
         )
         for r in result[1:]:
-            _print_result(r, host, attrs, failed, severity_level)
+            _print_result(r, host, attrs, failed, severity_level, host_level=False)
         color = _get_color(result[0], failed)
         msg = "^^^^ END {} ".format(result[0].name)
         print("{}{}{}{}".format(Style.BRIGHT, color, msg, "^" * (80 - len(msg))))
     elif isinstance(result, Result):
-        _print_individual_result(result, host, attrs, failed, severity_level)
+        _print_individual_result(result, host, attrs, failed, severity_level, host_level)
 
 
 def print_result(
