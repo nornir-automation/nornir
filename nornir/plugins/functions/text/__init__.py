@@ -128,7 +128,7 @@ def print_result(
 
     Arguments:
         result: from a previous task
-        host: # TODO
+        host: the name of the host associated with this result
         vars: Which attributes you want to print
         failed: if ``True`` assume the task failed
         severity_level: Print only errors with this severity level or higher
