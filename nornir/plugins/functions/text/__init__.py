@@ -79,7 +79,7 @@ def _print_result(
     attrs: List[str] = None,
     failed: bool = False,
     severity_level: int = logging.INFO,
-    host_level: bool = True
+    host_level: bool = True,
 ) -> None:
     attrs = attrs or ["diff", "result", "stdout"]
     if isinstance(attrs, str):
@@ -98,7 +98,9 @@ def _print_result(
             print(
                 "{}{}{}{}".format(Style.BRIGHT, Fore.BLUE, msg, "*" * (80 - len(msg)))
             )
-            _print_result(host_data, host, attrs, failed, severity_level, host_level=False)
+            _print_result(
+                host_data, host, attrs, failed, severity_level, host_level=False
+            )
     elif isinstance(result, MultiResult):
         _print_individual_result(
             result[0], host, attrs, failed, severity_level, host_level, task_group=True
@@ -109,7 +111,9 @@ def _print_result(
         msg = "^^^^ END {} ".format(result[0].name)
         print("{}{}{}{}".format(Style.BRIGHT, color, msg, "^" * (80 - len(msg))))
     elif isinstance(result, Result):
-        _print_individual_result(result, host, attrs, failed, severity_level, host_level)
+        _print_individual_result(
+            result, host, attrs, failed, severity_level, host_level
+        )
 
 
 def print_result(
