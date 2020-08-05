@@ -1,4 +1,3 @@
-
 import logging
 import pprint
 import threading
@@ -22,7 +21,9 @@ def print_title(title: str) -> None:
     Helper function to print a title.
     """
     msg = "**** {} ".format(title)
-    print("{}{}{}{}".format(Style.BRIGHT, Fore.GREEN, msg, "*" * (80 - len(msg))))
+    print("{}{}{}{}".format(
+        Style.BRIGHT, Fore.GREEN, msg, "*" * (80 - len(msg)))
+    )
 
 
 def _get_color(result: Result, failed: bool) -> str:
@@ -52,7 +53,9 @@ def _print_individual_result(
 
     color = _get_color(result, failed)
     subtitle = (
-        "" if result.changed is None else " ** changed : {} ".format(result.changed)
+        "" if result.changed is None else " ** changed : {} ".format(
+            result.changed
+            )
     )
     level_name = logging.getLevelName(result.severity_level)
     symbol = "v" if task_group else "-"
@@ -85,7 +88,7 @@ def _print_result(
     dest: Union[StringIO, None] = None,
     severity_level: int = logging.INFO,
 ) -> None:
-    
+
     out_buffer = sys.stdout if dest is None else dest
 
     attrs = attrs or ["diff", "result", "stdout"]
@@ -95,7 +98,9 @@ def _print_result(
     if isinstance(result, AggregatedResult):
         msg = result.name
         print(
-            "{}{}{}{}".format(Style.BRIGHT, Fore.CYAN, msg, "*" * (80 - len(msg))),
+            "{}{}{}{}".format(
+                Style.BRIGHT, Fore.CYAN, msg, "*" * (80 - len(msg))
+                ),
             file=out_buffer,
         )
         for host, host_data in sorted(result.items()):
@@ -106,16 +111,13 @@ def _print_result(
             )
             msg = "* {}{}".format(host, title)
             print(
-                "{}{}{}{}".format(Style.BRIGHT, Fore.BLUE, msg, "*" * (80 - len(msg))),
+                "{}{}{}{}".format(
+                    Style.BRIGHT, Fore.BLUE, msg, "*" * (80 - len(msg))
+                    ),
                 file=out_buffer,
             )
             _print_result(
-                host_data,
-                host,
-                attrs,
-                failed,
-                out_buffer,
-                severity_level,
+                host_data, host, attrs, failed, out_buffer, severity_level,
             )
     elif isinstance(result, MultiResult):
         _print_individual_result(
@@ -164,9 +166,6 @@ def print_result(
     """
     LOCK.acquire()
     try:
-        _print_result(
-            result, host, vars, failed, dest, severity_level
-        )
+        _print_result(result, host, vars, failed, dest, severity_level)
     finally:
         LOCK.release()
-        
