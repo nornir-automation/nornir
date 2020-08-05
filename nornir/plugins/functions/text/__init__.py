@@ -1,3 +1,4 @@
+
 import logging
 import pprint
 import threading
@@ -7,14 +8,11 @@ import json
 import sys
 from io import StringIO
 from colorama import Fore, Style, init
-from typing import Union
+from typing import Union, TextIO
 from nornir.core.task import AggregatedResult, MultiResult, Result
 
 
 LOCK = threading.Lock()
-
-# String buffer stream to use in case formatted string output is needed.
-OUT_BUFFER = StringIO()
 
 init(autoreset=True, strip=False)
 
@@ -43,15 +41,11 @@ def _print_individual_result(
     attrs: List[str],
     failed: bool,
     severity_level: int,
+    dest: Union[StringIO, TextIO],
     task_group: bool = False,
-    return_output: bool = False,
-):
-    global OUT_BUFFER
-    out_buffer = None
-    if return_output:
-        out_buffer = OUT_BUFFER
-    else:
-        out_buffer = sys.stdout
+) -> None:
+
+    out_buffer = dest
 
     if result.severity_level < severity_level:
         return
@@ -88,15 +82,11 @@ def _print_result(
     host: Optional[str] = None,
     attrs: List[str] = None,
     failed: bool = False,
+    dest: Union[StringIO, None] = None,
     severity_level: int = logging.INFO,
-    return_output: bool = False,
-) -> Union[None, str]:
-    global OUT_BUFFER
-    out_buffer = None
-    if return_output:
-        out_buffer = OUT_BUFFER
-    else:
-        out_buffer = sys.stdout
+) -> None:
+    
+    out_buffer = sys.stdout if dest is None else dest
 
     attrs = attrs or ["diff", "result", "stdout"]
     if isinstance(attrs, str):
@@ -124,8 +114,8 @@ def _print_result(
                 host,
                 attrs,
                 failed,
+                out_buffer,
                 severity_level,
-                return_output=return_output,
             )
     elif isinstance(result, MultiResult):
         _print_individual_result(
@@ -134,12 +124,12 @@ def _print_result(
             attrs,
             failed,
             severity_level,
+            out_buffer,
             task_group=True,
-            return_output=return_output,
         )
         for r in result[1:]:
             _print_result(
-                r, host, attrs, failed, severity_level, return_output=return_output
+                r, host, attrs, failed, out_buffer, severity_level,
             )
         color = _get_color(result[0], failed)
         msg = "^^^^ END {} ".format(result[0].name)
@@ -149,10 +139,8 @@ def _print_result(
         )
     elif isinstance(result, Result):
         _print_individual_result(
-            result, host, attrs, failed, severity_level, return_output=return_output
+            result, host, attrs, failed, severity_level, out_buffer
         )
-    if return_output:
-        return out_buffer.getvalue()
 
 
 def print_result(
@@ -161,8 +149,8 @@ def print_result(
     vars: List[str] = None,
     failed: bool = False,
     severity_level: int = logging.INFO,
-    return_output: bool = False,
-) -> Union[None, str]:
+    dest: Optional[StringIO] = None,
+) -> None:
     """
     Prints the :obj:`nornir.core.task.Result` from a previous task to screen
 
@@ -172,15 +160,13 @@ def print_result(
         vars: Which attributes you want to print
         failed: if ``True`` assume the task failed
         severity_level: Print only errors with this severity level or higher
-        return_output: If ``True``, return the formatted output instead of printing on stdout
+        dest: default=None, String buffer to write output into.
     """
     LOCK.acquire()
-    global OUT_BUFFER
     try:
-        string_output = _print_result(
-            result, host, vars, failed, severity_level, return_output=return_output
+        _print_result(
+            result, host, vars, failed, dest, severity_level
         )
-        return string_output
     finally:
         LOCK.release()
-        OUT_BUFFER.close()
+        
