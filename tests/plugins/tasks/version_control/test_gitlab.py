@@ -87,10 +87,10 @@ def update_file(
     resp,
 ):
     token = "dummy"
-
     quoted_repository = quote(repository, safe="")
     exists_file_url = (
-        f"{url}/api/v4/projects/{quoted_repository}/repository/files/{filename}?ref={branch}"
+        f"{url}/api/v4/projects/{quoted_repository}/repository/files/{filename}"
+        f"?ref={branch}"
     )
     requests_mock.get(exists_file_url, status_code=exists_status_code, json=exists_resp)
 
@@ -127,12 +127,11 @@ def get_file(
     ref,
 ):
     token = "dummy"
-
     quoted_repository = quote(repository, safe="")
     exists_file_url = (
-        f"{url}/api/v4/projects/{quoted_repository}/repository/files/{filename}?ref={ref}"
+        f"{url}/api/v4/projects/{quoted_repository}/repository/files/{filename}"
+        f"?ref={ref}"
     )
-
     requests_mock.get(exists_file_url, status_code=exists_status_code, json=exists_resp)
 
     res = nornir.run(
