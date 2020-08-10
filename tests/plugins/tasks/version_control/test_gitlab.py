@@ -1,5 +1,7 @@
-import os
 import uuid
+import os
+
+from urllib.parse import quote
 
 from nornir.plugins.tasks.version_control import gitlab
 
@@ -37,7 +39,6 @@ def create_file(
     requests_mock,
     url,
     repository,
-    pid,
     branch,
     filename,
     content,
@@ -45,16 +46,14 @@ def create_file(
     dry_run,
     commit_message,
     status_code,
-    project_status_code,
-    project_resp,
     resp,
 ):
     token = "dummy"
 
-    repo_url = f"{url}/api/v4/projects?search={repository}"
-    requests_mock.get(repo_url, status_code=project_status_code, json=project_resp)
-
-    create_file_url = f"{url}/api/v4/projects/{pid}/repository/files/{filename}"
+    quoted_repository = quote(repository, safe="")
+    create_file_url = (
+        f"{url}/api/v4/projects/{quoted_repository}/repository/files/{filename}"
+    )
     requests_mock.post(create_file_url, status_code=status_code, json=resp)
 
     res = nornir.run(
@@ -77,30 +76,27 @@ def update_file(
     requests_mock,
     url,
     repository,
-    pid,
     branch,
     filename,
     content,
     dry_run,
     commit_message,
     status_code,
-    project_status_code,
     exists_status_code,
-    project_resp,
     exists_resp,
     resp,
 ):
     token = "dummy"
-
-    repo_url = f"{url}/api/v4/projects?search={repository}"
-    requests_mock.get(repo_url, status_code=project_status_code, json=project_resp)
-
+    quoted_repository = quote(repository, safe="")
     exists_file_url = (
-        f"{url}/api/v4/projects/{pid}/repository/files/{filename}?ref={branch}"
+        f"{url}/api/v4/projects/{quoted_repository}/repository/files/{filename}"
+        f"?ref={branch}"
     )
     requests_mock.get(exists_file_url, status_code=exists_status_code, json=exists_resp)
 
-    update_file_url = f"{url}/api/v4/projects/{pid}/repository/files/{filename}"
+    update_file_url = (
+        f"{url}/api/v4/projects/{quoted_repository}/repository/files/{filename}"
+    )
     requests_mock.put(update_file_url, status_code=status_code, json=resp)
 
     res = nornir.run(
@@ -123,25 +119,19 @@ def get_file(
     requests_mock,
     url,
     repository,
-    pid,
     filename,
     destination,
     dry_run,
-    project_status_code,
     exists_status_code,
-    project_resp,
     exists_resp,
     ref,
 ):
     token = "dummy"
-
-    repo_url = f"{url}/api/v4/projects?search={repository}"
-    requests_mock.get(repo_url, status_code=project_status_code, json=project_resp)
-
+    quoted_repository = quote(repository, safe="")
     exists_file_url = (
-        f"{url}/api/v4/projects/{pid}/repository/files/{filename}?ref={ref}"
+        f"{url}/api/v4/projects/{quoted_repository}/repository/files/{filename}"
+        f"?ref={ref}"
     )
-
     requests_mock.get(exists_file_url, status_code=exists_status_code, json=exists_resp)
 
     res = nornir.run(
@@ -166,7 +156,6 @@ class Test(object):
             requests_mock=requests_mock,
             url="http://localhost",
             repository="test",
-            pid=1,
             branch="master",
             filename="dummy",
             content="dummy",
@@ -174,8 +163,6 @@ class Test(object):
             dry_run=True,
             commit_message="commit",
             status_code=201,
-            project_status_code=200,
-            project_resp=[{"name": "test", "id": 1}],
             resp={"branch": "master", "file_path": "dummy"},
         )
 
@@ -190,7 +177,6 @@ class Test(object):
             requests_mock=requests_mock,
             url="http://localhost",
             repository="test",
-            pid=1,
             branch="master",
             filename="dummy",
             content="dummy",
@@ -198,8 +184,6 @@ class Test(object):
             dry_run=False,
             commit_message="commit",
             status_code=201,
-            project_status_code=200,
-            project_resp=[{"name": "test", "id": 1}],
             resp={"branch": "master", "file_path": "dummy"},
         )
 
@@ -214,7 +198,6 @@ class Test(object):
             requests_mock=requests_mock,
             url="http://localhost",
             repository="test",
-            pid=1,
             branch="master",
             filename="dummy",
             content="dummy",
@@ -222,31 +205,6 @@ class Test(object):
             dry_run=False,
             commit_message="commit",
             status_code=400,
-            project_status_code=200,
-            project_resp=[{"name": "test", "id": 1}],
-            resp={"branch": "master", "file_path": "dummy"},
-        )
-
-        assert res["dev1.group_1"][0].failed
-        assert not res["dev1.group_1"][0].changed
-
-    def test_gitlab_create_invalid_project(self, nornir, requests_mock):
-        nornir = nornir.filter(name="dev1.group_1")
-        res = create_file(
-            nornir=nornir,
-            requests_mock=requests_mock,
-            url="http://localhost",
-            repository="test",
-            pid=1,
-            branch="master",
-            filename="dummy",
-            content="dummy",
-            action="create",
-            dry_run=False,
-            commit_message="commit",
-            status_code=201,
-            project_status_code=200,
-            project_resp=[{"name": "aaa", "id": 1}],
             resp={"branch": "master", "file_path": "dummy"},
         )
 
@@ -260,7 +218,6 @@ class Test(object):
             requests_mock=requests_mock,
             url="http://localhost",
             repository="test",
-            pid=1,
             branch="bar",
             filename="dummy",
             content="dummy",
@@ -268,8 +225,6 @@ class Test(object):
             dry_run=False,
             commit_message="commit",
             status_code=400,
-            project_status_code=200,
-            project_resp=[{"name": "test", "id": 1}],
             resp={"branch": "master", "file_path": "dummy"},
         )
 
@@ -283,16 +238,13 @@ class Test(object):
             requests_mock=requests_mock,
             url="http://localhost",
             repository="test",
-            pid=1,
             branch="master",
             filename="dummy",
             content="new line",
             dry_run=True,
             commit_message="commit",
             status_code=200,
-            project_status_code=200,
             exists_status_code=200,
-            project_resp=[{"name": "test", "id": 1}],
             exists_resp={"content": "ZHVtbXk=\n"},
             resp={"branch": "master", "file_path": "dummy"},
         )
@@ -308,45 +260,19 @@ class Test(object):
             requests_mock=requests_mock,
             url="http://localhost",
             repository="test",
-            pid=1,
             branch="master",
             filename="dummy",
             content="new line",
             dry_run=False,
             commit_message="commit",
             status_code=200,
-            project_status_code=200,
             exists_status_code=200,
-            project_resp=[{"name": "test", "id": 1}],
             exists_resp={"content": "ZHVtbXk=\n"},
             resp={"branch": "master", "file_path": "dummy"},
         )
         assert not res["dev1.group_1"][0].failed
         assert res["dev1.group_1"][0].changed
         assert res["dev1.group_1"][0].diff == diff_update
-
-    def test_gitlab_update_invalid_project(self, nornir, requests_mock):
-        nornir = nornir.filter(name="dev1.group_1")
-        res = update_file(
-            nornir=nornir,
-            requests_mock=requests_mock,
-            url="http://localhost",
-            repository="test",
-            pid=1,
-            branch="master",
-            filename="dummy",
-            content="new line",
-            dry_run=False,
-            commit_message="commit",
-            status_code=200,
-            project_status_code=200,
-            exists_status_code=200,
-            project_resp=[{"name": "123", "id": 1}],
-            exists_resp={"content": "ZHVtbXk=\n"},
-            resp={"branch": "master", "file_path": "dummy"},
-        )
-        assert res["dev1.group_1"][0].failed
-        assert not res["dev1.group_1"][0].changed
 
     def test_gitlab_update_invalid_branch(self, nornir, requests_mock):
         nornir = nornir.filter(name="dev1.group_1")
@@ -355,16 +281,13 @@ class Test(object):
             requests_mock=requests_mock,
             url="http://localhost",
             repository="test",
-            pid=1,
             branch="bar",
             filename="dummy",
             content="new line",
             dry_run=False,
             commit_message="commit",
             status_code=200,
-            project_status_code=200,
             exists_status_code=400,
-            project_resp=[{"name": "test", "id": 1}],
             exists_resp="",
             resp={"branch": "master", "file_path": "dummy"},
         )
@@ -378,16 +301,13 @@ class Test(object):
             requests_mock=requests_mock,
             url="http://localhost",
             repository="test",
-            pid=1,
             branch="master",
             filename="bar",
             content="new line",
             dry_run=False,
             commit_message="commit",
             status_code=200,
-            project_status_code=200,
             exists_status_code=400,
-            project_resp=[{"name": "test", "id": 1}],
             exists_resp={"content": "ZHVtbXk=\n"},
             resp={"branch": "master", "file_path": "dummy"},
         )
@@ -402,13 +322,10 @@ class Test(object):
             requests_mock=requests_mock,
             url="http://localhost",
             repository="test",
-            pid=1,
             filename="bar",
             dry_run=True,
             destination=f"/tmp/{u}",
-            project_status_code=200,
             exists_status_code=200,
-            project_resp=[{"name": "test", "id": 1}],
             exists_resp={"content": "Y29udGVudA==\n"},
             ref="master",
         )
@@ -426,13 +343,10 @@ class Test(object):
             requests_mock=requests_mock,
             url="http://localhost",
             repository="test",
-            pid=1,
             filename="bar",
             dry_run=False,
             destination=f"/tmp/{u}",
-            project_status_code=200,
             exists_status_code=200,
-            project_resp=[{"name": "test", "id": 1}],
             exists_resp={"content": "Y29udGVudA==\n"},
             ref="master",
         )
@@ -442,27 +356,6 @@ class Test(object):
         assert res["dev1.group_1"][0].changed
         assert res["dev1.group_1"][0].diff == diff
 
-    def test_gitlab_get_invalid_project(self, nornir, requests_mock):
-        nornir = nornir.filter(name="dev1.group_1")
-        res = get_file(
-            nornir=nornir,
-            requests_mock=requests_mock,
-            url="http://localhost",
-            repository="test",
-            pid=2,
-            filename="bar",
-            dry_run=False,
-            destination="/tmp/foo",
-            project_status_code=400,
-            exists_status_code=200,
-            project_resp=[{"name": "test", "id": 1}],
-            exists_resp={"content": "Y29udGVudA==\n"},
-            ref="master",
-        )
-
-        assert res["dev1.group_1"][0].failed
-        assert not res["dev1.group_1"][0].changed
-
     def test_gitlab_get_invalid_branch(self, nornir, requests_mock):
         nornir = nornir.filter(name="dev1.group_1")
         res = get_file(
@@ -470,13 +363,10 @@ class Test(object):
             requests_mock=requests_mock,
             url="http://localhost",
             repository="test",
-            pid=1,
             filename="bar",
             dry_run=False,
             destination="/tmp/foo",
-            project_status_code=200,
             exists_status_code=400,
-            project_resp=[{"name": "test", "id": 1}],
             exists_resp={"content": "Y29udGVudA==\n"},
             ref="lll",
         )
@@ -491,13 +381,10 @@ class Test(object):
             requests_mock=requests_mock,
             url="http://localhost",
             repository="test",
-            pid=1,
             filename="baz",
             dry_run=False,
             destination="/tmp/foo",
-            project_status_code=200,
             exists_status_code=400,
-            project_resp=[{"name": "test", "id": 1}],
             exists_resp={"content": "Y29udGVudA==\n"},
             ref="",
         )
