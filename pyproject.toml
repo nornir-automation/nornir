@@ -4,7 +4,7 @@ build-backend = "poetry.masonry.api"
 
 [tool.poetry]
 name = "nornir"
-version = "2.4.0"
+version = "2.5.0"
 description = "Pluggable multi-threaded framework with inventory management to help operate collections of devices"
 authors = ["David Barroso <dbarrosop@dravetech.com>"]
 license = "Apache 2.0"
