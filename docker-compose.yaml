@@ -34,7 +34,7 @@ services:
 
     netconf1.no_group:
         hostname: netconf1.no_group
-        image: sysrepo/sysrepo-netopeer2:v0.7.7
+        image: sysrepo/sysrepo-netopeer2:legacy
         ports:
             - "65025:830"
 
