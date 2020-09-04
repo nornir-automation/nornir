@@ -11,12 +11,14 @@ build-backend = "poetry.masonry.api"
 
 [tool.poetry]
 name = "nornir"
-version = "3.0.0b1"
+version = "3.0.0"
 description = "Pluggable multi-threaded framework with inventory management to help operate collections of devices"
 authors = ["David Barroso <dbarrosop@dravetech.com>"]
+license = "Apache 2.0"
 readme = "README.md"
 repository = "https://github.com/nornir-automation/nornir"
 classifiers = [
+        "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
 ]
