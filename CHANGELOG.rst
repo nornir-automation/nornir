@@ -1,6 +1,21 @@
 Changelog
 ==========
 
+2.5.0 - September 4 2020
+------------------------
+
+*  migrate to github actions :issue:`491` :user:`dbarrosop`
+*  Delete /tmp/hosts before running gitlab plugin notebook cell :issue:`500` :user:`dmfigol`
+*  Do not store failed connections in host attributes :issue:`497` :user:`dmfigol`
+*  Improved whitespace handling in jinja template rendering :issue:`528` :user:`indy-independence`
+*  pass ssh_config only if file exists :issue:`538` :user:`dbarrosop`
+*  Allow nornir 2.x to use NAPALM 3.x without warnings :issue:`545` :user:`ktbyers`
+*  Remove None default for source of napalm_ping :issue:`556` :user:`ThreeFDDI`
+*  Update processors.ipynb :issue:`566` :user:`pablopenton`
+*  NBInventory - adds device name if no primary IP :issue:`534` :user:`jvanderaa`
+*  Adding license meta information to pyproject.toml :issue:`581` :user:`ktbyers`
+*  fix netconf tests to accommodate latest container :issue:`582` :user:`dbarrosop`
+
 2.4.0 - February 15 2020
 ------------------------
 
