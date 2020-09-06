@@ -12,10 +12,21 @@
 				"asset_tag": null,
 				"site": "sunnyvale-ca",
 				"role": "rt",
-				"model": "mx480",
-				"platform": "junos"
+				"model": "mx480"
 			},
-			"connection_options": {},
+			"connection_options": {
+				"netmiko": {
+					"extras": {
+            "ssh_config_file": "~/.ssh/config",
+            "use_keys": true
+          },
+					"hostname": null,
+					"password": null,
+					"platform": null,
+					"port": null,
+					"username": null
+			    }
+			},
 			"groups": []
 		},
 		"2-Distribution": {
@@ -30,10 +41,21 @@
 				"asset_tag": null,
 				"site": "sunnyvale-ca",
 				"role": "rt",
-				"model": "ex4550-32f",
-				"platform": "junos"
+				"model": "ex4550-32f"
 			},
-			"connection_options": {},
+			"connection_options": {
+				"netmiko": {
+					"extras": {
+            "ssh_config_file": "~/.ssh/config",
+            "use_keys": true
+          },
+					"hostname": null,
+					"password": null,
+					"platform": null,
+					"port": null,
+					"username": null
+			  }
+			},
 			"groups": []
 		},
 		"3-Access": {
@@ -43,14 +65,12 @@
 			"password": null,
 			"platform": null,
 			"data": {
-                "user_defined": 1,
 				"serial": "",
 				"vendor": "Cisco",
 				"asset_tag": null,
 				"site": "san-jose-ca",
 				"role": "sw",
-				"model": "3650-48tq-l",
-				"platform": "ios"
+				"model": "3650-48tq-l"
 			},
 			"connection_options": {},
 			"groups": []
@@ -67,10 +87,21 @@
 				"asset_tag": null,
 				"site": "sunnyvale-ca",
 				"role": "rt",
-				"model": "mx480",
-				"platform": "junos"
+				"model": "mx480"
 			},
-			"connection_options": {},
+			"connection_options": {
+				"netmiko": {
+					"extras": {
+            "ssh_config_file": "~/.ssh/config",
+            "use_keys": true
+          },
+					"hostname": null,
+					"password": null,
+					"platform": null,
+					"port": null,
+					"username": null
+				}
+			},
 			"groups": []
 		}
 	},

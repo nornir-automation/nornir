@@ -5,7 +5,7 @@
 			"hostname": "10.0.1.1",
 			"username": null,
 			"password": null,
-			"platform": null,
+			"platform": "junos",
 			"data": {
 				"serial": "",
 				"vendor": "Juniper",
@@ -22,7 +22,7 @@
 			"hostname": "172.16.2.1",
 			"username": null,
 			"password": null,
-			"platform": null,
+			"platform": "junos",
 			"data": {
 				"serial": "",
 				"vendor": "Juniper",
@@ -57,7 +57,7 @@
 			"hostname": "10.0.1.4",
 			"username": null,
 			"password": null,
-			"platform": null,
+			"platform": "junos",
 			"data": {
 				"serial": "",
 				"vendor": "Juniper",

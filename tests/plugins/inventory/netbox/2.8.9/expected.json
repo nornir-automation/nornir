@@ -12,8 +12,7 @@
 				"asset_tag": null,
 				"site": "sunnyvale-ca",
 				"role": "rt",
-				"model": "mx480",
-				"platform": "junos"
+				"model": "mx480"
 			},
 			"connection_options": {},
 			"groups": []
@@ -30,8 +29,7 @@
 				"asset_tag": null,
 				"site": "sunnyvale-ca",
 				"role": "rt",
-				"model": "ex4550-32f",
-				"platform": "junos"
+				"model": "ex4550-32f"
 			},
 			"connection_options": {},
 			"groups": []
@@ -43,18 +41,16 @@
 			"password": null,
 			"platform": null,
 			"data": {
-                "user_defined": 1,
 				"serial": "",
 				"vendor": "Cisco",
 				"asset_tag": null,
 				"site": "san-jose-ca",
 				"role": "sw",
-				"model": "3650-48tq-l",
-				"platform": "ios"
+				"model": "3650-48tq-l"
 			},
 			"connection_options": {},
 			"groups": []
-		},
+	  },
 		"4": {
 			"port": null,
 			"hostname": "10.0.1.4",
@@ -67,8 +63,7 @@
 				"asset_tag": null,
 				"site": "sunnyvale-ca",
 				"role": "rt",
-				"model": "mx480",
-				"platform": "junos"
+				"model": "mx480"
 			},
 			"connection_options": {},
 			"groups": []

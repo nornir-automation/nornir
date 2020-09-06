@@ -1,0 +1,25 @@
+{
+    "count": 1,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": 1,
+            "name": "junos",
+            "slug": "junos",
+            "manufacturer": {
+                "id": 1,
+                "url": "http://localhost:8080/api/dcim/manufacturers/1/",
+                "name": "juniper",
+                "slug": "juniper"
+            },
+            "napalm_driver": "junos",
+            "napalm_args": {
+              "ignore_warning": true
+            },
+            "description": "",
+            "device_count": 3,
+            "virtualmachine_count": null
+        }
+    ]
+}
