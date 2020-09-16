@@ -22,6 +22,15 @@ Please note that Nornir requires Python 3.6.2 or higher. Install Nornir with pip
 pip install nornir
 ```
 
+Plugins
+-------
+
+Since version 3.0.0 nornir doesn't ship with plugins, instead you can rely on `pip` to install them for you. You can find a non-exhaustive list of plugins in the following URL:
+
+https://nornir.tech/nornir/plugins/
+
+If you wrote a plugin and want to add it to the list don't hesitate to [add it yourself](https://github.com/nornir-automation/nornir.tech.src/blob/master/data/nornir/plugins.yaml)
+
 Development version
 -------------------
 
