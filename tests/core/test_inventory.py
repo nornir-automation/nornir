@@ -544,7 +544,7 @@ class Test(object):
         inv = inventory.Inventory(hosts=hosts, groups=groups)
 
         assert "h1" in inv.hosts
-        assert g3 not in inv.hosts['h1'].groups
+        assert g3 not in inv.hosts["h1"].groups
         assert h1.get("var3", None) is None
 
         h1.add_to_group(g3)
@@ -564,7 +564,7 @@ class Test(object):
         inv = inventory.Inventory(hosts=hosts, groups=groups)
 
         assert "h1" in inv.hosts
-        assert g3 in inv.hosts['h1'].groups
+        assert g3 in inv.hosts["h1"].groups
         assert h1.get("var3") == "val3"
 
         h1.remove_from_group(g3)
