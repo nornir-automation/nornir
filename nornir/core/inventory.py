@@ -172,14 +172,7 @@ class InventoryElement(BaseAttributes):
         #self.groups.remove(group)
         self.groups.remove_group(group)
 
-    def refresh(self):
-        super().__init__(
-            hostname=hostname,
-            port=port,
-            username=username,
-            password=password,
-            platform=platform,
-        )
+
 class Defaults(BaseAttributes):
     __slots__ = ("data", "connection_options")
 
