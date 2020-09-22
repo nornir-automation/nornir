@@ -558,7 +558,6 @@ class Test(object):
         g2 = inventory.Group(name="g2", groups=inventory.ParentGroups([g1]))
         g3 = inventory.Group(name="g3", groups=inventory.ParentGroups([g2]), data=data)
         h1 = inventory.Host(name="h1", groups=inventory.ParentGroups([g1, g2, g3]))
-        h2 = inventory.Host(name="h2")
         hosts = {"h1": h1, "h2": h2}
         groups = {"g1": g1, "g2": g2}
         inv = inventory.Inventory(hosts=hosts, groups=groups)
@@ -567,7 +566,13 @@ class Test(object):
         assert g3 in inv.hosts["h1"].groups
         assert h1.get("var3") == "val3"
 
+        g3.data["var3"] = "newval3"
+        assert h1.get("var3", None) == "newval3"
+
         h1.remove_from_group(g3)
         assert g3 not in h1.groups
         assert h1.get("var3", None) is None
         assert h1.get("var1", None) == "val1"
+
+        with pytest.raises(KeyError):
+            h1.remove_from_group(g3)
