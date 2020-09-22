@@ -105,6 +105,20 @@ class ParentGroups(List["Group"]):
         else:
             return any([value == g for g in self])
 
+    def add_group(self, group: "Group") -> None:
+        if self.__contains__(group):
+            return
+
+        self.append(group)
+
+
+    def remove_group(self, group: "Group") -> None:
+
+        if self.__contains__(group):
+            self.remove(group)
+        else:
+            raise ValueError(f"Group {group} key error")
+
 
 class InventoryElement(BaseAttributes):
     __slots__ = ("groups", "data", "connection_options")
@@ -151,6 +165,21 @@ class InventoryElement(BaseAttributes):
         }
 
 
+    def add_to_group(self, group: "Group") -> None:
+        self.groups.add_group(group)
+
+    def remove_from_group(self, group: "Group") -> None:
+        #self.groups.remove(group)
+        self.groups.remove_group(group)
+
+    def refresh(self):
+        super().__init__(
+            hostname=hostname,
+            port=port,
+            username=username,
+            password=password,
+            platform=platform,
+        )
 class Defaults(BaseAttributes):
     __slots__ = ("data", "connection_options")
 
