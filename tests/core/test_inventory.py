@@ -558,6 +558,7 @@ class Test(object):
         g2 = inventory.Group(name="g2", groups=inventory.ParentGroups([g1]))
         g3 = inventory.Group(name="g3", groups=inventory.ParentGroups([g2]), data=data)
         h1 = inventory.Host(name="h1", groups=inventory.ParentGroups([g1, g2, g3]))
+        h2 = inventory.Host(name="h2")
         hosts = {"h1": h1, "h2": h2}
         groups = {"g1": g1, "g2": g2}
         inv = inventory.Inventory(hosts=hosts, groups=groups)
