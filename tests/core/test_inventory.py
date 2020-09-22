@@ -532,8 +532,8 @@ class Test(object):
         assert "dev3.group_2" in hosts_dict
 
     def test_add_group_to_host_runtime(self, inv):
-        orig_data = {"var1" : "val1"}
-        data = {"var3" : "val3"}
+        orig_data = {"var1": "val1"}
+        data = {"var3": "val3"}
         g1 = inventory.Group(name="g1", data=orig_data)
         g2 = inventory.Group(name="g2", groups=inventory.ParentGroups([g1]))
         g3 = inventory.Group(name="g3", groups=inventory.ParentGroups([g2]), data=data)
@@ -549,11 +549,11 @@ class Test(object):
 
         h1.add_to_group(g3)
         assert g3 in h1.groups
-        assert h1.get("var3", None) is "val3"
+        assert h1.get("var3", None) == "val3"
 
     def test_remove_group_from_host(self):
-        data = {"var3" : "val3"}
-        orig_data = {"var1" : "val1"}
+        data = {"var3": "val3"}
+        orig_data = {"var1": "val1"}
         g1 = inventory.Group(name="g1", data=orig_data)
         g2 = inventory.Group(name="g2", groups=inventory.ParentGroups([g1]))
         g3 = inventory.Group(name="g3", groups=inventory.ParentGroups([g2]), data=data)
