@@ -530,3 +530,44 @@ class Test(object):
         assert "group_1" in dev1_groups
         assert dev2_paramiko_opts["username"] == "root"
         assert "dev3.group_2" in hosts_dict
+
+    def test_add_group_to_host_runtime(self, inv):
+        orig_data = {"var1" : "val1"}
+        data = {"var3" : "val3"}
+        g1 = inventory.Group(name="g1", data=orig_data)
+        g2 = inventory.Group(name="g2", groups=inventory.ParentGroups([g1]))
+        g3 = inventory.Group(name="g3", groups=inventory.ParentGroups([g2]), data=data)
+        h1 = inventory.Host(name="h1", groups=inventory.ParentGroups([g1, g2]))
+        h2 = inventory.Host(name="h2")
+        hosts = {"h1": h1, "h2": h2}
+        groups = {"g1": g1, "g2": g2}
+        inv = inventory.Inventory(hosts=hosts, groups=groups)
+
+        assert "h1" in inv.hosts
+        assert g3 not in inv.hosts['h1'].groups
+        assert h1.get("var3", None) is None
+
+        h1.add_to_group(g3)
+        assert g3 in h1.groups
+        assert h1.get("var3", None) is "val3"
+
+    def test_remove_group_from_host(self):
+        data = {"var3" : "val3"}
+        orig_data = {"var1" : "val1"}
+        g1 = inventory.Group(name="g1", data=orig_data)
+        g2 = inventory.Group(name="g2", groups=inventory.ParentGroups([g1]))
+        g3 = inventory.Group(name="g3", groups=inventory.ParentGroups([g2]), data=data)
+        h1 = inventory.Host(name="h1", groups=inventory.ParentGroups([g1, g2, g3]))
+        h2 = inventory.Host(name="h2")
+        hosts = {"h1": h1, "h2": h2}
+        groups = {"g1": g1, "g2": g2}
+        inv = inventory.Inventory(hosts=hosts, groups=groups)
+
+        assert "h1" in inv.hosts
+        assert g3 in inv.hosts['h1'].groups
+        assert h1.get("var3") == "val3"
+
+        h1.remove_from_group(g3)
+        assert g3 not in h1.groups
+        assert h1.get("var3", None) is None
+        assert h1.get("var1", None) == "val1"
