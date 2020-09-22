@@ -111,7 +111,6 @@ class ParentGroups(List["Group"]):
 
         self.append(group)
 
-
     def remove_group(self, group: "Group") -> None:
 
         if self.__contains__(group):
@@ -164,12 +163,10 @@ class InventoryElement(BaseAttributes):
             **super().dict(),
         }
 
-
     def add_to_group(self, group: "Group") -> None:
         self.groups.add_group(group)
 
     def remove_from_group(self, group: "Group") -> None:
-        #self.groups.remove(group)
         self.groups.remove_group(group)
 
 
