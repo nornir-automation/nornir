@@ -59,7 +59,9 @@ jobs:
           architecture: x64
 
       - name: Install Poetry
-        uses: dschep/install-poetry-action@v1.2
+        uses: dschep/install-poetry-action@v1.3
+        with:
+          version: 1.0.10
 
       - name: Cache Poetry virtualenv
         uses: actions/cache@v1
