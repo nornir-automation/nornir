@@ -45,8 +45,8 @@ dataclasses = {version = "^0.7", python = "~3.6"}
 
 [tool.poetry.dev-dependencies]
 decorator = "*"
-nbval = "0.9.5"
-pytest = "5.4.3"
+nbval = "*"
+pytest = "*"
 pytest-cov = "*"
 pylama = "*"
 requests-mock = "*"
