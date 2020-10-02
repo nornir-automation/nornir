@@ -45,8 +45,8 @@ dataclasses = {version = "^0.7", python = "~3.6"}
 
 [tool.poetry.dev-dependencies]
 decorator = "*"
-nbval = "*"
-pytest = "*"
+nbval = "0.9.5"
+pytest = "5.4.3"
 pytest-cov = "*"
 pylama = "*"
 requests-mock = "*"
@@ -59,7 +59,8 @@ sphinx_rtd_theme = "^0.4"
 sphinxcontrib_napoleon = "^0.7"
 jupyter = "^1"
 nbsphinx = "^0.5"
-pygments = "^2"
+nbconvert = "5.6.1"
+pygments = "2.6.1"
 sphinx-issues = "^1.2"
 
 # for docs only
