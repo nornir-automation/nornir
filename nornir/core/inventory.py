@@ -113,6 +113,7 @@ class ParentGroups(List["Group"]):
         :param group: Parent Group object to add
         :return: None
         """
+
         # only add the group if it doesn't exist
         if not self.__contains__(group):
             self.append(group)
@@ -170,6 +171,12 @@ class InventoryElement(BaseAttributes):
             },
             **super().dict(),
         }
+
+    def add_to_group(self, group: "Group") -> None:
+        self.groups.add(group)
+
+    def remove_from_group(self, group: "Group") -> None:
+        self.groups.remove(group)
 
 
 class Defaults(BaseAttributes):

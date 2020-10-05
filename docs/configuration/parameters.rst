@@ -206,7 +206,7 @@ ____________
    * - **Required**
      - ``False``
    * - **Environment Variable**
-     - ``NORNIR_LOGGING_FILE``
+     - ``NORNIR_LOGGING_LOG_FILE``
 
 ``format``
 __________

@@ -532,6 +532,7 @@ class Test(object):
         assert "dev3.group_2" in hosts_dict
 
     def test_add_group_to_host_runtime(self):
+
         orig_data = {"var1": "val1"}
         data = {"var3": "val3"}
         g1 = inventory.Group(name="g1", data=orig_data)
