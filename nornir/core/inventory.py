@@ -171,12 +171,6 @@ class InventoryElement(BaseAttributes):
             **super().dict(),
         }
 
-    def add_to_group(self, group: "Group") -> None:
-        self.groups.add(group)
-
-    def remove_from_group(self, group: "Group") -> None:
-        self.groups.remove(group)
-
 
 class Defaults(BaseAttributes):
     __slots__ = ("data", "connection_options")
