@@ -531,7 +531,7 @@ class Test(object):
         assert dev2_paramiko_opts["username"] == "root"
         assert "dev3.group_2" in hosts_dict
 
-    def test_add_group_to_host_runtime(self, inv):
+    def test_add_group_to_host_runtime(self):
         orig_data = {"var1": "val1"}
         data = {"var3": "val3"}
         g1 = inventory.Group(name="g1", data=orig_data)
@@ -547,7 +547,7 @@ class Test(object):
         assert g3 not in inv.hosts["h1"].groups
         assert h1.get("var3", None) is None
 
-        h1.add_to_group(g3)
+        h1.groups.add(g3)
         assert g3 in h1.groups
         assert h1.get("var3", None) == "val3"
 
@@ -570,10 +570,10 @@ class Test(object):
         g3.data["var3"] = "newval3"
         assert h1.get("var3", None) == "newval3"
 
-        h1.remove_from_group(g3)
+        h1.groups.remove(g3)
         assert g3 not in h1.groups
         assert h1.get("var3", None) is None
         assert h1.get("var1", None) == "val1"
 
-        with pytest.raises(KeyError):
-            h1.remove_from_group(g3)
+        with pytest.raises(ValueError):
+            h1.groups.remove(g3)

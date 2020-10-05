@@ -106,16 +106,26 @@ class ParentGroups(List["Group"]):
             return any([value == g for g in self])
 
     def add(self, group: "Group") -> None:
+        """
+        Add the ParentGroup.  The group will only be appended
+        if it does not exist.
+
+        :param group: Parent Group object to add
+        :return: None
+        """
         # only add the group if it doesn't exist
         if not self.__contains__(group):
             self.append(group)
 
     def remove(self, group: "Group") -> None:
-        if self.__contains__(group):
-            # remove overrides the parent class so calling super()
-            super(ParentGroups, self).remove(group)
-        else:
-            raise KeyError(group)
+        """
+        Remove the parent group.
+
+        :param group: Group object to remove
+        :return: None
+        """
+        super().remove(group)
+
 
 
 class InventoryElement(BaseAttributes):
@@ -162,11 +172,7 @@ class InventoryElement(BaseAttributes):
             **super().dict(),
         }
 
-    def add_to_group(self, group: "Group") -> None:
-        self.groups.add(group)
 
-    def remove_from_group(self, group: "Group") -> None:
-        self.groups.remove(group)
 
 
 class Defaults(BaseAttributes):
