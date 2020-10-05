@@ -126,6 +126,7 @@ class ParentGroups(List["Group"]):
         """
         super().remove(group)
 
+
 class InventoryElement(BaseAttributes):
     __slots__ = ("groups", "data", "connection_options")
 

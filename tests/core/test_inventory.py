@@ -577,4 +577,3 @@ class Test(object):
 
         with pytest.raises(ValueError):
             h1.groups.remove(g3)
-
