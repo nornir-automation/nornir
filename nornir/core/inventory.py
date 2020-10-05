@@ -113,7 +113,6 @@ class ParentGroups(List["Group"]):
         :param group: Parent Group object to add
         :return: None
         """
-
         # only add the group if it doesn't exist
         if not self.__contains__(group):
             self.append(group)
@@ -126,7 +125,6 @@ class ParentGroups(List["Group"]):
         :return: None
         """
         super().remove(group)
-
 
 class InventoryElement(BaseAttributes):
     __slots__ = ("groups", "data", "connection_options")
