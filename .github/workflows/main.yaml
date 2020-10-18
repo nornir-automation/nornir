@@ -63,6 +63,7 @@ jobs:
 
       - name: install libxml2
         run: sudo apt-get install libxml2-dev libxslt-dev
+        if: ${{ matrix.platform == 'ubuntu-latest' }}
 
       - name: Install Poetry
         uses: dschep/install-poetry-action@v1.2
@@ -90,7 +91,6 @@ jobs:
 
       - name: Run nbval
         run: make nbval
-        if: ${{ matrix.platform != 'windows-latest' }}
 
   release:
     name: Releasing to pypi
