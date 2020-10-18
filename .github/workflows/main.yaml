@@ -60,7 +60,7 @@ jobs:
           architecture: x64
 
       - name: install libxml2
-        run: apt-get install libxml2-dev libxslt-dev
+        run: sudo apt-get install libxml2-dev libxslt-dev
 
       - name: Install Poetry
         uses: dschep/install-poetry-action@v1.2
