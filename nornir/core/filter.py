@@ -1,4 +1,5 @@
-from typing import Any, List, Protocol
+from typing import Any, List
+from typing_extensions import Protocol
 
 from nornir.core.inventory import Host
 
