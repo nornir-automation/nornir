@@ -1,22 +1,31 @@
-from typing import Any, List
+from typing import Any, List, Protocol
 
 from nornir.core.inventory import Host
 
 
-class F_BASE(object):
+class F_FILTER(Protocol):
     def __call__(self, host: Host) -> bool:
-        raise NotImplementedError()
+        ...
+
+    def __invert__(self) -> "F_FILTER":
+        ...
 
 
-class F_OP_BASE(F_BASE):
-    def __init__(self, op1: F_BASE, op2: F_BASE) -> None:
+class F_OP_BASE:
+    def __init__(self, op1: F_FILTER, op2: F_FILTER) -> None:
         self.op1 = op1
         self.op2 = op2
 
-    def __and__(self, other: F_BASE) -> "AND":
+    def __call__(self, host: Host) -> bool:
+        raise NotImplementedError()
+
+    def __invert__(self) -> "F_FILTER":
+        return NOT(self)
+
+    def __and__(self, other: F_FILTER) -> "AND":
         return AND(self, other)
 
-    def __or__(self, other: F_BASE) -> "OR":
+    def __or__(self, other: F_FILTER) -> "OR":
         return OR(self, other)
 
     def __repr__(self) -> str:
@@ -33,7 +42,21 @@ class OR(F_OP_BASE):
         return self.op1(host) or self.op2(host)
 
 
-class F(F_BASE):
+class NOT(F_OP_BASE):
+    def __init__(self, op: F_FILTER) -> None:
+        self.op = op
+
+    def __call__(self, host: Host) -> bool:
+        return not self.op(host)
+
+    def __invert__(self) -> F_FILTER:
+        return NOT(self)
+
+    def __repr__(self) -> str:
+        return f"NOT ({self.op})"
+
+
+class F:
     def __init__(self, **kwargs: Any) -> None:
         self.filters = kwargs
 
@@ -42,17 +65,17 @@ class F(F_BASE):
             F._verify_rules(host, k.split("__"), v) for k, v in self.filters.items()
         )
 
-    def __and__(self, other: "F") -> AND:
+    def __and__(self, other: F_FILTER) -> AND:
         return AND(self, other)
 
-    def __or__(self, other: "F") -> OR:
+    def __or__(self, other: F_FILTER) -> OR:
         return OR(self, other)
 
-    def __invert__(self) -> "F":
-        return NOT_F(**self.filters)
+    def __invert__(self) -> F_FILTER:
+        return NOT(self)
 
     def __repr__(self) -> str:
-        return "<Filter ({})>".format(self.filters)
+        return "({})".format(self.filters)
 
     @staticmethod
     def _verify_rules(data: Any, rule: List[str], value: Any) -> bool:
@@ -87,16 +110,3 @@ class F(F_BASE):
             raise Exception(
                 "I don't know how I got here:\n{}\n{}\n{}".format(data, rule, value)
             )
-
-
-class NOT_F(F):
-    def __call__(self, host: Host) -> bool:
-        return not any(
-            F._verify_rules(host, k.split("__"), v) for k, v in self.filters.items()
-        )
-
-    def __invert__(self) -> F:
-        return F(**self.filters)
-
-    def __repr__(self) -> str:
-        return "<Filter NOT ({})>".format(self.filters)
