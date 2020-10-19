@@ -91,6 +91,7 @@ jobs:
 
       - name: Run nbval
         run: make nbval
+        if: ${{ matrix.platform != 'windows-latest' }}
 
   release:
     name: Releasing to pypi
