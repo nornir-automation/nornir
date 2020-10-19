@@ -16,6 +16,8 @@ jobs:
 
       - name: Install Poetry
         uses: dschep/install-poetry-action@v1.2
+        with:
+          version: 1.0.10
 
       - name: Cache Poetry virtualenv
         uses: actions/cache@v1
@@ -65,6 +67,8 @@ jobs:
 
       - name: Install Poetry
         uses: dschep/install-poetry-action@v1.2
+        with:
+          version: 1.0.10
 
       - name: Cache Poetry virtualenv
         uses: actions/cache@v1
