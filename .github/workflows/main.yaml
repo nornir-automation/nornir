@@ -11,8 +11,8 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v1
 
-      - name: install libxml2
-        run: sudo apt-get install libxml2-dev libxslt-dev
+#      - name: install libxml2
+#        run: sudo apt-get install libxml2-dev libxslt-dev
 
       - name: Install Poetry
         uses: dschep/install-poetry-action@v1.2
@@ -61,9 +61,9 @@ jobs:
           python-version: ${{ matrix.python-version }}
           architecture: x64
 
-      - name: install libxml2
-        run: sudo apt-get install libxml2-dev libxslt-dev
-        if: ${{ matrix.platform == 'ubuntu-latest' }}
+#      - name: install libxml2
+#        run: sudo apt-get install libxml2-dev libxslt-dev
+#        if: ${{ matrix.platform == 'ubuntu-latest' }}
 
       - name: Install Poetry
         uses: dschep/install-poetry-action@v1.2
