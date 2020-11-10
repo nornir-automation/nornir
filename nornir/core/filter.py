@@ -77,9 +77,16 @@ class F(F_BASE):
             elif rule == ["in"]:
                 return bool(data in value)
             elif rule == ["any"]:
-                return any([x in data for x in value])
+                if isinstance(data, list):
+                    return any([x in data for x in value])
+                else:
+                    return any([x == data for x in value])
             elif rule == ["all"]:
-                return all([x in data for x in value])
+                if isinstance(data, list):
+                    return all([x in data for x in value])
+                else:
+                    # it doesn't make sense to check a single value meets more than one case
+                    return False
             else:
                 return bool(data.get(rule[0]) == value)
 
