@@ -6,8 +6,8 @@ The configuration is comprised of a set of sections and parameters for those sec
 An example using ``InitNornir`` would be::
 
     nr = InitNornir(
-        core={"num_workers": 20},
-        logging={"file": "mylogs", "level": "debug"}
+        runner={"plugin": "threaded", "options": {"num_workers": 20}},
+        logging={"log_file": "mylogs", "level": "DEBUG"}
     )
 
 A similar example using a ``yaml`` file:

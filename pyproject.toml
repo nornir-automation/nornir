@@ -1,5 +1,5 @@
 [build-system]
-requires = ["poetry>=0.12"]
+requires = ["poetry==1.0.10"]
 build-backend = "poetry.masonry.api"
 
 [tool.poetry.plugins."nornir.plugins.runners"]
@@ -59,7 +59,7 @@ sphinx_rtd_theme = "^0.4"
 sphinxcontrib_napoleon = "^0.7"
 jupyter = "^1"
 nbsphinx = "^0.5"
-pygments = "^2"
+pygments = "2.6.1"
 sphinx-issues = "^1.2"
 
 # for docs only
