@@ -106,7 +106,10 @@ class Test(object):
                 },
                 "group_2": {
                     "connection_options": {},
-                    "data": {"site": "site2"},
+                    "data": {
+                        "some_string_to_test_any_all": "other_prefix",
+                        "site": "site2",
+                    },
                     "groups": [],
                     "hostname": None,
                     "name": "group_2",
@@ -176,6 +179,7 @@ class Test(object):
                         },
                     },
                     "data": {
+                        "some_string_to_test_any_all": "prefix",
                         "my_var": "comes_from_dev1.group_1",
                         "nested_data": {
                             "a_dict": {"a": 1, "b": 2},
@@ -213,6 +217,7 @@ class Test(object):
                         },
                     },
                     "data": {
+                        "some_string_to_test_any_all": "prefix_longer",
                         "nested_data": {
                             "a_dict": {"b": 2, "c": 3},
                             "a_list": [2, 3],
