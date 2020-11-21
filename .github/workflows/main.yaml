@@ -42,7 +42,10 @@ jobs:
           make sphinx
 
   pytest:
-    name: Testing on Python ${{ matrix.python-version }}
+    name: Testing on Python ${{ matrix.python-version }} (${{ matrix.platform}})
+    defaults:
+      run:
+        shell: bash
     strategy:
       matrix:
         python-version: [ '3.6', '3.7', '3.8' ]
