@@ -16,14 +16,13 @@ jobs:
         with:
           version: 1.1.4
           virtualenvs-create: true
-          virtualenvs-in-project: false
-          virtualenvs-path: ~/.virtualenvs
+          virtualenvs-in-project: true
 
       - name: Cache Poetry virtualenv
         uses: actions/cache@v2
         id: cached-poetry-dependencies
         with:
-          path: ~/.virtualenvs
+          path: .venv
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install Dependencies
@@ -64,14 +63,13 @@ jobs:
         with:
           version: 1.1.4
           virtualenvs-create: true
-          virtualenvs-in-project: false
-          virtualenvs-path: ~/.virtualenvs
+          virtualenvs-in-project: true
 
       - name: Cache Poetry virtualenv
         uses: actions/cache@v2
         id: cached-poetry-dependencies
         with:
-          path: ~/.virtualenvs
+          path: .venv
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install Dependencies
