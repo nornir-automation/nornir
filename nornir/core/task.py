@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 DEFAULT_SEVERITY_LEVEL = logging.INFO
 
+
 class Task(object):
     """
     A task is basically a wrapper around a function that has to be run against multiple devices.

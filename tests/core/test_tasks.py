@@ -14,11 +14,19 @@ def a_task_for_testing(task, fail_on=None):
         raise CustomException()
     return Result(host=task.host, stdout=task.host.name)
 
+
 def a_failed_task_for_testing(task):
     return Result(host=task.host, stdout=task.host.name, failed=True)
 
+
 def a_failed_task_for_testing_overrides_severity(task):
-    return Result(host=task.host, stdout=task.host.name, failed=True, severity_level=logging.CRITICAL)
+    return Result(
+        host=task.host,
+        stdout=task.host.name,
+        failed=True,
+        severity_level=logging.CRITICAL,
+    )
+
 
 def a_task_to_test_dry_run(task, expected_dry_run_value, dry_run=None):
     assert task.is_dry_run(dry_run) is expected_dry_run_value
