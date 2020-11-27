@@ -821,7 +821,7 @@ nornir = ">=3.0.0b1,<3.1.0"
 
 [[package]]
 name = "nornir-utils"
-version = "0.1.1"
+version = "0.1.0"
 description = "Collection of plugins and functions for nornir that don't require external dependencies"
 category = "dev"
 optional = false
@@ -1641,7 +1641,7 @@ docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-napoleon", "jupyter", "nbsp
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "066471beb1a2f18775d130787ba4870be91d1ba3160e381d242d19200a06324d"
+content-hash = "9de1607da7afb5ca20add05140f1d52df65825b8068081aa4781454ae9cfcef1"
 
 [metadata.files]
 alabaster = [
@@ -2079,8 +2079,8 @@ nornir-napalm = [
     {file = "nornir_napalm-0.1.1.tar.gz", hash = "sha256:92b861c5aaf429b40bb9c0a4b24ed471e4f9f3251fa49919200e0d502aad3563"},
 ]
 nornir-utils = [
-    {file = "nornir_utils-0.1.1-py3-none-any.whl", hash = "sha256:21e05774e27ae4d81cf48fd915951260e19b5da3494fc1c74e9ec0fa9742644e"},
-    {file = "nornir_utils-0.1.1.tar.gz", hash = "sha256:636a76a3bdad1a3a618189a01c5425e22cb65d8f361227d7d5a4ca92ed47b0d1"},
+    {file = "nornir_utils-0.1.0-py3-none-any.whl", hash = "sha256:4cf3b8d529730cec0ab4d9aad3d2c586056cedd9315be1b176d8915d762b9cef"},
+    {file = "nornir_utils-0.1.0.tar.gz", hash = "sha256:6d0c04472a8ce3c42556cbb115676663a0c3fe9e818f4b5a4b3c46bb466e4c66"},
 ]
 notebook = [
     {file = "notebook-6.1.5-py3-none-any.whl", hash = "sha256:508cf9dad7cdb3188f1aa27017dc78179029dfe83814fc505329f689bc2ab50f"},
