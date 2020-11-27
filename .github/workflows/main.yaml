@@ -82,6 +82,7 @@ jobs:
 
       - name: Run pytest
         run: |
+          poetry --version
           poetry version
           poetry run pytest
         if: ${{ matrix.platform == 'windows-latest' }}
