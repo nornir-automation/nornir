@@ -81,10 +81,7 @@ jobs:
         if: ${{ matrix.platform != 'windows-latest' }}
 
       - name: Run pytest
-        run: |
-          poetry --version
-          poetry version
-          poetry run pytest
+        run: poetry run pytest --cov=nornir --cov-report=term-missing
         if: ${{ matrix.platform == 'windows-latest' }}
 
       - name: Run nbval
