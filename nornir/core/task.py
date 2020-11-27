@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 
 
 logger = logging.getLogger(__name__)
+DEFAULT_SEVERITY_LEVEL = logging.INFO
 
 
 class Task(object):
@@ -45,7 +46,7 @@ class Task(object):
         global_dry_run: bool,
         processors: "Processors",
         name: str = None,
-        severity_level: int = logging.INFO,
+        severity_level: int = DEFAULT_SEVERITY_LEVEL,
         parent_task: Optional["Task"] = None,
         **kwargs: str
     ):
@@ -120,7 +121,12 @@ class Task(object):
             r = Result(host, exception=e, result=tb, failed=True)
 
         r.name = self.name
-        r.severity_level = logging.ERROR if r.failed else self.severity_level
+
+        if r.severity_level == DEFAULT_SEVERITY_LEVEL:
+            if r.failed:
+                r.severity_level = logging.ERROR
+            else:
+                r.severity_level = self.severity_level
 
         self.results.insert(0, r)
 
@@ -207,7 +213,7 @@ class Result(object):
         diff: str = "",
         failed: bool = False,
         exception: Optional[BaseException] = None,
-        severity_level: int = logging.INFO,
+        severity_level: int = DEFAULT_SEVERITY_LEVEL,
         **kwargs: Any
     ):
         self.result = result
