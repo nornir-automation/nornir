@@ -71,6 +71,7 @@ jobs:
         with:
           path: .venv
           key: venv-${{ matrix.python-version }}-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+        if: ${{ matrix.platform != 'windows-latest' }}  # windows hangs if using a cached venv
 
       - name: Install Dependencies
         run: poetry install
