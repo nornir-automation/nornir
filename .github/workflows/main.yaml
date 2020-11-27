@@ -80,6 +80,10 @@ jobs:
         run: make pytest
         if: ${{ matrix.platform != 'windows-latest' }}
 
+      - name: WTF
+        run: echo what the fuck!!!
+        if: ${{ matrix.platform == 'windows-latest' }}
+
       - name: Run pytest
         run: |
           poetry --version
