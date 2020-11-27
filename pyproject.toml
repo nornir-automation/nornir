@@ -64,7 +64,7 @@ sphinx-issues = "^1.2"
 
 # for docs only
 ## this needs to be fixed, poetry is giving issues due to nornir being beta
-nornir_utils = { version = "*" }
+nornir_utils = { version = "0.1.0" }
 nornir_jinja2 = { version = "*" }
 nornir-napalm = { version = "*" }
 # due to https://github.com/google/textfsm/issues/63
