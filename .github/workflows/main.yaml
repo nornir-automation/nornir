@@ -81,7 +81,9 @@ jobs:
         if: ${{ matrix.platform != 'windows-latest' }}
 
       - name: Run pytest
-        run: poetry run pytest
+        run: |
+          source $VENV
+          pytest
         if: ${{ matrix.platform == 'windows-latest' }}
 
       - name: Run nbval
