@@ -71,11 +71,9 @@ jobs:
         with:
           path: .venv
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
-        if: ${{ matrix.platform != 'windows-latest' }}  # for some reason windows build hangs when useing cached venv
 
       - name: Install Dependencies
         run: poetry install
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true' && ${{ matrix.platform != 'windows-latest' }} # for some reason windows build hangs when useing cached venv
 
       - name: Run pytest
         run: make pytest
