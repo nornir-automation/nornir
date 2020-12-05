@@ -190,7 +190,7 @@ class Result(object):
         changed (bool): ``True`` if the task is changing the system
         diff (obj): Diff between state of the system before/after running this task
         result (obj): Result of the task execution, see task's documentation for details
-        host (:obj:`nornir.core.inventory.Host`): Reference to the host that lead ot this result
+        host (:obj:`nornir.core.inventory.Host`): Reference to the host that lead to this result
         failed (bool): Whether the execution failed or not
         severity_level (logging.LEVEL): Severity level associated to the result of the excecution
         exception (Exception): uncaught exception thrown during the exection of the task (if any)
