@@ -117,15 +117,6 @@ class ParentGroups(List["Group"]):
         if not self.__contains__(group):
             self.append(group)
 
-    def remove(self, group: "Group") -> None:
-        """
-        Remove the parent group.
-
-        :param group: Group object to remove
-        :return: None
-        """
-        super().remove(group)
-
 
 class InventoryElement(BaseAttributes):
     __slots__ = ("groups", "data", "connection_options")
