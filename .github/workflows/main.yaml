@@ -12,25 +12,22 @@ jobs:
         uses: actions/setup-python@v1
 
       - name: Install Poetry
-        uses: dschep/install-poetry-action@v1.2
+        uses: snok/install-poetry@v1.1.1
         with:
-          version: 1.0.10
+          version: 1.1.4
+          virtualenvs-create: true
+          virtualenvs-in-project: true
 
       - name: Cache Poetry virtualenv
-        uses: actions/cache@v1
-        id: cache
+        uses: actions/cache@v2
+        id: cached-poetry-dependencies
         with:
-          path: ~/.virtualenvs
-          key: poetry-linters-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: poetry-linters-${{ hashFiles('**/poetry.lock') }}
-
-      - name: Set Poetry config
-        run: |
-          poetry config virtualenvs.in-project false
-          poetry config virtualenvs.path ~/.virtualenvs
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install Dependencies
         run: poetry install
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
 
       - name: Run pylama
         run: make pylama
@@ -44,10 +41,13 @@ jobs:
           make sphinx
 
   pytest:
-    name: Testing on Python ${{ matrix.python-version }}
+    name: Testing on Python ${{ matrix.python-version }} (${{ matrix.platform}})
+    defaults:
+      run:
+        shell: bash
     strategy:
       matrix:
-        python-version: [ '3.6', '3.7', '3.8' ]
+        python-version: [ '3.6', '3.7', '3.8', '3.9' ]
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -59,28 +59,30 @@ jobs:
           architecture: x64
 
       - name: Install Poetry
-        uses: dschep/install-poetry-action@v1.2
+        uses: snok/install-poetry@v1.1.1
         with:
-          version: 1.0.10
+          version: 1.1.4
+          virtualenvs-create: true
+          virtualenvs-in-project: true
 
       - name: Cache Poetry virtualenv
-        uses: actions/cache@v1
-        id: cache
+        uses: actions/cache@v2
+        id: cached-poetry-dependencies
         with:
-          path: ~/.virtualenvs
-          key: poetry-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
-          restore-keys: poetry-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
-
-      - name: Set Poetry config
-        run: |
-          poetry config virtualenvs.in-project false
-          poetry config virtualenvs.path ~/.virtualenvs
+          path: .venv
+          key: venv-${{ matrix.python-version }}-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+        if: ${{ matrix.platform != 'windows-latest' }}  # windows hangs if using a cached venv
 
       - name: Install Dependencies
         run: poetry install
 
       - name: Run pytest
         run: make pytest
+        if: ${{ matrix.platform != 'windows-latest' }}
+
+      - name: Run pytest
+        run: poetry run pytest --cov=nornir --cov-report=term-missing
+        if: ${{ matrix.platform == 'windows-latest' }}
 
       - name: Run nbval
         run: make nbval
