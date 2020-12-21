@@ -291,18 +291,25 @@ class Host(InventoryElement):
                 return True
         return False
 
-    def __getitem__(self, item: str) -> Any:
+    def __get(self, item: str) -> Any:
         try:
             return self.data[item]
 
         except KeyError:
             for g in self.groups:
                 try:
-                    r = g[item]
+                    r = g.__get(item)
                     return r
                 except KeyError:
-                    continue
+                    pass
 
+            raise
+
+    def __getitem__(self, item: str) -> Any:
+        try:
+            return self.__get(item)
+
+        except KeyError:
             r = self.defaults.data.get(item)
             if r is not None:
                 return r

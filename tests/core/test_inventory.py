@@ -118,7 +118,7 @@ class Test(object):
                 "group_3": {
                     "connection_options": {},
                     "data": {"site": "site2"},
-                    "groups": [],
+                    "groups": ["dummy_group", "parent_group"],
                     "hostname": None,
                     "name": "group_3",
                     "password": "docker",
@@ -145,11 +145,26 @@ class Test(object):
                             "username": None,
                         },
                     },
-                    "data": {"a_false_var": False, "a_var": "blah"},
+                    "data": {
+                        "a_false_var": False,
+                        "a_var": "blah",
+                        "my_var": "comes_from_parent_group",
+                    },
                     "groups": [],
                     "hostname": None,
                     "name": "parent_group",
                     "password": "from_parent_group",
+                    "platform": "linux",
+                    "port": None,
+                    "username": "root",
+                },
+                "dummy_group": {
+                    "connection_options": {},
+                    "data": {},
+                    "groups": [],
+                    "hostname": None,
+                    "name": "dummy_group",
+                    "password": "docker",
                     "platform": "linux",
                     "port": None,
                     "username": "root",
@@ -287,6 +302,17 @@ class Test(object):
                     "port": 65024,
                     "username": "root",
                 },
+                "dev6.group_3": {
+                    "connection_options": {},
+                    "data": {"asd": 1},
+                    "groups": ["group_3"],
+                    "hostname": "localhost",
+                    "name": "dev6.group_3",
+                    "password": "docker",
+                    "platform": "linux",
+                    "port": 65025,
+                    "username": "root",
+                },
             },
         }
 
@@ -298,6 +324,7 @@ class Test(object):
             "dev3.group_2",
             "dev4.group_2",
             "dev5.no_group",
+            "dev6.group_3",
         ]
 
         www = sorted(list(inv.filter(role="www").hosts.keys()))
@@ -315,7 +342,7 @@ class Test(object):
         long_names = sorted(
             list(inv.filter(filter_func=lambda x: len(x["my_var"]) > 20).hosts.keys())
         )
-        assert long_names == ["dev1.group_1", "dev4.group_2"]
+        assert long_names == ["dev1.group_1", "dev4.group_2", "dev6.group_3"]
 
         def longer_than(dev, length):
             return len(dev["my_var"]) > length
@@ -323,7 +350,7 @@ class Test(object):
         long_names = sorted(
             list(inv.filter(filter_func=longer_than, length=20).hosts.keys())
         )
-        assert long_names == ["dev1.group_1", "dev4.group_2"]
+        assert long_names == ["dev1.group_1", "dev4.group_2", "dev6.group_3"]
 
     def test_filter_unique_keys(self, inv):
         filtered = sorted(list(inv.filter(www_server="nginx").hosts.keys()))
@@ -334,6 +361,8 @@ class Test(object):
         assert inv.hosts["dev2.group_1"]["my_var"] == "comes_from_group_1"
         assert inv.hosts["dev3.group_2"]["my_var"] == "comes_from_defaults"
         assert inv.hosts["dev4.group_2"]["my_var"] == "comes_from_dev4.group_2"
+        assert inv.hosts["dev5.no_group"]["my_var"] == "comes_from_defaults"
+        assert inv.hosts["dev6.group_3"]["my_var"] == "comes_from_parent_group"
         assert inv.hosts["dev1.group_1"]["a_false_var"] is False
 
         assert inv.hosts["dev1.group_1"].data["my_var"] == "comes_from_dev1.group_1"
@@ -399,6 +428,7 @@ class Test(object):
             inv.hosts["dev1.group_1"],
             inv.hosts["dev2.group_1"],
             inv.hosts["dev4.group_2"],
+            inv.hosts["dev6.group_3"],
         }
 
         assert inv.children_of_group("group_1") == {
@@ -418,6 +448,7 @@ class Test(object):
             inv.hosts["dev1.group_1"],
             inv.hosts["dev2.group_1"],
             inv.hosts["dev4.group_2"],
+            inv.hosts["dev6.group_3"],
         }
 
         assert inv.children_of_group(inv.groups["group_1"]) == {
