@@ -222,14 +222,22 @@ class Host(InventoryElement):
             connection_options=connection_options,
         )
 
+    def __ordered_groups(self, groups):
+        og = []
+        for g in groups:
+            og.append(g)
+            if len(g.groups) > 0:
+                og.extend(self.__ordered_groups(g.groups))
+        return og
+
     def _resolve_data(self) -> Dict[str, Any]:
         processed = []
         result = {}
         for k, v in self.data.items():
             processed.append(k)
             result[k] = v
-        for g in self.groups:
-            for k, v in g.items():
+        for g in self.__ordered_groups(self.groups):
+            for k, v in g.data.items():
                 if k not in processed:
                     processed.append(k)
                     result[k] = v
@@ -296,9 +304,9 @@ class Host(InventoryElement):
             return self.data[item]
 
         except KeyError:
-            for g in self.groups:
+            for g in self.__ordered_groups(self.groups):
                 try:
-                    r = g[item]
+                    r = g.data[item]
                     return r
                 except KeyError:
                     continue
