@@ -105,6 +105,18 @@ class ParentGroups(List["Group"]):
         else:
             return any([value == g for g in self])
 
+    def add(self, group: "Group") -> None:
+        """
+        Add the ParentGroup.  The group will only be appended
+        if it does not exist.
+
+        :param group: Parent Group object to add
+        :return: None
+        """
+        # only add the group if it doesn't exist
+        if not self.__contains__(group):
+            self.append(group)
+
 
 class InventoryElement(BaseAttributes):
     __slots__ = ("groups", "data", "connection_options")
