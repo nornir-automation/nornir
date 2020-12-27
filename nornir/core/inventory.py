@@ -263,7 +263,7 @@ class Host(InventoryElement):
 
     def extended_data(self) -> Dict[str, Any]:
         """
-        Returns the data associated with the object included inherited data
+        Returns the data associated with the object including inherited data
         """
         processed = []
         result = {}
