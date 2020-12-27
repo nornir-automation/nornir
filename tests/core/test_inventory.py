@@ -100,9 +100,9 @@ class Test(object):
                     "hostname": None,
                     "name": "group_1",
                     "password": "from_group1",
-                    "platform": "linux",
+                    "platform": None,
                     "port": None,
-                    "username": "root",
+                    "username": None,
                 },
                 "group_2": {
                     "connection_options": {},
@@ -110,10 +110,10 @@ class Test(object):
                     "groups": [],
                     "hostname": None,
                     "name": "group_2",
-                    "password": "docker",
-                    "platform": "linux",
+                    "password": None,
+                    "platform": None,
                     "port": None,
-                    "username": "root",
+                    "username": None,
                 },
                 "group_3": {
                     "connection_options": {},
@@ -121,10 +121,10 @@ class Test(object):
                     "groups": ["dummy_group", "parent_group"],
                     "hostname": None,
                     "name": "group_3",
-                    "password": "docker",
-                    "platform": "linux",
+                    "password": None,
+                    "platform": None,
                     "port": None,
-                    "username": "root",
+                    "username": None,
                 },
                 "parent_group": {
                     "connection_options": {
@@ -154,9 +154,9 @@ class Test(object):
                     "hostname": None,
                     "name": "parent_group",
                     "password": "from_parent_group",
-                    "platform": "linux",
+                    "platform": None,
                     "port": None,
-                    "username": "root",
+                    "username": None,
                 },
                 "dummy_group": {
                     "connection_options": {},
@@ -164,10 +164,10 @@ class Test(object):
                     "groups": [],
                     "hostname": None,
                     "name": "dummy_group",
-                    "password": "docker",
-                    "platform": "linux",
+                    "password": None,
+                    "platform": None,
                     "port": None,
-                    "username": "root",
+                    "username": None,
                 },
             },
             "hosts": {
@@ -206,7 +206,7 @@ class Test(object):
                     "password": "a_password",
                     "platform": "eos",
                     "port": 65020,
-                    "username": "root",
+                    "username": None,
                 },
                 "dev2.group_1": {
                     "connection_options": {
@@ -238,10 +238,10 @@ class Test(object):
                     "groups": ["group_1"],
                     "hostname": "localhost",
                     "name": "dev2.group_1",
-                    "password": "from_group1",
+                    "password": None,
                     "platform": "junos",
                     "port": 65021,
-                    "username": "root",
+                    "username": None,
                 },
                 "dev3.group_2": {
                     "connection_options": {
@@ -258,10 +258,10 @@ class Test(object):
                     "groups": ["group_2"],
                     "hostname": "localhost",
                     "name": "dev3.group_2",
-                    "password": "docker",
+                    "password": None,
                     "platform": "linux",
                     "port": 65022,
-                    "username": "root",
+                    "username": None,
                 },
                 "dev4.group_2": {
                     "connection_options": {
@@ -286,10 +286,10 @@ class Test(object):
                     "groups": ["parent_group", "group_2"],
                     "hostname": "localhost",
                     "name": "dev4.group_2",
-                    "password": "from_parent_group",
+                    "password": None,
                     "platform": "linux",
                     "port": 65023,
-                    "username": "root",
+                    "username": None,
                 },
                 "dev5.no_group": {
                     "connection_options": {},
@@ -297,10 +297,10 @@ class Test(object):
                     "groups": [],
                     "hostname": "localhost",
                     "name": "dev5.no_group",
-                    "password": "docker",
+                    "password": None,
                     "platform": "linux",
                     "port": 65024,
-                    "username": "root",
+                    "username": None,
                 },
                 "dev6.group_3": {
                     "connection_options": {},
@@ -308,13 +308,63 @@ class Test(object):
                     "groups": ["group_3"],
                     "hostname": "localhost",
                     "name": "dev6.group_3",
-                    "password": "docker",
+                    "password": None,
                     "platform": "linux",
                     "port": 65025,
-                    "username": "root",
+                    "username": None,
                 },
             },
         }
+
+    def test_extended_data(self, inv):
+        assert inv.hosts["dev1.group_1"].extended_data() == {
+            "a_false_var": False,
+            "a_var": "blah",
+            "my_var": "comes_from_dev1.group_1",
+            "nested_data": {
+                "a_dict": {"a": 1, "b": 2},
+                "a_list": [1, 2],
+                "a_string": "asdasd",
+            },
+            "only_default": "only_defined_in_default",
+            "role": "www",
+            "site": "site1",
+            "www_server": "nginx",
+        }
+        assert inv.hosts["dev3.group_2"].extended_data() == {
+            "my_var": "comes_from_defaults",
+            "only_default": "only_defined_in_default",
+            "role": "www",
+            "site": "site2",
+            "www_server": "apache",
+        }
+        assert inv.hosts["dev5.no_group"].extended_data() == {
+            "my_var": "comes_from_defaults",
+            "only_default": "only_defined_in_default",
+        }
+        assert inv.hosts["dev6.group_3"].extended_data() == {
+            "a_false_var": False,
+            "a_var": "blah",
+            "asd": 1,
+            "my_var": "comes_from_parent_group",
+            "only_default": "only_defined_in_default",
+            "site": "site2",
+        }
+
+    def test_parent_groups_extended(self, inv):
+        assert inv.hosts["dev1.group_1"].extended_groups() == [
+            inv.groups["group_1"],
+            inv.groups["parent_group"],
+        ]
+        assert inv.hosts["dev3.group_2"].extended_groups() == [
+            inv.groups["group_2"],
+        ]
+        assert inv.hosts["dev5.no_group"].extended_groups() == []
+        assert inv.hosts["dev6.group_3"].extended_groups() == [
+            inv.groups["group_3"],
+            inv.groups["dummy_group"],
+            inv.groups["parent_group"],
+        ]
 
     def test_filtering(self, inv):
         unfiltered = sorted(list(inv.hosts.keys()))
@@ -378,6 +428,7 @@ class Test(object):
         assert inv.hosts["dev3.group_2"].password == "docker"
         assert inv.hosts["dev4.group_2"].password == "from_parent_group"
         assert inv.hosts["dev5.no_group"].password == "docker"
+        assert inv.hosts["dev6.group_3"].password == "from_parent_group"
 
     def test_has_parents(self, inv):
         assert inv.hosts["dev1.group_1"].has_parent_group(inv.groups["group_1"])

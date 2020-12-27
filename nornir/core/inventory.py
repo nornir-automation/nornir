@@ -55,11 +55,11 @@ class BaseAttributes(object):
 
     def dict(self) -> Dict[str, Any]:
         return {
-            "hostname": self.hostname,
-            "port": self.port,
-            "username": self.username,
-            "password": self.password,
-            "platform": self.platform,
+            "hostname": object.__getattribute__(self, "hostname"),
+            "port": object.__getattribute__(self, "port"),
+            "username": object.__getattribute__(self, "username"),
+            "password": object.__getattribute__(self, "password"),
+            "platform": object.__getattribute__(self, "platform"),
         }
 
 
@@ -150,6 +150,45 @@ class InventoryElement(BaseAttributes):
             **super().dict(),
         }
 
+    def extended_groups(self) -> List["Group"]:
+        """
+        Returns the groups this host belongs to by virtue of inheritance.
+
+        This list is ordered based on the inheritance rules and groups are not
+        duplicated. For instance, given a host with the following groups:
+
+        hostA:
+            groups:
+                - group_a
+                - group_b
+
+        group_a:
+            groups:
+                - group_1
+                - group_2
+        group_b:
+            groups:
+                - group_2
+                - group_3
+
+        group_1:
+            groups:
+                - group_X
+
+        this will return [group_a, group_1, group_X, group_2, group_b, group_3]
+        """
+        groups: List["Group"] = []
+
+        for g in self.groups:
+            if g not in groups:
+                groups.append(g)
+
+            for sg in g.extended_groups():
+                if sg not in groups:
+                    groups.append(sg)
+
+        return groups
+
 
 class Defaults(BaseAttributes):
     __slots__ = ("data", "connection_options")
@@ -222,14 +261,17 @@ class Host(InventoryElement):
             connection_options=connection_options,
         )
 
-    def _resolve_data(self) -> Dict[str, Any]:
+    def extended_data(self) -> Dict[str, Any]:
+        """
+        Returns the data associated with the object included inherited data
+        """
         processed = []
         result = {}
         for k, v in self.data.items():
             processed.append(k)
             result[k] = v
-        for g in self.groups:
-            for k, v in g.items():
+        for g in self.extended_groups():
+            for k, v in g.data.items():
                 if k not in processed:
                     processed.append(k)
                     result[k] = v
@@ -258,18 +300,18 @@ class Host(InventoryElement):
 
     def keys(self) -> KeysView[str]:
         """Returns the keys of the attribute ``data`` and of the parent(s) groups."""
-        return self._resolve_data().keys()
+        return self.extended_data().keys()
 
     def values(self) -> ValuesView[Any]:
         """Returns the values of the attribute ``data`` and of the parent(s) groups."""
-        return self._resolve_data().values()
+        return self.extended_data().values()
 
     def items(self) -> ItemsView[str, Any]:
         """
         Returns all the data accessible from a device, including
         the one inherited from parent groups
         """
-        return self._resolve_data().items()
+        return self.extended_data().items()
 
     def has_parent_group(self, group: Union[str, "Group"]) -> bool:
         """Returns whether the object is a child of the :obj:`Group` ``group``"""
@@ -291,25 +333,18 @@ class Host(InventoryElement):
                 return True
         return False
 
-    def __get(self, item: str) -> Any:
+    def __getitem__(self, item: str) -> Any:
         try:
             return self.data[item]
 
         except KeyError:
-            for g in self.groups:
+            for g in self.extended_groups():
                 try:
-                    r = g.__get(item)
+                    r = g.data[item]
                     return r
                 except KeyError:
-                    pass
+                    continue
 
-            raise
-
-    def __getitem__(self, item: str) -> Any:
-        try:
-            return self.__get(item)
-
-        except KeyError:
             r = self.defaults.data.get(item)
             if r is not None:
                 return r
@@ -321,8 +356,8 @@ class Host(InventoryElement):
             return object.__getattribute__(self, name)
         v = object.__getattribute__(self, name)
         if v is None:
-            for g in self.groups:
-                r = getattr(g, name)
+            for g in self.extended_groups():
+                r = object.__getattribute__(g, name)
                 if r is not None:
                     return r
 
@@ -337,10 +372,10 @@ class Host(InventoryElement):
         self.data[item] = value
 
     def __len__(self) -> int:
-        return len(self._resolve_data().keys())
+        return len(self.extended_data().keys())
 
     def __iter__(self) -> Iterator[str]:
-        return self.data.__iter__()
+        return self.extended_data().__iter__()
 
     def __str__(self) -> str:
         return self.name
