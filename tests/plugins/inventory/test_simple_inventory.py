@@ -42,9 +42,9 @@ class Test:
                     "hostname": None,
                     "name": "group_1",
                     "password": "from_group1",
-                    "platform": "linux",
+                    "platform": None,
                     "port": None,
-                    "username": "root",
+                    "username": None,
                 },
                 "group_2": {
                     "connection_options": {},
@@ -52,10 +52,10 @@ class Test:
                     "groups": [],
                     "hostname": None,
                     "name": "group_2",
-                    "password": "docker",
-                    "platform": "linux",
+                    "password": None,
+                    "platform": None,
                     "port": None,
-                    "username": "root",
+                    "username": None,
                 },
                 "group_3": {
                     "connection_options": {},
@@ -63,10 +63,10 @@ class Test:
                     "groups": [],
                     "hostname": None,
                     "name": "group_3",
-                    "password": "docker",
-                    "platform": "linux",
+                    "password": None,
+                    "platform": None,
                     "port": None,
-                    "username": "root",
+                    "username": None,
                 },
                 "parent_group": {
                     "connection_options": {
@@ -92,9 +92,9 @@ class Test:
                     "hostname": None,
                     "name": "parent_group",
                     "password": "from_parent_group",
-                    "platform": "linux",
+                    "platform": None,
                     "port": None,
-                    "username": "root",
+                    "username": None,
                 },
             },
             "hosts": {
@@ -133,7 +133,7 @@ class Test:
                     "password": "a_password",
                     "platform": "eos",
                     "port": 65020,
-                    "username": "root",
+                    "username": None,
                 },
                 "dev2.group_1": {
                     "connection_options": {
@@ -165,10 +165,10 @@ class Test:
                     "groups": ["group_1"],
                     "hostname": "localhost",
                     "name": "dev2.group_1",
-                    "password": "from_group1",
+                    "password": None,
                     "platform": "junos",
                     "port": 65021,
-                    "username": "root",
+                    "username": None,
                 },
                 "dev3.group_2": {
                     "connection_options": {
@@ -185,10 +185,10 @@ class Test:
                     "groups": ["group_2"],
                     "hostname": "localhost",
                     "name": "dev3.group_2",
-                    "password": "docker",
+                    "password": None,
                     "platform": "linux",
                     "port": 65022,
-                    "username": "root",
+                    "username": None,
                 },
                 "dev4.group_2": {
                     "connection_options": {
@@ -213,10 +213,10 @@ class Test:
                     "groups": ["parent_group", "group_2"],
                     "hostname": "localhost",
                     "name": "dev4.group_2",
-                    "password": "from_parent_group",
+                    "password": None,
                     "platform": "linux",
                     "port": 65023,
-                    "username": "root",
+                    "username": None,
                 },
                 "dev5.no_group": {
                     "connection_options": {},
@@ -224,10 +224,10 @@ class Test:
                     "groups": [],
                     "hostname": "localhost",
                     "name": "dev5.no_group",
-                    "password": "docker",
+                    "password": None,
                     "platform": "linux",
                     "port": 65024,
-                    "username": "root",
+                    "username": None,
                 },
             },
         }
