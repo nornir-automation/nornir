@@ -73,7 +73,7 @@ class Task(object):
         )
 
     def __repr__(self) -> str:
-        return self.name
+        return repr(self.name)
 
     def start(self, host: "Host") -> "MultiResult":
         """
