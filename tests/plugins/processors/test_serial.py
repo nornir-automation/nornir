@@ -31,7 +31,7 @@ class TestSerialRunner(object):
         nornir.with_runner(SerialRunner()).run(blocking_task, wait=0.5)
         t2 = datetime.datetime.now()
         delta = t2 - t1
-        assert delta.seconds == 2, delta
+        assert delta.seconds == 3, delta
 
     def test_failing_task_simple_singlethread(self, nornir):
         result = nornir.with_runner(SerialRunner()).run(failing_task_simple)

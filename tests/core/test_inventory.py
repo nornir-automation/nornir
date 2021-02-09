@@ -100,9 +100,9 @@ class Test(object):
                     "hostname": None,
                     "name": "group_1",
                     "password": "from_group1",
-                    "platform": "linux",
+                    "platform": None,
                     "port": None,
-                    "username": "root",
+                    "username": None,
                 },
                 "group_2": {
                     "connection_options": {},
@@ -110,21 +110,21 @@ class Test(object):
                     "groups": [],
                     "hostname": None,
                     "name": "group_2",
-                    "password": "docker",
-                    "platform": "linux",
+                    "password": None,
+                    "platform": None,
                     "port": None,
-                    "username": "root",
+                    "username": None,
                 },
                 "group_3": {
                     "connection_options": {},
                     "data": {"site": "site2"},
-                    "groups": [],
+                    "groups": ["dummy_group", "parent_group"],
                     "hostname": None,
                     "name": "group_3",
-                    "password": "docker",
-                    "platform": "linux",
+                    "password": None,
+                    "platform": None,
                     "port": None,
-                    "username": "root",
+                    "username": None,
                 },
                 "parent_group": {
                     "connection_options": {
@@ -145,14 +145,29 @@ class Test(object):
                             "username": None,
                         },
                     },
-                    "data": {"a_false_var": False, "a_var": "blah"},
+                    "data": {
+                        "a_false_var": False,
+                        "a_var": "blah",
+                        "my_var": "comes_from_parent_group",
+                    },
                     "groups": [],
                     "hostname": None,
                     "name": "parent_group",
                     "password": "from_parent_group",
-                    "platform": "linux",
+                    "platform": None,
                     "port": None,
-                    "username": "root",
+                    "username": None,
+                },
+                "dummy_group": {
+                    "connection_options": {},
+                    "data": {},
+                    "groups": [],
+                    "hostname": None,
+                    "name": "dummy_group",
+                    "password": None,
+                    "platform": None,
+                    "port": None,
+                    "username": None,
                 },
             },
             "hosts": {
@@ -191,7 +206,7 @@ class Test(object):
                     "password": "a_password",
                     "platform": "eos",
                     "port": 65020,
-                    "username": "root",
+                    "username": None,
                 },
                 "dev2.group_1": {
                     "connection_options": {
@@ -223,10 +238,10 @@ class Test(object):
                     "groups": ["group_1"],
                     "hostname": "localhost",
                     "name": "dev2.group_1",
-                    "password": "from_group1",
+                    "password": None,
                     "platform": "junos",
                     "port": 65021,
-                    "username": "root",
+                    "username": None,
                 },
                 "dev3.group_2": {
                     "connection_options": {
@@ -243,10 +258,10 @@ class Test(object):
                     "groups": ["group_2"],
                     "hostname": "localhost",
                     "name": "dev3.group_2",
-                    "password": "docker",
+                    "password": None,
                     "platform": "linux",
                     "port": 65022,
-                    "username": "root",
+                    "username": None,
                 },
                 "dev4.group_2": {
                     "connection_options": {
@@ -271,10 +286,10 @@ class Test(object):
                     "groups": ["parent_group", "group_2"],
                     "hostname": "localhost",
                     "name": "dev4.group_2",
-                    "password": "from_parent_group",
+                    "password": None,
                     "platform": "linux",
                     "port": 65023,
-                    "username": "root",
+                    "username": None,
                 },
                 "dev5.no_group": {
                     "connection_options": {},
@@ -282,13 +297,74 @@ class Test(object):
                     "groups": [],
                     "hostname": "localhost",
                     "name": "dev5.no_group",
-                    "password": "docker",
+                    "password": None,
                     "platform": "linux",
                     "port": 65024,
-                    "username": "root",
+                    "username": None,
+                },
+                "dev6.group_3": {
+                    "connection_options": {},
+                    "data": {"asd": 1},
+                    "groups": ["group_3"],
+                    "hostname": "localhost",
+                    "name": "dev6.group_3",
+                    "password": None,
+                    "platform": "linux",
+                    "port": 65025,
+                    "username": None,
                 },
             },
         }
+
+    def test_extended_data(self, inv):
+        assert inv.hosts["dev1.group_1"].extended_data() == {
+            "a_false_var": False,
+            "a_var": "blah",
+            "my_var": "comes_from_dev1.group_1",
+            "nested_data": {
+                "a_dict": {"a": 1, "b": 2},
+                "a_list": [1, 2],
+                "a_string": "asdasd",
+            },
+            "only_default": "only_defined_in_default",
+            "role": "www",
+            "site": "site1",
+            "www_server": "nginx",
+        }
+        assert inv.hosts["dev3.group_2"].extended_data() == {
+            "my_var": "comes_from_defaults",
+            "only_default": "only_defined_in_default",
+            "role": "www",
+            "site": "site2",
+            "www_server": "apache",
+        }
+        assert inv.hosts["dev5.no_group"].extended_data() == {
+            "my_var": "comes_from_defaults",
+            "only_default": "only_defined_in_default",
+        }
+        assert inv.hosts["dev6.group_3"].extended_data() == {
+            "a_false_var": False,
+            "a_var": "blah",
+            "asd": 1,
+            "my_var": "comes_from_parent_group",
+            "only_default": "only_defined_in_default",
+            "site": "site2",
+        }
+
+    def test_parent_groups_extended(self, inv):
+        assert inv.hosts["dev1.group_1"].extended_groups() == [
+            inv.groups["group_1"],
+            inv.groups["parent_group"],
+        ]
+        assert inv.hosts["dev3.group_2"].extended_groups() == [
+            inv.groups["group_2"],
+        ]
+        assert inv.hosts["dev5.no_group"].extended_groups() == []
+        assert inv.hosts["dev6.group_3"].extended_groups() == [
+            inv.groups["group_3"],
+            inv.groups["dummy_group"],
+            inv.groups["parent_group"],
+        ]
 
     def test_filtering(self, inv):
         unfiltered = sorted(list(inv.hosts.keys()))
@@ -298,6 +374,7 @@ class Test(object):
             "dev3.group_2",
             "dev4.group_2",
             "dev5.no_group",
+            "dev6.group_3",
         ]
 
         www = sorted(list(inv.filter(role="www").hosts.keys()))
@@ -315,7 +392,7 @@ class Test(object):
         long_names = sorted(
             list(inv.filter(filter_func=lambda x: len(x["my_var"]) > 20).hosts.keys())
         )
-        assert long_names == ["dev1.group_1", "dev4.group_2"]
+        assert long_names == ["dev1.group_1", "dev4.group_2", "dev6.group_3"]
 
         def longer_than(dev, length):
             return len(dev["my_var"]) > length
@@ -323,7 +400,7 @@ class Test(object):
         long_names = sorted(
             list(inv.filter(filter_func=longer_than, length=20).hosts.keys())
         )
-        assert long_names == ["dev1.group_1", "dev4.group_2"]
+        assert long_names == ["dev1.group_1", "dev4.group_2", "dev6.group_3"]
 
     def test_filter_unique_keys(self, inv):
         filtered = sorted(list(inv.filter(www_server="nginx").hosts.keys()))
@@ -334,6 +411,8 @@ class Test(object):
         assert inv.hosts["dev2.group_1"]["my_var"] == "comes_from_group_1"
         assert inv.hosts["dev3.group_2"]["my_var"] == "comes_from_defaults"
         assert inv.hosts["dev4.group_2"]["my_var"] == "comes_from_dev4.group_2"
+        assert inv.hosts["dev5.no_group"]["my_var"] == "comes_from_defaults"
+        assert inv.hosts["dev6.group_3"]["my_var"] == "comes_from_parent_group"
         assert inv.hosts["dev1.group_1"]["a_false_var"] is False
 
         assert inv.hosts["dev1.group_1"].data["my_var"] == "comes_from_dev1.group_1"
@@ -349,6 +428,7 @@ class Test(object):
         assert inv.hosts["dev3.group_2"].password == "docker"
         assert inv.hosts["dev4.group_2"].password == "from_parent_group"
         assert inv.hosts["dev5.no_group"].password == "docker"
+        assert inv.hosts["dev6.group_3"].password == "from_parent_group"
 
     def test_has_parents(self, inv):
         assert inv.hosts["dev1.group_1"].has_parent_group(inv.groups["group_1"])
@@ -399,6 +479,7 @@ class Test(object):
             inv.hosts["dev1.group_1"],
             inv.hosts["dev2.group_1"],
             inv.hosts["dev4.group_2"],
+            inv.hosts["dev6.group_3"],
         }
 
         assert inv.children_of_group("group_1") == {
@@ -418,6 +499,7 @@ class Test(object):
             inv.hosts["dev1.group_1"],
             inv.hosts["dev2.group_1"],
             inv.hosts["dev4.group_2"],
+            inv.hosts["dev6.group_3"],
         }
 
         assert inv.children_of_group(inv.groups["group_1"]) == {
@@ -530,3 +612,50 @@ class Test(object):
         assert "group_1" in dev1_groups
         assert dev2_paramiko_opts["username"] == "root"
         assert "dev3.group_2" in hosts_dict
+
+    def test_add_group_to_host_runtime(self):
+        orig_data = {"var1": "val1"}
+        data = {"var3": "val3"}
+        g1 = inventory.Group(name="g1", data=orig_data)
+        g2 = inventory.Group(name="g2", groups=inventory.ParentGroups([g1]))
+        g3 = inventory.Group(name="g3", groups=inventory.ParentGroups([g2]), data=data)
+        h1 = inventory.Host(name="h1", groups=inventory.ParentGroups([g1, g2]))
+        h2 = inventory.Host(name="h2")
+        hosts = {"h1": h1, "h2": h2}
+        groups = {"g1": g1, "g2": g2}
+        inv = inventory.Inventory(hosts=hosts, groups=groups)
+
+        assert "h1" in inv.hosts
+        assert g3 not in inv.hosts["h1"].groups
+        assert h1.get("var3", None) is None
+
+        h1.groups.add(g3)
+        assert g3 in h1.groups
+        assert h1.get("var3", None) == "val3"
+
+    def test_remove_group_from_host(self):
+        data = {"var3": "val3"}
+        orig_data = {"var1": "val1"}
+        g1 = inventory.Group(name="g1", data=orig_data)
+        g2 = inventory.Group(name="g2", groups=inventory.ParentGroups([g1]))
+        g3 = inventory.Group(name="g3", groups=inventory.ParentGroups([g2]), data=data)
+        h1 = inventory.Host(name="h1", groups=inventory.ParentGroups([g1, g2, g3]))
+        h2 = inventory.Host(name="h2")
+        hosts = {"h1": h1, "h2": h2}
+        groups = {"g1": g1, "g2": g2}
+        inv = inventory.Inventory(hosts=hosts, groups=groups)
+
+        assert "h1" in inv.hosts
+        assert g3 in inv.hosts["h1"].groups
+        assert h1.get("var3") == "val3"
+
+        g3.data["var3"] = "newval3"
+        assert h1.get("var3", None) == "newval3"
+
+        h1.groups.remove(g3)
+        assert g3 not in h1.groups
+        assert h1.get("var3", None) is None
+        assert h1.get("var1", None) == "val1"
+
+        with pytest.raises(ValueError):
+            h1.groups.remove(g3)

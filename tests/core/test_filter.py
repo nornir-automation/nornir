@@ -24,7 +24,12 @@ class Test(object):
         f = F(site="site2") | (F(role="www") & F(my_var="comes_from_dev1.group_1"))
         filtered = sorted(list((nornir.inventory.filter(f).hosts.keys())))
 
-        assert filtered == ["dev1.group_1", "dev3.group_2", "dev4.group_2"]
+        assert filtered == [
+            "dev1.group_1",
+            "dev3.group_2",
+            "dev4.group_2",
+            "dev6.group_3",
+        ]
 
         f = (F(site="site2") | F(role="www")) & F(my_var="comes_from_dev1.group_1")
         filtered = sorted(list((nornir.inventory.filter(f).hosts.keys())))
@@ -41,7 +46,12 @@ class Test(object):
         f = ~F(groups__contains="group_1")
         filtered = sorted(list((nornir.inventory.filter(f).hosts.keys())))
 
-        assert filtered == ["dev3.group_2", "dev4.group_2", "dev5.no_group"]
+        assert filtered == [
+            "dev3.group_2",
+            "dev4.group_2",
+            "dev5.no_group",
+            "dev6.group_3",
+        ]
 
     def test_negate_and_second_negate(self, nornir):
         f = F(site="site1") & ~F(role="www")
@@ -58,6 +68,7 @@ class Test(object):
             "dev3.group_2",
             "dev4.group_2",
             "dev5.no_group",
+            "dev6.group_3",
         ]
 
     def test_nested_data_a_string(self, nornir):
@@ -93,6 +104,7 @@ class Test(object):
             "dev3.group_2",
             "dev4.group_2",
             "dev5.no_group",
+            "dev6.group_3",
         ]
 
     def test_nested_data_a_list_contains(self, nornir):
@@ -105,7 +117,12 @@ class Test(object):
         f = F(has_parent_group="parent_group")
         filtered = sorted(list((nornir.inventory.filter(f).hosts.keys())))
 
-        assert filtered == ["dev1.group_1", "dev2.group_1", "dev4.group_2"]
+        assert filtered == [
+            "dev1.group_1",
+            "dev2.group_1",
+            "dev4.group_2",
+            "dev6.group_3",
+        ]
 
     def test_filtering_by_attribute_name(self, nornir):
         f = F(name="dev1.group_1")
@@ -117,7 +134,12 @@ class Test(object):
         f = F(platform__in=["linux", "mock"])
         filtered = sorted(list((nornir.inventory.filter(f).hosts.keys())))
 
-        assert filtered == ["dev3.group_2", "dev4.group_2", "dev5.no_group"]
+        assert filtered == [
+            "dev3.group_2",
+            "dev4.group_2",
+            "dev5.no_group",
+            "dev6.group_3",
+        ]
 
     def test_filtering_list_any(self, nornir):
         f = F(nested_data__a_list__any=[1, 3])
