@@ -47,6 +47,7 @@ group_2:
     password:
     platform:
     data:
+        some_string_to_test_any_all: other_prefix
         site: site2
     groups: []
     connection_options: {}
