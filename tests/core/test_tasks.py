@@ -15,6 +15,19 @@ def a_task_for_testing(task, fail_on=None):
     return Result(host=task.host, stdout=task.host.name)
 
 
+def a_failed_task_for_testing(task):
+    return Result(host=task.host, stdout=task.host.name, failed=True)
+
+
+def a_failed_task_for_testing_overrides_severity(task):
+    return Result(
+        host=task.host,
+        stdout=task.host.name,
+        failed=True,
+        severity_level=logging.CRITICAL,
+    )
+
+
 def a_task_to_test_dry_run(task, expected_dry_run_value, dry_run=None):
     assert task.is_dry_run(dry_run) is expected_dry_run_value
 
@@ -126,6 +139,24 @@ class Test(object):
             else:
                 assert result[0].severity_level == logging.WARN
                 assert result[1].severity_level == logging.DEBUG
+
+        r = nornir.run(a_failed_task_for_testing)
+        for host, result in r.items():
+            assert result[0].severity_level == logging.ERROR
+        # Reset all failed host for next test
+        nornir.data.reset_failed_hosts()
+
+        r = nornir.run(a_failed_task_for_testing, severity_level=logging.WARN)
+        for host, result in r.items():
+            assert result[0].severity_level == logging.ERROR
+        # Reset all failed host for next test
+        nornir.data.reset_failed_hosts()
+
+        r = nornir.run(a_failed_task_for_testing_overrides_severity)
+        for host, result in r.items():
+            assert result[0].severity_level == logging.CRITICAL
+        # Reset all failed host for next test
+        nornir.data.reset_failed_hosts()
 
     def test_dry_run(self, nornir):
         host = nornir.filter(name="dev3.group_2")

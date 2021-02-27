@@ -121,3 +121,14 @@ dev5.no_group:
     data: {}
     groups: []
     connection_options: {}
+dev6.group_3:
+    port: 65025
+    hostname: localhost
+    username:
+    password:
+    platform: linux
+    data:
+        asd: 1
+    groups:
+    - group_3
+    connection_options: {}
