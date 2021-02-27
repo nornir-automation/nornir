@@ -141,6 +141,12 @@ class Test(object):
             "dev6.group_3",
         ]
 
+    def test_filtering_string_any(self, nornir):
+        f = F(some_string_to_test_any_all__any=["prefix", "other_prefix"])
+        filtered = sorted(list((nornir.inventory.filter(f).hosts.keys())))
+
+        assert filtered == ["dev1.group_1", "dev3.group_2", "dev4.group_2"]
+
     def test_filtering_list_any(self, nornir):
         f = F(nested_data__a_list__any=[1, 3])
         filtered = sorted(list((nornir.inventory.filter(f).hosts.keys())))
