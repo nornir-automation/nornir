@@ -334,6 +334,7 @@ class Test(object):
             "only_default": "only_defined_in_default",
             "role": "www",
             "site": "site1",
+            "some_string_to_test_any_all": "prefix",
             "www_server": "nginx",
         }
         assert inv.hosts["dev3.group_2"].extended_data() == {
@@ -341,6 +342,7 @@ class Test(object):
             "only_default": "only_defined_in_default",
             "role": "www",
             "site": "site2",
+            "some_string_to_test_any_all": "other_prefix",
             "www_server": "apache",
         }
         assert inv.hosts["dev5.no_group"].extended_data() == {
