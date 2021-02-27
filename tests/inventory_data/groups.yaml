@@ -1,4 +1,5 @@
 ---
+dummy_group: {}
 parent_group:
     port:
     hostname:
@@ -6,6 +7,7 @@ parent_group:
     password: from_parent_group
     platform:
     data:
+        my_var: comes_from_parent_group
         a_var: blah
         a_false_var: false
     groups: []
@@ -45,6 +47,7 @@ group_2:
     password:
     platform:
     data:
+        some_string_to_test_any_all: other_prefix
         site: site2
     groups: []
     connection_options: {}
@@ -54,7 +57,9 @@ group_3:
     username:
     password:
     platform:
-    groups: []
+    groups:
+    - dummy_group
+    - parent_group
     data:
         site: site2
     connection_options: {}

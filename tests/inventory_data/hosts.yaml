@@ -6,6 +6,7 @@ dev1.group_1:
     password: a_password
     platform: eos
     data:
+        some_string_to_test_any_all: prefix
         my_var: comes_from_dev1.group_1
         www_server: nginx
         role: www
@@ -40,6 +41,7 @@ dev2.group_1:
     password:
     platform: junos
     data:
+        some_string_to_test_any_all: prefix_longer
         role: db
         nested_data:
             a_dict:
@@ -118,4 +120,15 @@ dev5.no_group:
     platform: linux
     data: {}
     groups: []
+    connection_options: {}
+dev6.group_3:
+    port: 65025
+    hostname: localhost
+    username:
+    password:
+    platform: linux
+    data:
+        asd: 1
+    groups:
+    - group_3
     connection_options: {}
