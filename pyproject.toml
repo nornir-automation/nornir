@@ -63,10 +63,9 @@ pygments = "2.6.1"
 sphinx-issues = "^1.2"
 
 # for docs only
-## this needs to be fixed, poetry is giving issues due to nornir being beta
-nornir_utils = { version = "0.1.0" }
-nornir_jinja2 = { version = "*" }
-nornir-napalm = { version = "*" }
+nornir-utils = { version = "0.1.2" }
+nornir-jinja2 = { version = "0.1.2" }
+nornir-napalm = { version = "0.1.2" }
 # due to https://github.com/google/textfsm/issues/63
 textfsm = { git = "https://github.com/ktbyers/textfsm.git", branch = "fix_windows_import_pin" }
 
