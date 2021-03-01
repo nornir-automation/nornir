@@ -92,14 +92,14 @@ class SimpleInventory:
         yml = ruamel.yaml.YAML(typ="safe")
 
         if self.defaults_file.exists():
-            with open(self.defaults_file, "r") as f:
+            with open(self.defaults_file, "rb") as f:
                 defaults_dict = yml.load(f) or {}
             defaults = _get_defaults(defaults_dict)
         else:
             defaults = Defaults()
 
         hosts = Hosts()
-        with open(self.host_file, "r") as f:
+        with open(self.host_file, "rb") as f:
             hosts_dict = yml.load(f)
 
         for n, h in hosts_dict.items():
@@ -107,7 +107,7 @@ class SimpleInventory:
 
         groups = Groups()
         if self.group_file.exists():
-            with open(self.group_file, "r") as f:
+            with open(self.group_file, "rb") as f:
                 groups_dict = yml.load(f) or {}
 
             for n, g in groups_dict.items():
