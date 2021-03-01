@@ -220,7 +220,7 @@ class Test:
                 },
                 "dev5.no_group": {
                     "connection_options": {},
-                    'data': {'smiley': '😜'},
+                    "data": {"smiley": "😜"},
                     "groups": [],
                     "hostname": "localhost",
                     "name": "dev5.no_group",
