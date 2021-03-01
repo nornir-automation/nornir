@@ -70,6 +70,7 @@ class SimpleInventory:
         host_file: str = "hosts.yaml",
         group_file: str = "groups.yaml",
         defaults_file: str = "defaults.yaml",
+        encoding: str = "utf-8",
     ) -> None:
         """
         SimpleInventory is an inventory plugin that loads data from YAML files.
@@ -82,24 +83,26 @@ class SimpleInventory:
                 it doesn't exist it will be skipped
           defaults_file: path to file with defaults definition.
                 If it doesn't exist it will be skipped
+          encoding: Encoding used to save inventory files. Defaults to utf-8
         """
 
         self.host_file = pathlib.Path(host_file).expanduser()
         self.group_file = pathlib.Path(group_file).expanduser()
         self.defaults_file = pathlib.Path(defaults_file).expanduser()
+        self.encoding = encoding
 
     def load(self) -> Inventory:
         yml = ruamel.yaml.YAML(typ="safe")
 
         if self.defaults_file.exists():
-            with open(self.defaults_file, "r") as f:
+            with open(self.defaults_file, "r", encoding=self.encoding) as f:
                 defaults_dict = yml.load(f) or {}
             defaults = _get_defaults(defaults_dict)
         else:
             defaults = Defaults()
 
         hosts = Hosts()
-        with open(self.host_file, "r") as f:
+        with open(self.host_file, "r", encoding=self.encoding) as f:
             hosts_dict = yml.load(f)
 
         for n, h in hosts_dict.items():
@@ -107,7 +110,7 @@ class SimpleInventory:
 
         groups = Groups()
         if self.group_file.exists():
-            with open(self.group_file, "r") as f:
+            with open(self.group_file, "r", encoding=self.encoding) as f:
                 groups_dict = yml.load(f) or {}
 
             for n, g in groups_dict.items():
