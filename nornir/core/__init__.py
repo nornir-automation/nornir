@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import logging.config
 from typing import List, Optional, TYPE_CHECKING
@@ -175,3 +176,10 @@ class Nornir(object):
     @property
     def state(self):
         return GlobalState
+
+    async def run_async(
+        self, task, **kwargs,
+    ):
+        await asyncio.gather(
+            *(task(h, **kwargs) for h in self.inventory.hosts.values())
+        )
