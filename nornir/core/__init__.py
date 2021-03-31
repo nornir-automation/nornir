@@ -171,7 +171,3 @@ class Nornir(object):
         if not isinstance(v, cls):
             raise ValueError(f"Nornir: Nornir expected not {type(v)}")
         return v
-
-    @property
-    def state(self):
-        return GlobalState
