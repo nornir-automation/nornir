@@ -1,0 +1,79 @@
+---
+ios:
+    platform: ios
+    data:
+        vendor: cisco
+junos:
+    platform: junos
+    data:
+        vendor: juniper
+eos:
+    platform: eos
+    data:
+        vendor: arista
+nxos:
+    platform: nxos
+    data:
+        vendor: cisco
+nxos_ssh:
+    platform: nxos_ssh
+    data:
+        vendor: cisco
+panos:
+    platform: paloalto_panos
+    data:
+        vendor: palo alto
+lab:
+    data:
+        sla: 70
+        production: false
+prod:
+    data:
+        sla: 90
+        production: true
+test:
+    data:
+        sla: 80
+        production: false
+mel:
+    data:
+        full_name: Melbourne
+        country: Australia
+        region: apac
+        hemisphere: southern
+        site_type: primary
+hbt:
+    data:
+        full_name: Hobart
+        country: Australia
+        region: apac
+        hemisphere: southern
+        site_type: tertiary
+chc:
+    data:
+        full_name: Christchurch
+        country: New Zealand
+        region: apac
+        hemisphere: southern
+        site_type: secondary
+ptl:
+    data:
+        full_name: Port Louis
+        country: Mauritius
+        region: amea
+        hemisphere: southern
+        site_type: primary
+mtl:
+    data:
+        full_name: Montreal
+        country: Canada
+        region: amer
+        hemisphere: northern
+        site_type: primary
+bcn:
+    data:
+        full_name: Barcelona
+        country: Spain
+        region: amea
+        hemisphere: northern
+        site_type: primary
