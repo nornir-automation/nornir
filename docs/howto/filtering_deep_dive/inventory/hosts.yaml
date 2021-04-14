@@ -155,7 +155,7 @@ prd-arista-01.prd.norn.local:
         os_version: 4.21.1F
         site_code: mel
         
-prd-arista-02.prd.norn.local:
+prd-arista-02.prd.nron.local:
     hostname: prd-arista-02.prd.norn.local
     groups:
         - eos
@@ -184,7 +184,7 @@ prd-junos-01.prd.norn.local:
 prd-nxos-01.prd.norn.local:
     hostname: prd-nxos-01.prd.norn.local
     groups:
-        - nxos
+        - nxos_ssh
         - prod
         - mel
     data:
