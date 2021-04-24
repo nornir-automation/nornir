@@ -1,0 +1,12 @@
+---
+mel:
+    data:  # Anything under this key is custom data
+        full_name: Melbourne
+        country: Australia
+        region: apac
+        hemisphere: southern
+        site_type: primary
+        location:  # New location data is stored about the site
+            address: 1 Wurundjeri Street
+            suburb: Northcote
+            zip_code: 3070

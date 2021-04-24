@@ -1,0 +1,13 @@
+---
+lab-csr-011.lab.norn.local:
+    hostname: lab-csr-011.lab.norn.local
+    groups:
+        - ios
+        - lab
+        - mel
+    data:  # Anything under this key is custom data
+        mgmt_ip: 10.0.0.16  # This is custom data
+        vendor: cisco  # So is this
+        device_type: router  # Same as this
+        os_version: 16.6.4  # Also this too
+        site_code: mel  # Yes, and also this
