@@ -1,0 +1,8 @@
+---
+mel:
+    data:  # Anything under this key is custom data
+        full_name: Melbourne  # This is custom data
+        country: Australia  # So is this
+        region: apac  # Same as this
+        hemisphere: southern  # Also this too
+        site_type: primary  # Yes, and also this

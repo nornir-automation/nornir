@@ -1,0 +1,10 @@
+---
+inventory:
+    plugin: SimpleInventory
+    options:
+        host_file: "filtering_deep_dive/inventory/hosts.yaml"
+        group_file: "filtering_deep_dive/inventory/groups.yaml"
+runner:
+    plugin: threaded
+    options:
+        num_workers: 20

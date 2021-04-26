@@ -1,0 +1,14 @@
+---
+lab-csr-011.lab.norn.local:
+    hostname: lab-csr-011.lab.norn.local
+    groups:
+        - ios
+        - lab
+        - mel
+    data:  # Anything under this key is custom data
+        ip_addresses:
+            mgmt: 10.0.0.16  # Alternate way of managing mgmt_ip data
+        vendor: cisco
+        device_type: router
+        os_version: 16.6.4
+        site_code: mel

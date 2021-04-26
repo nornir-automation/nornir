@@ -116,6 +116,7 @@ dev5.no_group:
     username:
     password:
     platform: linux
-    data: {}
+    data:
+        smiley: 😜
     groups: []
     connection_options: {}
