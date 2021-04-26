@@ -1,6 +1,14 @@
 Changelog
 ==========
 
+3.1.1 - April 26 2021
+---------------------
+
+- address UTF-8 error on windows (#654) @dbarrosop
+- remove state property from Nornir class (#669) @brandomando
+- Evaluate a host's group outside groups evaluation (#677) @bytinbit
+- Nornir Filtering Deep Dive How To (#674) @writememe
+
 3.1.0 - February 27 2021
 ------------------------
 
