@@ -23,6 +23,7 @@ sphinx:
 	# TODO REPLACE with: sphinx-build -n -E -q -N -b dummy -d docs/_build/doctrees docs asd
 	# poetry run sphinx-build -W -b html -d docs/_build/doctrees docs docs/_build/html
 	echo "WARNING: sphinx needs to be added here!!!"
+	make -C docs linkcheck
 
 .PHONY: pylama
 pylama:
