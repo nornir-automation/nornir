@@ -25,7 +25,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.6"
-"ruamel.yaml" = "^0.16"
+"ruamel.yaml" = ">=0.16"
 mypy_extensions = "^0.4.1"
 typing_extensions = "^3.7"
 # The following dependencies are used for docs generation when installed as extras
