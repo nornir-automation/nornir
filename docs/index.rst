@@ -26,7 +26,7 @@ How the documentation is structured
 - :doc:`How-to guides <howto/index>` aim to solve a specific use case or answer key problems. These guides can be more advanced than the tutorial and can assume some knowledge about how Nornir and related technologies work.
 - :doc:`The API section <api/index>` contains the API reference for Nornir and describe the core functions.
 - :doc:`Configuration <configuration/index>` describe the configuration parameters of Nornir and their default settings.
-- `nornit.tech <https://nornir.tech/nornir/plugins/>`_ is a good place to find plugins for nornir
+- `nornir.tech <https://nornir.tech/nornir/plugins/>`_ is a good place to find plugins for nornir
 
 Is something missing from the documentation? Please open an issue and `tell us what you are missing <https://github.com/nornir-automation/nornir/issues>`_ or `open a pull request <https://github.com/nornir-automation/nornir/pulls>`_ and suggest an improvement.
 
