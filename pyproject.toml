@@ -25,7 +25,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.6"
-"ruamel.yaml" = "^0.16"
+"ruamel.yaml" = ">=0.16"
 mypy_extensions = "^0.4.1"
 typing_extensions = "^3.7"
 # The following dependencies are used for docs generation when installed as extras
@@ -69,6 +69,8 @@ nornir-utils = "0.1.2"
 nornir-napalm = "0.1.2"
 # due to https://github.com/google/textfsm/issues/63
 textfsm = { git = "https://github.com/ktbyers/textfsm.git", branch = "fix_windows_import_pin" }
+types-Jinja2 = "^2.11.2"
+types-pkg-resources = "^0.1.3"
 
 [tool.poetry.extras]
 # The following section is required to install docs dependencies
