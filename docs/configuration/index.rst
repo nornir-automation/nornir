@@ -1,7 +1,7 @@
 Configuration
 =============
 
-The configuration is comprised of a set of sections and parameters for those sections. You can set the configuration programmatically using nornir by passing a dictionary of options for each section, by using a YAML file, by setting the corresponding environment variables or by a combination of the three. The order of preference from less to more preferred is "configuration file" -> "env variable" -> "code".
+The configuration is comprised of a set of sections and parameters for those sections. You can set the configuration programmatically using nornir by passing a dictionary of options for each section, by using a YAML file, by setting the corresponding environment variables or by a combination of the three. The order of preference from less preferred to more preferred is "env variable" -> "configuration file" -> "code".
 
 An example using ``InitNornir`` would be::
 
