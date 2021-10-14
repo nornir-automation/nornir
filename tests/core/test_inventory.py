@@ -666,3 +666,37 @@ class Test(object):
 
         with pytest.raises(ValueError):
             h1.groups.remove(g3)
+
+    def test_inventory_load_defaults_no_connections(self):
+        # Set a test data to send in for a dictionary, with the results coming back
+        test_data = {
+            "port": "22",
+            "password": "Nornir123",
+            "platform": "fake",
+        }
+        test_result = inventory.get_defaults_from_dict(test_data)
+        assert isinstance(test_result, inventory.Defaults)
+        assert test_result.hostname is None
+        assert test_result.password == "Nornir123"
+        assert test_result.platform == "fake"
+
+    def test_inventory_load_defaults_with_connections(self):
+        # Set a test data to send in for a dictionary, with the results coming back
+        test_data = {
+            "port": "22",
+            "password": "Nornir123",
+            "platform": "fake",
+            "connection_options": {"netmiko": {"extras": {"use_keys": True}}},
+        }
+        test_result = inventory.get_defaults_from_dict(test_data)
+        assert isinstance(test_result, inventory.Defaults)
+        assert test_result.hostname is None
+        assert test_result.password == "Nornir123"
+        assert test_result.platform == "fake"
+        assert isinstance(
+            test_result.connection_options.get("netmiko"), inventory.ConnectionOptions
+        )
+        assert isinstance(
+            test_result.connection_options.get("netmiko").extras.get("use_keys"), bool
+        )
+        assert test_result.connection_options.get("netmiko").extras.get("use_keys")

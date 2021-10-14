@@ -655,3 +655,52 @@ class Inventory(object):
             "groups": {n: g.dict() for n, g in self.groups.items()},
             "defaults": self.defaults.dict(),
         }
+
+
+def _get_connection_options_from_dict(
+    data: Dict[str, Any]
+) -> Dict[str, ConnectionOptions]:
+    """Gather connection options from a dictionary.
+
+    Gathered from the work of Nornir NetBox Inventory (2021-10-13).
+    https://github.com/wvandeun/nornir_netbox/blob/develop/nornir_netbox/plugins/inventory/netbox.py#L25-L36
+
+    Args:
+        data (Dict[str, Any]): Dictionary
+
+    Returns:
+        Dict[str, ConnectionOptions]: Dictionary of connection options
+    """
+    cp = {}
+    for cn, c in data.items():
+        cp[cn] = ConnectionOptions(
+            hostname=c.get("hostname"),
+            port=c.get("port"),
+            username=c.get("username"),
+            password=c.get("password"),
+            platform=c.get("platform"),
+            extras=c.get("extras"),
+        )
+    return cp
+
+
+def get_defaults_from_dict(data: Dict[str, Any]) -> Defaults:
+    """Get defaults from a data dictionary.
+
+    Gathered from work done in Nornir Ansible Inventory and Nornir NetBox Inventory files.
+    https://github.com/wvandeun/nornir_netbox/blob/develop/nornir_netbox/plugins/inventory/netbox.py#L39-L48
+
+    Args:
+        data (dict): Defaults
+    """
+    return Defaults(
+        hostname=data.get("hostname"),
+        port=data.get("port"),
+        username=data.get("username"),
+        password=data.get("password"),
+        platform=data.get("platform"),
+        data=data.get("data"),
+        connection_options=_get_connection_options_from_dict(
+            data.get("connection_options", {})
+        ),
+    )
