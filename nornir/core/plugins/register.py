@@ -6,7 +6,7 @@ from nornir.core.exceptions import (
     PluginNotRegistered,
 )
 
-if sys.version_info >= (3, 8):
+if sys.version_info >= (3, 10):
     from importlib import metadata
 else:
     import importlib_metadata as metadata
@@ -22,7 +22,7 @@ class PluginRegister(Generic[T]):
         self._entry_point = entry_point
 
     def auto_register(self) -> None:
-        for entry_point in metadata.entry_points().get(self._entry_point, tuple()):
+        for entry_point in metadata.entry_points(group=self._entry_point):
             self.register(entry_point.name, entry_point.load())
 
     def register(self, name: str, plugin: T) -> None:

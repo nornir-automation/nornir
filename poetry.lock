@@ -1693,7 +1693,7 @@ docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-napoleon", "jupyter", "nbsp
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "abd7ac047620ec35407ddb34a384ce0b066ce80c015617d087decf5839b36b23"
+content-hash = "66aa379ae800ea0f5961be619e0b9f73e3c549483e74f363583f5dcb2d021d32"
 
 [metadata.files]
 alabaster = [
