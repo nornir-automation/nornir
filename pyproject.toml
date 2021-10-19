@@ -39,6 +39,8 @@ jupyter = { version = "^1", optional = true }
 nbsphinx = { version = "^0.5", optional = true }
 pygments = { version = "^2", optional = true }
 sphinx-issues = { version = "^1.2", optional = true }
+
+# importlib.metadata has a API change in 3.10 and is no longer provisional
 importlib-metadata = { version = "^4", python = "<3.10" }
 
 # for pydantic
