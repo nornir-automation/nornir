@@ -55,4 +55,4 @@ To tweak the number of threads::
         options:
             num_workers: 100
 
-For this same reason ``NORNIR_CORE_NUM_WORKERS`` doesn't work anymore. You should be able to do ``NORNIR_RUNNER_OPTIONS='{"num_threads": 100}'`` instead.
+For this same reason ``NORNIR_CORE_NUM_WORKERS`` doesn't work anymore. You should be able to do ``NORNIR_RUNNER_OPTIONS='{"num_workers": 100}'`` instead.
