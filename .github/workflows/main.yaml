@@ -74,16 +74,6 @@ jobs:
           path: .venv
           key: venv-${{ matrix.python-version }}-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
         if: ${{ matrix.platform != 'windows-latest' }}  # windows hangs if using a cached venv
-      - name: Run pylama
-        run: make pylama
-      - name: Run black
-        run: make black
-      - name: Run mypy
-        run: make mypy
-      - name: Run sphinx
-        run: |
-          sudo apt-get install pandoc
-          make sphinx
 
       - name: Install Dependencies
         run: poetry install
