@@ -1,11 +1,16 @@
-import pkg_resources
+import sys
 from typing import Dict, TypeVar, Generic
-
 
 from nornir.core.exceptions import (
     PluginAlreadyRegistered,
     PluginNotRegistered,
 )
+
+if sys.version_info >= (3, 10):
+    from importlib import metadata
+else:
+    import importlib_metadata as metadata
+
 
 T = TypeVar("T")
 
@@ -17,12 +22,8 @@ class PluginRegister(Generic[T]):
         self._entry_point = entry_point
 
     def auto_register(self) -> None:
-        discovered_plugins: Dict[str, T] = {
-            entry_point.name: entry_point.load()
-            for entry_point in pkg_resources.iter_entry_points(self._entry_point)
-        }
-        for k, v in discovered_plugins.items():
-            self.register(k, v)
+        for entry_point in metadata.entry_points(group=self._entry_point):
+            self.register(entry_point.name, entry_point.load())
 
     def register(self, name: str, plugin: T) -> None:
         """Registers a plugin with a specified name

@@ -40,6 +40,9 @@ nbsphinx = { version = "^0.5", optional = true }
 pygments = { version = "^2", optional = true }
 sphinx-issues = { version = "^1.2", optional = true }
 
+# importlib.metadata has a API change in 3.10 and is no longer provisional
+importlib-metadata = { version = "^4", python = "<3.10" }
+
 # for pydantic
 dataclasses = {version = "^0.7", python = "~3.6"}
 
@@ -59,7 +62,7 @@ sphinx_rtd_theme = "^0.4"
 sphinxcontrib_napoleon = "^0.7"
 jupyter = "^1"
 nbsphinx = "^0.5"
-pygments = "2.6.1"
+pygments = "^2"
 sphinx-issues = "^1.2"
 
 # for docs only
