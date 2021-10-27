@@ -14,7 +14,6 @@ jobs:
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
-          version: 1.1.4
           virtualenvs-create: true
           virtualenvs-in-project: true
 
@@ -48,7 +47,7 @@ jobs:
     strategy:
       matrix:
         python-version: [ '3.6', '3.7', '3.8', '3.9' ]
-        platform: [ubuntu-latest, macos-latest, windows-latest]
+        platform: [ubuntu-latest, macos-10.15, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v2
