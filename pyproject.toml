@@ -24,7 +24,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = ">=3.6.2,<4.0"
 "ruamel.yaml" = ">=0.16"
 mypy_extensions = "^0.4.1"
 typing_extensions = "^3.7"
@@ -53,7 +53,7 @@ pytest = "*"
 pytest-cov = "*"
 pylama = "*"
 requests-mock = "*"
-black = { version = "19.10b0", allow-prereleases = true }
+black = { version = "21.10b0", allow-prereleases = true }
 mypy = "*"
 # The following dependencies are used for docs generation when run locally or in Docker
 # (e.g. poetry install)

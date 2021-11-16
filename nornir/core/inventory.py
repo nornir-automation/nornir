@@ -556,7 +556,7 @@ class Host(InventoryElement):
         return conn_obj
 
     def close_connection(self, connection: str) -> None:
-        """ Close the connection"""
+        """Close the connection"""
         conn_name = connection
         if conn_name not in self.connections:
             raise ConnectionNotOpen(conn_name)

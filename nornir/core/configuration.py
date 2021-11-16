@@ -96,8 +96,10 @@ class InventoryConfig(object):
         self.transform_function = self.Parameters.transform_function.resolve(
             transform_function
         )
-        self.transform_function_options = self.Parameters.transform_function_options.resolve(
-            transform_function_options
+        self.transform_function_options = (
+            self.Parameters.transform_function_options.resolve(
+                transform_function_options
+            )
         )
 
     def dict(self) -> Dict[str, Any]:

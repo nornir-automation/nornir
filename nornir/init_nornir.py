@@ -12,7 +12,9 @@ from nornir.core.plugins.runners import RunnerPlugin, RunnersPluginRegister
 from nornir.core.state import GlobalState
 
 
-def load_inventory(config: Config,) -> Inventory:
+def load_inventory(
+    config: Config,
+) -> Inventory:
     InventoryPluginRegister.auto_register()
     inventory_plugin = InventoryPluginRegister.get_plugin(config.inventory.plugin)
     inv = inventory_plugin(**config.inventory.options).load()
@@ -28,14 +30,20 @@ def load_inventory(config: Config,) -> Inventory:
     return inv
 
 
-def load_runner(config: Config,) -> RunnerPlugin:
+def load_runner(
+    config: Config,
+) -> RunnerPlugin:
     RunnersPluginRegister.auto_register()
     runner_plugin = RunnersPluginRegister.get_plugin(config.runner.plugin)
     runner = runner_plugin(**config.runner.options)
     return runner
 
 
-def InitNornir(config_file: str = "", dry_run: bool = False, **kwargs: Any,) -> Nornir:
+def InitNornir(
+    config_file: str = "",
+    dry_run: bool = False,
+    **kwargs: Any,
+) -> Nornir:
     """
     Arguments:
         config_file(str): Path to the configuration file (optional)

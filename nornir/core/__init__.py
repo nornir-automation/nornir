@@ -153,7 +153,7 @@ class Nornir(object):
         return result
 
     def dict(self):
-        """ Return a dictionary representing the object. """
+        """Return a dictionary representing the object."""
         return {"data": self.data.dict(), "inventory": self.inventory.dict()}
 
     def close_connections(self, on_good=True, on_failed=False):
