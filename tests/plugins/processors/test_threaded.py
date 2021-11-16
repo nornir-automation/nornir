@@ -81,7 +81,9 @@ class Test(object):
             assert isinstance(v.exception, CustomException), v
 
     def test_change_data_in_thread(self, nornir):
-        nornir.with_runner(ThreadedRunner(num_workers=NUM_WORKERS)).run(change_data,)
+        nornir.with_runner(ThreadedRunner(num_workers=NUM_WORKERS)).run(
+            change_data,
+        )
         nornir.with_runner(ThreadedRunner(num_workers=NUM_WORKERS)).run(
             verify_data_change,
         )

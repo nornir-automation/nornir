@@ -34,13 +34,16 @@ def a_task_to_test_dry_run(task, expected_dry_run_value, dry_run=None):
 
 def sub_task_for_testing(task, fail_on=None):
     task.run(
-        a_task_for_testing, fail_on=fail_on,
+        a_task_for_testing,
+        fail_on=fail_on,
     )
 
 
 def sub_task_for_testing_overrides_severity(task, fail_on=None):
     task.run(
-        a_task_for_testing, fail_on=fail_on, severity_level=logging.DEBUG,
+        a_task_for_testing,
+        fail_on=fail_on,
+        severity_level=logging.DEBUG,
     )
 
 
