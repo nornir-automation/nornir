@@ -1,6 +1,20 @@
 Changelog
 ==========
 
+3.2.0 - November 16 2021
+------------------------
+
+- update gha snok/install-poetry (#736) @dbarrosop
+- Update pygments because of vulnerabilities (#732) @ubaumann
+- Replace pkg_resources with importlib (#731) @ubaumann
+- Fix GitHub actions MacOS arch failure (#729) @ktbyers
+- Minor doc error on NORNIR_RUNNER_OPTIONS environment variable (#725) @ktbyers
+- Correct configuration order preference error (#728) @ktbyers
+- Update task_results.ipynb (#715) @MajesticFalcon
+- fixing domain name typo (#704) @marco-minervino
+- update ruamel dependency (#694) @itdependsnetworks
+- fixed stubs for mypy 0.900 (#696) @dbarrosop
+
 3.1.1 - April 26 2021
 ---------------------
 

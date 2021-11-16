@@ -25,5 +25,5 @@ class GlobalState(object):
         self.failed_hosts = set()
 
     def dict(self) -> Dict[str, Any]:
-        """ Return a dictionary representing the object. """
+        """Return a dictionary representing the object."""
         return {item: getattr(self, item) for item in GlobalState.__slots__}

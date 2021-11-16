@@ -192,7 +192,9 @@ class TestLogging:
 
     def test_InitNornir_logging_defaults(self):
         self.cleanup()
-        InitNornir(config_file=os.path.join(dir_path, "a_config.yaml"),)
+        InitNornir(
+            config_file=os.path.join(dir_path, "a_config.yaml"),
+        )
         nornir_logger = logging.getLogger("nornir")
 
         assert nornir_logger.level == logging.INFO

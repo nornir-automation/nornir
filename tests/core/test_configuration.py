@@ -91,7 +91,8 @@ class Test(object):
 
     def test_configuration_file_override_argument(self):
         config = Config.from_file(
-            os.path.join(dir_path, "config.yaml"), core={"raise_on_error": True},
+            os.path.join(dir_path, "config.yaml"),
+            core={"raise_on_error": True},
         )
         assert config.core.raise_on_error
 
