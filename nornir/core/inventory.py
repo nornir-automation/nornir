@@ -12,6 +12,7 @@ from typing import (
     Iterator,
     TypeVar,
 )
+from copy import deepcopy
 
 from nornir.core.configuration import Config
 from nornir.core.plugins.connections import (
@@ -19,6 +20,7 @@ from nornir.core.plugins.connections import (
     ConnectionPluginRegister,
 )
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
+from nornir.core.helpers import nested_update
 
 from mypy_extensions import Arg, KwArg
 
@@ -452,6 +454,16 @@ class Host(InventoryElement):
         if p is None:
             p = ConnectionOptions(None, None, None, None, None, None)
 
+        # load defaults for connection options and use extras as base
+        defaults_connection_options = self.defaults.connection_options.get(
+            connection, None
+        )
+        if defaults_connection_options is not None:
+            # need deepcopy to avoid overwriting the original default parameters
+            merge_extras = deepcopy(defaults_connection_options.extras)
+        else:
+            merge_extras = {}
+
         for g in self.groups:
             sp = g._get_connection_options_recursively(connection)
             if sp is not None:
@@ -460,16 +472,20 @@ class Host(InventoryElement):
                 p.username = p.username if p.username is not None else sp.username
                 p.password = p.password if p.password is not None else sp.password
                 p.platform = p.platform if p.platform is not None else sp.platform
-                p.extras = p.extras if p.extras is not None else sp.extras
+                nested_update(merge_extras, sp.extras)
 
-        sp = self.defaults.connection_options.get(connection, None)
+        sp = defaults_connection_options
         if sp is not None:
             p.hostname = p.hostname if p.hostname is not None else sp.hostname
             p.port = p.port if p.port is not None else sp.port
             p.username = p.username if p.username is not None else sp.username
             p.password = p.password if p.password is not None else sp.password
             p.platform = p.platform if p.platform is not None else sp.platform
-            p.extras = p.extras if p.extras is not None else sp.extras
+
+        # merge host extras last to override default's and groups'
+        nested_update(merge_extras, p.extras)
+        p.extras = merge_extras
+
         return p
 
     def get_connection(self, connection: str, configuration: Config) -> Any:

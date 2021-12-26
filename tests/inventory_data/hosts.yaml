@@ -132,3 +132,23 @@ dev6.group_3:
     groups:
     - group_3
     connection_options: {}
+dev7.group_4:
+    port: 65026
+    hostname: localhost
+    username:
+    password:
+    platform: linux
+    data:
+        asd: 1
+        role: www
+    groups:
+    - group_4
+    connection_options:
+        dummy:
+            hostname:
+            port:
+            username:
+            password:
+            platform:
+            extras:
+                blah4: from_host_7

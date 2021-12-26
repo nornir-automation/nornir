@@ -18,7 +18,12 @@ class Test(object):
         f = F(site="site1") | F(role="www")
         filtered = sorted(list((nornir.inventory.filter(f).hosts.keys())))
 
-        assert filtered == ["dev1.group_1", "dev2.group_1", "dev3.group_2"]
+        assert filtered == [
+            "dev1.group_1",
+            "dev2.group_1",
+            "dev3.group_2",
+            "dev7.group_4",
+        ]
 
     def test_combined(self, nornir):
         f = F(site="site2") | (F(role="www") & F(my_var="comes_from_dev1.group_1"))
@@ -51,6 +56,7 @@ class Test(object):
             "dev4.group_2",
             "dev5.no_group",
             "dev6.group_3",
+            "dev7.group_4",
         ]
 
     def test_negate_and_second_negate(self, nornir):
@@ -69,6 +75,7 @@ class Test(object):
             "dev4.group_2",
             "dev5.no_group",
             "dev6.group_3",
+            "dev7.group_4",
         ]
 
     def test_nested_data_a_string(self, nornir):
@@ -105,6 +112,7 @@ class Test(object):
             "dev4.group_2",
             "dev5.no_group",
             "dev6.group_3",
+            "dev7.group_4",
         ]
 
     def test_nested_data_a_list_contains(self, nornir):
@@ -122,6 +130,7 @@ class Test(object):
             "dev2.group_1",
             "dev4.group_2",
             "dev6.group_3",
+            "dev7.group_4",
         ]
 
     def test_filtering_by_attribute_name(self, nornir):
@@ -139,6 +148,7 @@ class Test(object):
             "dev4.group_2",
             "dev5.no_group",
             "dev6.group_3",
+            "dev7.group_4",
         ]
 
     def test_filtering_string_any(self, nornir):

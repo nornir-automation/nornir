@@ -63,3 +63,21 @@ group_3:
     data:
         site: site2
     connection_options: {}
+group_4:
+    port:
+    hostname:
+    username:
+    password:
+    platform:
+    groups:
+    - parent_group
+    data:
+    connection_options:
+        dummy:
+            hostname:
+            port:
+            username:
+            password:
+            platform:
+            extras:
+                blah3: from_group_4

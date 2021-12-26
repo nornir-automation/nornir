@@ -129,6 +129,26 @@ class Test(object):
                     "port": None,
                     "username": None,
                 },
+                "group_4": {
+                    "connection_options": {
+                        "dummy": {
+                            "extras": {"blah3": "from_group_4"},
+                            "hostname": None,
+                            "password": None,
+                            "platform": None,
+                            "port": None,
+                            "username": None,
+                        },
+                    },
+                    "data": {},
+                    "groups": ["parent_group"],
+                    "hostname": None,
+                    "name": "group_4",
+                    "password": None,
+                    "platform": None,
+                    "port": None,
+                    "username": None,
+                },
                 "parent_group": {
                     "connection_options": {
                         "dummy": {
@@ -318,6 +338,26 @@ class Test(object):
                     "port": 65025,
                     "username": None,
                 },
+                "dev7.group_4": {
+                    "connection_options": {
+                        "dummy": {
+                            "extras": {"blah4": "from_host_7"},
+                            "hostname": None,
+                            "password": None,
+                            "platform": None,
+                            "port": None,
+                            "username": None,
+                        }
+                    },
+                    "data": {"asd": 1, "role": "www"},
+                    "groups": ["group_4"],
+                    "hostname": "localhost",
+                    "name": "dev7.group_4",
+                    "password": None,
+                    "platform": "linux",
+                    "port": 65026,
+                    "username": None,
+                },
             },
         }
 
@@ -382,10 +422,11 @@ class Test(object):
             "dev4.group_2",
             "dev5.no_group",
             "dev6.group_3",
+            "dev7.group_4",
         ]
 
         www = sorted(list(inv.filter(role="www").hosts.keys()))
-        assert www == ["dev1.group_1", "dev3.group_2"]
+        assert www == ["dev1.group_1", "dev3.group_2", "dev7.group_4"]
 
         www_site1 = sorted(list(inv.filter(role="www", site="site1").hosts.keys()))
         assert www_site1 == ["dev1.group_1"]
@@ -399,7 +440,12 @@ class Test(object):
         long_names = sorted(
             list(inv.filter(filter_func=lambda x: len(x["my_var"]) > 20).hosts.keys())
         )
-        assert long_names == ["dev1.group_1", "dev4.group_2", "dev6.group_3"]
+        assert long_names == [
+            "dev1.group_1",
+            "dev4.group_2",
+            "dev6.group_3",
+            "dev7.group_4",
+        ]
 
         def longer_than(dev, length):
             return len(dev["my_var"]) > length
@@ -407,7 +453,12 @@ class Test(object):
         long_names = sorted(
             list(inv.filter(filter_func=longer_than, length=20).hosts.keys())
         )
-        assert long_names == ["dev1.group_1", "dev4.group_2", "dev6.group_3"]
+        assert long_names == [
+            "dev1.group_1",
+            "dev4.group_2",
+            "dev6.group_3",
+            "dev7.group_4",
+        ]
 
     def test_filter_unique_keys(self, inv):
         filtered = sorted(list(inv.filter(www_server="nginx").hosts.keys()))
@@ -472,6 +523,14 @@ class Test(object):
         assert p4.password == "docker"
         assert p4.platform == "linux"
         assert p4.extras == {"blah": "from_defaults"}
+        p5 = inv.hosts["dev7.group_4"].get_connection_parameters("dummy")
+        assert p5.port == 65026
+        assert p5.platform == "linux"
+        assert p5.extras == {
+            "blah": "from_group",
+            "blah3": "from_group_4",
+            "blah4": "from_host_7",
+        }
 
     def test_defaults(self, inv):
         inv.defaults.password = "asd"
@@ -487,6 +546,7 @@ class Test(object):
             inv.hosts["dev2.group_1"],
             inv.hosts["dev4.group_2"],
             inv.hosts["dev6.group_3"],
+            inv.hosts["dev7.group_4"],
         }
 
         assert inv.children_of_group("group_1") == {
@@ -507,6 +567,7 @@ class Test(object):
             inv.hosts["dev2.group_1"],
             inv.hosts["dev4.group_2"],
             inv.hosts["dev6.group_3"],
+            inv.hosts["dev7.group_4"],
         }
 
         assert inv.children_of_group(inv.groups["group_1"]) == {
