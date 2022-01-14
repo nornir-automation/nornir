@@ -39,7 +39,7 @@ If you want to clone the repo and install it from there you will need to use [po
 Documentation
 =============
 
-Read the [Nornir documentation](https://nornir.readthedocs.io/) online or review it's [code here](https://github.com/nornir-automation/nornir/tree/develop/docs)
+Read the [Nornir documentation](https://nornir.readthedocs.io/) online or review its [code here](https://github.com/nornir-automation/nornir/tree/develop/docs)
 
 Examples
 ========
