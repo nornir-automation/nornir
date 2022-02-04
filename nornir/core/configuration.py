@@ -245,7 +245,6 @@ class Config(object):
         "runner",
         "ssh",
         "inventory",
-        "jinja2",
         "logging",
         "user_defined",
     )
