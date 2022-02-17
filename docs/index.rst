@@ -17,7 +17,7 @@ as the Flask of automation. Nornir will take care of dealing with the inventory 
 have your host information, it will take care of dispatching the tasks to your devices and
 will provide a common framework to write "plugins".
 
-Nornir requires Python 3.6.2 or higher to be installed.
+Nornir requires Python 3.7 or higher to be installed.
 
 How the documentation is structured
 ===================================
