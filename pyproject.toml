@@ -71,7 +71,7 @@ nornir-utils = "0.1.2"
 nornir-napalm = "0.1.2"
 # Fix for Python 3.10
 junos-eznc = "^2.6.0"
-textfsm = "^1.1"
+textfsm = "^1.1.2"
 types-Jinja2 = "^2.11.2"
 types-pkg-resources = "^0.1.3"
 
