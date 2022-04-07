@@ -891,7 +891,7 @@ nornir = ">=3,<4"
 
 [[package]]
 name = "notebook"
-version = "6.4.8"
+version = "6.4.10"
 description = "A web-based notebook environment for interactive computing"
 category = "main"
 optional = false
@@ -904,7 +904,7 @@ ipython-genutils = "*"
 jinja2 = "*"
 jupyter-client = ">=5.3.4"
 jupyter-core = ">=4.6.1"
-nbconvert = "*"
+nbconvert = ">=5"
 nbformat = "*"
 nest-asyncio = ">=1.5"
 prometheus-client = "*"
@@ -2375,8 +2375,8 @@ nornir-utils = [
     {file = "nornir_utils-0.1.2.tar.gz", hash = "sha256:23ae95c4805b0ce8a5ed32935f3f86027e5701175e7740ab8b3a79946c5d90b2"},
 ]
 notebook = [
-    {file = "notebook-6.4.8-py3-none-any.whl", hash = "sha256:3e702fcc54b8ae597533c3864793b7a1e971dec9e112f67235828d8a798fd654"},
-    {file = "notebook-6.4.8.tar.gz", hash = "sha256:1e985c9dc6f678bdfffb9dc657306b5469bfa62d73e03f74e8defbf76d284312"},
+    {file = "notebook-6.4.10-py3-none-any.whl", hash = "sha256:49cead814bff0945fcb2ee07579259418672ac175d3dc3d8102a4b0a656ed4df"},
+    {file = "notebook-6.4.10.tar.gz", hash = "sha256:2408a76bc6289283a8eecfca67e298ec83c67db51a4c2e1b713dd180bb39e90e"},
 ]
 ntc-templates = [
     {file = "ntc_templates-3.0.0-py3-none-any.whl", hash = "sha256:a652ff1659803d98fc088fc1b0838a74533316b0ad627c1220c0424dd82d12b3"},
