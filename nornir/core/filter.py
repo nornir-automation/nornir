@@ -65,7 +65,7 @@ class F(F_BASE):
         elif len(rule) == 1:
             operator = "__{}__".format(rule[0])
             if hasattr(data, operator):
-                return bool(getattr(data, operator)(value))
+                return getattr(data, operator)(value) is True
 
             elif hasattr(data, rule[0]):
                 if callable(getattr(data, rule[0])):
