@@ -164,3 +164,9 @@ class Test(object):
         filtered = sorted(list((nornir.inventory.filter(f).hosts.keys())))
 
         assert filtered == []
+
+    def test_eq__on_not_existing_key(self, nornir):
+        f = F(not_existing__eq="test")
+        filtered = sorted(list((nornir.inventory.filter(f).hosts.keys())))
+
+        assert filtered == []
