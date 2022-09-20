@@ -1,14 +1,14 @@
 ARG PYTHON
 FROM python:${PYTHON}-slim-stretch
 
-ENV PATH="/root/.poetry/bin:$PATH" \
+ENV PATH="/root/.local/bin:$PATH" \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     NORNIR_TESTS=1
 
 RUN apt-get update \
     && apt-get install -yq curl git pandoc make \
-    && curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python \
+    && curl -sSL https://install.python-poetry.org  | python3 - \
     && poetry config virtualenvs.create false
 
 COPY pyproject.toml .
