@@ -125,7 +125,7 @@ class Nornir(object):
                 if name in self.data.failed_hosts:
                     run_on.append(host)
 
-        num_hosts = len(self.inventory.hosts)
+        num_hosts = len(run_on)
         if num_hosts:
             logger.info(
                 "Running task %r with args %s on %d hosts",
