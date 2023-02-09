@@ -56,6 +56,9 @@ types-Jinja2 = "^2.11.2"
 types-pkg-resources = "^0.1.3"
 mypy_extensions = "^0.4.1"
 typing_extensions = "^4.1"
+nornir-jinja2 = "0.2.0"
+nornir-utils = "0.2.0"
+nornir-napalm = "0.3.0"
 
 [tool.poetry.extras]
 # The following section is required to install docs dependencies
