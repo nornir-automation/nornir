@@ -96,21 +96,21 @@ jobs:
         run: make nbval
         if: ${{ matrix.platform != 'windows-latest' }}
 
-  release:
-    name: Releasing to pypi
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - name: Build
-        uses: abatilo/actions-poetry@v1.5.0
-        with:
-          python_version: 3.8.0
-          poetry_version: 1.3.2
-          working_directory: .
-          args: build
-      - name: Publish package
-        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
-        uses: pypa/gh-action-pypi-publish@master
-        with:
-          user: __token__
-          password: ${{ secrets.pypi_password }}
+#  release:
+#    name: Releasing to pypi
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@master
+#      - name: Build
+#        uses: abatilo/actions-poetry@v1.5.0
+#        with:
+#          python_version: 3.8.0
+#          poetry_version: 1.3.2
+#          working_directory: .
+#          args: build
+#      - name: Publish package
+#        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+#        uses: pypa/gh-action-pypi-publish@master
+#        with:
+#          user: __token__
+#          password: ${{ secrets.pypi_password }}
