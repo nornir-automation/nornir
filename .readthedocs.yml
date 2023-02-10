@@ -12,7 +12,7 @@ build:
     post_install:
       # Install dependencies with 'docs' dependency group
       # https://python-poetry.org/docs/managing-dependencies/#dependency-groups
-      - poetry install --with docs
+      - poetry install --with docszzz
 
 sphinx:
   configuration: docs/conf.py
