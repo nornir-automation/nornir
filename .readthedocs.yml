@@ -1,11 +1,18 @@
 ---
-build:
-  image: latest
-
-python:
-  version: 3.7
-  pip_install: true
-  extra_requirements:
-    - docs
-
+version: 2
 formats: []
+build:
+  os: "ubuntu-22.04"
+  tools:
+    python: "3.11"
+  jobs:
+    post_create_environment:
+      - pip install poetry
+      - poetry config virtualenvs.create false
+    post_install:
+      # Install dependencies with 'docs' dependency group
+      # https://python-poetry.org/docs/managing-dependencies/#dependency-groups
+      - poetry install --with docs
+
+sphinx:
+  configuration: docs/conf.py

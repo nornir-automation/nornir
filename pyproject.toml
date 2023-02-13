@@ -1,5 +1,5 @@
 [build-system]
-requires = ["poetry==1.0.10"]
+requires = ["poetry==1.3.2"]
 build-backend = "poetry.masonry.api"
 
 [tool.poetry.plugins."nornir.plugins.runners"]
@@ -23,59 +23,38 @@ classifiers = [
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
 ]
 
 [tool.poetry.dependencies]
 python = ">=3.7,<4.0"
 "ruamel.yaml" = ">=0.17"
-mypy_extensions = "^0.4.1"
-typing_extensions = "^4.1"
-# The following dependencies are used for docs generation when installed as extras
-# (e.g. pip install nornir[docs])
-# Currently they have to be specified as non-dev dependencies with optional = true
-# Refer to: https://github.com/sdispater/poetry/issues/129
-sphinx = { version = "^4", optional = true }
-sphinx_rtd_theme = { version = "^1.0", optional = true }
-sphinxcontrib-napoleon = { version = "^0.7", optional = true }
-jupyter = { version = "^1", optional = true }
-nbsphinx = { version = "^0.8", optional = true }
-pygments = { version = "^2", optional = true }
-sphinx-issues = { version = "^3.0", optional = true }
-
-# importlib.metadata has a API change in 3.10 and is no longer provisional
+# importlib.metadata has an API change in 3.10 and is no longer provisional
 importlib-metadata = { version = "^4", python = "<3.10" }
 
-
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 decorator = "*"
-nbval = "*"
+nbval = "0.9.6"
 pytest = "*"
 pytest-cov = "*"
 pylama = "*"
 requests-mock = "*"
 black = "^22.1.0"
-mypy = "*"
-# The following dependencies are used for docs generation when run locally or in Docker
-# (e.g. poetry install)
-sphinx = "^4"
-sphinx_rtd_theme = "^1.0"
-sphinxcontrib_napoleon = "^0.7"
-jupyter = "^1"
-nbsphinx = "^0.8"
-pygments = "^2"
-sphinx-issues = "^3.0"
-
-# for docs only
-nornir-jinja2 = "0.2.0"
-nornir-utils = "0.1.2"
-nornir-napalm = "0.1.2"
-# Fix for Python 3.10
-junos-eznc = "^2.6.0"
-textfsm = "^1.1.2"
+mypy = "0.942"
+mypy_extensions = "0.4.3"
 types-Jinja2 = "^2.11.2"
 types-pkg-resources = "^0.1.3"
+typing_extensions = "^4.1"
+nornir-jinja2 = "0.2.0"
+nornir-utils = "0.2.0"
+nornir-napalm = "0.3.0"
 
-[tool.poetry.extras]
-# The following section is required to install docs dependencies
-# until RTD fully supports poetry: https://github.com/rtfd/readthedocs.org/issues/4912
-docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-napoleon", "jupyter", "nbsphinx", "pygments", "sphinx-issues"]
+[tool.poetry.group.docs.dependencies]
+sphinx = "4.5.0"
+sphinx_rtd_theme = "1.0.0"
+sphinxcontrib-napoleon = "^0.7"
+jupyter = "1.0.0"
+nbsphinx = "0.8.8"
+pygments = "2.11.2"
+sphinx-issues = "3.0.1"
+
