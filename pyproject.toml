@@ -55,6 +55,6 @@ sphinx_rtd_theme = "1.0.0"
 sphinxcontrib-napoleon = "^0.7"
 jupyter = "1.0.0"
 nbsphinx = "0.8.8"
-pygments = "2.11.2"
+pygments = "2.15.0"
 sphinx-issues = "3.0.1"
 
