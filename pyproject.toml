@@ -50,11 +50,11 @@ nornir-utils = "0.2.0"
 nornir-napalm = "0.4.0"
 
 [tool.poetry.group.docs.dependencies]
-sphinx = "4.5.0"
-sphinx_rtd_theme = "1.0.0"
+sphinx = "5.3.0"
+sphinx_rtd_theme = "1.2.2"
 sphinxcontrib-napoleon = "^0.7"
 jupyter = "1.0.0"
-nbsphinx = "0.8.8"
-pygments = "2.11.2"
+nbsphinx = "0.9.2"
+pygments = "2.16.1"
 sphinx-issues = "3.0.1"
 
