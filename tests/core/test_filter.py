@@ -1,4 +1,5 @@
-from nornir.core.filter import F
+import pytest
+from nornir.core.filter import F, AND, OR
 
 
 class Test(object):
@@ -170,3 +171,27 @@ class Test(object):
         filtered = sorted(list((nornir.inventory.filter(f).hosts.keys())))
 
         assert filtered == []
+
+    @pytest.mark.parametrize(
+        "filter_a,filter_b",
+        [
+            (F(), F()),
+            (F(site="site1") & F(role="www"), AND(F(site="site1"), F(role="www"))),
+            (F(site="site1") & F(role="www"), AND(F(role="www"), F(site="site1"))),
+            (F(site="site1") | F(role="www"), OR(F(site="site1"), F(role="www"))),
+            (F(site="site1") | F(role="www"), OR(F(role="www"), F(site="site1"))),
+        ],
+    )
+    def test_compare_filter_equal(self, filter_a, filter_b):
+        assert filter_a == filter_b
+
+    @pytest.mark.parametrize(
+        "filter_a,filter_b",
+        [
+            (OR(F(site="site1"), F(role="www")), AND(F(site="site1"), F(role="www"))),
+            (F(site="site1"), F(role="www")),
+            (F(site="site1"), ~F(site="site1")),
+        ],
+    )
+    def test_compare_filter_not_equal(self, filter_a, filter_b):
+        assert filter_a != filter_b
