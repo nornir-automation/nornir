@@ -1,5 +1,5 @@
 ARG PYTHON
-FROM python:${PYTHON}-slim-stretch
+FROM python:${PYTHON}-slim-bookworm
 
 ENV PATH="/root/.local/bin:$PATH" \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -17,7 +17,7 @@ COPY poetry.lock .
 # Dependencies change more often, so we break RUN to cache the previous layer
 RUN poetry install --no-interaction
 
-ARG NAME
+ARG NAME=nornir
 WORKDIR /${NAME}
 
 COPY . .

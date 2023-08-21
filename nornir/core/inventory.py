@@ -596,7 +596,7 @@ class Inventory(object):
         hosts: Hosts,
         groups: Optional[Groups] = None,
         defaults: Optional[Defaults] = None,
-        transform_function: TransformFunction = None,
+        transform_function: Optional[TransformFunction] = None,
         transform_function_options: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.hosts = hosts
@@ -604,7 +604,10 @@ class Inventory(object):
         self.defaults = defaults or Defaults(None, None, None, None, None, None, None)
 
     def filter(
-        self, filter_obj: FilterObj = None, filter_func: FilterObj = None, **kwargs: Any
+        self,
+        filter_obj: Optional[FilterObj] = None,
+        filter_func: Optional[FilterObj] = None,
+        **kwargs: Any
     ) -> "Inventory":
         filter_func = filter_obj or filter_func
         if filter_func:
