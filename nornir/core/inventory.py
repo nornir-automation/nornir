@@ -2,26 +2,22 @@ from typing import (
     Any,
     Callable,
     Dict,
+    ItemsView,
+    Iterator,
+    KeysView,
     List,
     Optional,
     Set,
-    Union,
-    KeysView,
-    ValuesView,
-    ItemsView,
-    Iterator,
     TypeVar,
+    Union,
+    ValuesView,
 )
-
-from nornir.core.configuration import Config
-from nornir.core.plugins.connections import (
-    ConnectionPlugin,
-    ConnectionPluginRegister,
-)
-from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
 
 from mypy_extensions import Arg, KwArg
 
+from nornir.core.configuration import Config
+from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
+from nornir.core.plugins.connections import ConnectionPlugin, ConnectionPluginRegister
 
 HostOrGroup = TypeVar("HostOrGroup", "Host", "Group")
 

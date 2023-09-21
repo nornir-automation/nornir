@@ -1,5 +1,6 @@
 import pytest
-from nornir.core.filter import F, AND, OR
+
+from nornir.core.filter import AND, OR, F
 
 
 class Test(object):

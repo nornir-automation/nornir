@@ -1,22 +1,22 @@
-from typing import List
 import os
+from typing import List
+
+import pytest
+import ruamel.yaml
+
 from nornir.core import Nornir
 from nornir.core.inventory import (
-    Inventory,
-    Host,
-    Hosts,
+    ConnectionOptions,
+    Defaults,
     Group,
     Groups,
-    Defaults,
+    Host,
+    Hosts,
+    Inventory,
     ParentGroups,
-    ConnectionOptions,
 )
-from nornir.core.task import AggregatedResult, Task
 from nornir.core.state import GlobalState
-
-import ruamel.yaml
-import pytest
-
+from nornir.core.task import AggregatedResult, Task
 
 global_data = GlobalState(dry_run=True)
 

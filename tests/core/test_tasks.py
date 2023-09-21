@@ -1,7 +1,7 @@
 import logging
 
-from nornir.core.task import Result
 from nornir.core.exceptions import NornirSubTaskError
+from nornir.core.task import Result
 
 
 class CustomException(Exception):

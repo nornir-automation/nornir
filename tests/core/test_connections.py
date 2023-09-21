@@ -1,15 +1,15 @@
 from typing import Any, Dict, Optional
 
+import pytest
+
 from nornir.core.configuration import Config
-from nornir.core.plugins.connections import ConnectionPluginRegister
 from nornir.core.exceptions import (
     ConnectionAlreadyOpen,
     ConnectionNotOpen,
     PluginAlreadyRegistered,
     PluginNotRegistered,
 )
-
-import pytest
+from nornir.core.plugins.connections import ConnectionPluginRegister
 
 
 class DummyConnectionPlugin:

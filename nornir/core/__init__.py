@@ -1,6 +1,6 @@
 import logging
 import logging.config
-from typing import List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional
 
 from nornir.core.configuration import Config
 from nornir.core.inventory import Inventory

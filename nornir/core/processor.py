@@ -1,5 +1,7 @@
 from typing import List, Protocol
 
+from typing_extensions import Protocol
+
 from nornir.core.inventory import Host
 from nornir.core.task import AggregatedResult, MultiResult, Task
 

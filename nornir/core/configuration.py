@@ -5,11 +5,11 @@ import os
 import sys
 import warnings
 from pathlib import Path
-from typing import Any, Dict, Optional, Type, TYPE_CHECKING, List, TypeVar
-
-from nornir.core.exceptions import ConflictingConfigurationWarning
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, TypeVar
 
 import ruamel.yaml
+
+from nornir.core.exceptions import ConflictingConfigurationWarning
 
 if TYPE_CHECKING:
     from nornir.core.deserializer.inventory import Inventory  # noqa
