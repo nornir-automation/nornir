@@ -1,10 +1,7 @@
-from typing import Any, Dict, Type, Optional
+from typing import Any, Dict, Optional, Protocol, Type
 
 from nornir.core.configuration import Config
 from nornir.core.plugins.register import PluginRegister
-
-from typing_extensions import Protocol
-
 
 CONNECTIONS_PLUGIN_PATH = "nornir.plugins.connections"
 
