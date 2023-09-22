@@ -1,9 +1,7 @@
-from typing import Any, Type
+from typing import Any, Type, Protocol
 
 from nornir.core.inventory import Inventory, TransformFunction
 from nornir.core.plugins.register import PluginRegister
-
-from typing_extensions import Protocol
 
 
 INVENTORY_PLUGIN_PATH = "nornir.plugins.inventory"
