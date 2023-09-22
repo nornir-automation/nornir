@@ -1,6 +1,5 @@
 from typing import (
     Any,
-    Callable,
     Dict,
     List,
     Optional,
@@ -11,6 +10,7 @@ from typing import (
     ItemsView,
     Iterator,
     TypeVar,
+    Protocol,
 )
 
 from nornir.core.configuration import Config
@@ -19,8 +19,6 @@ from nornir.core.plugins.connections import (
     ConnectionPluginRegister,
 )
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
-
-from mypy_extensions import Arg, KwArg
 
 
 HostOrGroup = TypeVar("HostOrGroup", "Host", "Group")
@@ -584,8 +582,14 @@ class Groups(Dict[str, Group]):
     pass
 
 
-TransformFunction = Callable[[Arg(Host), KwArg(Any)], None]
-FilterObj = Callable[[Arg(Host), KwArg(Any)], bool]
+class TransformFunction(Protocol):
+    def __call__(self, host: Host, **kwargs: Any) -> None:
+        ...
+
+
+class FilterObj(Protocol):
+    def __call__(self, host: Host, **kwargs: Any) -> bool:
+        ...
 
 
 class Inventory(object):
