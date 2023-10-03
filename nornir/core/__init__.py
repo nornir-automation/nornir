@@ -1,8 +1,7 @@
 import logging
 import logging.config
 import types
-from typing import (TYPE_CHECKING, Any, Callable, Dict, Generator, List,
-                    Optional, Type)
+from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, List, Optional, Type
 
 from nornir.core.configuration import Config
 from nornir.core.inventory import Inventory

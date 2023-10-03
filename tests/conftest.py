@@ -5,8 +5,16 @@ import pytest
 import ruamel.yaml
 
 from nornir.core import Nornir
-from nornir.core.inventory import (ConnectionOptions, Defaults, Group, Groups,
-                                   Host, Hosts, Inventory, ParentGroups)
+from nornir.core.inventory import (
+    ConnectionOptions,
+    Defaults,
+    Group,
+    Groups,
+    Host,
+    Hosts,
+    Inventory,
+    ParentGroups,
+)
 from nornir.core.state import GlobalState
 from nornir.core.task import AggregatedResult, Task
 

@@ -1,7 +1,6 @@
 import logging
 import traceback
-from typing import (TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union,
-                    cast)
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union, cast
 
 from nornir.core.exceptions import NornirExecutionError, NornirSubTaskError
 

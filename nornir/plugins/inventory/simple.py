@@ -4,9 +4,17 @@ from typing import Any, Dict, Type
 
 import ruamel.yaml
 
-from nornir.core.inventory import (ConnectionOptions, Defaults, Group, Groups,
-                                   Host, HostOrGroup, Hosts, Inventory,
-                                   ParentGroups)
+from nornir.core.inventory import (
+    ConnectionOptions,
+    Defaults,
+    Group,
+    Groups,
+    Host,
+    HostOrGroup,
+    Hosts,
+    Inventory,
+    ParentGroups,
+)
 
 logger = logging.getLogger(__name__)
 
