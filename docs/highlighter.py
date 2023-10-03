@@ -1,10 +1,8 @@
 from IPython.core.magic import register_line_magic
 from IPython.display import HTML
-
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import get_lexer_for_filename
-
 
 HTML_TEMPLATE = """<style>
 {}

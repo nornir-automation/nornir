@@ -21,9 +21,9 @@ import os
 import sys
 from typing import Dict
 
-from nornir import __version__
-
 from sphinx.application import Sphinx
+
+from nornir import __version__
 
 sys.path.insert(0, os.path.abspath("../"))
 
