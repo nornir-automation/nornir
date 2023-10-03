@@ -30,7 +30,6 @@ python = ">=3.8,<4.0"
 "ruamel.yaml" = ">=0.17"
 # importlib.metadata has an API change in 3.10 and is no longer provisional
 importlib-metadata = { version = "^4", python = "<3.10" }
-mypy_extensions = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
 decorator = "*"
