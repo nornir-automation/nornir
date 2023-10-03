@@ -17,6 +17,7 @@ pytest:
 .PHONY: black
 black:
 	poetry run black --check ${NORNIR_DIRS}
+	poetry run isort --check ${NORNIR_DIRS}
 
 .PHONY: sphinx
 sphinx:
