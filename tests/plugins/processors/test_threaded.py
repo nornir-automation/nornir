@@ -1,11 +1,10 @@
 import datetime
 import time
 
-from nornir.core.exceptions import NornirExecutionError
-from nornir.plugins.runners import ThreadedRunner
-
 import pytest
 
+from nornir.core.exceptions import NornirExecutionError
+from nornir.plugins.runners import ThreadedRunner
 
 NUM_WORKERS = 20
 
