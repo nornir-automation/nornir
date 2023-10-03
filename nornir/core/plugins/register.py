@@ -1,10 +1,7 @@
 import sys
-from typing import Dict, TypeVar, Generic
+from typing import Dict, Generic, TypeVar
 
-from nornir.core.exceptions import (
-    PluginAlreadyRegistered,
-    PluginNotRegistered,
-)
+from nornir.core.exceptions import PluginAlreadyRegistered, PluginNotRegistered
 
 if sys.version_info >= (3, 10):
     from importlib import metadata
