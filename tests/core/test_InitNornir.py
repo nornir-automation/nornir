@@ -1,16 +1,15 @@
 import logging
 import logging.config
 import os
+
 import pytest
 
 from nornir import InitNornir
 from nornir.core.exceptions import ConflictingConfigurationWarning
-from nornir.core.inventory import Inventory, Host, Hosts, Groups, Group, Defaults
-from nornir.core.plugins.inventory import (
-    InventoryPluginRegister,
-    TransformFunctionRegister,
-)
-
+from nornir.core.inventory import (Defaults, Group, Groups, Host, Hosts,
+                                   Inventory)
+from nornir.core.plugins.inventory import (InventoryPluginRegister,
+                                           TransformFunctionRegister)
 
 dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_InitNornir")
 

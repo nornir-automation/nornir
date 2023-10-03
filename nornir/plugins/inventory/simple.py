@@ -2,19 +2,11 @@ import logging
 import pathlib
 from typing import Any, Dict, Type
 
-from nornir.core.inventory import (
-    Inventory,
-    Group,
-    Groups,
-    Host,
-    Hosts,
-    Defaults,
-    ConnectionOptions,
-    HostOrGroup,
-    ParentGroups,
-)
-
 import ruamel.yaml
+
+from nornir.core.inventory import (ConnectionOptions, Defaults, Group, Groups,
+                                   Host, HostOrGroup, Hosts, Inventory,
+                                   ParentGroups)
 
 logger = logging.getLogger(__name__)
 

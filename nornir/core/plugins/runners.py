@@ -1,9 +1,8 @@
-from typing import Any, List, Type, Protocol
+from typing import Any, List, Protocol, Type
 
-from nornir.core.task import AggregatedResult, Task
 from nornir.core.inventory import Host
 from nornir.core.plugins.register import PluginRegister
-
+from nornir.core.task import AggregatedResult, Task
 
 RUNNERS_PLUGIN_PATH = "nornir.plugins.runners"
 

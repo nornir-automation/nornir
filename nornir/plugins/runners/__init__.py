@@ -1,8 +1,8 @@
-from typing import List
 from concurrent.futures import ThreadPoolExecutor
+from typing import List
 
-from nornir.core.task import AggregatedResult, Task
 from nornir.core.inventory import Host
+from nornir.core.task import AggregatedResult, Task
 
 
 class SerialRunner:
