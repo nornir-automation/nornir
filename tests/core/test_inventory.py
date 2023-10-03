@@ -1,11 +1,9 @@
 import os
 
-from nornir.core import inventory
-
 import pytest
-
 import ruamel.yaml
 
+from nornir.core import inventory
 
 yaml = ruamel.yaml.YAML(typ="safe")
 dir_path = os.path.dirname(os.path.realpath(__file__))
