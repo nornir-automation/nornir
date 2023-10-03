@@ -45,7 +45,7 @@ class Task(object):
         nornir: "Nornir",
         global_dry_run: bool,
         processors: "Processors",
-        name: str = None,
+        name: Optional[str] = None,
         severity_level: int = DEFAULT_SEVERITY_LEVEL,
         parent_task: Optional["Task"] = None,
         **kwargs: str

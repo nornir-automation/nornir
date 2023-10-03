@@ -96,8 +96,10 @@ class InventoryConfig(object):
         self.transform_function = self.Parameters.transform_function.resolve(
             transform_function
         )
-        self.transform_function_options = self.Parameters.transform_function_options.resolve(
-            transform_function_options
+        self.transform_function_options = (
+            self.Parameters.transform_function_options.resolve(
+                transform_function_options
+            )
         )
 
     def dict(self) -> Dict[str, Any]:
@@ -243,7 +245,6 @@ class Config(object):
         "runner",
         "ssh",
         "inventory",
-        "jinja2",
         "logging",
         "user_defined",
     )
@@ -267,7 +268,7 @@ class Config(object):
     @classmethod
     def from_dict(
         cls,
-        inventory: Dict[str, Any] = None,
+        inventory: Optional[Dict[str, Any]] = None,
         ssh: Optional[Dict[str, Any]] = None,
         logging: Optional[Dict[str, Any]] = None,
         core: Optional[Dict[str, Any]] = None,

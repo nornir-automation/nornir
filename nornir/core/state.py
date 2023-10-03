@@ -1,4 +1,4 @@
-from typing import Any, Dict, Set
+from typing import Any, Dict, Set, Optional
 
 
 class GlobalState(object):
@@ -12,7 +12,9 @@ class GlobalState(object):
 
     __slots__ = "dry_run", "failed_hosts"
 
-    def __init__(self, dry_run: bool = False, failed_hosts: Set[str] = None) -> None:
+    def __init__(
+        self, dry_run: bool = False, failed_hosts: Optional[Set[str]] = None
+    ) -> None:
         self.dry_run = dry_run
         self.failed_hosts = failed_hosts or set()
 
@@ -25,5 +27,5 @@ class GlobalState(object):
         self.failed_hosts = set()
 
     def dict(self) -> Dict[str, Any]:
-        """ Return a dictionary representing the object. """
+        """Return a dictionary representing the object."""
         return {item: getattr(self, item) for item in GlobalState.__slots__}

@@ -21,6 +21,7 @@ jobs:
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
+          version: 1.3.2
           virtualenvs-create: true
           virtualenvs-in-project: true
 
@@ -53,8 +54,8 @@ jobs:
         shell: bash
     strategy:
       matrix:
-        python-version: [ '3.6', '3.7', '3.8', '3.9' ]
-        platform: [ubuntu-latest, macOS-10.15, windows-latest]
+        python-version: [ '3.8', '3.9', '3.10', '3.11'  ]
+        platform: [ubuntu-latest, macOS-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v2
@@ -67,6 +68,7 @@ jobs:
       - name: Install Poetry
         uses: snok/install-poetry@v1
         with:
+          version: 1.3.2
           virtualenvs-create: true
           virtualenvs-in-project: true
 
@@ -94,21 +96,21 @@ jobs:
         run: make nbval
         if: ${{ matrix.platform != 'windows-latest' }}
 
-  release:
-    name: Releasing to pypi
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - name: Build
-        uses: abatilo/actions-poetry@v1.5.0
-        with:
-          python_version: 3.8.0
-          poetry_version: 1.0
-          working_directory: .
-          args: build
-      - name: Publish package
-        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
-        uses: pypa/gh-action-pypi-publish@master
-        with:
-          user: __token__
-          password: ${{ secrets.pypi_password }}
+#  release:
+#    name: Releasing to pypi
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@master
+#      - name: Build
+#        uses: abatilo/actions-poetry@v1.5.0
+#        with:
+#          python_version: 3.8.0
+#          poetry_version: 1.3.2
+#          working_directory: .
+#          args: build
+#      - name: Publish package
+#        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+#        uses: pypa/gh-action-pypi-publish@master
+#        with:
+#          user: __token__
+#          password: ${{ secrets.pypi_password }}

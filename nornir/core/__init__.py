@@ -1,13 +1,14 @@
 import logging
 import logging.config
-from typing import List, Optional, TYPE_CHECKING
+import types
+from typing import Any, Dict, Callable, Generator, List, Optional, Type, TYPE_CHECKING
 
 from nornir.core.configuration import Config
 from nornir.core.inventory import Inventory
 from nornir.core.plugins.runners import RunnerPlugin
 from nornir.core.processor import Processor, Processors
 from nornir.core.state import GlobalState
-from nornir.core.task import Task
+from nornir.core.task import AggregatedResult, Task
 
 if TYPE_CHECKING:
     from nornir.core.inventory import Host  # noqa: W0611
@@ -36,8 +37,8 @@ class Nornir(object):
     def __init__(
         self,
         inventory: Inventory,
-        config: Config = None,
-        data: GlobalState = None,
+        config: Optional[Config] = None,
+        data: Optional[GlobalState] = None,
         processors: Optional[Processors] = None,
         runner: Optional[RunnerPlugin] = None,
     ) -> None:
@@ -47,10 +48,15 @@ class Nornir(object):
         self.processors = processors or Processors()
         self.runner = runner
 
-    def __enter__(self):
+    def __enter__(self) -> "Nornir":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: Type[BaseException],
+        exc_val: BaseException,
+        exc_tb: Optional[types.TracebackType] = None,
+    ) -> None:
         self.close_connections(on_good=True, on_failed=True)
 
     def with_processors(self, processors: List[Processor]) -> "Nornir":
@@ -67,7 +73,7 @@ class Nornir(object):
         """
         return Nornir(**{**self.__dict__, **{"runner": runner}})
 
-    def filter(self, *args, **kwargs):
+    def filter(self, *args: Any, **kwargs: Any) -> "Nornir":
         """
         See :py:meth:`nornir.core.inventory.Inventory.filter`
 
@@ -85,8 +91,8 @@ class Nornir(object):
         on_good=True,
         on_failed=False,
         name: Optional[str] = None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> AggregatedResult:
         """
         Run task over all the hosts in the inventory.
 
@@ -125,7 +131,7 @@ class Nornir(object):
                 if name in self.data.failed_hosts:
                     run_on.append(host)
 
-        num_hosts = len(self.inventory.hosts)
+        num_hosts = len(run_on)
         if num_hosts:
             logger.info(
                 "Running task %r with args %s on %d hosts",
@@ -152,22 +158,22 @@ class Nornir(object):
 
         return result
 
-    def dict(self):
-        """ Return a dictionary representing the object. """
+    def dict(self) -> Dict[str, Any]:
+        """Return a dictionary representing the object."""
         return {"data": self.data.dict(), "inventory": self.inventory.dict()}
 
-    def close_connections(self, on_good=True, on_failed=False):
+    def close_connections(self, on_good: bool = True, on_failed: bool = False) -> None:
         def close_connections_task(task):
             task.host.close_connections()
 
         self.run(task=close_connections_task, on_good=on_good, on_failed=on_failed)
 
     @classmethod
-    def get_validators(cls):
+    def get_validators(cls) -> Generator[Callable[["Nornir"], "Nornir"], None, None]:
         yield cls.validate
 
     @classmethod
-    def validate(cls, v):
+    def validate(cls, v: "Nornir") -> "Nornir":
         if not isinstance(v, cls):
             raise ValueError(f"Nornir: Nornir expected not {type(v)}")
         return v

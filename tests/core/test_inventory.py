@@ -589,7 +589,7 @@ class Test(object):
         def_extras = inventory_dict["defaults"]["connection_options"]["dummy"]["extras"]
         grp_data = inventory_dict["groups"]["group_1"]["data"]
         host_data = inventory_dict["hosts"]["dev1.group_1"]["data"]
-        assert type(inventory_dict) == dict
+        assert isinstance(inventory_dict, dict)
         assert inventory_dict["defaults"]["username"] == "root"
         assert def_extras["blah"] == "from_defaults"
         assert "my_var" and "site" in grp_data
@@ -598,14 +598,14 @@ class Test(object):
     def test_get_defaults_dict(self, inv):
         defaults_dict = inv.defaults.dict()
         con_options = defaults_dict["connection_options"]["dummy"]
-        assert type(defaults_dict) == dict
+        assert isinstance(defaults_dict, dict)
         assert defaults_dict["username"] == "root"
         assert con_options["hostname"] == "dummy_from_defaults"
         assert "blah" in con_options["extras"]
 
     def test_get_groups_dict(self, inv):
         groups_dict = {n: g.dict() for n, g in inv.groups.items()}
-        assert type(groups_dict) == dict
+        assert isinstance(groups_dict, dict)
         assert groups_dict["group_1"]["password"] == "from_group1"
         assert groups_dict["group_2"]["data"]["site"] == "site2"
 
@@ -615,7 +615,7 @@ class Test(object):
         dev2_paramiko_opts = hosts_dict["dev2.group_1"]["connection_options"][
             "paramiko"
         ]
-        assert type(hosts_dict) == dict
+        assert isinstance(hosts_dict, dict)
         assert "group_1" in dev1_groups
         assert dev2_paramiko_opts["username"] == "root"
         assert "dev3.group_2" in hosts_dict

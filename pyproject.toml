@@ -1,5 +1,5 @@
 [build-system]
-requires = ["poetry==1.0.10"]
+requires = ["poetry==1.3.2"]
 build-backend = "poetry.masonry.api"
 
 [tool.poetry.plugins."nornir.plugins.runners"]
@@ -11,7 +11,7 @@ build-backend = "poetry.masonry.api"
 
 [tool.poetry]
 name = "nornir"
-version = "3.1.1"
+version = "3.4.1"
 description = "Pluggable multi-threaded framework with inventory management to help operate collections of devices"
 authors = ["David Barroso <dbarrosop@dravetech.com>"]
 license = "Apache 2.0"
@@ -19,63 +19,39 @@ readme = "README.md"
 repository = "https://github.com/nornir-automation/nornir"
 classifiers = [
         "License :: OSI Approved :: Apache Software License",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6"
-"ruamel.yaml" = ">=0.16"
-mypy_extensions = "^0.4.1"
-typing_extensions = "^3.7"
-# The following dependencies are used for docs generation when installed as extras
-# (e.g. pip install nornir[docs])
-# Currently they have to be specified as non-dev dependencies with optional = true
-# Refer to: https://github.com/sdispater/poetry/issues/129
-sphinx = { version = "^1", optional = true }
-sphinx_rtd_theme = { version = "^0.4", optional = true }
-sphinxcontrib-napoleon = { version = "^0.7", optional = true }
-jupyter = { version = "^1", optional = true }
-nbsphinx = { version = "^0.5", optional = true }
-pygments = { version = "^2", optional = true }
-sphinx-issues = { version = "^1.2", optional = true }
-
-# importlib.metadata has a API change in 3.10 and is no longer provisional
+python = ">=3.8,<4.0"
+"ruamel.yaml" = ">=0.17"
+# importlib.metadata has an API change in 3.10 and is no longer provisional
 importlib-metadata = { version = "^4", python = "<3.10" }
 
-# for pydantic
-dataclasses = {version = "^0.7", python = "~3.6"}
-
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 decorator = "*"
-nbval = "*"
+nbval = "^0.10.0"
 pytest = "*"
 pytest-cov = "*"
 pylama = "*"
 requests-mock = "*"
-black = { version = "19.10b0", allow-prereleases = true }
-mypy = "*"
-# The following dependencies are used for docs generation when run locally or in Docker
-# (e.g. poetry install)
-sphinx = "^1"
-sphinx_rtd_theme = "^0.4"
-sphinxcontrib_napoleon = "^0.7"
-jupyter = "^1"
-nbsphinx = "^0.5"
-pygments = "^2"
-sphinx-issues = "^1.2"
-
-# for docs only
-## this needs to be fixed, poetry is giving issues due to nornir being beta
-nornir-jinja2 = "0.1.2"
-nornir-utils = "0.1.2"
-nornir-napalm = "0.1.2"
-# due to https://github.com/google/textfsm/issues/63
-textfsm = { git = "https://github.com/ktbyers/textfsm.git", branch = "fix_windows_import_pin" }
-types-Jinja2 = "^2.11.2"
+black = "^23.7.0"
+mypy = "^1.5.1"
+types-Jinja2 = "^2.11.9"
 types-pkg-resources = "^0.1.3"
+nornir-jinja2 = "0.2.0"
+nornir-utils = "0.2.0"
+nornir-napalm = "0.4.0"
 
-[tool.poetry.extras]
-# The following section is required to install docs dependencies
-# until RTD fully supports poetry: https://github.com/rtfd/readthedocs.org/issues/4912
-docs = ["sphinx", "sphinx_rtd_theme", "sphinxcontrib-napoleon", "jupyter", "nbsphinx", "pygments", "sphinx-issues"]
+[tool.poetry.group.docs.dependencies]
+sphinx = "6.2.1"
+sphinx_rtd_theme = "1.2.2"
+sphinxcontrib-napoleon = "^0.7"
+jupyter = "1.0.0"
+nbsphinx = "0.9.2"
+pygments = "2.16.1"
+sphinx-issues = "3.0.1"
+

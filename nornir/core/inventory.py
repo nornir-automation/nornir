@@ -1,6 +1,5 @@
 from typing import (
     Any,
-    Callable,
     Dict,
     List,
     Optional,
@@ -11,6 +10,7 @@ from typing import (
     ItemsView,
     Iterator,
     TypeVar,
+    Protocol,
 )
 
 from nornir.core.configuration import Config
@@ -19,8 +19,6 @@ from nornir.core.plugins.connections import (
     ConnectionPluginRegister,
 )
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
-
-from mypy_extensions import Arg, KwArg
 
 
 HostOrGroup = TypeVar("HostOrGroup", "Host", "Group")
@@ -556,7 +554,7 @@ class Host(InventoryElement):
         return conn_obj
 
     def close_connection(self, connection: str) -> None:
-        """ Close the connection"""
+        """Close the connection"""
         conn_name = connection
         if conn_name not in self.connections:
             raise ConnectionNotOpen(conn_name)
@@ -584,8 +582,14 @@ class Groups(Dict[str, Group]):
     pass
 
 
-TransformFunction = Callable[[Arg(Host), KwArg(Any)], None]
-FilterObj = Callable[[Arg(Host), KwArg(Any)], bool]
+class TransformFunction(Protocol):
+    def __call__(self, host: Host, **kwargs: Any) -> None:
+        ...
+
+
+class FilterObj(Protocol):
+    def __call__(self, host: Host, **kwargs: Any) -> bool:
+        ...
 
 
 class Inventory(object):
@@ -596,7 +600,7 @@ class Inventory(object):
         hosts: Hosts,
         groups: Optional[Groups] = None,
         defaults: Optional[Defaults] = None,
-        transform_function: TransformFunction = None,
+        transform_function: Optional[TransformFunction] = None,
         transform_function_options: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.hosts = hosts
@@ -604,7 +608,10 @@ class Inventory(object):
         self.defaults = defaults or Defaults(None, None, None, None, None, None, None)
 
     def filter(
-        self, filter_obj: FilterObj = None, filter_func: FilterObj = None, **kwargs: Any
+        self,
+        filter_obj: Optional[FilterObj] = None,
+        filter_func: Optional[FilterObj] = None,
+        **kwargs: Any
     ) -> "Inventory":
         filter_func = filter_obj or filter_func
         if filter_func:
