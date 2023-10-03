@@ -1,9 +1,7 @@
-from typing import List
+from typing import List, Protocol
 
 from nornir.core.inventory import Host
 from nornir.core.task import AggregatedResult, MultiResult, Task
-
-from typing_extensions import Protocol
 
 
 class Processor(Protocol):
