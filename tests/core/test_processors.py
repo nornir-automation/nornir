@@ -110,6 +110,12 @@ class Test:
                     "started": True,
                     "subtasks": {},
                 },
+                "dev7.group_4": {
+                    "completed": True,
+                    "failed": False,
+                    "started": True,
+                    "subtasks": {},
+                },
                 "completed": True,
             }
         }
@@ -238,6 +244,32 @@ class Test:
                     "failed": False,
                 },
                 "dev6.group_3": {
+                    "started": True,
+                    "subtasks": {
+                        "mock_task": {
+                            "started": True,
+                            "subtasks": {},
+                            "completed": True,
+                            "failed": False,
+                        },
+                        "mock_subsubtask": {
+                            "started": True,
+                            "subtasks": {
+                                "mock_task": {
+                                    "started": True,
+                                    "subtasks": {},
+                                    "completed": True,
+                                    "failed": False,
+                                }
+                            },
+                            "completed": True,
+                            "failed": False,
+                        },
+                    },
+                    "completed": True,
+                    "failed": False,
+                },
+                "dev7.group_4": {
                     "started": True,
                     "subtasks": {
                         "mock_task": {
