@@ -2,7 +2,7 @@
 ipdb: How to inspect complex structures
 =======================================
 
-Python comes with a debuger called pdb. The python debugger is very powerful and really facilitates troubleshooting code. You can find the official documentation `here <https://docs.python.org/3.6/library/pdb.html>`_. `ipdb <https://github.com/gotcha/ipdb>`_ builds on top of ipython and pdb to give users a more interactive experience.
+Python comes with a debuger called pdb. The python debugger is very powerful and really facilitates troubleshooting code. You can find the official documentation `here <https://docs.python.org/3/library/pdb.html>`_. `ipdb <https://github.com/gotcha/ipdb>`_ builds on top of ipython and pdb to give users a more interactive experience.
 
 This how to isn't very extensive, it's just a very quick and dirty demo to show some of it's capabilities and how to use it with nornir. It doesn't assume previous knowledge but doesn't spend too much on explanations either so it expects users to give enough material for further investigation.
 

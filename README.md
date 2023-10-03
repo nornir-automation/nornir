@@ -16,7 +16,7 @@ What Nornir brings to the table is that it takes care of dealing with your inven
 Install
 =======
 
-Please note that Nornir requires Python 3.6.2 or higher. Install Nornir with pip.
+Please note that Nornir requires Python 3.7 or higher. Install Nornir with pip.
 
 ```
 pip install nornir
@@ -39,7 +39,7 @@ If you want to clone the repo and install it from there you will need to use [po
 Documentation
 =============
 
-Read the [Nornir documentation](https://nornir.readthedocs.io/) online or review it's [code here](https://github.com/nornir-automation/nornir/tree/develop/docs)
+Read the [Nornir documentation](https://nornir.readthedocs.io/) online or review its [code here](https://github.com/nornir-automation/nornir/tree/develop/docs)
 
 Examples
 ========

@@ -245,7 +245,6 @@ class Config(object):
         "runner",
         "ssh",
         "inventory",
-        "jinja2",
         "logging",
         "user_defined",
     )
@@ -269,7 +268,7 @@ class Config(object):
     @classmethod
     def from_dict(
         cls,
-        inventory: Dict[str, Any] = None,
+        inventory: Optional[Dict[str, Any]] = None,
         ssh: Optional[Dict[str, Any]] = None,
         logging: Optional[Dict[str, Any]] = None,
         core: Optional[Dict[str, Any]] = None,

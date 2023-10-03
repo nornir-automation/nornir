@@ -22,6 +22,15 @@ class F_OP_BASE(F_BASE):
     def __repr__(self) -> str:
         return "( {} {} {} )".format(self.op1, self.__class__.__name__, self.op2)
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, F_OP_BASE):
+            # don't compare against unrelated types
+            return NotImplemented
+        return self.__class__ == other.__class__ and (
+            (self.op1 == other.op1 and self.op2 == other.op2)
+            or (self.op1 == other.op2 and self.op2 == other.op1)
+        )
+
 
 class AND(F_OP_BASE):
     def __call__(self, host: Host) -> bool:
@@ -54,6 +63,12 @@ class F(F_BASE):
     def __repr__(self) -> str:
         return "<Filter ({})>".format(self.filters)
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, F):
+            # don't compare against unrelated types
+            return NotImplemented
+        return self.__class__ == other.__class__ and self.filters == other.filters
+
     @staticmethod
     def _verify_rules(data: Any, rule: List[str], value: Any) -> bool:
         if len(rule) > 1:
@@ -65,7 +80,7 @@ class F(F_BASE):
         elif len(rule) == 1:
             operator = "__{}__".format(rule[0])
             if hasattr(data, operator):
-                return bool(getattr(data, operator)(value))
+                return getattr(data, operator)(value) is True
 
             elif hasattr(data, rule[0]):
                 if callable(getattr(data, rule[0])):
