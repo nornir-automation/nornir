@@ -19,17 +19,17 @@ To do so you can use `entry points <https://setuptools.readthedocs.io/en/latest/
 
 Using entrypoints in your ``setup.py``::
 
-  setup(
-    # ...
-    entry_points={
-      "PATH": "NAME = path.to:Plugin",
-    }
-  )
+    setup(
+        # ...
+        entry_points={
+          "PATH": "NAME = path.to:Plugin",
+        }
+    )
 
 In your pyproject.toml if using ``poetry``::
 
-  [tool.poetry.plugins."PATH"]
-  "NAME" = "path.to:Plugin"
+    [tool.poetry.plugins."PATH"]
+    "NAME" = "path.to:Plugin"
 
 Where PATH is:
 
@@ -40,18 +40,18 @@ Where PATH is:
 
 Where NAME is the way you want to refer to it later on and ``path.to:Plugin`` the import path. For instance::
 
-  [tool.poetry.plugins."nornir.plugins.inventory"]
-  "inventory-name" = "path.to:InventoryPlugin"
+    [tool.poetry.plugins."nornir.plugins.inventory"]
+    "inventory-name" = "path.to:InventoryPlugin"
 
 
 To do it programmatically import the correct plugin register and use the ``register`` method. For instance::
 
-  from nornir.core.plugins.inventory import InventoryPluginRegister
+    from nornir.core.plugins.inventory import InventoryPluginRegister
 
-  from path.to import InventoryPlugin
+    from path.to import InventoryPlugin
 
 
-  InventoryPluginRegister.register("inventory-name", InventoryPlugin)
+    InventoryPluginRegister.register("inventory-name", InventoryPlugin)
 
 Connections
 -----------
@@ -74,8 +74,6 @@ Transform functions
 -------------------
 
 A transform function is a plugin that manipulates the inventory independently from the inventory plugin used. Useful to extend data using the environment, a secret store or similar.
-
-During inventory initialization, the transform function will be called in a for loop for each host. The transform function takes a host object as the first parameter and additional keyword arguments as specified in the `config.inventory.transform_function_options` dictionary.
 
 Runners
 _______
