@@ -75,6 +75,8 @@ Transform functions
 
 A transform function is a plugin that manipulates the inventory independently from the inventory plugin used. Useful to extend data using the environment, a secret store or similar.
 
+During inventory initialization, the transform function will be called in a for loop for each host. The transform function takes a host object as the first parameter and additional keyword arguments as specified in the `config.inventory.transform_function_options` dictionary.
+
 Runners
 _______
 
