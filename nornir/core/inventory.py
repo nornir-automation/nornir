@@ -8,7 +8,6 @@ from typing import (
     Optional,
     Protocol,
     Set,
-    Type,
     TypeVar,
     Union,
     ValuesView,
@@ -26,8 +25,8 @@ HostOrGroup = TypeVar("HostOrGroup", "Host", "Group")
 
 
 def _init_inventory_data(
-    data: Optional[Dict[str, Any]], configuration: Optional[Config] = None
-) -> Type[InventoryData]:
+    data: Optional[Dict[str, Any]] = None, configuration: Optional[Config] = None
+) -> Union[Dict[str, Any], InventoryData]:
     if not configuration:
         configuration = Config()
     InventoryDataPluginRegister.auto_register()

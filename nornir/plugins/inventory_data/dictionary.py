@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 from nornir.core.plugins.inventory_data import InventoryData
 
@@ -13,7 +13,9 @@ class InventoryDataDict:
         """
         ...
 
-    def load(self, data: Optional[Dict[str, Any]]) -> InventoryData:
+    def load(
+        self, data: Optional[Dict[str, Any]]
+    ) -> Union[Dict[str, Any], InventoryData]:
         """
         Returns the object containing the data
         """

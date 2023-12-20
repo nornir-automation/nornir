@@ -277,7 +277,7 @@ class Config(object):
     def __init__(
         self,
         inventory: Optional[InventoryConfig] = None,
-        inventory_data: Optional[InventoryConfig] = None,
+        inventory_data: Optional[InventoryDataConfig] = None,
         ssh: Optional[SSHConfig] = None,
         logging: Optional[LoggingConfig] = None,
         core: Optional[CoreConfig] = None,

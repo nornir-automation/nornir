@@ -24,8 +24,8 @@ def load_inventory(
     if "configuration" in init_params:
         config_parameter = init_params["configuration"]
         if config_parameter.annotation is not inspect.Parameter.empty and (
-            config_parameter.annotation is Config
-            or Union[config_parameter.annotation, None] is Config
+            config_parameter.annotation == Config
+            or config_parameter.annotation == Union[Config, None]
         ):
             inventory_plugin_params.update({"configuration": config})
 
