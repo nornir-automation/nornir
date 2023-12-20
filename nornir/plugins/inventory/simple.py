@@ -34,7 +34,9 @@ def _get_connection_options(data: Dict[str, Any]) -> Dict[str, ConnectionOptions
     return cp
 
 
-def _get_defaults(data: Dict[str, Any], configuration: Optional[Config] = None) -> Defaults:
+def _get_defaults(
+    data: Dict[str, Any], configuration: Optional[Config] = None
+) -> Defaults:
     return Defaults(
         hostname=data.get("hostname"),
         port=data.get("port"),
@@ -115,7 +117,9 @@ class SimpleInventory:
             hosts_dict = yml.load(f)
 
         for n, h in hosts_dict.items():
-            hosts[n] = _get_inventory_element(Host, h, n, defaults, configuration=self._config)
+            hosts[n] = _get_inventory_element(
+                Host, h, n, defaults, configuration=self._config
+            )
 
         groups = Groups()
         if self.group_file.exists():

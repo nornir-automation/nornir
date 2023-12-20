@@ -1,5 +1,5 @@
 import inspect
-from typing import Any
+from typing import Any, Union
 
 from nornir.core import Nornir
 from nornir.core.configuration import Config
@@ -23,8 +23,9 @@ def load_inventory(
     init_params = inspect.signature(inventory_plugin).parameters
     if "configuration" in init_params:
         config_parameter = init_params["configuration"]
-        if config_parameter is not inspect.Parameter.empty and issubclass(
-            config_parameter.annotation, Config
+        if config_parameter.annotation is not inspect.Parameter.empty and (
+            config_parameter.annotation is Config
+            or Union[config_parameter.annotation, None] is Config
         ):
             inventory_plugin_params.update({"configuration": config})
 
