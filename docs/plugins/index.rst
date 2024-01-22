@@ -78,7 +78,7 @@ A transform function is a plugin that manipulates the inventory independently fr
 During inventory initialization, the transform function will be called in a for loop for each host. The transform function takes a host object as the first parameter and additional keyword arguments as specified in the `config.inventory.transform_function_options` dictionary.
 
 Runners
-_______
+-------
 
 A runner is a plugin that dictates how to execute the tasks over the hosts
 
