@@ -111,6 +111,30 @@ class InventoryConfig(object):
         }
 
 
+class InventoryDataConfig(object):
+    __slots__ = "plugin", "options"
+
+    class Parameters:
+        plugin = Parameter(
+            typ=str, default="InventoryDataDict", envvar="NORNIR_INVENTORY_DATA_PLUGIN"
+        )
+        options = Parameter(default={}, envvar="NORNIR_INVENTORY_DATA_OPTIONS")
+
+    def __init__(
+        self,
+        plugin: Optional[str] = None,
+        options: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        self.plugin = self.Parameters.plugin.resolve(plugin)
+        self.options = self.Parameters.options.resolve(options) or {}
+
+    def dict(self) -> Dict[str, Any]:
+        return {
+            "plugin": self.plugin,
+            "options": self.options,
+        }
+
+
 class LoggingConfig(object):
     __slots__ = "enabled", "level", "log_file", "format", "to_console", "loggers"
 
@@ -245,6 +269,7 @@ class Config(object):
         "runner",
         "ssh",
         "inventory",
+        "inventory_data",
         "logging",
         "user_defined",
     )
@@ -252,6 +277,7 @@ class Config(object):
     def __init__(
         self,
         inventory: Optional[InventoryConfig] = None,
+        inventory_data: Optional[InventoryDataConfig] = None,
         ssh: Optional[SSHConfig] = None,
         logging: Optional[LoggingConfig] = None,
         core: Optional[CoreConfig] = None,
@@ -259,6 +285,7 @@ class Config(object):
         user_defined: Optional[Dict[str, Any]] = None,
     ) -> None:
         self.inventory = inventory or InventoryConfig()
+        self.inventory_data = inventory_data or InventoryDataConfig()
         self.ssh = ssh or SSHConfig()
         self.logging = logging or LoggingConfig()
         self.core = core or CoreConfig()
@@ -269,6 +296,7 @@ class Config(object):
     def from_dict(
         cls,
         inventory: Optional[Dict[str, Any]] = None,
+        inventory_data: Optional[Dict[str, Any]] = None,
         ssh: Optional[Dict[str, Any]] = None,
         logging: Optional[Dict[str, Any]] = None,
         core: Optional[Dict[str, Any]] = None,
@@ -277,6 +305,7 @@ class Config(object):
     ) -> "Config":
         return cls(
             inventory=InventoryConfig(**inventory or {}),
+            inventory_data=InventoryDataConfig(**inventory_data or {}),
             ssh=SSHConfig(**ssh or {}),
             logging=LoggingConfig(**logging or {}),
             core=CoreConfig(**core or {}),
@@ -289,6 +318,7 @@ class Config(object):
         cls,
         config_file: str,
         inventory: Optional[Dict[str, Any]] = None,
+        inventory_data: Optional[Dict[str, Any]] = None,
         ssh: Optional[Dict[str, Any]] = None,
         logging: Optional[Dict[str, Any]] = None,
         core: Optional[Dict[str, Any]] = None,
@@ -296,6 +326,7 @@ class Config(object):
         user_defined: Optional[Dict[str, Any]] = None,
     ) -> "Config":
         inventory = inventory or {}
+        inventory_data = inventory_data or {}
         ssh = ssh or {}
         logging = logging or {}
         core = core or {}
@@ -306,6 +337,9 @@ class Config(object):
             data = yml.load(f)
         return cls(
             inventory=InventoryConfig(**{**data.get("inventory", {}), **inventory}),
+            inventory_data=InventoryDataConfig(
+                **{**data.get("inventory_data", {}), **inventory_data}
+            ),
             ssh=SSHConfig(**{**data.get("ssh", {}), **ssh}),
             logging=LoggingConfig(**{**data.get("logging", {}), **logging}),
             core=CoreConfig(**{**data.get("core", {}), **core}),
@@ -316,6 +350,7 @@ class Config(object):
     def dict(self) -> Dict[str, Any]:
         return {
             "inventory": self.inventory.dict(),
+            "inventory_data": self.inventory_data.dict(),
             "ssh": self.ssh.dict(),
             "logging": self.logging.dict(),
             "core": self.core.dict(),

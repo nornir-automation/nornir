@@ -1,9 +1,10 @@
 import logging
 import pathlib
-from typing import Any, Dict, Type
+from typing import Any, Dict, Optional, Type
 
 import ruamel.yaml
 
+from nornir.core.configuration import Config
 from nornir.core.inventory import (
     ConnectionOptions,
     Defaults,
@@ -33,7 +34,9 @@ def _get_connection_options(data: Dict[str, Any]) -> Dict[str, ConnectionOptions
     return cp
 
 
-def _get_defaults(data: Dict[str, Any]) -> Defaults:
+def _get_defaults(
+    data: Dict[str, Any], configuration: Optional[Config] = None
+) -> Defaults:
     return Defaults(
         hostname=data.get("hostname"),
         port=data.get("port"),
@@ -42,11 +45,16 @@ def _get_defaults(data: Dict[str, Any]) -> Defaults:
         platform=data.get("platform"),
         data=data.get("data"),
         connection_options=_get_connection_options(data.get("connection_options", {})),
+        configuration=configuration,
     )
 
 
 def _get_inventory_element(
-    typ: Type[HostOrGroup], data: Dict[str, Any], name: str, defaults: Defaults
+    typ: Type[HostOrGroup],
+    data: Dict[str, Any],
+    name: str,
+    defaults: Defaults,
+    configuration: Optional[Config] = None,
 ) -> HostOrGroup:
     return typ(
         name=name,
@@ -61,6 +69,7 @@ def _get_inventory_element(
         ),  # this is a hack, we will convert it later to the correct type
         defaults=defaults,
         connection_options=_get_connection_options(data.get("connection_options", {})),
+        configuration=configuration,
     )
 
 
@@ -71,6 +80,7 @@ class SimpleInventory:
         group_file: str = "groups.yaml",
         defaults_file: str = "defaults.yaml",
         encoding: str = "utf-8",
+        configuration: Optional[Config] = None,
     ) -> None:
         """
         SimpleInventory is an inventory plugin that loads data from YAML files.
@@ -90,6 +100,7 @@ class SimpleInventory:
         self.group_file = pathlib.Path(group_file).expanduser()
         self.defaults_file = pathlib.Path(defaults_file).expanduser()
         self.encoding = encoding
+        self._config = configuration
 
     def load(self) -> Inventory:
         yml = ruamel.yaml.YAML(typ="safe")
@@ -97,7 +108,7 @@ class SimpleInventory:
         if self.defaults_file.exists():
             with open(self.defaults_file, "r", encoding=self.encoding) as f:
                 defaults_dict = yml.load(f) or {}
-            defaults = _get_defaults(defaults_dict)
+            defaults = _get_defaults(defaults_dict, configuration=self._config)
         else:
             defaults = Defaults()
 
@@ -106,7 +117,9 @@ class SimpleInventory:
             hosts_dict = yml.load(f)
 
         for n, h in hosts_dict.items():
-            hosts[n] = _get_inventory_element(Host, h, n, defaults)
+            hosts[n] = _get_inventory_element(
+                Host, h, n, defaults, configuration=self._config
+            )
 
         groups = Groups()
         if self.group_file.exists():
@@ -114,7 +127,9 @@ class SimpleInventory:
                 groups_dict = yml.load(f) or {}
 
             for n, g in groups_dict.items():
-                groups[n] = _get_inventory_element(Group, g, n, defaults)
+                groups[n] = _get_inventory_element(
+                    Group, g, n, defaults, configuration=self._config
+                )
 
             for g in groups.values():
                 g.groups = ParentGroups([groups[g] for g in g.groups])

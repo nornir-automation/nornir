@@ -9,6 +9,9 @@ build-backend = "poetry.masonry.api"
 [tool.poetry.plugins."nornir.plugins.inventory"]
 "SimpleInventory" = "nornir.plugins.inventory.simple:SimpleInventory"
 
+[tool.poetry.plugins."nornir.plugins.inventory_data"]
+"InventoryDataDict" = "nornir.plugins.inventory_data.dictionary:InventoryDataDict"
+
 [tool.poetry]
 name = "nornir"
 version = "3.4.1"

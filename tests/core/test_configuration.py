@@ -25,6 +25,10 @@ class Test(object):
                 "transform_function": "",
                 "transform_function_options": {},
             },
+            "inventory_data": {
+                "plugin": "InventoryDataDict",
+                "options": {},
+            },
             "ssh": {"config_file": str(Path("~/.ssh/config").expanduser())},
             "logging": {
                 "enabled": True,
@@ -48,6 +52,10 @@ class Test(object):
                 "transform_function": "",
                 "transform_function_options": {},
             },
+            "inventory_data": {
+                "plugin": "InventoryDataDict",
+                "options": {},
+            },
             "ssh": {"config_file": str(Path("~/.ssh/config").expanduser())},
             "logging": {
                 "enabled": True,
@@ -63,6 +71,7 @@ class Test(object):
     def test_config_basic(self):
         c = Config.from_dict(
             inventory={"plugin": "an-inventory"},
+            inventory_data={"plugin": "an-inventory_data"},
             runner={"plugin": "serial", "options": {"a": 1, "b": 2}},
             logging={"log_file": ""},
             user_defined={"my_opt": True},
@@ -73,6 +82,10 @@ class Test(object):
                 "options": {},
                 "transform_function": "",
                 "transform_function_options": {},
+            },
+            "inventory_data": {
+                "plugin": "an-inventory_data",
+                "options": {},
             },
             "runner": {"options": {"a": 1, "b": 2}, "plugin": "serial"},
             "ssh": {"config_file": str(Path("~/.ssh/config").expanduser())},
