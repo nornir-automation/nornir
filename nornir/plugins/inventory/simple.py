@@ -123,3 +123,7 @@ class SimpleInventory:
             h.groups = ParentGroups([groups[g] for g in h.groups])
 
         return Inventory(hosts=hosts, groups=groups, defaults=defaults)
+
+class SimpleInventoryAsync(SimpleInventory):
+    async def load(self) -> Inventory:
+        return super().load()
