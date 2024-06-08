@@ -4,6 +4,7 @@ import types
 from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, List, Optional, Type
 
 from nornir.core.configuration import Config
+from nornir.core.exceptions import PluginNotRegistered
 from nornir.core.inventory import Inventory
 from nornir.core.plugins.runners import RunnerPlugin
 from nornir.core.processor import Processor, Processors
@@ -142,7 +143,7 @@ class Nornir(object):
         else:
             logger.warning("Task %r has not been run – 0 hosts selected", task.name)
 
-        result = self.runner.run(task, run_on)
+        result = self._runner.run(task, run_on)
 
         raise_on_error = (
             raise_on_error
@@ -167,6 +168,13 @@ class Nornir(object):
             task.host.close_connections()
 
         self.run(task=close_connections_task, on_good=on_good, on_failed=on_failed)
+
+    @property
+    def _runner(self) -> RunnerPlugin:
+        if self.runner:
+            return self.runner
+
+        raise PluginNotRegistered("Runner plugin not registered")
 
     @classmethod
     def get_validators(cls) -> Generator[Callable[["Nornir"], "Nornir"], None, None]:
