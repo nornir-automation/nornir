@@ -62,14 +62,14 @@ class Nornir(object):
     def with_processors(self, processors: List[Processor]) -> "Nornir":
         """
         Given a list of Processor objects return a copy of the nornir object with the processors
-        assigned to the copy. The orinal object is left unmodified.
+        assigned to the copy. The original object is left unmodified.
         """
         return Nornir(**{**self.__dict__, **{"processors": Processors(processors)}})
 
     def with_runner(self, runner: RunnerPlugin) -> "Nornir":
         """
         Given a runner return a copy of the nornir object with the runner
-        assigned to the copy. The orinal object is left unmodified.
+        assigned to the copy. The original object is left unmodified.
         """
         return Nornir(**{**self.__dict__, **{"runner": runner}})
 
