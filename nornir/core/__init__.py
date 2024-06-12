@@ -1,7 +1,7 @@
 import logging
 import logging.config
 import types
-from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, List, Optional, Type
+from typing import Any, Callable, Dict, Generator, List, Optional, Type
 
 from nornir.core.configuration import Config
 from nornir.core.exceptions import PluginNotRegistered
@@ -10,9 +10,6 @@ from nornir.core.plugins.runners import RunnerPlugin
 from nornir.core.processor import Processor, Processors
 from nornir.core.state import GlobalState
 from nornir.core.task import AggregatedResult, Task
-
-if TYPE_CHECKING:
-    from nornir.core.inventory import Host  # noqa: W0611
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +60,7 @@ class Nornir(object):
     def with_processors(self, processors: List[Processor]) -> "Nornir":
         """
         Given a list of Processor objects return a copy of the nornir object with the processors
-        assigned to the copy. The orinal object is left unmodified.
+        assigned to the copy. The original object is left unmodified.
         """
         return Nornir(
             **{**self._clone_parameters(), **{"processors": Processors(processors)}}
@@ -72,7 +69,7 @@ class Nornir(object):
     def with_runner(self, runner: RunnerPlugin) -> "Nornir":
         """
         Given a runner return a copy of the nornir object with the runner
-        assigned to the copy. The orinal object is left unmodified.
+        assigned to the copy. The original object is left unmodified.
         """
         return Nornir(**{**self._clone_parameters(), **{"runner": runner}})
 
