@@ -1,7 +1,7 @@
 import logging
 import logging.config
 import types
-from typing import TYPE_CHECKING, Any, Callable, Dict, Generator, List, Optional, Type
+from typing import Any, Callable, Dict, Generator, List, Optional, Type
 
 from nornir.core.configuration import Config
 from nornir.core.inventory import Inventory
@@ -9,9 +9,6 @@ from nornir.core.plugins.runners import RunnerPlugin
 from nornir.core.processor import Processor, Processors
 from nornir.core.state import GlobalState
 from nornir.core.task import AggregatedResult, Task
-
-if TYPE_CHECKING:
-    from nornir.core.inventory import Host  # noqa: W0611
 
 logger = logging.getLogger(__name__)
 
