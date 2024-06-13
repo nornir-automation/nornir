@@ -16,8 +16,24 @@ from typing import (
 from nornir.core.configuration import Config
 from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
 from nornir.core.plugins.connections import ConnectionPlugin, ConnectionPluginRegister
+from nornir.core.plugins.inventory_data import (
+    InventoryData,
+    InventoryDataPluginRegister,
+)
 
 HostOrGroup = TypeVar("HostOrGroup", "Host", "Group")
+
+
+def _init_inventory_data(
+    data: Optional[Dict[str, Any]] = None, configuration: Optional[Config] = None
+) -> Union[Dict[str, Any], InventoryData]:
+    if not configuration:
+        configuration = Config()
+    InventoryDataPluginRegister.auto_register()
+    inventory_data_plugin = InventoryDataPluginRegister.get_plugin(
+        configuration.inventory_data.plugin
+    )
+    return inventory_data_plugin(**configuration.inventory_data.options).load(data)
 
 
 class BaseAttributes(object):
@@ -125,9 +141,10 @@ class InventoryElement(BaseAttributes):
         groups: Optional[ParentGroups] = None,
         data: Optional[Dict[str, Any]] = None,
         connection_options: Optional[Dict[str, ConnectionOptions]] = None,
+        configuration: Optional[Config] = None,
     ) -> None:
         self.groups = groups or ParentGroups()
-        self.data = data or {}
+        self.data = _init_inventory_data(data, configuration=configuration)
         self.connection_options = connection_options or {}
         super().__init__(
             hostname=hostname,
@@ -208,8 +225,9 @@ class Defaults(BaseAttributes):
         platform: Optional[str] = None,
         data: Optional[Dict[str, Any]] = None,
         connection_options: Optional[Dict[str, ConnectionOptions]] = None,
+        configuration: Optional[Config] = None,
     ) -> None:
-        self.data = data or {}
+        self.data = _init_inventory_data(data, configuration=configuration)
         self.connection_options = connection_options or {}
         super().__init__(
             hostname=hostname,
@@ -252,6 +270,7 @@ class Host(InventoryElement):
         data: Optional[Dict[str, Any]] = None,
         connection_options: Optional[Dict[str, ConnectionOptions]] = None,
         defaults: Optional[Defaults] = None,
+        configuration: Optional[Config] = None,
     ) -> None:
         self.name = name
         self.defaults = defaults or Defaults(None, None, None, None, None, None, None)
@@ -265,6 +284,7 @@ class Host(InventoryElement):
             groups=groups,
             data=data,
             connection_options=connection_options,
+            configuration=configuration,
         )
 
     def extended_data(self) -> Dict[str, Any]:

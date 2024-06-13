@@ -1,4 +1,5 @@
-from typing import Any
+import inspect
+from typing import Any, Union
 
 from nornir.core import Nornir
 from nornir.core.configuration import Config
@@ -17,7 +18,18 @@ def load_inventory(
 ) -> Inventory:
     InventoryPluginRegister.auto_register()
     inventory_plugin = InventoryPluginRegister.get_plugin(config.inventory.plugin)
-    inv = inventory_plugin(**config.inventory.options).load()
+    inventory_plugin_params = config.inventory.options.copy()
+
+    init_params = inspect.signature(inventory_plugin).parameters
+    if "configuration" in init_params:
+        config_parameter = init_params["configuration"]
+        if config_parameter.annotation is not inspect.Parameter.empty and (
+            config_parameter.annotation == Config
+            or config_parameter.annotation == Union[Config, None]
+        ):
+            inventory_plugin_params.update({"configuration": config})
+
+    inv = inventory_plugin(**inventory_plugin_params).load()
 
     if config.inventory.transform_function:
         TransformFunctionRegister.auto_register()
