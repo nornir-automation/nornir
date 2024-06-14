@@ -4,6 +4,7 @@ import types
 from typing import Any, Callable, Dict, Generator, List, Optional, Type
 
 from nornir.core.configuration import Config
+from nornir.core.exceptions import PluginNotRegistered
 from nornir.core.inventory import Inventory
 from nornir.core.plugins.runners import RunnerPlugin
 from nornir.core.processor import Processor, Processors
@@ -43,7 +44,7 @@ class Nornir(object):
         self.inventory = inventory
         self.config = config or Config()
         self.processors = processors or Processors()
-        self.runner = runner
+        self._runner = runner
 
     def __enter__(self) -> "Nornir":
         return self
@@ -61,14 +62,16 @@ class Nornir(object):
         Given a list of Processor objects return a copy of the nornir object with the processors
         assigned to the copy. The original object is left unmodified.
         """
-        return Nornir(**{**self.__dict__, **{"processors": Processors(processors)}})
+        return Nornir(
+            **{**self._clone_parameters(), **{"processors": Processors(processors)}}
+        )
 
     def with_runner(self, runner: RunnerPlugin) -> "Nornir":
         """
         Given a runner return a copy of the nornir object with the runner
         assigned to the copy. The original object is left unmodified.
         """
-        return Nornir(**{**self.__dict__, **{"runner": runner}})
+        return Nornir(**{**self._clone_parameters(), **{"runner": runner}})
 
     def filter(self, *args: Any, **kwargs: Any) -> "Nornir":
         """
@@ -77,7 +80,7 @@ class Nornir(object):
         Returns:
             :obj:`Nornir`: A new object with same configuration as ``self`` but filtered inventory.
         """
-        b = Nornir(**self.__dict__)
+        b = Nornir(**self._clone_parameters())
         b.inventory = self.inventory.filter(*args, **kwargs)
         return b
 
@@ -164,6 +167,22 @@ class Nornir(object):
             task.host.close_connections()
 
         self.run(task=close_connections_task, on_good=on_good, on_failed=on_failed)
+
+    @property
+    def runner(self) -> RunnerPlugin:
+        if self._runner:
+            return self._runner
+
+        raise PluginNotRegistered("Runner plugin not registered")
+
+    def _clone_parameters(self) -> Dict[str, Any]:
+        return {
+            "data": self.data,
+            "inventory": self.inventory,
+            "config": self.config,
+            "processors": self.processors,
+            "runner": self._runner,
+        }
 
     @classmethod
     def get_validators(cls) -> Generator[Callable[["Nornir"], "Nornir"], None, None]:
