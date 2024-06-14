@@ -86,10 +86,10 @@ class Nornir(object):
 
     def run(
         self,
-        task,
-        raise_on_error=None,
-        on_good=True,
-        on_failed=False,
+        task: Callable[..., Any],
+        raise_on_error: Optional[bool] = None,
+        on_good: bool = True,
+        on_failed: bool = False,
         name: Optional[str] = None,
         **kwargs: Any,
     ) -> AggregatedResult:
@@ -111,7 +111,7 @@ class Nornir(object):
         Returns:
             :obj:`nornir.core.task.AggregatedResult`: results of each execution
         """
-        task = Task(
+        run_task = Task(
             task,
             self,
             global_dry_run=self.data.dry_run,
@@ -119,7 +119,7 @@ class Nornir(object):
             processors=self.processors,
             **kwargs,
         )
-        self.processors.task_started(task)
+        self.processors.task_started(run_task)
 
         run_on = []
         if on_good:
@@ -135,14 +135,14 @@ class Nornir(object):
         if num_hosts:
             logger.info(
                 "Running task %r with args %s on %d hosts",
-                task.name,
+                run_task.name,
                 kwargs,
                 num_hosts,
             )
         else:
-            logger.warning("Task %r has not been run – 0 hosts selected", task.name)
+            logger.warning("Task %r has not been run – 0 hosts selected", run_task.name)
 
-        result = self.runner.run(task, run_on)
+        result = self.runner.run(run_task, run_on)
 
         raise_on_error = (
             raise_on_error
@@ -154,7 +154,7 @@ class Nornir(object):
         else:
             self.data.failed_hosts.update(result.failed_hosts.keys())
 
-        self.processors.task_completed(task, result)
+        self.processors.task_completed(run_task, result)
 
         return result
 
@@ -163,7 +163,7 @@ class Nornir(object):
         return {"data": self.data.dict(), "inventory": self.inventory.dict()}
 
     def close_connections(self, on_good: bool = True, on_failed: bool = False) -> None:
-        def close_connections_task(task):
+        def close_connections_task(task: Task) -> None:
             task.host.close_connections()
 
         self.run(task=close_connections_task, on_good=on_good, on_failed=on_failed)
