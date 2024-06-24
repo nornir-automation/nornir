@@ -25,10 +25,6 @@ sphinx:
 	# poetry run sphinx-build -W -b html -d docs/_build/doctrees docs docs/_build/html
 	echo "WARNING: sphinx needs to be added here!!!"
 
-.PHONY: pylama
-pylama:
-	poetry run pylama ${NORNIR_DIRS}
-
 .PHONY: mypy
 mypy:
 	poetry run mypy nornir tests
@@ -44,7 +40,7 @@ ruff:
 	poetry run ruff check .
 
 .PHONY: tests
-tests: ruff black pylama mypy nbval pytest sphinx
+tests: ruff black mypy nbval pytest sphinx
 
 .PHONY: docker-tests
 docker-tests: docker
