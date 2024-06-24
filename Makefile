@@ -39,8 +39,12 @@ nbval:
 		docs/tutorial/ \
 		docs/howto/
 
+.PHONY: ruff
+ruff:
+	poetry run ruff check .
+
 .PHONY: tests
-tests: black pylama mypy nbval pytest sphinx
+tests: ruff black pylama mypy nbval pytest sphinx
 
 .PHONY: docker-tests
 docker-tests: docker
