@@ -38,8 +38,6 @@ jobs:
 
       - name: Run ruff
         run: make ruff
-      - name: Run pylama
-        run: make pylama
       - name: Run black
         run: make black
       - name: Run mypy
