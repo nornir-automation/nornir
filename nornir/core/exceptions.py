@@ -20,15 +20,11 @@ class ConnectionAlreadyOpen(ConnectionException):
     Raised when opening an already opened connection
     """
 
-    pass
-
 
 class ConnectionNotOpen(ConnectionException):
     """
     Raised when trying to close a connection that isn't open
     """
-
-    pass
 
 
 class PluginAlreadyRegistered(Exception):
@@ -36,15 +32,11 @@ class PluginAlreadyRegistered(Exception):
     Raised when trying to register an already registered plugin
     """
 
-    pass
-
 
 class PluginNotRegistered(Exception):
     """
     Raised when trying to access a plugin that is not registered
     """
-
-    pass
 
 
 class NornirExecutionError(Exception):
@@ -95,8 +87,6 @@ class NornirNoValidInventoryError(Exception):
     """
     Raised by nornir when :meth:`nornir.plugins.inventory.parse` fails to load any valid inventory
     """
-
-    pass
 
 
 class ConflictingConfigurationWarning(UserWarning):

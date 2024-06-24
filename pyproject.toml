@@ -144,7 +144,6 @@ ignore = [
     "N804",    # First argument of a class method should be named `cls`
     "PERF203", # `try`-`except` within a loop incurs performance overhead
     "PGH004",  # Use specific rule codes when using `noqa`
-    "PIE790",  # Unnecessary `pass` statement
     "PIE800",  # Unnecessary spread `**`
     "PLC0205", # Class `__slots__` should be a non-string iterable
     "PLC2801", # Unnecessary dunder call to `__getattribute__`. Access attribute directly or use getattr built-in function
