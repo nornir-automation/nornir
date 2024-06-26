@@ -47,9 +47,7 @@ class F(F_BASE):
         self.filters = kwargs
 
     def __call__(self, host: Host) -> bool:
-        return all(
-            F._verify_rules(host, k.split("__"), v) for k, v in self.filters.items()
-        )
+        return all(F._verify_rules(host, k.split("__"), v) for k, v in self.filters.items())
 
     def __and__(self, other: "F") -> AND:
         return AND(self, other)
@@ -106,16 +104,12 @@ class F(F_BASE):
                 return bool(data.get(rule[0]) == value)
 
         else:
-            raise Exception(
-                "I don't know how I got here:\n{}\n{}\n{}".format(data, rule, value)
-            )
+            raise Exception("I don't know how I got here:\n{}\n{}\n{}".format(data, rule, value))
 
 
 class NOT_F(F):
     def __call__(self, host: Host) -> bool:
-        return not any(
-            F._verify_rules(host, k.split("__"), v) for k, v in self.filters.items()
-        )
+        return not any(F._verify_rules(host, k.split("__"), v) for k, v in self.filters.items())
 
     def __invert__(self) -> F:
         return F(**self.filters)

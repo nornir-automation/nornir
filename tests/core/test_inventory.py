@@ -388,9 +388,7 @@ class Test(object):
         www_site1 = sorted(list(inv.filter(role="www", site="site1").hosts.keys()))
         assert www_site1 == ["dev1.group_1"]
 
-        www_site1 = sorted(
-            list(inv.filter(role="www").filter(site="site1").hosts.keys())
-        )
+        www_site1 = sorted(list(inv.filter(role="www").filter(site="site1").hosts.keys()))
         assert www_site1 == ["dev1.group_1"]
 
     def test_filtering_func(self, inv):
@@ -402,9 +400,7 @@ class Test(object):
         def longer_than(dev, length):
             return len(dev["my_var"]) > length
 
-        long_names = sorted(
-            list(inv.filter(filter_func=longer_than, length=20).hosts.keys())
-        )
+        long_names = sorted(list(inv.filter(filter_func=longer_than, length=20).hosts.keys()))
         assert long_names == ["dev1.group_1", "dev4.group_2", "dev6.group_3"]
 
     def test_filter_unique_keys(self, inv):
@@ -527,9 +523,7 @@ class Test(object):
         hosts = {"h1": h1, "h2": h2}
         groups = {"g1": g1, "g2": g2}
         inv = inventory.Inventory(hosts=hosts, groups=groups, defaults=defaults)
-        h3_connection_options = inventory.ConnectionOptions(
-            extras={"device_type": "cisco_ios"}
-        )
+        h3_connection_options = inventory.ConnectionOptions(extras={"device_type": "cisco_ios"})
         inv.hosts["h3"] = inventory.Host(
             name="h3",
             groups=[g1],
@@ -542,10 +536,7 @@ class Test(object):
         assert "test_var" in inv.hosts["h3"].defaults.data.keys()
         assert inv.hosts["h3"].defaults.data.get("test_var") == "test_value"
         assert inv.hosts["h3"].platform == "TestPlatform"
-        assert (
-            inv.hosts["h3"].connection_options["netmiko"].extras["device_type"]
-            == "cisco_ios"
-        )
+        assert inv.hosts["h3"].connection_options["netmiko"].extras["device_type"] == "cisco_ios"
 
     def test_add_group(self):
         connection_options = {"username": "test_user", "password": "test_pass"}
@@ -558,9 +549,7 @@ class Test(object):
         hosts = {"h1": h1, "h2": h2}
         groups = {"g1": g1, "g2": g2}
         inv = inventory.Inventory(hosts=hosts, groups=groups, defaults=defaults)
-        g3_connection_options = inventory.ConnectionOptions(
-            extras={"device_type": "cisco_ios"}
-        )
+        g3_connection_options = inventory.ConnectionOptions(extras={"device_type": "cisco_ios"})
         inv.groups["g3"] = inventory.Group(
             name="g3",
             username="test_user",
@@ -569,18 +558,11 @@ class Test(object):
         )
         assert "g1" in [i.name for i in inv.groups["g2"].groups]
         assert "g3" in inv.groups
-        assert (
-            inv.groups["g3"].defaults.connection_options.get("username") == "test_user"
-        )
-        assert (
-            inv.groups["g3"].defaults.connection_options.get("password") == "test_pass"
-        )
+        assert inv.groups["g3"].defaults.connection_options.get("username") == "test_user"
+        assert inv.groups["g3"].defaults.connection_options.get("password") == "test_pass"
         assert "test_var" in inv.groups["g3"].defaults.data.keys()
         assert "test_value" == inv.groups["g3"].defaults.data.get("test_var")
-        assert (
-            inv.groups["g3"].connection_options["netmiko"].extras["device_type"]
-            == "cisco_ios"
-        )
+        assert inv.groups["g3"].connection_options["netmiko"].extras["device_type"] == "cisco_ios"
 
     def test_dict(self, inv):
         inventory_dict = inv.dict()
@@ -610,9 +592,7 @@ class Test(object):
     def test_get_hosts_dict(self, inv):
         hosts_dict = {n: h.dict() for n, h in inv.hosts.items()}
         dev1_groups = hosts_dict["dev1.group_1"]["groups"]
-        dev2_paramiko_opts = hosts_dict["dev2.group_1"]["connection_options"][
-            "paramiko"
-        ]
+        dev2_paramiko_opts = hosts_dict["dev2.group_1"]["connection_options"]["paramiko"]
         assert isinstance(hosts_dict, dict)
         assert "group_1" in dev1_groups
         assert dev2_paramiko_opts["username"] == "root"

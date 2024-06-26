@@ -58,9 +58,7 @@ class SSHConfig(object):
     __slots__ = ("config_file",)
 
     class Parameters:
-        config_file = Parameter(
-            default=DEFAULT_SSH_CONFIG, envvar="NORNIR_SSH_CONFIG_FILE"
-        )
+        config_file = Parameter(default=DEFAULT_SSH_CONFIG, envvar="NORNIR_SSH_CONFIG_FILE")
 
     def __init__(self, config_file: Optional[str] = None) -> None:
         self.config_file = self.Parameters.config_file.resolve(config_file)
@@ -73,13 +71,9 @@ class InventoryConfig(object):
     __slots__ = "plugin", "options", "transform_function", "transform_function_options"
 
     class Parameters:
-        plugin = Parameter(
-            typ=str, default="SimpleInventory", envvar="NORNIR_INVENTORY_PLUGIN"
-        )
+        plugin = Parameter(typ=str, default="SimpleInventory", envvar="NORNIR_INVENTORY_PLUGIN")
         options = Parameter(default={}, envvar="NORNIR_INVENTORY_OPTIONS")
-        transform_function = Parameter(
-            typ=str, envvar="NORNIR_INVENTORY_TRANSFORM_FUNCTION"
-        )
+        transform_function = Parameter(typ=str, envvar="NORNIR_INVENTORY_TRANSFORM_FUNCTION")
         transform_function_options = Parameter(
             default={}, envvar="NORNIR_INVENTORY_TRANSFORM_FUNCTION_OPTIONS"
         )
@@ -93,13 +87,9 @@ class InventoryConfig(object):
     ) -> None:
         self.plugin = self.Parameters.plugin.resolve(plugin)
         self.options = self.Parameters.options.resolve(options) or {}
-        self.transform_function = self.Parameters.transform_function.resolve(
-            transform_function
-        )
-        self.transform_function_options = (
-            self.Parameters.transform_function_options.resolve(
-                transform_function_options
-            )
+        self.transform_function = self.Parameters.transform_function.resolve(transform_function)
+        self.transform_function_options = self.Parameters.transform_function_options.resolve(
+            transform_function_options
         )
 
     def dict(self) -> Dict[str, Any]:

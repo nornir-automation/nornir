@@ -14,11 +14,6 @@ docker:
 pytest:
 	poetry run pytest --cov=nornir --cov-report=term-missing -vs ${ARGS}
 
-.PHONY: black
-black:
-	poetry run black --check ${NORNIR_DIRS}
-	poetry run isort --profile black --check ${NORNIR_DIRS}
-
 .PHONY: sphinx
 sphinx:
 	# TODO REPLACE with: sphinx-build -n -E -q -N -b dummy -d docs/_build/doctrees docs asd
@@ -40,7 +35,7 @@ ruff:
 	poetry run ruff check .
 
 .PHONY: tests
-tests: ruff black mypy nbval pytest sphinx
+tests: ruff mypy nbval pytest sphinx
 
 .PHONY: docker-tests
 docker-tests: docker

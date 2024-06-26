@@ -38,8 +38,6 @@ nbval = "^0.10.0"
 pytest = "*"
 pytest-cov = "*"
 requests-mock = "*"
-black = "^23.9.1"
-isort = "^5.12.0"
 mypy = "^1.5.1"
 types-Jinja2 = "^2.11.9"
 types-pkg-resources = "^0.1.3"
@@ -122,8 +120,10 @@ select = [
 ]
 
 ignore = [
+    "ISC001",  # Recommended to be disabled when used with ruff formatter
     "N801",    # Class name should use CapWords convention
     "N818",    # Exception name should be named with an Error suffix
+
 ##################################################################################################
 # The ignored rules below should be removed once the code has been updated, they are included    #
 # like this so that we can reactivate them one by one. Alternatively ignored after further       #
@@ -179,6 +179,12 @@ ignore = [
     "UP034",   # Avoid extraneous parentheses
     "UP037",   # Remove quotes from type annotation
 ]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
 
 [tool.ruff.lint.mccabe]
 max-complexity = 12

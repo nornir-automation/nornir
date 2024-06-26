@@ -57,9 +57,7 @@ class FailedConnectionPlugin:
         extras: Optional[Dict[str, Any]] = None,
         configuration: Optional[Config] = None,
     ) -> None:
-        raise FailedConnection(
-            f"Failed to open connection to {self.hostname}:{self.port}"
-        )
+        raise FailedConnection(f"Failed to open connection to {self.hostname}:{self.port}")
 
     def close(self) -> None:
         pass
@@ -113,9 +111,7 @@ class Test(object):
         ConnectionPluginRegister.register("dummy", DummyConnectionPlugin)
         ConnectionPluginRegister.register("dummy2", DummyConnectionPlugin)
         ConnectionPluginRegister.register("dummy_no_overrides", DummyConnectionPlugin)
-        ConnectionPluginRegister.register(
-            FailedConnectionPlugin.name, FailedConnectionPlugin
-        )
+        ConnectionPluginRegister.register(FailedConnectionPlugin.name, FailedConnectionPlugin)
 
     def test_open_and_close_connection(self, nornir):
         nr = nornir.filter(name="dev2.group_1")
@@ -138,10 +134,7 @@ class Test(object):
     def test_failed_connection(self, nornir):
         nr = nornir.filter(name="dev2.group_1")
         nr.run(task=failed_connection, nornir_config=nornir.config)
-        assert (
-            FailedConnectionPlugin.name
-            not in nornir.inventory.hosts["dev2.group_1"].connections
-        )
+        assert FailedConnectionPlugin.name not in nornir.inventory.hosts["dev2.group_1"].connections
 
     def test_context_manager(self, nornir):
         with nornir.filter(name="dev2.group_1") as nr:
@@ -247,10 +240,7 @@ class TestConnectionPluginsRegistration(object):
 
     def test_get_plugin(self):
         assert ConnectionPluginRegister.get_plugin("dummy") == DummyConnectionPlugin
-        assert (
-            ConnectionPluginRegister.get_plugin("another_dummy")
-            == AnotherDummyConnectionPlugin
-        )
+        assert ConnectionPluginRegister.get_plugin("another_dummy") == AnotherDummyConnectionPlugin
         assert len(ConnectionPluginRegister.available) == 2
 
     def test_nonexistent_plugin(self):
