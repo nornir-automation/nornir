@@ -43,7 +43,7 @@ jobs:
       - name: Run sphinx
         run: |
           sudo apt-get install pandoc
-          make docs
+          make docs SPHINXOPTS="-W"
 
   pytest:
     name: Testing on Python ${{ matrix.python-version }} (${{ matrix.platform}})
