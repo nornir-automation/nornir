@@ -14,12 +14,6 @@ docker:
 pytest:
 	poetry run pytest --cov=nornir --cov-report=term-missing -vs ${ARGS}
 
-.PHONY: sphinx
-sphinx:
-	# TODO REPLACE with: sphinx-build -n -E -q -N -b dummy -d docs/_build/doctrees docs asd
-	# poetry run sphinx-build -W -b html -d docs/_build/doctrees docs docs/_build/html
-	echo "WARNING: sphinx needs to be added here!!!"
-
 .PHONY: mypy
 mypy:
 	poetry run mypy nornir tests
@@ -43,5 +37,5 @@ docker-tests: docker
 
 .PHONY: docs
 docs:
-	./docs/build_api.sh
-	make -C docs clean html
+	poetry run ./docs/build_api.sh
+	poetry run make -C docs clean html
