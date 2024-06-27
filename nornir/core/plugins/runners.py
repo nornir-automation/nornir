@@ -21,6 +21,4 @@ class RunnerPlugin(Protocol):
         raise NotImplementedError("needs to be implemented by the plugin")
 
 
-RunnersPluginRegister: PluginRegister[Type[RunnerPlugin]] = PluginRegister(
-    RUNNERS_PLUGIN_PATH
-)
+RunnersPluginRegister: PluginRegister[Type[RunnerPlugin]] = PluginRegister(RUNNERS_PLUGIN_PATH)

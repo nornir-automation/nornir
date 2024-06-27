@@ -47,7 +47,7 @@ class Task(object):
         name: Optional[str] = None,
         severity_level: int = DEFAULT_SEVERITY_LEVEL,
         parent_task: Optional["Task"] = None,
-        **kwargs: str
+        **kwargs: str,
     ):
         self.task = task
         self.nornir = nornir
@@ -68,7 +68,7 @@ class Task(object):
             self.name,
             self.severity_level,
             self.parent_task,
-            **self.params
+            **self.params,
         )
 
     def __repr__(self) -> str:
@@ -163,7 +163,7 @@ class Task(object):
             global_dry_run=self.global_dry_run,
             processors=self.processors,
             parent_task=self,
-            **kwargs
+            **kwargs,
         )
         r = run_task.start(self.host)
         self.results.append(r[0] if len(r) == 1 else cast("Result", r))
@@ -213,7 +213,7 @@ class Result(object):
         failed: bool = False,
         exception: Optional[BaseException] = None,
         severity_level: int = DEFAULT_SEVERITY_LEVEL,
-        **kwargs: Any
+        **kwargs: Any,
     ):
         self.result = result
         self.host = host
@@ -286,9 +286,7 @@ class AggregatedResult(Dict[str, MultiResult]):
         super().__init__(**kwargs)
 
     def __repr__(self) -> str:
-        return "{} ({}): {}".format(
-            self.__class__.__name__, self.name, super().__repr__()
-        )
+        return "{} ({}): {}".format(self.__class__.__name__, self.name, super().__repr__())
 
     @property
     def failed(self) -> bool:

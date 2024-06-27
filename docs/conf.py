@@ -142,9 +142,7 @@ latex_elements: Dict[str, str] = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
-latex_documents = [
-    (master_doc, "nornir.tex", "nornir Documentation", "David Barroso", "manual")
-]
+latex_documents = [(master_doc, "nornir.tex", "nornir Documentation", "David Barroso", "manual")]
 
 
 # -- Options for manual page output ---------------------------------------

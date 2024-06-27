@@ -35,9 +35,7 @@ class MockProcessor:
     def task_instance_started(self, task: Task, host: Host) -> None:
         self.data[task.name][host.name] = {"started": True, "subtasks": {}}
 
-    def task_instance_completed(
-        self, task: Task, host: Host, result: MultiResult
-    ) -> None:
+    def task_instance_completed(self, task: Task, host: Host, result: MultiResult) -> None:
         self.data[task.name][host.name]["completed"] = True
         self.data[task.name][host.name]["failed"] = result.failed
 
@@ -59,9 +57,7 @@ class MockProcessor:
         data = self._get_subtask_dict(task, host)
         data[task.name] = {"started": True, "subtasks": {}}
 
-    def subtask_instance_completed(
-        self, task: Task, host: Host, result: MultiResult
-    ) -> None:
+    def subtask_instance_completed(self, task: Task, host: Host, result: MultiResult) -> None:
         data = self._get_subtask_dict(task, host)
         data[task.name]["completed"] = True
         data[task.name]["failed"] = result.failed

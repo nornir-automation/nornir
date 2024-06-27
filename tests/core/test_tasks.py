@@ -96,9 +96,7 @@ class Test(object):
         assert "dev3.group_2" in result
         assert "dev1.group_1" in result
 
-        result = nornir.run(
-            a_task_for_testing, fail_on=["dev3.group_2"], on_failed=True
-        )
+        result = nornir.run(a_task_for_testing, fail_on=["dev3.group_2"], on_failed=True)
         assert result.failed
         assert "dev3.group_2" in result
         assert "dev1.group_1" in result
@@ -166,9 +164,7 @@ class Test(object):
         r = host.run(a_task_to_test_dry_run, expected_dry_run_value=True)
         assert not r["dev3.group_2"].failed
 
-        r = host.run(
-            a_task_to_test_dry_run, dry_run=False, expected_dry_run_value=False
-        )
+        r = host.run(a_task_to_test_dry_run, dry_run=False, expected_dry_run_value=False)
         assert not r["dev3.group_2"].failed
 
         nornir.data.dry_run = False

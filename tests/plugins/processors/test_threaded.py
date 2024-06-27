@@ -41,9 +41,7 @@ def verify_data_change(task):
 class Test(object):
     def test_blocking_task_multithreading(self, nornir):
         t1 = datetime.datetime.now()
-        nornir.with_runner(ThreadedRunner(num_workers=NUM_WORKERS)).run(
-            blocking_task, wait=2
-        )
+        nornir.with_runner(ThreadedRunner(num_workers=NUM_WORKERS)).run(blocking_task, wait=2)
         t2 = datetime.datetime.now()
         delta = t2 - t1
         assert delta.seconds == 2, delta

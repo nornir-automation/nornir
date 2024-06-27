@@ -70,9 +70,7 @@ def inventory_from_yaml():
                 "groups"
             ),  # this is a hack, we will convert it later to the correct type
             defaults=defaults,
-            connection_options=get_connection_options(
-                data.get("connection_options", {})
-            ),
+            connection_options=get_connection_options(data.get("connection_options", {})),
         )
 
     host_file = f"{dir_path}/inventory_data/hosts.yaml"
@@ -126,9 +124,7 @@ def inv(request):
 @pytest.fixture(scope="session", autouse=True)
 def nornir(request):
     """Initializes nornir"""
-    nr = Nornir(
-        inventory=inventory_from_yaml(), runner=SerialRunner(), data=global_data
-    )
+    nr = Nornir(inventory=inventory_from_yaml(), runner=SerialRunner(), data=global_data)
     return nr
 
 

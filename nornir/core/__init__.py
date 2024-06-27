@@ -62,9 +62,7 @@ class Nornir(object):
         Given a list of Processor objects return a copy of the nornir object with the processors
         assigned to the copy. The original object is left unmodified.
         """
-        return Nornir(
-            **{**self._clone_parameters(), **{"processors": Processors(processors)}}
-        )
+        return Nornir(**{**self._clone_parameters(), **{"processors": Processors(processors)}})
 
     def with_runner(self, runner: RunnerPlugin) -> "Nornir":
         """
@@ -145,9 +143,7 @@ class Nornir(object):
         result = self.runner.run(run_task, run_on)
 
         raise_on_error = (
-            raise_on_error
-            if raise_on_error is not None
-            else self.config.core.raise_on_error
+            raise_on_error if raise_on_error is not None else self.config.core.raise_on_error
         )  # noqa
         if raise_on_error:
             result.raise_on_error()

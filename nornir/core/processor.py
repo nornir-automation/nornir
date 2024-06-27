@@ -30,9 +30,7 @@ class Processor(Protocol):
         """
         raise NotImplementedError("needs to be implemented by the processor")
 
-    def task_instance_completed(
-        self, task: Task, host: Host, result: MultiResult
-    ) -> None:
+    def task_instance_completed(self, task: Task, host: Host, result: MultiResult) -> None:
         """
         This method is called when a host completes its instance of a task
         """
@@ -44,9 +42,7 @@ class Processor(Protocol):
         """
         raise NotImplementedError("needs to be implemented by the processor")
 
-    def subtask_instance_completed(
-        self, task: Task, host: Host, result: MultiResult
-    ) -> None:
+    def subtask_instance_completed(self, task: Task, host: Host, result: MultiResult) -> None:
         """
         This method is called when a host completes executing a subtask
         """
@@ -76,9 +72,7 @@ class Processors(List[Processor]):
         for p in self:
             p.task_instance_started(task, host)
 
-    def task_instance_completed(
-        self, task: Task, host: Host, result: MultiResult
-    ) -> None:
+    def task_instance_completed(self, task: Task, host: Host, result: MultiResult) -> None:
         for p in self:
             p.task_instance_completed(task, host, result)
 
@@ -86,8 +80,6 @@ class Processors(List[Processor]):
         for p in self:
             p.subtask_instance_started(task, host)
 
-    def subtask_instance_completed(
-        self, task: Task, host: Host, result: MultiResult
-    ) -> None:
+    def subtask_instance_completed(self, task: Task, host: Host, result: MultiResult) -> None:
         for p in self:
             p.subtask_instance_completed(task, host, result)

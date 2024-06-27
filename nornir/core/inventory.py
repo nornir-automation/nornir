@@ -150,9 +150,7 @@ class InventoryElement(BaseAttributes):
         return {
             "groups": [g.name for g in self.groups],
             "data": self.data,
-            "connection_options": {
-                k: v.dict() for k, v in self.connection_options.items()
-            },
+            "connection_options": {k: v.dict() for k, v in self.connection_options.items()},
             **super().dict(),
         }
 
@@ -230,9 +228,7 @@ class Defaults(BaseAttributes):
     def dict(self) -> Dict[str, Any]:
         return {
             "data": self.data,
-            "connection_options": {
-                k: v.dict() for k, v in self.connection_options.items()
-            },
+            "connection_options": {k: v.dict() for k, v in self.connection_options.items()},
             **super().dict(),
         }
 
@@ -298,9 +294,7 @@ class Host(InventoryElement):
     def dict(self) -> Dict[str, Any]:
         return {
             "name": self.name,
-            "connection_options": {
-                k: v.dict() for k, v in self.connection_options.items()
-            },
+            "connection_options": {k: v.dict() for k, v in self.connection_options.items()},
             **super().dict(),
         }
 
@@ -405,9 +399,7 @@ class Host(InventoryElement):
         except KeyError:
             return default
 
-    def get_connection_parameters(
-        self, connection: Optional[str] = None
-    ) -> ConnectionOptions:
+    def get_connection_parameters(self, connection: Optional[str] = None) -> ConnectionOptions:
         if not connection:
             d = ConnectionOptions(
                 hostname=self.hostname,
@@ -439,9 +431,7 @@ class Host(InventoryElement):
                 )
         return d
 
-    def _get_connection_options_recursively(
-        self, connection: str
-    ) -> Optional[ConnectionOptions]:
+    def _get_connection_options_recursively(self, connection: str) -> Optional[ConnectionOptions]:
         p = self.connection_options.get(connection)
         if p is None:
             p = ConnectionOptions(None, None, None, None, None, None)
@@ -579,13 +569,11 @@ class Groups(Dict[str, Group]):
 
 
 class TransformFunction(Protocol):
-    def __call__(self, host: Host, **kwargs: Any) -> None:
-        ...
+    def __call__(self, host: Host, **kwargs: Any) -> None: ...
 
 
 class FilterObj(Protocol):
-    def __call__(self, host: Host, **kwargs: Any) -> bool:
-        ...
+    def __call__(self, host: Host, **kwargs: Any) -> bool: ...
 
 
 class Inventory(object):
@@ -607,13 +595,11 @@ class Inventory(object):
         self,
         filter_obj: Optional[FilterObj] = None,
         filter_func: Optional[FilterObj] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> "Inventory":
         filter_func = filter_obj or filter_func
         if filter_func:
-            filtered = Hosts(
-                {n: h for n, h in self.hosts.items() if filter_func(h, **kwargs)}
-            )
+            filtered = Hosts({n: h for n, h in self.hosts.items() if filter_func(h, **kwargs)})
         else:
             filtered = Hosts(
                 {

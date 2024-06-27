@@ -18,9 +18,7 @@ LOGGING_DICT = {
     "version": 1,
     "disable_existing_loggers": True,
     "formatters": {
-        "standard": {
-            "format": "[%(asctime)s] %(levelname)-8s {%(name)s:%(lineno)d} %(message)s"
-        }
+        "standard": {"format": "[%(asctime)s] %(levelname)-8s {%(name)s:%(lineno)d} %(message)s"}
     },
     "handlers": {
         "console": {
@@ -60,9 +58,7 @@ class InventoryTest:
 
 InventoryPluginRegister.register("inventory-test", InventoryTest)
 TransformFunctionRegister.register("transform_func", transform_func)
-TransformFunctionRegister.register(
-    "transform_func_with_options", transform_func_with_options
-)
+TransformFunctionRegister.register("transform_func_with_options", transform_func_with_options)
 
 
 class Test(object):
@@ -211,14 +207,8 @@ class TestLogging:
 
         assert nornir_logger.level == logging.INFO
         assert len(nornir_logger.handlers) == 3
-        assert any(
-            isinstance(handler, logging.FileHandler)
-            for handler in nornir_logger.handlers
-        )
-        assert any(
-            isinstance(handler, logging.StreamHandler)
-            for handler in nornir_logger.handlers
-        )
+        assert any(isinstance(handler, logging.FileHandler) for handler in nornir_logger.handlers)
+        assert any(isinstance(handler, logging.StreamHandler) for handler in nornir_logger.handlers)
 
     def test_InitNornir_logging_disabled(self):
         self.cleanup()
