@@ -68,7 +68,7 @@ class SSHConfig(object):
 
 
 class InventoryConfig(object):
-    __slots__ = "plugin", "options", "transform_function", "transform_function_options"
+    __slots__ = "options", "plugin", "transform_function", "transform_function_options"
 
     class Parameters:
         plugin = Parameter(typ=str, default="SimpleInventory", envvar="NORNIR_INVENTORY_PLUGIN")
@@ -102,7 +102,7 @@ class InventoryConfig(object):
 
 
 class LoggingConfig(object):
-    __slots__ = "enabled", "level", "log_file", "format", "to_console", "loggers"
+    __slots__ = "enabled", "format", "level", "log_file", "loggers", "to_console"
 
     class Parameters:
         enabled = Parameter(default=True, envvar="NORNIR_LOGGING_ENABLED")
@@ -195,7 +195,7 @@ class LoggingConfig(object):
 
 
 class RunnerConfig(object):
-    __slots__ = ("plugin", "options")
+    __slots__ = ("options", "plugin")
 
     class Parameters:
         plugin = Parameter(default="threaded", envvar="NORNIR_RUNNER_PLUGIN")
@@ -232,10 +232,10 @@ class CoreConfig(object):
 class Config(object):
     __slots__ = (
         "core",
-        "runner",
-        "ssh",
         "inventory",
         "logging",
+        "runner",
+        "ssh",
         "user_defined",
     )
 

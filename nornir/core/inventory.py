@@ -21,7 +21,7 @@ HostOrGroup = TypeVar("HostOrGroup", "Host", "Group")
 
 
 class BaseAttributes(object):
-    __slots__ = ("hostname", "port", "username", "password", "platform")
+    __slots__ = ("hostname", "password", "platform", "port", "username")
 
     def __init__(
         self,
@@ -113,7 +113,7 @@ class ParentGroups(List["Group"]):
 
 
 class InventoryElement(BaseAttributes):
-    __slots__ = ("groups", "data", "connection_options")
+    __slots__ = ("connection_options", "data", "groups")
 
     def __init__(
         self,
@@ -195,7 +195,7 @@ class InventoryElement(BaseAttributes):
 
 
 class Defaults(BaseAttributes):
-    __slots__ = ("data", "connection_options")
+    __slots__ = ("connection_options", "data")
 
     def __init__(
         self,
@@ -234,7 +234,7 @@ class Defaults(BaseAttributes):
 
 
 class Host(InventoryElement):
-    __slots__ = ("name", "connections", "defaults")
+    __slots__ = ("connections", "defaults", "name")
 
     def __init__(
         self,
@@ -577,7 +577,7 @@ class FilterObj(Protocol):
 
 
 class Inventory(object):
-    __slots__ = ("hosts", "groups", "defaults")
+    __slots__ = ("defaults", "groups", "hosts")
 
     def __init__(
         self,
