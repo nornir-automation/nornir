@@ -176,7 +176,7 @@ ignore = [
     "UP015",   # Unnecessary open mode parameters
     "UP032",   # Use f-string instead of `format` call
     "UP034",   # Avoid extraneous parentheses
-    "UP037",   # Remove quotes from type annotation
+    #"UP037",   # Remove quotes from type annotation
 ]
 
 [tool.ruff.format]

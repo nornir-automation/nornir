@@ -181,7 +181,7 @@ class InventoryElement(BaseAttributes):
 
         this will return [group_a, group_1, group_X, group_2, group_b, group_3]
         """
-        groups: List["Group"] = []
+        groups: List[Group] = []
 
         for g in self.groups:
             if g not in groups:
