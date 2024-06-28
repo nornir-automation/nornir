@@ -79,7 +79,7 @@ class ConnectionOptions(BaseAttributes):
         )
 
     @classmethod
-    def schema(self) -> Dict[str, Any]:
+    def schema(cls) -> Dict[str, Any]:
         return {
             "extras": {"$key": "$value"},
             **super().schema(),
@@ -138,7 +138,7 @@ class InventoryElement(BaseAttributes):
         )
 
     @classmethod
-    def schema(self) -> Dict[str, Any]:
+    def schema(cls) -> Dict[str, Any]:
         return {
             "groups": ["$group_name"],
             "data": {"$key": "$value"},
@@ -218,7 +218,7 @@ class Defaults(BaseAttributes):
         )
 
     @classmethod
-    def schema(self) -> Dict[str, Any]:
+    def schema(cls) -> Dict[str, Any]:
         return {
             "data": {"$key": "$value"},
             "connection_options": {"$connection_type": ConnectionOptions.schema()},

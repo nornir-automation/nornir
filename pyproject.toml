@@ -141,7 +141,6 @@ ignore = [
     "FBT002",  # Boolean default positional argument in function definition
     "FURB101", # `open` and `read` should be replaced by `Path(filename).read_text()`
     "INP001",  # File is part of an implicit namespace package. Add an `__init__.py`.
-    "N804",    # First argument of a class method should be named `cls`
     "PERF203", # `try`-`except` within a loop incurs performance overhead
     "PGH004",  # Use specific rule codes when using `noqa`
     "PIE800",  # Unnecessary spread `**`
