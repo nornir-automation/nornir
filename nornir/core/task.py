@@ -237,8 +237,7 @@ class Result(object):
         if self.exception:
             return str(self.exception)
 
-        else:
-            return str(self.result)
+        return str(self.result)
 
 
 class MultiResult(List[Result]):
