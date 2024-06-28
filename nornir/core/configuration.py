@@ -5,15 +5,11 @@ import os
 import sys
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Type, TypeVar
+from typing import Any, Dict, List, Optional, Type, TypeVar
 
 import ruamel.yaml
 
 from nornir.core.exceptions import ConflictingConfigurationWarning
-
-if TYPE_CHECKING:
-    from nornir.core.deserializer.inventory import Inventory  # noqa
-
 
 DEFAULT_SSH_CONFIG = str(Path("~/.ssh/config").expanduser())
 
