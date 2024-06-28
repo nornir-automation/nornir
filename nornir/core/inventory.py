@@ -96,8 +96,8 @@ class ParentGroups(List["Group"]):
     def __contains__(self, value: object) -> bool:
         if isinstance(value, str):
             return any([value == g.name for g in self])
-        else:
-            return any([value == g for g in self])
+
+        return any([value == g for g in self])
 
     def add(self, group: "Group") -> None:
         """
@@ -318,8 +318,7 @@ class Host(InventoryElement):
         if isinstance(group, str):
             return self._has_parent_group_by_name(group)
 
-        else:
-            return self._has_parent_group_by_object(group)
+        return self._has_parent_group_by_object(group)
 
     def _has_parent_group_by_name(self, group: str) -> bool:
         for g in self.groups:
@@ -362,8 +361,8 @@ class Host(InventoryElement):
                     return r
 
             return object.__getattribute__(self.defaults, name)
-        else:
-            return v
+
+        return v
 
     def __bool__(self) -> bool:
         return bool(self.name)

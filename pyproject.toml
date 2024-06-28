@@ -155,7 +155,6 @@ ignore = [
     "PTH120",  # `os.path.dirname()` should be replaced by `Path.parent`
     "PTH123",  # `open()` should be replaced by `Path.open()`
     "PYI036",  # The first argument in `__exit__` should be annotated with `object` or `type[BaseException] | None`
-    "RET505",  # Unnecessary `else` after `return` statement
     "RET504",  # Unnecessary assignment before `return` statement
     "RSE102",  # Unnecessary parentheses on raised exception
     "RUF001",  # String contains ambiguous `–` (EN DASH). Did you mean `-` (HYPHEN-MINUS)?
