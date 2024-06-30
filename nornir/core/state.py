@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional, Set
 
 
-class GlobalState(object):
+class GlobalState:
     """
     This class is just a placeholder to share data amongst different
     versions of Nornir after running ``filter`` multiple times.

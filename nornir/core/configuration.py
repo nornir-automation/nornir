@@ -50,7 +50,7 @@ class Parameter:
         return v
 
 
-class SSHConfig(object):
+class SSHConfig:
     __slots__ = ("config_file",)
 
     class Parameters:
@@ -63,7 +63,7 @@ class SSHConfig(object):
         return {"config_file": self.config_file}
 
 
-class InventoryConfig(object):
+class InventoryConfig:
     __slots__ = "options", "plugin", "transform_function", "transform_function_options"
 
     class Parameters:
@@ -97,7 +97,7 @@ class InventoryConfig(object):
         }
 
 
-class LoggingConfig(object):
+class LoggingConfig:
     __slots__ = "enabled", "format", "level", "log_file", "loggers", "to_console"
 
     class Parameters:
@@ -190,7 +190,7 @@ class LoggingConfig(object):
                 logger_.addHandler(stderr_handler)
 
 
-class RunnerConfig(object):
+class RunnerConfig:
     __slots__ = ("options", "plugin")
 
     class Parameters:
@@ -210,7 +210,7 @@ class RunnerConfig(object):
         }
 
 
-class CoreConfig(object):
+class CoreConfig:
     __slots__ = "raise_on_error"
 
     class Parameters:
@@ -225,7 +225,7 @@ class CoreConfig(object):
         }
 
 
-class Config(object):
+class Config:
     __slots__ = (
         "core",
         "inventory",

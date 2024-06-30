@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_SEVERITY_LEVEL = logging.INFO
 
 
-class Task(object):
+class Task:
     """
     A task is basically a wrapper around a function that has to be run against multiple devices.
     You won't probably have to deal with this class yourself as
@@ -181,7 +181,7 @@ class Task(object):
         return override if override is not None else self.global_dry_run
 
 
-class Result(object):
+class Result:
     """
     Result of running individual tasks.
 

@@ -38,7 +38,7 @@ def verify_data_change(task):
     assert task.host["my_changed_var"] == task.host.name
 
 
-class Test(object):
+class Test:
     def test_blocking_task_multithreading(self, nornir):
         t1 = datetime.datetime.now()
         nornir.with_runner(ThreadedRunner(num_workers=NUM_WORKERS)).run(blocking_task, wait=2)
