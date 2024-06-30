@@ -61,7 +61,7 @@ TransformFunctionRegister.register("transform_func", transform_func)
 TransformFunctionRegister.register("transform_func_with_options", transform_func_with_options)
 
 
-class Test(object):
+class Test:
     def test_InitNornir_bare(self):
         os.chdir("tests/inventory_data/")
         nr = InitNornir()

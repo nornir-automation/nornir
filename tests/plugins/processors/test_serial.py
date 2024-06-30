@@ -25,7 +25,7 @@ def failing_task_complex(task):
     a_task_for_testing(task, command="failme")
 
 
-class TestSerialRunner(object):
+class TestSerialRunner:
     def test_blocking_task_single_thread(self, nornir):
         t1 = datetime.datetime.now()
         nornir.with_runner(SerialRunner()).run(blocking_task, wait=0.5)
