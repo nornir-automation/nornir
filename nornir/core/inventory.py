@@ -339,8 +339,7 @@ class Host(InventoryElement):
         except KeyError:
             for g in self.extended_groups():
                 try:
-                    r = g.data[item]
-                    return r
+                    return g.data[item]
                 except KeyError:
                     continue
 
