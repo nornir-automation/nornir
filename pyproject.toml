@@ -161,7 +161,6 @@ ignore = [
     "PERF203", # `try`-`except` within a loop incurs performance overhead
     "PGH004",  # Use specific rule codes when using `noqa`
     "PIE800",  # Unnecessary spread `**`
-    "PLC0205", # Class `__slots__` should be a non-string iterable
     "PLC2801", # Unnecessary dunder call to `__getattribute__`. Access attribute directly or use getattr built-in function
     "PLR6201", # Use a `set` literal when testing for membership
     "PLR6301", # Method `run` could be a function, class method, or static method
