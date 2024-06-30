@@ -59,7 +59,7 @@ def fail_command_subtask_capture(task, fail_on=None):
         return "I captured this succcessfully"
 
 
-class Test(object):
+class Test:
     def test_task(self, nornir):
         result = nornir.run(a_task_for_testing)
         assert result

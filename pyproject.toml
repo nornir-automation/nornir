@@ -135,8 +135,6 @@ ignore = [
     "B028",    # No explicit `stacklevel` keyword argument found
     "C419",    # Unnecessary list comprehension
     "COM812",  # Trailing comma missing
-    "ERA001",  # Found commented-out code
-    "EXE001",  # Shebang is present but file is not executable
     "FBT001",  # Boolean-typed positional argument in function definition
     "FBT002",  # Boolean default positional argument in function definition
     "FURB101", # `open` and `read` should be replaced by `Path(filename).read_text()`
@@ -169,7 +167,6 @@ ignore = [
     "TRY004",  # Prefer `TypeError` exception for invalid type
     "TRY300",  # Consider moving this statement to an `else` block
     "TRY400",  # Use `logging.exception` instead of `logging.error`
-    "UP004",   # Class inherits from `object`
     "UP009",   # UTF-8 encoding declaration is unnecessary
     "UP015",   # Unnecessary open mode parameters
     "UP032",   # Use f-string instead of `format` call
@@ -196,7 +193,8 @@ max-returns = 11
 [tool.ruff.lint.per-file-ignores]
 
 "docs/conf.py" = [
-    "A001", # Variable `copyright` is shadowing a Python builtin
+    "A001",   # Variable `copyright` is shadowing a Python builtin
+    "ERA001", # Commented out code, used to provide examples for Sphinx docs
 ]
 
 "nornir/core/configuration.py" = [

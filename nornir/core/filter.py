@@ -3,7 +3,7 @@ from typing import Any, List
 from nornir.core.inventory import Host
 
 
-class F_BASE(object):
+class F_BASE:
     def __call__(self, host: Host) -> bool:
         raise NotImplementedError()
 

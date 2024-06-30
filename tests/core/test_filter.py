@@ -3,7 +3,7 @@ import pytest
 from nornir.core.filter import AND, OR, F
 
 
-class Test(object):
+class Test:
     def test_simple(self, nornir):
         f = F(site="site1")
         filtered = sorted(list((nornir.inventory.filter(f).hosts.keys())))

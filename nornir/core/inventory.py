@@ -20,7 +20,7 @@ from nornir.core.plugins.connections import ConnectionPlugin, ConnectionPluginRe
 HostOrGroup = TypeVar("HostOrGroup", "Host", "Group")
 
 
-class BaseAttributes(object):
+class BaseAttributes:
     __slots__ = ("hostname", "password", "platform", "port", "username")
 
     def __init__(
@@ -575,7 +575,7 @@ class FilterObj(Protocol):
     def __call__(self, host: Host, **kwargs: Any) -> bool: ...
 
 
-class Inventory(object):
+class Inventory:
     __slots__ = ("defaults", "groups", "hosts")
 
     def __init__(
