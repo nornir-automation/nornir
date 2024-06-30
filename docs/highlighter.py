@@ -1,5 +1,5 @@
+from IPython.core.display import HTML
 from IPython.core.magic import register_line_magic
-from IPython.display import HTML
 from pygments import highlight
 from pygments.formatters import HtmlFormatter
 from pygments.lexers import get_lexer_for_filename
@@ -17,7 +17,7 @@ EXTRA_CSS = """span.lineno {
 
 
 @register_line_magic
-def highlight_file(filename):
+def highlight_file(filename: str) -> HTML:
     lexer = get_lexer_for_filename(filename)
 
     linenos = "inline"

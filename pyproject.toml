@@ -174,7 +174,6 @@ ignore = [
     "UP015",   # Unnecessary open mode parameters
     "UP032",   # Use f-string instead of `format` call
     "UP034",   # Avoid extraneous parentheses
-    #"UP037",   # Remove quotes from type annotation
 ]
 
 [tool.ruff.format]
@@ -198,11 +197,6 @@ max-returns = 11
 
 "docs/conf.py" = [
     "A001", # Variable `copyright` is shadowing a Python builtin
-]
-
-"docs/highlighter.py" = [
-    "ANN001",  # Missing type annotation for function argument
-    "ANN201",  # Missing return type annotation for public function
 ]
 
 "nornir/core/configuration.py" = [
