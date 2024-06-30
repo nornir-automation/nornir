@@ -129,7 +129,6 @@ ignore = [
 # like this so that we can reactivate them one by one. Alternatively ignored after further       #
 # investigation if they are deemed to not make sense.                                            #
 ##################################################################################################
-    "ANN204",  # Missing return type annotation for special method `__init__`
     "ANN401",  # Dynamically typed expressions (typing.Any) are disallowed
     "ARG002",  # Unused method argument
     "B028",    # No explicit `stacklevel` keyword argument found
