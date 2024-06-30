@@ -14,7 +14,7 @@ from nornir.core.task import AggregatedResult, Task
 logger = logging.getLogger(__name__)
 
 
-class Nornir(object):
+class Nornir:
     """
     This is the main object to work with. It contains the inventory and it serves
     as task dispatcher.

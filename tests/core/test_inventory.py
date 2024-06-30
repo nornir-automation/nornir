@@ -16,7 +16,7 @@ with open(f"{dir_path}/../inventory_data/defaults.yaml") as f:
 inv_dict = {"hosts": hosts, "groups": groups, "defaults": defaults}
 
 
-class Test(object):
+class Test:
     def test_host(self):
         h = inventory.Host(name="host1", hostname="host1")
         assert h.hostname == "host1"

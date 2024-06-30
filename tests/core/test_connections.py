@@ -104,7 +104,7 @@ def validate_params(task, conn, params, nornir_config):
         assert getattr(task.host.connections[conn], k) == v
 
 
-class Test(object):
+class Test:
     @classmethod
     def setup_class(cls):
         ConnectionPluginRegister.deregister_all()
@@ -200,7 +200,7 @@ class Test(object):
         assert not r.failed
 
 
-class TestConnectionPluginsRegistration(object):
+class TestConnectionPluginsRegistration:
     def setup_method(self, method):
         ConnectionPluginRegister.deregister_all()
         ConnectionPluginRegister.register("dummy", DummyConnectionPlugin)

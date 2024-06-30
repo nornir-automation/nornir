@@ -9,7 +9,7 @@ dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_confi
 DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)12s - %(levelname)8s - %(funcName)10s() - %(message)s"
 
 
-class Test(object):
+class Test:
     def test_config_defaults(self):
         c = Config()
         assert c.dict() == {
