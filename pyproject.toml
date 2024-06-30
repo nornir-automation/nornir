@@ -55,6 +55,27 @@ nbsphinx = "0.9.2"
 pygments = "2.16.1"
 sphinx-issues = "3.0.1"
 
+[tool.mypy]
+# The mypy configurations: http://bit.ly/2zEl9WI
+python_version = "3.8"
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+ignore_errors = false
+ignore_missing_imports = true
+strict_optional = true
+warn_unused_configs = true
+warn_unused_ignores = true
+warn_return_any = true
+warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true
+
 [tool.ruff]
 line-length = 100
 
