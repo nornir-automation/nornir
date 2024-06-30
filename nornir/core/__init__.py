@@ -144,7 +144,7 @@ class Nornir(object):
 
         raise_on_error = (
             raise_on_error if raise_on_error is not None else self.config.core.raise_on_error
-        )  # noqa
+        )
         if raise_on_error:
             result.raise_on_error()
         else:
