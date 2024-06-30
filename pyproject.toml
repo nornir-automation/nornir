@@ -167,7 +167,6 @@ ignore = [
     "TRY004",  # Prefer `TypeError` exception for invalid type
     "TRY300",  # Consider moving this statement to an `else` block
     "TRY400",  # Use `logging.exception` instead of `logging.error`
-    "UP009",   # UTF-8 encoding declaration is unnecessary
     "UP015",   # Unnecessary open mode parameters
     "UP032",   # Use f-string instead of `format` call
     "UP034",   # Avoid extraneous parentheses
