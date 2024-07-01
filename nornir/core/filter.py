@@ -90,12 +90,12 @@ class F(F_BASE):
 
             if rule == ["any"]:
                 if isinstance(data, list):
-                    return any([x in data for x in value])
-                return any([x == data for x in value])
+                    return any(x in data for x in value)
+                return any(x == data for x in value)
 
             if rule == ["all"]:
                 if isinstance(data, list):
-                    return all([x in data for x in value])
+                    return all(x in data for x in value)
 
                 # it doesn't make sense to check a single value meets more than one case
                 return False
