@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # nornir documentation build configuration file, created by
 # sphinx-quickstart on Sun Nov 19 10:41:40 2017.
 #
