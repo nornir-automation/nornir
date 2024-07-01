@@ -45,7 +45,7 @@ def transform_func_with_options(host, a):
 
 
 class InventoryTest:
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         pass
 
     def load(self):

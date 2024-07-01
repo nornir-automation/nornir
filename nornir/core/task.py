@@ -48,7 +48,7 @@ class Task:
         severity_level: int = DEFAULT_SEVERITY_LEVEL,
         parent_task: Optional["Task"] = None,
         **kwargs: str,
-    ):
+    ) -> None:
         self.task = task
         self.nornir = nornir
         self.name = name or task.__name__
@@ -214,7 +214,7 @@ class Result:
         exception: Optional[BaseException] = None,
         severity_level: int = DEFAULT_SEVERITY_LEVEL,
         **kwargs: Any,
-    ):
+    ) -> None:
         self.result = result
         self.host = host
         self.changed = changed
@@ -246,7 +246,7 @@ class MultiResult(List[Result]):
     a particular device/task.
     """
 
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         self.name = name
 
     def __getattr__(self, name: str) -> Any:
@@ -280,7 +280,7 @@ class AggregatedResult(Dict[str, MultiResult]):
     You can access each individual result by doing ``my_aggr_result["hostname_of_device"]``.
     """
 
-    def __init__(self, name: str, **kwargs: MultiResult):
+    def __init__(self, name: str, **kwargs: MultiResult) -> None:
         self.name = name
         super().__init__(**kwargs)
 

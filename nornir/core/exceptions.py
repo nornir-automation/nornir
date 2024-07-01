@@ -75,7 +75,7 @@ class NornirSubTaskError(Exception):
     Raised by nornir when a sub task managed by :meth:`nornir.core.Task.run` has failed
     """
 
-    def __init__(self, task: "Task", result: "Result"):
+    def __init__(self, task: "Task", result: "Result") -> None:
         self.task = task
         self.result = result
 
