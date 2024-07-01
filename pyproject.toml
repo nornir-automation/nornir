@@ -244,6 +244,5 @@ max-returns = 11
     "PT018",   # Assertion should be broken down into multiple parts
     "PT011",   # `pytest.raises(ValueError)` is too broad, set the `match` parameter or use a more specific exception
     "SIM118",  # Use `key in dict` instead of `key in dict.keys()`
-    "SIM300",  # Yoda conditions are discouraged
 ]
 
