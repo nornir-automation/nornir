@@ -95,9 +95,9 @@ class ConnectionOptions(BaseAttributes):
 class ParentGroups(List["Group"]):
     def __contains__(self, value: object) -> bool:
         if isinstance(value, str):
-            return any([value == g.name for g in self])
+            return any(value == g.name for g in self)
 
-        return any([value == g for g in self])
+        return any(value == g for g in self)
 
     def add(self, group: "Group") -> None:
         """

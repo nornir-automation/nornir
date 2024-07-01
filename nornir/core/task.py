@@ -258,12 +258,12 @@ class MultiResult(List[Result]):
     @property
     def failed(self) -> bool:
         """If ``True`` at least a task failed."""
-        return any([h.failed for h in self])
+        return any(h.failed for h in self)
 
     @property
     def changed(self) -> bool:
         """If ``True`` at least a task changed the system."""
-        return any([h.changed for h in self])
+        return any(h.changed for h in self)
 
     def raise_on_error(self) -> None:
         """
@@ -290,7 +290,7 @@ class AggregatedResult(Dict[str, MultiResult]):
     @property
     def failed(self) -> bool:
         """If ``True`` at least a host failed."""
-        return any([h.failed for h in self.values()])
+        return any(h.failed for h in self.values())
 
     @property
     def failed_hosts(self) -> Dict[str, "MultiResult"]:
