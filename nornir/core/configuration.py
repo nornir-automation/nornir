@@ -211,7 +211,7 @@ class RunnerConfig:
 
 
 class CoreConfig:
-    __slots__ = "raise_on_error"
+    __slots__ = ("raise_on_error",)
 
     class Parameters:
         raise_on_error = Parameter(default=False, envvar="NORNIR_CORE_RAISE_ON_ERROR")
