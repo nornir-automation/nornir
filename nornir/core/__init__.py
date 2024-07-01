@@ -51,8 +51,8 @@ class Nornir:
 
     def __exit__(
         self,
-        exc_type: Type[BaseException],
-        exc_val: BaseException,
+        exc_type: Optional[Type[BaseException]] = None,
+        exc_val: Optional[BaseException] = None,
         exc_tb: Optional[types.TracebackType] = None,
     ) -> None:
         self.close_connections(on_good=True, on_failed=True)
