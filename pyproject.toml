@@ -163,7 +163,6 @@ ignore = [
     "PIE800",  # Unnecessary spread `**`
     "PLC0205", # Class `__slots__` should be a non-string iterable
     "PLC2801", # Unnecessary dunder call to `__getattribute__`. Access attribute directly or use getattr built-in function
-    "PLR1704", # Redefining argument with the local name
     "PLR6201", # Use a `set` literal when testing for membership
     "PLR6301", # Method `run` could be a function, class method, or static method
     "PLW1514", # `open` in text mode without explicit `encoding` argument

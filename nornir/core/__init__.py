@@ -121,12 +121,12 @@ class Nornir:
 
         run_on = []
         if on_good:
-            for name, host in self.inventory.hosts.items():
-                if name not in self.data.failed_hosts:
+            for hostname, host in self.inventory.hosts.items():
+                if hostname not in self.data.failed_hosts:
                     run_on.append(host)
         if on_failed:
-            for name, host in self.inventory.hosts.items():
-                if name in self.data.failed_hosts:
+            for hostname, host in self.inventory.hosts.items():
+                if hostname in self.data.failed_hosts:
                     run_on.append(host)
 
         num_hosts = len(run_on)
