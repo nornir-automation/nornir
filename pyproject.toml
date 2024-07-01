@@ -157,7 +157,6 @@ ignore = [
     "RSE102",  # Unnecessary parentheses on raised exception
     "RUF001",  # String contains ambiguous `–` (EN DASH). Did you mean `-` (HYPHEN-MINUS)?
     "RUF012",  # Mutable class attributes should be annotated with `typing.ClassVar`
-    "RUF100",  # Unused blanket `noqa` directive
     "S701",    # By default, jinja2 sets `autoescape` to `False`. Consider using `autoescape=True` or the `select_autoescape` function to mitigate XSS vulnerabilities.
     "SLF001",  # Private member accessed
     "SIM108",  # Use ternary operator `config = Config.from_file(config_file, **kwargs) if config_file else Config.from_dict(**kwargs)` instead of `if`-`else`-block

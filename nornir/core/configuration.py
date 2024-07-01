@@ -149,7 +149,7 @@ class LoggingConfig:
                 "This can lead to unexpected logging results. "
                 "Please set logging.enabled config to False "
                 "to disable automatic Nornir logging configuration. Refer to "
-                "https://nornir.readthedocs.io/en/stable/configuration/index.html#logging"  # noqa
+                "https://nornir.readthedocs.io/en/stable/configuration/index.html#logging"
             )
             warnings.warn(msg, ConflictingConfigurationWarning)
 
