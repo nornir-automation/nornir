@@ -65,7 +65,7 @@ class Test:
         assert "blah" in h.values()
         assert "my_var" in h.keys()
         assert "only_default" in h.keys()
-        assert "comes_from_dev1.group_1" == dict(h.items())["my_var"]
+        assert dict(h.items())["my_var"] == "comes_from_dev1.group_1"
 
     def test_inventory_dict(self, inv):
         assert inv.dict() == {
@@ -561,7 +561,7 @@ class Test:
         assert inv.groups["g3"].defaults.connection_options.get("username") == "test_user"
         assert inv.groups["g3"].defaults.connection_options.get("password") == "test_pass"
         assert "test_var" in inv.groups["g3"].defaults.data.keys()
-        assert "test_value" == inv.groups["g3"].defaults.data.get("test_var")
+        assert inv.groups["g3"].defaults.data.get("test_var") == "test_value"
         assert inv.groups["g3"].connection_options["netmiko"].extras["device_type"] == "cisco_ios"
 
     def test_dict(self, inv):
