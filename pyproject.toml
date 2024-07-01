@@ -169,7 +169,6 @@ ignore = [
     "PTH100",  # `os.path.abspath()` should be replaced by `Path.resolve()`
     "PTH120",  # `os.path.dirname()` should be replaced by `Path.parent`
     "PTH123",  # `open()` should be replaced by `Path.open()`
-    "RET504",  # Unnecessary assignment before `return` statement
     "RSE102",  # Unnecessary parentheses on raised exception
     "RUF001",  # String contains ambiguous `–` (EN DASH). Did you mean `-` (HYPHEN-MINUS)?
     "RUF012",  # Mutable class attributes should be annotated with `typing.ClassVar`
