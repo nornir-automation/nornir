@@ -35,8 +35,7 @@ def load_runner(
 ) -> RunnerPlugin:
     RunnersPluginRegister.auto_register()
     runner_plugin = RunnersPluginRegister.get_plugin(config.runner.plugin)
-    runner = runner_plugin(**config.runner.options)
-    return runner
+    return runner_plugin(**config.runner.options)
 
 
 def InitNornir(

@@ -43,7 +43,7 @@ def inventory_from_yaml():
         with open(defaults_file, "r") as f:
             defaults_dict = yml.load(f)
 
-            defaults = Defaults(
+            return Defaults(
                 hostname=defaults_dict.get("hostname"),
                 port=defaults_dict.get("port"),
                 username=defaults_dict.get("username"),
@@ -54,8 +54,6 @@ def inventory_from_yaml():
                     defaults_dict.get("connection_options", {})
                 ),
             )
-
-        return defaults
 
     def get_inventory_element(typ, data, name, defaults):
         return typ(
@@ -124,8 +122,7 @@ def inv(request):
 @pytest.fixture(scope="session", autouse=True)
 def nornir(request):
     """Initializes nornir"""
-    nr = Nornir(inventory=inventory_from_yaml(), runner=SerialRunner(), data=global_data)
-    return nr
+    return Nornir(inventory=inventory_from_yaml(), runner=SerialRunner(), data=global_data)
 
 
 @pytest.fixture(scope="function", autouse=True)
