@@ -159,7 +159,6 @@ ignore = [
     "FURB101", # `open` and `read` should be replaced by `Path(filename).read_text()`
     "INP001",  # File is part of an implicit namespace package. Add an `__init__.py`.
     "PERF203", # `try`-`except` within a loop incurs performance overhead
-    "PGH004",  # Use specific rule codes when using `noqa`
     "PIE800",  # Unnecessary spread `**`
     "PLC2801", # Unnecessary dunder call to `__getattribute__`. Access attribute directly or use getattr built-in function
     "PLR6201", # Use a `set` literal when testing for membership
