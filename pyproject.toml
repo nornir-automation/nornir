@@ -23,6 +23,7 @@ classifiers = [
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
 ]
 
 [tool.poetry.dependencies]
@@ -43,7 +44,7 @@ types-Jinja2 = "^2.11.9"
 types-pkg-resources = "^0.1.3"
 nornir-jinja2 = "0.2.0"
 nornir-utils = "0.2.0"
-nornir-napalm = "0.4.0"
+nornir-napalm = "0.5.0"
 ruff = "^0.4.9"
 
 [tool.poetry.group.docs.dependencies]
