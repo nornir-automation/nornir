@@ -191,7 +191,7 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [tool.ruff.lint.mccabe]
-max-complexity = 12
+max-complexity = 10
 
 
 [tool.ruff.lint.pylint]
