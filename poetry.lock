@@ -1008,21 +1008,19 @@ referencing = ">=0.28.0"
 
 [[package]]
 name = "junos-eznc"
-version = "2.6.7"
+version = "2.7.1"
 description = "Junos 'EZ' automation for non-programmers"
 optional = false
-python-versions = ">=3.5, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = ">=3.8"
 files = [
-    {file = "junos-eznc-2.6.7.tar.gz", hash = "sha256:b3ab81dafb160cd16cba8f26b92b6f5c3333a8d30566a7ebd966fc1f313b0980"},
-    {file = "junos_eznc-2.6.7-py2.py3-none-any.whl", hash = "sha256:6ee9d74228ebaca01381eb88dbe21765006d76935960fd4e6cd8d67248b11644"},
+    {file = "junos-eznc-2.7.1.tar.gz", hash = "sha256:371f0298bf03e0cb4c017c43f6f4122263584eda0d690d0112e93f13daae41ac"},
+    {file = "junos_eznc-2.7.1-py3-none-any.whl", hash = "sha256:8a7918faa8f0570341cac64c1210c1cd3e3542162d1e7449c3364f8d805716b2"},
 ]
 
 [package.dependencies]
 jinja2 = ">=2.7.1"
 lxml = ">=3.2.4"
-ncclient = "0.6.13"
-netaddr = "*"
-paramiko = ">=1.15.2"
+ncclient = ">=0.6.15"
 pyparsing = "*"
 pyserial = "*"
 PyYAML = ">=5.1"
@@ -1428,16 +1426,6 @@ files = [
     {file = "MarkupSafe-2.1.3-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:5bbe06f8eeafd38e5d0a4894ffec89378b6c6a625ff57e3028921f8ff59318ac"},
     {file = "MarkupSafe-2.1.3-cp311-cp311-win32.whl", hash = "sha256:dd15ff04ffd7e05ffcb7fe79f1b98041b8ea30ae9234aed2a9168b5797c3effb"},
     {file = "MarkupSafe-2.1.3-cp311-cp311-win_amd64.whl", hash = "sha256:134da1eca9ec0ae528110ccc9e48041e0828d79f24121a1a146161103c76e686"},
-    {file = "MarkupSafe-2.1.3-cp312-cp312-macosx_10_9_universal2.whl", hash = "sha256:f698de3fd0c4e6972b92290a45bd9b1536bffe8c6759c62471efaa8acb4c37bc"},
-    {file = "MarkupSafe-2.1.3-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:aa57bd9cf8ae831a362185ee444e15a93ecb2e344c8e52e4d721ea3ab6ef1823"},
-    {file = "MarkupSafe-2.1.3-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:ffcc3f7c66b5f5b7931a5aa68fc9cecc51e685ef90282f4a82f0f5e9b704ad11"},
-    {file = "MarkupSafe-2.1.3-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:47d4f1c5f80fc62fdd7777d0d40a2e9dda0a05883ab11374334f6c4de38adffd"},
-    {file = "MarkupSafe-2.1.3-cp312-cp312-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:1f67c7038d560d92149c060157d623c542173016c4babc0c1913cca0564b9939"},
-    {file = "MarkupSafe-2.1.3-cp312-cp312-musllinux_1_1_aarch64.whl", hash = "sha256:9aad3c1755095ce347e26488214ef77e0485a3c34a50c5a5e2471dff60b9dd9c"},
-    {file = "MarkupSafe-2.1.3-cp312-cp312-musllinux_1_1_i686.whl", hash = "sha256:14ff806850827afd6b07a5f32bd917fb7f45b046ba40c57abdb636674a8b559c"},
-    {file = "MarkupSafe-2.1.3-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:8f9293864fe09b8149f0cc42ce56e3f0e54de883a9de90cd427f191c346eb2e1"},
-    {file = "MarkupSafe-2.1.3-cp312-cp312-win32.whl", hash = "sha256:715d3562f79d540f251b99ebd6d8baa547118974341db04f5ad06d5ea3eb8007"},
-    {file = "MarkupSafe-2.1.3-cp312-cp312-win_amd64.whl", hash = "sha256:1b8dd8c3fd14349433c79fa8abeb573a55fc0fdd769133baac1f5e07abf54aeb"},
     {file = "MarkupSafe-2.1.3-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:8e254ae696c88d98da6555f5ace2279cf7cd5b3f52be2b5cf97feafe883b58d2"},
     {file = "MarkupSafe-2.1.3-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:cb0932dc158471523c9637e807d9bfb93e06a95cbf010f1a38b98623b929ef2b"},
     {file = "MarkupSafe-2.1.3-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9402b03f1a1b4dc4c19845e5c749e3ab82d5078d16a2a4c2cd2df62d57bb0707"},
@@ -1555,27 +1543,26 @@ files = [
 
 [[package]]
 name = "napalm"
-version = "4.1.0"
+version = "5.0.0"
 description = "Network Automation and Programmability Abstraction Layer with Multivendor support"
 optional = false
 python-versions = "*"
 files = [
-    {file = "napalm-4.1.0-py2.py3-none-any.whl", hash = "sha256:14a5b7759a0247a26fff2c444b1cfc150a08224de8addf4076c384845285bf5b"},
-    {file = "napalm-4.1.0.tar.gz", hash = "sha256:3b3e18efd556861c056ba509eb46f5ffc9e3e6c42db399fa76b6ea9af272c17a"},
+    {file = "napalm-5.0.0-py2.py3-none-any.whl", hash = "sha256:458837932e527ca06a4bab7e600b0ca6e6bc3bb4b33fad9c9ef2befc7df6d2f5"},
+    {file = "napalm-5.0.0.tar.gz", hash = "sha256:350ac3d74f2f10030dbae44d3395551d7e03ee25c65fa5eb8263a4e6f51f2c94"},
 ]
 
 [package.dependencies]
 cffi = ">=1.11.3"
-future = "*"
 jinja2 = "*"
-junos-eznc = ">=2.6.3"
+junos-eznc = ">=2.7.0"
 lxml = ">=4.3.0"
 ncclient = "*"
 netaddr = "*"
 netmiko = ">=4.1.0"
 netutils = ">=1.0.0"
 paramiko = ">=2.6.0"
-pyeapi = ">=0.8.2"
+pyeapi = ">=1.0.2"
 pyYAML = "*"
 requests = ">=2.7.0"
 scp = "*"
@@ -1705,12 +1692,12 @@ pytest = ">=2.8"
 
 [[package]]
 name = "ncclient"
-version = "0.6.13"
+version = "0.6.15"
 description = "Python library for NETCONF clients"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 files = [
-    {file = "ncclient-0.6.13.tar.gz", hash = "sha256:f9f8cea8bcbe057e1b948b9cd1b241eafb8a3f73c4981fbdfa1cc6ed69c0a7b3"},
+    {file = "ncclient-0.6.15.tar.gz", hash = "sha256:6757cb41bc9160dfe47f22f5de8cf2f1adf22f27463fb50453cc415ab96773d8"},
 ]
 
 [package.dependencies]
@@ -1791,17 +1778,17 @@ nornir = ">=3,<4"
 
 [[package]]
 name = "nornir-napalm"
-version = "0.4.0"
+version = "0.5.0"
 description = "NAPALM's plugins for nornir"
 optional = false
-python-versions = ">=3.7,<4.0"
+python-versions = "<4.0,>=3.8"
 files = [
-    {file = "nornir_napalm-0.4.0-py3-none-any.whl", hash = "sha256:20a41499aecf9c4e41181b18a73b2ee3ab7763824645ac0eb80abb3973a5f17e"},
-    {file = "nornir_napalm-0.4.0.tar.gz", hash = "sha256:84e0711ccbdf24bdb228042ab530bf688d6b2b8f12c65fa3cb73499c6974a9de"},
+    {file = "nornir_napalm-0.5.0-py3-none-any.whl", hash = "sha256:1a418bf0f5e38ac65894d474f81b50787dafe0aa1965c4fbd1b86d34d4374418"},
+    {file = "nornir_napalm-0.5.0.tar.gz", hash = "sha256:4c95979eebe2475e7b8516411ad8e3205d2ff30e410d1dbdce785a55033d1130"},
 ]
 
 [package.dependencies]
-napalm = ">=4,<5"
+napalm = ">=5,<6"
 nornir = ">=3,<4"
 
 [[package]]
@@ -2335,7 +2322,6 @@ files = [
     {file = "PyYAML-6.0.1-cp311-cp311-win_amd64.whl", hash = "sha256:bf07ee2fef7014951eeb99f56f39c9bb4af143d8aa3c21b1677805985307da34"},
     {file = "PyYAML-6.0.1-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:855fb52b0dc35af121542a76b9a84f8d1cd886ea97c84703eaa6d88e37a2ad28"},
     {file = "PyYAML-6.0.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:40df9b996c2b73138957fe23a16a4f0ba614f4c0efce1e9406a184b6d07fa3a9"},
-    {file = "PyYAML-6.0.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a08c6f0fe150303c1c6b71ebcd7213c2858041a7e01975da3a99aed1e7a378ef"},
     {file = "PyYAML-6.0.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6c22bec3fbe2524cde73d7ada88f6566758a8f7227bfbf93a408a9d86bcc12a0"},
     {file = "PyYAML-6.0.1-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:8d4e9c88387b0f5c7d5f281e55304de64cf7f9c0021a3525bd3b1c542da3b0e4"},
     {file = "PyYAML-6.0.1-cp312-cp312-win32.whl", hash = "sha256:d483d2cdf104e7c9fa60c544d92981f12ad66a457afae824d146093b8c294c54"},
@@ -3428,4 +3414,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<4.0"
-content-hash = "37134dc424f8169de36942d71513d6914ab0866c5fedaebc0c3a074a0279b697"
+content-hash = "6919ce4f6522959be69c5cfecd21c90a920d57e4581b1435972a92e171d3feb0"
