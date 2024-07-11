@@ -93,6 +93,10 @@ jobs:
         run: make nbval
         if: ${{ matrix.platform != 'windows-2019' }}
 
+      - name: Report coverage
+        uses: coverallsapp/github-action@v2
+        if: ${{ matrix.platform == 'ubuntu-latest' && matrix.python-version == '3.11' }}
+
 #  release:
 #    name: Releasing to pypi
 #    runs-on: ubuntu-latest
