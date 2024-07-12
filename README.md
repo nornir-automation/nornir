@@ -1,4 +1,4 @@
-![Build Status](https://github.com/nornir-automation/nornir/workflows/test%20nornir/badge.svg) [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![Coverage Status](https://coveralls.io/repos/github/nornir-automation/nornir/badge.svg?branch=develop)](https://coveralls.io/github/nornir-automation/nornir?branch=develop)
+![Build Status](https://github.com/nornir-automation/nornir/workflows/test%20nornir/badge.svg) [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff) [![Coverage Status](https://coveralls.io/repos/github/nornir-automation/nornir/badge.svg?branch=main)](https://coveralls.io/github/nornir-automation/nornir?branch=main)
 
 
 Nornir
