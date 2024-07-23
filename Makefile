@@ -12,7 +12,7 @@ docker:
 
 .PHONY: pytest
 pytest:
-	poetry run pytest --cov=nornir --cov-report=term-missing -vs ${ARGS}
+	poetry run pytest --cov=nornir --cov-report=term-missing --cov-report xml -vs ${ARGS}
 
 .PHONY: mypy
 mypy:

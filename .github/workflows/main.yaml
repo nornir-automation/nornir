@@ -52,7 +52,7 @@ jobs:
         shell: bash
     strategy:
       matrix:
-        python-version: [ '3.8', '3.9', '3.10', '3.11'  ]
+        python-version: [ '3.8', '3.9', '3.10', '3.11', '3.12' ]
         platform: [ubuntu-latest, macos-13, windows-2019]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -92,6 +92,10 @@ jobs:
       - name: Run nbval
         run: make nbval
         if: ${{ matrix.platform != 'windows-2019' }}
+
+      - name: Report coverage
+        uses: coverallsapp/github-action@v2
+        if: ${{ matrix.platform == 'ubuntu-latest' && matrix.python-version == '3.11' }}
 
 #  release:
 #    name: Releasing to pypi
