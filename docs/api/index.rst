@@ -5,7 +5,6 @@ API Documentation
    :glob:
    :maxdepth: 1
 
-   *
    nornir/*
    nornir/*/*
    nornir/*/*/*
