@@ -1,7 +1,7 @@
-import pkg_resources
+from importlib.metadata import version
 
 from nornir.init_nornir import InitNornir
 
-__version__ = pkg_resources.get_distribution("nornir").version
+__version__ = version("nornir")
 
 __all__ = ("InitNornir", "__version__")
