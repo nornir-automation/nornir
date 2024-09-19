@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import Any, Dict, List, Type, TypeVar, Union
 
 import pytest
 import ruamel.yaml
@@ -18,6 +18,8 @@ from nornir.core.inventory import (
 from nornir.core.state import GlobalState
 from nornir.core.task import AggregatedResult, Task
 
+ElementType = TypeVar("ElementType", bound=Union[Group, Host])
+
 global_data = GlobalState(dry_run=True)
 
 
@@ -25,7 +27,7 @@ def inventory_from_yaml():
     dir_path = os.path.dirname(os.path.realpath(__file__))
     yml = ruamel.yaml.YAML(typ="safe")
 
-    def get_connection_options(data):
+    def get_connection_options(data) -> Dict[str, ConnectionOptions]:
         cp = {}
         for cn, c in data.items():
             cp[cn] = ConnectionOptions(
@@ -38,7 +40,7 @@ def inventory_from_yaml():
             )
         return cp
 
-    def get_defaults():
+    def get_defaults() -> Defaults:
         defaults_file = f"{dir_path}/inventory_data/defaults.yaml"
         with open(defaults_file, "r") as f:
             defaults_dict = yml.load(f)
@@ -55,7 +57,9 @@ def inventory_from_yaml():
                 ),
             )
 
-    def get_inventory_element(typ, data, name, defaults):
+    def get_inventory_element(
+        typ: Type[ElementType], data: Dict[str, Any], name: str, defaults: Union[Defaults, None]
+    ) -> ElementType:
         return typ(
             name=name,
             hostname=data.get("hostname"),
