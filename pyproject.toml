@@ -74,8 +74,48 @@ warn_return_any = true
 warn_redundant_casts = true
 
 [[tool.mypy.overrides]]
-module = "tests.*"
-ignore_errors = true
+module = "tests.conftest"
+disable_error_code = [
+    "return-value",
+]
+
+[[tool.mypy.overrides]]
+module = "tests.core.test_InitNornir"
+disable_error_code = [
+    "arg-type",
+]
+
+[[tool.mypy.overrides]]
+module = "tests.core.test_filter"
+disable_error_code = [
+    "arg-type",
+    "assignment",
+    "operator"
+]
+
+[[tool.mypy.overrides]]
+module = "tests.core.test_inventory"
+disable_error_code = [
+    "arg-type",
+    "index"
+]
+
+[[tool.mypy.overrides]]
+module = "tests.core.test_processors"
+disable_error_code = [
+    "assignment",
+    "index",
+    "var-annotated"
+]
+
+[[tool.mypy.overrides]]
+module = "tests.wrapper"
+disable_error_code = [
+    "import-untyped",
+    "misc",
+    "no-any-return"
+]
+
 
 [tool.ruff]
 line-length = 100
@@ -232,10 +272,6 @@ max-returns = 11
 # like this so that we can reactivate them one by one. Alternatively ignored after further       #
 # investigation if they are deemed to not make sense.                                            #
 ##################################################################################################
-    "ANN001",  # Missing type annotation for function argument
-    "ANN002",  # Missing type annotation for `*args`
-    "ANN003",  # Missing type annotation for `**kwargs`
-    "ANN201",  # Missing return type annotation for public function
     "ARG001",  # Unused function argument
     "B007",    # Loop control variable `host` not used within loop body
     "C414",    # Unnecessary `list` call within `sorted()`

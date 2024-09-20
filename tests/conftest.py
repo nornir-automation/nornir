@@ -23,11 +23,11 @@ ElementType = TypeVar("ElementType", bound=Union[Group, Host])
 global_data = GlobalState(dry_run=True)
 
 
-def inventory_from_yaml():
+def inventory_from_yaml() -> Inventory:
     dir_path = os.path.dirname(os.path.realpath(__file__))
     yml = ruamel.yaml.YAML(typ="safe")
 
-    def get_connection_options(data) -> Dict[str, ConnectionOptions]:
+    def get_connection_options(data: Dict[str, Any]) -> Dict[str, ConnectionOptions]:
         cp = {}
         for cn, c in data.items():
             cp[cn] = ConnectionOptions(
@@ -119,17 +119,17 @@ class SerialRunner:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def inv(request):
+def inv() -> Inventory:
     return inventory_from_yaml()
 
 
 @pytest.fixture(scope="session", autouse=True)
-def nornir(request):
+def nornir() -> Nornir:
     """Initializes nornir"""
     return Nornir(inventory=inventory_from_yaml(), runner=SerialRunner(), data=global_data)
 
 
 @pytest.fixture(scope="function", autouse=True)
-def reset_data():
+def reset_data() -> None:
     global_data.dry_run = True
     global_data.reset_failed_hosts()
