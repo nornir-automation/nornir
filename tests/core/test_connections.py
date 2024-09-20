@@ -106,7 +106,7 @@ def validate_params(task, conn, params, nornir_config):
 
 class Test:
     @classmethod
-    def setup_class(cls):
+    def setup_class(cls) -> None:
         ConnectionPluginRegister.deregister_all()
         ConnectionPluginRegister.register("dummy", DummyConnectionPlugin)
         ConnectionPluginRegister.register("dummy2", DummyConnectionPlugin)

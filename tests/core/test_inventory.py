@@ -397,7 +397,7 @@ class Test:
         )
         assert long_names == ["dev1.group_1", "dev4.group_2", "dev6.group_3"]
 
-        def longer_than(dev, length):
+        def longer_than(dev, length) -> bool:
             return len(dev["my_var"]) > length
 
         long_names = sorted(list(inv.filter(filter_func=longer_than, length=20).hosts.keys()))

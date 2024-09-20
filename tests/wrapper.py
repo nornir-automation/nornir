@@ -15,7 +15,7 @@ def wrap_cli_test(output, save_output=False):
     """
 
     @decorator
-    def run_test(func, *args, **kwargs):
+    def run_test(func, *args, **kwargs) -> None:
         stdout = StringIO()
         backup_stdout = sys.stdout
         sys.stdout = stdout

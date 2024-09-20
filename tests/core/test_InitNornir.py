@@ -167,7 +167,7 @@ class Test:
 
 class TestLogging:
     @classmethod
-    def cleanup(cls):
+    def cleanup(cls) -> None:
         # this does not work as setup_method, because pytest injects
         # _pytest.logging.LogCaptureHandler handler to the root logger
         # and StreamHandler to _pytest.capture.EncodedFile to other loggers
@@ -183,7 +183,7 @@ class TestLogging:
             logger_.setLevel(logging.NOTSET)
 
     @classmethod
-    def teardown_class(cls):
+    def teardown_class(cls) -> None:
         cls.cleanup()
 
     def test_InitNornir_logging_defaults(self):

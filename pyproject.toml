@@ -236,8 +236,6 @@ max-returns = 11
     "ANN002",  # Missing type annotation for `*args`
     "ANN003",  # Missing type annotation for `**kwargs`
     "ANN201",  # Missing return type annotation for public function
-    "ANN202",  # Missing return type annotation for private function
-    "ANN206",  # Missing return type annotation for classmethod
     "ARG001",  # Unused function argument
     "B007",    # Loop control variable `host` not used within loop body
     "C414",    # Unnecessary `list` call within `sorted()`
