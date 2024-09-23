@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from nornir.core import Nornir
 from nornir.core.inventory import Host
@@ -40,7 +40,7 @@ class MockProcessor:
         self.data[task.name][host.name]["failed"] = result.failed
 
     def _get_subtask_dict(self, task: Task, host: Host) -> Dict[str, Any]:
-        parents = []
+        parents: List[str] = []
         parent = task.parent_task
         while True:
             if parent is None:
@@ -65,7 +65,7 @@ class MockProcessor:
 
 class Test:
     def test_processor(self, nornir: Nornir) -> None:
-        data = {}
+        data: Dict[str, Any] = {}
         nornir.with_processors([MockProcessor(data)]).run(task=mock_task)
         assert data == {
             "mock_task": {
@@ -111,7 +111,7 @@ class Test:
         }
 
     def test_processor_subtasks(self, nornir: Nornir) -> None:
-        data = {}
+        data: Dict[str, Any] = {}
         nornir.with_processors([MockProcessor(data)]).run(task=mock_subtask)
         assert data == {
             "mock_subtask": {
