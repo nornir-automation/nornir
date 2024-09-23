@@ -23,7 +23,7 @@ def mock_subtask(task: Task) -> Result:
 
 
 class MockProcessor:
-    def __init__(self, data: Dict[str, None]) -> None:
+    def __init__(self, data: Dict[str, Dict[str, Any]]) -> None:
         self.data = data
 
     def task_started(self, task: Task) -> None:
@@ -48,7 +48,7 @@ class MockProcessor:
             parents.insert(0, parent.name)
             parent = parent.parent_task
 
-        data = self.data[parents[0]][host.name]["subtasks"]
+        data: Dict[str, Any] = self.data[parents[0]][host.name]["subtasks"]
         for p in parents[1:]:
             data = data[p]["subtasks"]
         return data

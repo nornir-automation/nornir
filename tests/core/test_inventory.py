@@ -4,6 +4,7 @@ import pytest
 import ruamel.yaml
 
 from nornir.core import inventory
+from nornir.core.inventory import Host
 
 yaml = ruamel.yaml.YAML(typ="safe")
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -17,7 +18,7 @@ inv_dict = {"hosts": hosts, "groups": groups, "defaults": defaults}
 
 
 class Test:
-    def test_host(self):
+    def test_host(self) -> None:
         h = inventory.Host(name="host1", hostname="host1")
         assert h.hostname == "host1"
         assert h.port is None
@@ -43,7 +44,7 @@ class Test:
         assert h.platform == "fake"
         assert h.data == data
 
-    def test_inventory(self):
+    def test_inventory(self) -> None:
         g1 = inventory.Group(name="g1")
         g2 = inventory.Group(name="g2", groups=inventory.ParentGroups([g1]))
         h1 = inventory.Host(name="h1", groups=inventory.ParentGroups([g1, g2]))
@@ -58,7 +59,7 @@ class Test:
         assert inv.groups["g1"] in inv.hosts["h1"].groups
         assert inv.groups["g1"] in inv.groups["g2"].groups
 
-    def test_inventory_data(self, inv):
+    def test_inventory_data(self, inv: inventory.Inventory) -> None:
         """Test Host values()/keys()/items()"""
         h = inv.hosts["dev1.group_1"]
         assert "comes_from_dev1.group_1" in h.values()
@@ -67,7 +68,7 @@ class Test:
         assert "only_default" in h.keys()
         assert dict(h.items())["my_var"] == "comes_from_dev1.group_1"
 
-    def test_inventory_dict(self, inv):
+    def test_inventory_dict(self, inv: inventory.Inventory) -> None:
         assert inv.dict() == {
             "defaults": {
                 "connection_options": {
@@ -319,7 +320,7 @@ class Test:
             },
         }
 
-    def test_extended_data(self, inv):
+    def test_extended_data(self, inv: inventory.Inventory) -> None:
         assert inv.hosts["dev1.group_1"].extended_data() == {
             "a_false_var": False,
             "a_var": "blah",
@@ -356,7 +357,7 @@ class Test:
             "site": "site2",
         }
 
-    def test_parent_groups_extended(self, inv):
+    def test_parent_groups_extended(self, inv: inventory.Inventory) -> None:
         assert inv.hosts["dev1.group_1"].extended_groups() == [
             inv.groups["group_1"],
             inv.groups["parent_group"],
@@ -371,7 +372,7 @@ class Test:
             inv.groups["parent_group"],
         ]
 
-    def test_filtering(self, inv):
+    def test_filtering(self, inv: inventory.Inventory) -> None:
         unfiltered = sorted(list(inv.hosts.keys()))
         assert unfiltered == [
             "dev1.group_1",
@@ -391,23 +392,23 @@ class Test:
         www_site1 = sorted(list(inv.filter(role="www").filter(site="site1").hosts.keys()))
         assert www_site1 == ["dev1.group_1"]
 
-    def test_filtering_func(self, inv):
+    def test_filtering_func(self, inv: inventory.Inventory) -> None:
         long_names = sorted(
             list(inv.filter(filter_func=lambda x: len(x["my_var"]) > 20).hosts.keys())
         )
         assert long_names == ["dev1.group_1", "dev4.group_2", "dev6.group_3"]
 
-        def longer_than(dev, length) -> bool:
+        def longer_than(dev: Host, length: int) -> bool:
             return len(dev["my_var"]) > length
 
         long_names = sorted(list(inv.filter(filter_func=longer_than, length=20).hosts.keys()))
         assert long_names == ["dev1.group_1", "dev4.group_2", "dev6.group_3"]
 
-    def test_filter_unique_keys(self, inv):
+    def test_filter_unique_keys(self, inv: inventory.Inventory) -> None:
         filtered = sorted(list(inv.filter(www_server="nginx").hosts.keys()))
         assert filtered == ["dev1.group_1"]
 
-    def test_var_resolution(self, inv):
+    def test_var_resolution(self, inv: inventory.Inventory) -> None:
         assert inv.hosts["dev1.group_1"]["my_var"] == "comes_from_dev1.group_1"
         assert inv.hosts["dev2.group_1"]["my_var"] == "comes_from_group_1"
         assert inv.hosts["dev3.group_2"]["my_var"] == "comes_from_defaults"
@@ -423,7 +424,7 @@ class Test:
             inv.hosts["dev3.group_2"].data["my_var"]
         assert inv.hosts["dev4.group_2"].data["my_var"] == "comes_from_dev4.group_2"
 
-    def test_attributes_resolution(self, inv):
+    def test_attributes_resolution(self, inv: inventory.Inventory) -> None:
         assert inv.hosts["dev1.group_1"].password == "a_password"
         assert inv.hosts["dev2.group_1"].password == "from_group1"
         assert inv.hosts["dev3.group_2"].password == "docker"
@@ -431,13 +432,13 @@ class Test:
         assert inv.hosts["dev5.no_group"].password == "docker"
         assert inv.hosts["dev6.group_3"].password == "from_parent_group"
 
-    def test_has_parents(self, inv):
+    def test_has_parents(self, inv: inventory.Inventory) -> None:
         assert inv.hosts["dev1.group_1"].has_parent_group(inv.groups["group_1"])
         assert not inv.hosts["dev1.group_1"].has_parent_group(inv.groups["group_2"])
         assert inv.hosts["dev1.group_1"].has_parent_group("group_1")
         assert not inv.hosts["dev1.group_1"].has_parent_group("group_2")
 
-    def test_get_connection_parameters(self, inv):
+    def test_get_connection_parameters(self, inv: inventory.Inventory) -> None:
         p1 = inv.hosts["dev1.group_1"].get_connection_parameters("dummy")
         assert p1.port == 65020
         assert p1.hostname == "dummy_from_host"
@@ -467,7 +468,7 @@ class Test:
         assert p4.platform == "linux"
         assert p4.extras == {"blah": "from_defaults"}
 
-    def test_defaults(self, inv):
+    def test_defaults(self, inv: inventory.Inventory) -> None:
         inv.defaults.password = "asd"
         assert inv.defaults.password == "asd"
         assert inv.hosts["dev2.group_1"].password == "from_group1"
@@ -475,7 +476,7 @@ class Test:
         assert inv.hosts["dev4.group_2"].password == "from_parent_group"
         assert inv.hosts["dev5.no_group"].password == "asd"
 
-    def test_children_of_str(self, inv):
+    def test_children_of_str(self, inv: inventory.Inventory) -> None:
         assert inv.children_of_group("parent_group") == {
             inv.hosts["dev1.group_1"],
             inv.hosts["dev2.group_1"],
@@ -495,7 +496,7 @@ class Test:
 
         assert inv.children_of_group("blah") == set()
 
-    def test_children_of_obj(self, inv):
+    def test_children_of_obj(self, inv: inventory.Inventory) -> None:
         assert inv.children_of_group(inv.groups["parent_group"]) == {
             inv.hosts["dev1.group_1"],
             inv.hosts["dev2.group_1"],
@@ -513,7 +514,7 @@ class Test:
             inv.hosts["dev3.group_2"],
         }
 
-    def test_add_host(self):
+    def test_add_host(self) -> None:
         data = {"test_var": "test_value"}
         defaults = inventory.Defaults(data=data)
         g1 = inventory.Group(name="g1")
@@ -538,7 +539,7 @@ class Test:
         assert inv.hosts["h3"].platform == "TestPlatform"
         assert inv.hosts["h3"].connection_options["netmiko"].extras["device_type"] == "cisco_ios"
 
-    def test_add_group(self):
+    def test_add_group(self) -> None:
         connection_options = {"username": "test_user", "password": "test_pass"}
         data = {"test_var": "test_value"}
         defaults = inventory.Defaults(data=data, connection_options=connection_options)
@@ -564,7 +565,7 @@ class Test:
         assert inv.groups["g3"].defaults.data.get("test_var") == "test_value"
         assert inv.groups["g3"].connection_options["netmiko"].extras["device_type"] == "cisco_ios"
 
-    def test_dict(self, inv):
+    def test_dict(self, inv: inventory.Inventory) -> None:
         inventory_dict = inv.dict()
         def_extras = inventory_dict["defaults"]["connection_options"]["dummy"]["extras"]
         grp_data = inventory_dict["groups"]["group_1"]["data"]
@@ -575,7 +576,7 @@ class Test:
         assert "my_var" and "site" in grp_data
         assert "www_server" and "role" in host_data
 
-    def test_get_defaults_dict(self, inv):
+    def test_get_defaults_dict(self, inv: inventory.Inventory) -> None:
         defaults_dict = inv.defaults.dict()
         con_options = defaults_dict["connection_options"]["dummy"]
         assert isinstance(defaults_dict, dict)
@@ -583,13 +584,13 @@ class Test:
         assert con_options["hostname"] == "dummy_from_defaults"
         assert "blah" in con_options["extras"]
 
-    def test_get_groups_dict(self, inv):
+    def test_get_groups_dict(self, inv: inventory.Inventory) -> None:
         groups_dict = {n: g.dict() for n, g in inv.groups.items()}
         assert isinstance(groups_dict, dict)
         assert groups_dict["group_1"]["password"] == "from_group1"
         assert groups_dict["group_2"]["data"]["site"] == "site2"
 
-    def test_get_hosts_dict(self, inv):
+    def test_get_hosts_dict(self, inv: inventory.Inventory) -> None:
         hosts_dict = {n: h.dict() for n, h in inv.hosts.items()}
         dev1_groups = hosts_dict["dev1.group_1"]["groups"]
         dev2_paramiko_opts = hosts_dict["dev2.group_1"]["connection_options"]["paramiko"]
@@ -598,7 +599,7 @@ class Test:
         assert dev2_paramiko_opts["username"] == "root"
         assert "dev3.group_2" in hosts_dict
 
-    def test_add_group_to_host_runtime(self):
+    def test_add_group_to_host_runtime(self) -> None:
         orig_data = {"var1": "val1"}
         data = {"var3": "val3"}
         g1 = inventory.Group(name="g1", data=orig_data)
@@ -618,7 +619,7 @@ class Test:
         assert g3 in h1.groups
         assert h1.get("var3", None) == "val3"
 
-    def test_remove_group_from_host(self):
+    def test_remove_group_from_host(self) -> None:
         data = {"var3": "val3"}
         orig_data = {"var1": "val1"}
         g1 = inventory.Group(name="g1", data=orig_data)

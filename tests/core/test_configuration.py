@@ -10,7 +10,7 @@ DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)12s - %(levelname)8s - %(funcName)10s
 
 
 class Test:
-    def test_config_defaults(self):
+    def test_config_defaults(self) -> None:
         c = Config()
         assert c.dict() == {
             "core": {"raise_on_error": False},
@@ -33,7 +33,7 @@ class Test:
             "user_defined": {},
         }
 
-    def test_config_from_dict_defaults(self):
+    def test_config_from_dict_defaults(self) -> None:
         c = Config.from_dict()
         assert c.dict() == {
             "core": {"raise_on_error": False},
@@ -56,7 +56,7 @@ class Test:
             "user_defined": {},
         }
 
-    def test_config_basic(self):
+    def test_config_basic(self) -> None:
         c = Config.from_dict(
             inventory={"plugin": "an-inventory"},
             runner={"plugin": "serial", "options": {"a": 1, "b": 2}},
@@ -84,14 +84,14 @@ class Test:
             "user_defined": {"my_opt": True},
         }
 
-    def test_configuration_file_override_argument(self):
+    def test_configuration_file_override_argument(self) -> None:
         config = Config.from_file(
             os.path.join(dir_path, "config.yaml"),
             core={"raise_on_error": True},
         )
         assert config.core.raise_on_error
 
-    def test_configuration_file_override_env(self):
+    def test_configuration_file_override_env(self) -> None:
         os.environ["NORNIR_CORE_RAISE_ON_ERROR"] = "1"
         os.environ["NORNIR_SSH_CONFIG_FILE"] = "/user/ssh_config"
         config = Config.from_dict(inventory={"plugin": "an-inventory"})
@@ -100,22 +100,22 @@ class Test:
         os.environ.pop("NORNIR_CORE_RAISE_ON_ERROR")
         os.environ.pop("NORNIR_SSH_CONFIG_FILE")
 
-    def test_configuration_bool_env(self):
+    def test_configuration_bool_env(self) -> None:
         os.environ["NORNIR_CORE_RAISE_ON_ERROR"] = "0"
         config = Config.from_dict(inventory={"plugin": "an-inventory"})
         assert not config.core.raise_on_error
 
-    def test_get_user_defined_from_file(self):
+    def test_get_user_defined_from_file(self) -> None:
         config = Config.from_file(os.path.join(dir_path, "config.yaml"))
         assert config.user_defined["asd"] == "qwe"
 
-    def test_order_of_resolution_config_higher_than_env(self):
+    def test_order_of_resolution_config_higher_than_env(self) -> None:
         os.environ["NORNIR_CORE_RAISE_ON_ERROR"] = "1"
         config = Config.from_file(os.path.join(dir_path, "config.yaml"))
         os.environ.pop("NORNIR_CORE_RAISE_ON_ERROR")
         assert config.core.raise_on_error is False
 
-    def test_order_of_resolution_code_is_higher_than_env(self):
+    def test_order_of_resolution_code_is_higher_than_env(self) -> None:
         os.environ["NORNIR_CORE_RAISE_ON_ERROR"] = "0"
         config = Config.from_file(
             os.path.join(dir_path, "config.yaml"), core={"raise_on_error": True}

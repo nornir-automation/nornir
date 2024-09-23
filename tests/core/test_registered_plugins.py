@@ -7,7 +7,7 @@ from nornir.plugins.runners import SerialRunner, ThreadedRunner
 
 
 class Test:
-    def test_registered_runners(self):
+    def test_registered_runners(self) -> None:
         RunnersPluginRegister.deregister_all()
         RunnersPluginRegister.auto_register()
         assert RunnersPluginRegister.available == {
@@ -15,7 +15,7 @@ class Test:
             "serial": SerialRunner,
         }
 
-    def test_registered_inventory(self):
+    def test_registered_inventory(self) -> None:
         InventoryPluginRegister.deregister_all()
         InventoryPluginRegister.auto_register()
         assert InventoryPluginRegister.available == {
