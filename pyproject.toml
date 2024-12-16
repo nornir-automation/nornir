@@ -1,6 +1,6 @@
 [build-system]
-requires = ["poetry==1.3.2"]
-build-backend = "poetry.masonry.api"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.plugins."nornir.plugins.runners"]
 "serial" = "nornir.plugins.runners:SerialRunner"
@@ -24,10 +24,10 @@ classifiers = [
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
-]
+] 
 
 [tool.poetry.dependencies]
-python = ">=3.8,<4.0"
+python = ">=3.9,<4.0"
 "ruamel.yaml" = ">=0.17"
 # importlib.metadata has an API change in 3.10 and is no longer provisional
 importlib-metadata = { version = "^4", python = "<3.10" }
@@ -44,6 +44,8 @@ types-Jinja2 = "^2.11.9"
 types-setuptools= ">=75.5.0.20241116"
 nornir-jinja2 = "0.2.0"
 nornir-utils = "0.2.0"
+# needed until underlying issue with PyEZ and PY3.13 (telnetlib) is fixed. Dev/testing fix only
+junos-eznc = { git = "https://github.com/ktbyers/py-junos-eznc.git", rev = "468b0019ebad8361958604efafa83f009ef75683" }
 nornir-napalm = "0.5.0"
 # ncclient 0.6.16 broke Windows support; should be fixed in next release of ncclient
 ncclient = "0.6.15"
