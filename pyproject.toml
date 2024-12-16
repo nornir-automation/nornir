@@ -19,11 +19,11 @@ readme = "README.md"
 repository = "https://github.com/nornir-automation/nornir"
 classifiers = [
         "License :: OSI Approved :: Apache Software License 2.0 (Apache-2.0)",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
 ]
 
 [tool.poetry.dependencies]
@@ -41,7 +41,7 @@ pytest-cov = "*"
 requests-mock = "*"
 mypy = "^1.5.1"
 types-Jinja2 = "^2.11.9"
-types-pkg-resources = "^0.1.3"
+types-setuptools= ">=75.5.0.20241116"
 nornir-jinja2 = "0.2.0"
 nornir-utils = "0.2.0"
 nornir-napalm = "0.5.0"
