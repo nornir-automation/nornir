@@ -45,6 +45,8 @@ types-setuptools= ">=75.5.0.20241116"
 nornir-jinja2 = "0.2.0"
 nornir-utils = "0.2.0"
 nornir-napalm = "0.5.0"
+# ncclient 0.6.16 broke Windows support; should be fixed in next release of ncclient
+ncclient = "0.6.15"
 ruff = "^0.4.9"
 
 [tool.poetry.group.docs.dependencies]

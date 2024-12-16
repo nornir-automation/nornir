@@ -1122,19 +1122,20 @@ referencing = ">=0.31.0"
 
 [[package]]
 name = "junos-eznc"
-version = "2.7.1"
+version = "2.7.2"
 description = "Junos 'EZ' automation for non-programmers"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "junos-eznc-2.7.1.tar.gz", hash = "sha256:371f0298bf03e0cb4c017c43f6f4122263584eda0d690d0112e93f13daae41ac"},
-    {file = "junos_eznc-2.7.1-py3-none-any.whl", hash = "sha256:8a7918faa8f0570341cac64c1210c1cd3e3542162d1e7449c3364f8d805716b2"},
+    {file = "junos-eznc-2.7.2.tar.gz", hash = "sha256:7c7e6f8e9bb9d0d034ffaeb592e400dd114f03db44c3bb608c951e88483c825d"},
+    {file = "junos_eznc-2.7.2-py2.py3-none-any.whl", hash = "sha256:72ace7fe635efbb0480126b54f8ce79e9fb519f2c4aa53233318f1b2cb32b4b0"},
 ]
 
 [package.dependencies]
 jinja2 = ">=2.7.1"
 lxml = ">=3.2.4"
-ncclient = ">=0.6.15"
+ncclient = "0.6.15"
+paramiko = ">=3.5.0"
 pyparsing = "*"
 pyserial = "*"
 PyYAML = ">=5.1"
@@ -1872,12 +1873,12 @@ pytest = ">=2.8"
 
 [[package]]
 name = "ncclient"
-version = "0.6.16"
+version = "0.6.15"
 description = "Python library for NETCONF clients"
 optional = false
-python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 files = [
-    {file = "ncclient-0.6.16.tar.gz", hash = "sha256:a16a351d8c234e3bbf3495577b63c96ae4adfcdf67f2d84194313473ea65b805"},
+    {file = "ncclient-0.6.15.tar.gz", hash = "sha256:6757cb41bc9160dfe47f22f5de8cf2f1adf22f27463fb50453cc415ab96773d8"},
 ]
 
 [package.dependencies]
@@ -3688,4 +3689,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<4.0"
-content-hash = "e0f0b2d1a7b227bdc1b91e0920605e00715088a213b76d239d520d58fdc0cb46"
+content-hash = "5effbad3a42ca6cadfb65852d505dbe8a552cd8ec9698e0b0ef5ce448048014a"
