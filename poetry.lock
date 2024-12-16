@@ -1716,10 +1716,8 @@ version = "5.0.0"
 description = "Network Automation and Programmability Abstraction Layer with Multivendor support"
 optional = false
 python-versions = "*"
-files = [
-    {file = "napalm-5.0.0-py2.py3-none-any.whl", hash = "sha256:458837932e527ca06a4bab7e600b0ca6e6bc3bb4b33fad9c9ef2befc7df6d2f5"},
-    {file = "napalm-5.0.0.tar.gz", hash = "sha256:350ac3d74f2f10030dbae44d3395551d7e03ee25c65fa5eb8263a4e6f51f2c94"},
-]
+files = []
+develop = false
 
 [package.dependencies]
 cffi = ">=1.11.3"
@@ -1728,7 +1726,7 @@ junos-eznc = ">=2.7.0"
 lxml = ">=4.3.0"
 ncclient = "*"
 netaddr = "*"
-netmiko = ">=4.1.0"
+netmiko = ">=4.4.0"
 netutils = ">=1.0.0"
 paramiko = ">=2.6.0"
 pyeapi = ">=1.0.2"
@@ -1738,8 +1736,14 @@ scp = "*"
 setuptools = ">=38.4.0"
 textfsm = "*"
 ttp = "*"
-ttp-templates = "*"
+ttp_templates = "*"
 typing-extensions = ">=4.3.0"
+
+[package.source]
+type = "git"
+url = "https://github.com/napalm-automation/napalm"
+reference = "e2f8e7e24f9cff5fc4ce5d67ab0a4d5e9fce097b"
+resolved_reference = "e2f8e7e24f9cff5fc4ce5d67ab0a4d5e9fce097b"
 
 [[package]]
 name = "nbclient"
@@ -3660,4 +3664,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4.0"
-content-hash = "09c4db5136d47425483c9bba1a0d7c0dd3aba68d01612df493bf9ed3b49494ab"
+content-hash = "610a832940fa1a66e96ca01470b24a1ae4d5e6c436272c7a7136a5671255b498"

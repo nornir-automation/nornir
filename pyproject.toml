@@ -46,6 +46,7 @@ nornir-jinja2 = "0.2.0"
 nornir-utils = "0.2.0"
 # needed until underlying issue with PyEZ and PY3.13 (telnetlib) is fixed. Dev/testing fix only
 junos-eznc = { git = "https://github.com/ktbyers/py-junos-eznc.git", rev = "468b0019ebad8361958604efafa83f009ef75683" }
+napalm = { git = "https://github.com/napalm-automation/napalm", rev = "e2f8e7e24f9cff5fc4ce5d67ab0a4d5e9fce097b" }
 nornir-napalm = "0.5.0"
 # ncclient 0.6.16 broke Windows support; should be fixed in next release of ncclient
 ncclient = "0.6.15"
