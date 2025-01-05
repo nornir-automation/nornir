@@ -18,7 +18,7 @@ license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/nornir-automation/nornir"
 classifiers = [
-        "License :: OSI Approved :: Apache Software License 2.0 (Apache-2.0)",
+        "License :: OSI Approved :: Apache Software License",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
