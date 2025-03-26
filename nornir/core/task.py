@@ -250,6 +250,11 @@ class MultiResult(List[Result]):
         self.name = name
 
     def __getattr__(self, name: str) -> Any:
+
+        # tweak for multiproccessor runner
+        if name in ["__getstate__", "__setstate__"]:
+            return super().__getattr__(name)
+        
         return getattr(self[0], name)
 
     def __repr__(self) -> str:
