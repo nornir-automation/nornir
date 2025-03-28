@@ -251,7 +251,7 @@ class MultiResult(List[Result]):
 
     def __getattr__(self, name: str) -> Any:
 
-        # tweak for multiproccessor runner
+        # without this pickling breaks
         if name in ["__getstate__", "__setstate__"]:
             return super().__getattr__(name)
         
