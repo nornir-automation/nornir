@@ -7,4 +7,7 @@ class Test:
         Makes sure that MultiResult is pickleable - allows
         Nornir to work with Multiprocessing based runners
         """
-        pickle.dumps(MultiResult("fake_result"))
+        try:
+            pickle.dumps(MultiResult("fake_result"))
+        except Exception as e:
+            assert False, f"Exception {e} was raised"
