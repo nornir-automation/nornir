@@ -12,7 +12,6 @@ Changelog
 - Documentation updates:
 - Upgraded various dependencies:
 
-
 3.4.1 - September 22, 2023
 --------------------------
 
