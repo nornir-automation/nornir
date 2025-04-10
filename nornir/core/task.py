@@ -253,7 +253,7 @@ class MultiResult(List[Result]):
 
         # without this pickling breaks
         if name in ["__getstate__", "__setstate__"]:
-            return super().__getattr__(name)
+            return super().__getattribute__(name)
 
         return getattr(self[0], name)
 
