@@ -1,8 +1,12 @@
+import pickle  # noqa: S403
+
+import pytest
+
 from nornir.core.task import MultiResult
-import pickle
+
 
 class Test:
-    def test_pickle(self):
+    def test_pickle(self) -> None:
         """
         Makes sure that MultiResult is pickleable - allows
         Nornir to work with Multiprocessing based runners
@@ -10,4 +14,4 @@ class Test:
         try:
             pickle.dumps(MultiResult("fake_result"))
         except Exception as e:
-            assert False, f"Exception {e} was raised"
+            pytest.fail(f"Exception {e} was raised")

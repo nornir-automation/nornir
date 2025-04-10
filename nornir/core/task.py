@@ -254,7 +254,7 @@ class MultiResult(List[Result]):
         # without this pickling breaks
         if name in ["__getstate__", "__setstate__"]:
             return super().__getattr__(name)
-        
+
         return getattr(self[0], name)
 
     def __repr__(self) -> str:
