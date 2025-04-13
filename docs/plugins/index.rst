@@ -1,7 +1,7 @@
 Plugins
 =======
 
-Nornir is a pluggable system and only very basic ones are included with nornir 3, for a list of third party plugins visit `nornir.tech <https://nornir.tech/nornir/plugins>`_
+Nornir is a pluggable system and only very basic ones are included with nornir 3, for a list of third party plugins visit :ref:`community plugins`
 
 .. image:: ../_images/Nornir3_Plugins_v0.jpg
    
