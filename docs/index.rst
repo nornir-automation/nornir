@@ -64,6 +64,7 @@ Contents
    Contribute <contributing/index>
    Changelog <changelog/index>
    api/index
+   community/plugin_list
 
 Indices and tables
 
