@@ -250,6 +250,11 @@ class MultiResult(List[Result]):
         self.name = name
 
     def __getattr__(self, name: str) -> Any:
+
+        # without this pickling breaks
+        if name in ["__getstate__", "__setstate__"]:
+            return super().__getattribute__(name)
+
         return getattr(self[0], name)
 
     def __repr__(self) -> str:
