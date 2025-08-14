@@ -20,8 +20,8 @@ from nornir.core.plugins.connections import ConnectionPlugin, ConnectionPluginRe
 HostOrGroup = TypeVar("HostOrGroup", "Host", "Group")
 
 
-class BaseAttributes(object):
-    __slots__ = ("hostname", "port", "username", "password", "platform")
+class BaseAttributes:
+    __slots__ = ("hostname", "password", "platform", "port", "username")
 
     def __init__(
         self,
@@ -79,7 +79,7 @@ class ConnectionOptions(BaseAttributes):
         )
 
     @classmethod
-    def schema(self) -> Dict[str, Any]:
+    def schema(cls) -> Dict[str, Any]:
         return {
             "extras": {"$key": "$value"},
             **super().schema(),
@@ -95,9 +95,9 @@ class ConnectionOptions(BaseAttributes):
 class ParentGroups(List["Group"]):
     def __contains__(self, value: object) -> bool:
         if isinstance(value, str):
-            return any([value == g.name for g in self])
-        else:
-            return any([value == g for g in self])
+            return any(value == g.name for g in self)
+
+        return any(value == g for g in self)
 
     def add(self, group: "Group") -> None:
         """
@@ -113,7 +113,7 @@ class ParentGroups(List["Group"]):
 
 
 class InventoryElement(BaseAttributes):
-    __slots__ = ("groups", "data", "connection_options")
+    __slots__ = ("connection_options", "data", "groups")
 
     def __init__(
         self,
@@ -138,7 +138,7 @@ class InventoryElement(BaseAttributes):
         )
 
     @classmethod
-    def schema(self) -> Dict[str, Any]:
+    def schema(cls) -> Dict[str, Any]:
         return {
             "groups": ["$group_name"],
             "data": {"$key": "$value"},
@@ -150,9 +150,7 @@ class InventoryElement(BaseAttributes):
         return {
             "groups": [g.name for g in self.groups],
             "data": self.data,
-            "connection_options": {
-                k: v.dict() for k, v in self.connection_options.items()
-            },
+            "connection_options": {k: v.dict() for k, v in self.connection_options.items()},
             **super().dict(),
         }
 
@@ -183,7 +181,7 @@ class InventoryElement(BaseAttributes):
 
         this will return [group_a, group_1, group_X, group_2, group_b, group_3]
         """
-        groups: List["Group"] = []
+        groups: List[Group] = []
 
         for g in self.groups:
             if g not in groups:
@@ -197,7 +195,7 @@ class InventoryElement(BaseAttributes):
 
 
 class Defaults(BaseAttributes):
-    __slots__ = ("data", "connection_options")
+    __slots__ = ("connection_options", "data")
 
     def __init__(
         self,
@@ -220,7 +218,7 @@ class Defaults(BaseAttributes):
         )
 
     @classmethod
-    def schema(self) -> Dict[str, Any]:
+    def schema(cls) -> Dict[str, Any]:
         return {
             "data": {"$key": "$value"},
             "connection_options": {"$connection_type": ConnectionOptions.schema()},
@@ -230,15 +228,13 @@ class Defaults(BaseAttributes):
     def dict(self) -> Dict[str, Any]:
         return {
             "data": self.data,
-            "connection_options": {
-                k: v.dict() for k, v in self.connection_options.items()
-            },
+            "connection_options": {k: v.dict() for k, v in self.connection_options.items()},
             **super().dict(),
         }
 
 
 class Host(InventoryElement):
-    __slots__ = ("name", "connections", "defaults")
+    __slots__ = ("connections", "defaults", "name")
 
     def __init__(
         self,
@@ -298,9 +294,7 @@ class Host(InventoryElement):
     def dict(self) -> Dict[str, Any]:
         return {
             "name": self.name,
-            "connection_options": {
-                k: v.dict() for k, v in self.connection_options.items()
-            },
+            "connection_options": {k: v.dict() for k, v in self.connection_options.items()},
             **super().dict(),
         }
 
@@ -324,8 +318,7 @@ class Host(InventoryElement):
         if isinstance(group, str):
             return self._has_parent_group_by_name(group)
 
-        else:
-            return self._has_parent_group_by_object(group)
+        return self._has_parent_group_by_object(group)
 
     def _has_parent_group_by_name(self, group: str) -> bool:
         for g in self.groups:
@@ -346,8 +339,7 @@ class Host(InventoryElement):
         except KeyError:
             for g in self.extended_groups():
                 try:
-                    r = g.data[item]
-                    return r
+                    return g.data[item]
                 except KeyError:
                     continue
 
@@ -368,8 +360,8 @@ class Host(InventoryElement):
                     return r
 
             return object.__getattribute__(self.defaults, name)
-        else:
-            return v
+
+        return v
 
     def __bool__(self) -> bool:
         return bool(self.name)
@@ -405,9 +397,7 @@ class Host(InventoryElement):
         except KeyError:
             return default
 
-    def get_connection_parameters(
-        self, connection: Optional[str] = None
-    ) -> ConnectionOptions:
+    def get_connection_parameters(self, connection: Optional[str] = None) -> ConnectionOptions:
         if not connection:
             d = ConnectionOptions(
                 hostname=self.hostname,
@@ -439,9 +429,7 @@ class Host(InventoryElement):
                 )
         return d
 
-    def _get_connection_options_recursively(
-        self, connection: str
-    ) -> Optional[ConnectionOptions]:
+    def _get_connection_options_recursively(self, connection: str) -> Optional[ConnectionOptions]:
         p = self.connection_options.get(connection)
         if p is None:
             p = ConnectionOptions(None, None, None, None, None, None)
@@ -579,17 +567,15 @@ class Groups(Dict[str, Group]):
 
 
 class TransformFunction(Protocol):
-    def __call__(self, host: Host, **kwargs: Any) -> None:
-        ...
+    def __call__(self, host: Host, **kwargs: Any) -> None: ...
 
 
 class FilterObj(Protocol):
-    def __call__(self, host: Host, **kwargs: Any) -> bool:
-        ...
+    def __call__(self, host: Host, **kwargs: Any) -> bool: ...
 
 
-class Inventory(object):
-    __slots__ = ("hosts", "groups", "defaults")
+class Inventory:
+    __slots__ = ("defaults", "groups", "hosts")
 
     def __init__(
         self,
@@ -607,13 +593,11 @@ class Inventory(object):
         self,
         filter_obj: Optional[FilterObj] = None,
         filter_func: Optional[FilterObj] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> "Inventory":
         filter_func = filter_obj or filter_func
         if filter_func:
-            filtered = Hosts(
-                {n: h for n, h in self.hosts.items() if filter_func(h, **kwargs)}
-            )
+            filtered = Hosts({n: h for n, h in self.hosts.items() if filter_func(h, **kwargs)})
         else:
             filtered = Hosts(
                 {

@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
     from nornir.core.connection import Connection
-    from nornir.core.result import AggregatedResult, MultiResult, Result  # noqa
+    from nornir.core.result import AggregatedResult, MultiResult, Result
     from nornir.core.tasks import Task
 
 
@@ -20,15 +20,11 @@ class ConnectionAlreadyOpen(ConnectionException):
     Raised when opening an already opened connection
     """
 
-    pass
-
 
 class ConnectionNotOpen(ConnectionException):
     """
     Raised when trying to close a connection that isn't open
     """
-
-    pass
 
 
 class PluginAlreadyRegistered(Exception):
@@ -36,15 +32,11 @@ class PluginAlreadyRegistered(Exception):
     Raised when trying to register an already registered plugin
     """
 
-    pass
-
 
 class PluginNotRegistered(Exception):
     """
     Raised when trying to access a plugin that is not registered
     """
-
-    pass
 
 
 class NornirExecutionError(Exception):
@@ -83,7 +75,7 @@ class NornirSubTaskError(Exception):
     Raised by nornir when a sub task managed by :meth:`nornir.core.Task.run` has failed
     """
 
-    def __init__(self, task: "Task", result: "Result"):
+    def __init__(self, task: "Task", result: "Result") -> None:
         self.task = task
         self.result = result
 
@@ -95,8 +87,6 @@ class NornirNoValidInventoryError(Exception):
     """
     Raised by nornir when :meth:`nornir.plugins.inventory.parse` fails to load any valid inventory
     """
-
-    pass
 
 
 class ConflictingConfigurationWarning(UserWarning):

@@ -1,10 +1,11 @@
 import sys
 from io import StringIO
+from typing import Any, Callable, Dict
 
 from decorator import decorator
 
 
-def wrap_cli_test(output, save_output=False):
+def wrap_cli_test(output: str, save_output: bool = False) -> Callable[[Callable[..., Any]], None]:
     """
     This decorator captures the stdout and stder and compare it
     with the contects of the specified files.
@@ -15,7 +16,7 @@ def wrap_cli_test(output, save_output=False):
     """
 
     @decorator
-    def run_test(func, *args, **kwargs):
+    def run_test(func: Callable[..., Any], *args: Any, **kwargs: Dict[str, Any]) -> Any:
         stdout = StringIO()
         backup_stdout = sys.stdout
         sys.stdout = stdout

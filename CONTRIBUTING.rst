@@ -81,7 +81,7 @@ The guidelines to pin dependencies are:
     a. if semver is supported we pin to major release
     b. if semver is not supported we pin to specific version
 2. For development:
-    a. black is pinned to a specific version
+    a. ruff is pinned to a specific version
     b. everything is set to *
 
 Then, to update them:
@@ -109,17 +109,17 @@ You can then stop them with:
 Coding style
 ------------
 
-Nornir uses `Black <https://github.com/ambv/black>`_, the uncompromising Python code formatter. Black makes it easy for you to format your code as you can do so automatically after installing it.
+Nornir uses `Ruff <https://docs.astral.sh/ruff/>`_. Ruff makes it easy for you to format your code as you can do so automatically after installing it.
 
 .. code-block:: bash
 
-   poetry run black .
+   poetry run ruff format --check .
 
-The Black GitHub repo has information about how you can integrate Black in your editor.
+The Ruff GitHub repo has information about how you can integrate Ruff in your editor.
 
 Tests
 -------------
-As part of the automatic CI on every pull request, besides coding style checks with ``black``, we also do linting with ``pylama``, static type checking with ``mypy``, unit tests with ``pytest``, docs generation with ``sphinx`` and ``nbsphinx`` (for Jupyter notebooks) and verification of outputs in Jupyter notebook tutorials with pytest plugin ``nbval``.
+As part of the automatic CI on every pull request, besides coding style checks and linting with ``ruff``, static type checking with ``mypy``, unit tests with ``pytest``, docs generation with ``sphinx`` and ``nbsphinx`` (for Jupyter notebooks) and verification of outputs in Jupyter notebook tutorials with pytest plugin ``nbval``.
 
 After modifying any code in the core, at first, we recommend running unit tests locally before running the whole test suite (which takes longer time):
 

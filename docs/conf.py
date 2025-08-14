@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-#
 # nornir documentation build configuration file, created by
 # sphinx-quickstart on Sun Nov 19 10:41:40 2017.
 #
@@ -20,8 +17,6 @@
 import os
 import sys
 from typing import Dict
-
-from sphinx.application import Sphinx
 
 from nornir import __version__
 
@@ -70,7 +65,7 @@ version = release = __version__
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -142,9 +137,7 @@ latex_elements: Dict[str, str] = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
-latex_documents = [
-    (master_doc, "nornir.tex", "nornir Documentation", "David Barroso", "manual")
-]
+latex_documents = [(master_doc, "nornir.tex", "nornir Documentation", "David Barroso", "manual")]
 
 
 # -- Options for manual page output ---------------------------------------
@@ -173,7 +166,4 @@ texinfo_documents = [
 
 issues_github_path = "nornir-automation/nornir"
 
-
-def setup(app: Sphinx) -> None:
-    """Map methods to states of the documentation build."""
-    app.add_stylesheet("css/custom.css")
+html_css_files = ["css/custom.css"]

@@ -56,9 +56,7 @@ def _get_inventory_element(
         password=data.get("password"),
         platform=data.get("platform"),
         data=data.get("data"),
-        groups=data.get(
-            "groups"
-        ),  # this is a hack, we will convert it later to the correct type
+        groups=data.get("groups"),  # this is a hack, we will convert it later to the correct type
         defaults=defaults,
         connection_options=_get_connection_options(data.get("connection_options", {})),
     )

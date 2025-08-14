@@ -6,7 +6,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 
 
 class Test:
-    def test(self):
+    def test(self) -> None:
         host_file = f"{dir_path}/data/hosts.yaml"
         group_file = f"{dir_path}/data/groups.yaml"
         defaults_file = f"{dir_path}/data/defaults.yaml"
@@ -232,7 +232,7 @@ class Test:
             },
         }
 
-    def test_simple_inventory_empty(self):
+    def test_simple_inventory_empty(self) -> None:
         """Verify completely empty groups.yaml and defaults.yaml doesn't generate exception."""
         host_file = f"{dir_path}/data/hosts-nogroups.yaml"
         group_file = f"{dir_path}/data/groups-empty.yaml"

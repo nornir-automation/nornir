@@ -21,18 +21,15 @@ class ConnectionPlugin(Protocol):
         Connect to the device and populate the attribute :attr:`connection` with
         the underlying connection
         """
-        pass
 
     def close(self) -> None:
         """Close the connection with the device"""
-        pass
 
     @property
     def connection(self) -> Any:
         """
         Established connection
         """
-        pass
 
 
 ConnectionPluginRegister: PluginRegister[Type[ConnectionPlugin]] = PluginRegister(

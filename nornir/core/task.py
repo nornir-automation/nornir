@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_SEVERITY_LEVEL = logging.INFO
 
 
-class Task(object):
+class Task:
     """
     A task is basically a wrapper around a function that has to be run against multiple devices.
     You won't probably have to deal with this class yourself as
@@ -47,8 +47,8 @@ class Task(object):
         name: Optional[str] = None,
         severity_level: int = DEFAULT_SEVERITY_LEVEL,
         parent_task: Optional["Task"] = None,
-        **kwargs: str
-    ):
+        **kwargs: str,
+    ) -> None:
         self.task = task
         self.nornir = nornir
         self.name = name or task.__name__
@@ -68,7 +68,7 @@ class Task(object):
             self.name,
             self.severity_level,
             self.parent_task,
-            **self.params
+            **self.params,
         )
 
     def __repr__(self) -> str:
@@ -163,7 +163,7 @@ class Task(object):
             global_dry_run=self.global_dry_run,
             processors=self.processors,
             parent_task=self,
-            **kwargs
+            **kwargs,
         )
         r = run_task.start(self.host)
         self.results.append(r[0] if len(r) == 1 else cast("Result", r))
@@ -181,7 +181,7 @@ class Task(object):
         return override if override is not None else self.global_dry_run
 
 
-class Result(object):
+class Result:
     """
     Result of running individual tasks.
 
@@ -213,8 +213,8 @@ class Result(object):
         failed: bool = False,
         exception: Optional[BaseException] = None,
         severity_level: int = DEFAULT_SEVERITY_LEVEL,
-        **kwargs: Any
-    ):
+        **kwargs: Any,
+    ) -> None:
         self.result = result
         self.host = host
         self.changed = changed
@@ -237,8 +237,7 @@ class Result(object):
         if self.exception:
             return str(self.exception)
 
-        else:
-            return str(self.result)
+        return str(self.result)
 
 
 class MultiResult(List[Result]):
@@ -247,10 +246,15 @@ class MultiResult(List[Result]):
     a particular device/task.
     """
 
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         self.name = name
 
     def __getattr__(self, name: str) -> Any:
+
+        # without this pickling breaks
+        if name in ["__getstate__", "__setstate__"]:
+            return super().__getattribute__(name)
+
         return getattr(self[0], name)
 
     def __repr__(self) -> str:
@@ -259,12 +263,12 @@ class MultiResult(List[Result]):
     @property
     def failed(self) -> bool:
         """If ``True`` at least a task failed."""
-        return any([h.failed for h in self])
+        return any(h.failed for h in self)
 
     @property
     def changed(self) -> bool:
         """If ``True`` at least a task changed the system."""
-        return any([h.changed for h in self])
+        return any(h.changed for h in self)
 
     def raise_on_error(self) -> None:
         """
@@ -281,19 +285,17 @@ class AggregatedResult(Dict[str, MultiResult]):
     You can access each individual result by doing ``my_aggr_result["hostname_of_device"]``.
     """
 
-    def __init__(self, name: str, **kwargs: MultiResult):
+    def __init__(self, name: str, **kwargs: MultiResult) -> None:
         self.name = name
         super().__init__(**kwargs)
 
     def __repr__(self) -> str:
-        return "{} ({}): {}".format(
-            self.__class__.__name__, self.name, super().__repr__()
-        )
+        return "{} ({}): {}".format(self.__class__.__name__, self.name, super().__repr__())
 
     @property
     def failed(self) -> bool:
         """If ``True`` at least a host failed."""
-        return any([h.failed for h in self.values()])
+        return any(h.failed for h in self.values())
 
     @property
     def failed_hosts(self) -> Dict[str, "MultiResult"]:

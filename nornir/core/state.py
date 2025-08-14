@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional, Set
 
 
-class GlobalState(object):
+class GlobalState:
     """
     This class is just a placeholder to share data amongst different
     versions of Nornir after running ``filter`` multiple times.
@@ -12,9 +12,7 @@ class GlobalState(object):
 
     __slots__ = "dry_run", "failed_hosts"
 
-    def __init__(
-        self, dry_run: bool = False, failed_hosts: Optional[Set[str]] = None
-    ) -> None:
+    def __init__(self, dry_run: bool = False, failed_hosts: Optional[Set[str]] = None) -> None:
         self.dry_run = dry_run
         self.failed_hosts = failed_hosts or set()
 

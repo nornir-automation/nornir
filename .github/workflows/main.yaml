@@ -11,9 +11,9 @@ jobs:
         platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Setup python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
@@ -26,26 +26,24 @@ jobs:
           virtualenvs-in-project: true
 
       - name: Cache Poetry virtualenv
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: cached-poetry-dependencies
         with:
           path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+          key: venv1-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
       - name: Install Dependencies
         run: poetry install
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
 
-      - name: Run pylama
-        run: make pylama
-      - name: Run black
-        run: make black
+      - name: Run ruff
+        run: make ruff
       - name: Run mypy
         run: make mypy
       - name: Run sphinx
         run: |
           sudo apt-get install pandoc
-          make sphinx
+          make docs
 
   pytest:
     name: Testing on Python ${{ matrix.python-version }} (${{ matrix.platform}})
@@ -54,16 +52,15 @@ jobs:
         shell: bash
     strategy:
       matrix:
-        python-version: [ '3.8', '3.9', '3.10', '3.11'  ]
-        platform: [ubuntu-latest, macOS-latest, windows-latest]
+        python-version: [ '3.9', '3.10', '3.11', '3.12', '3.13' ]
+        platform: [ubuntu-latest, macos-13, windows-2019]
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Setup python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          architecture: x64
 
       - name: Install Poetry
         uses: snok/install-poetry@v1
@@ -73,12 +70,12 @@ jobs:
           virtualenvs-in-project: true
 
       - name: Cache Poetry virtualenv
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: cached-poetry-dependencies
         with:
           path: .venv
-          key: venv-${{ matrix.python-version }}-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
-        if: ${{ matrix.platform != 'windows-latest' }}  # windows hangs if using a cached venv
+          key: venv1-${{ matrix.python-version }}-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+        if: ${{ matrix.platform != 'windows-2019' }}  # windows hangs if using a cached venv
 
       - name: Install Dependencies
         run: poetry install
@@ -86,15 +83,19 @@ jobs:
 
       - name: Run pytest
         run: make pytest
-        if: ${{ matrix.platform != 'windows-latest' }}
+        if: ${{ matrix.platform != 'windows-2019' }}
 
       - name: Run pytest
         run: poetry run pytest --cov=nornir --cov-report=term-missing
-        if: ${{ matrix.platform == 'windows-latest' }}
+        if: ${{ matrix.platform == 'windows-2019' }}
 
       - name: Run nbval
         run: make nbval
-        if: ${{ matrix.platform != 'windows-latest' }}
+        if: ${{ matrix.platform != 'windows-2019' }}
+
+      - name: Report coverage
+        uses: coverallsapp/github-action@v2
+        if: ${{ matrix.platform == 'ubuntu-latest' && matrix.python-version == '3.11' }}
 
 #  release:
 #    name: Releasing to pypi

@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import Any, Dict, List, Type, TypeVar, Union
 
 import pytest
 import ruamel.yaml
@@ -18,14 +18,16 @@ from nornir.core.inventory import (
 from nornir.core.state import GlobalState
 from nornir.core.task import AggregatedResult, Task
 
+ElementType = TypeVar("ElementType", bound=Union[Group, Host])
+
 global_data = GlobalState(dry_run=True)
 
 
-def inventory_from_yaml():
+def inventory_from_yaml() -> Inventory:
     dir_path = os.path.dirname(os.path.realpath(__file__))
     yml = ruamel.yaml.YAML(typ="safe")
 
-    def get_connection_options(data):
+    def get_connection_options(data: Dict[str, Any]) -> Dict[str, ConnectionOptions]:
         cp = {}
         for cn, c in data.items():
             cp[cn] = ConnectionOptions(
@@ -38,12 +40,12 @@ def inventory_from_yaml():
             )
         return cp
 
-    def get_defaults():
+    def get_defaults() -> Defaults:
         defaults_file = f"{dir_path}/inventory_data/defaults.yaml"
         with open(defaults_file, "r") as f:
             defaults_dict = yml.load(f)
 
-            defaults = Defaults(
+            return Defaults(
                 hostname=defaults_dict.get("hostname"),
                 port=defaults_dict.get("port"),
                 username=defaults_dict.get("username"),
@@ -55,9 +57,9 @@ def inventory_from_yaml():
                 ),
             )
 
-        return defaults
-
-    def get_inventory_element(typ, data, name, defaults):
+    def get_inventory_element(
+        typ: Type[ElementType], data: Dict[str, Any], name: str, defaults: Union[Defaults, None]
+    ) -> ElementType:
         return typ(
             name=name,
             hostname=data.get("hostname"),
@@ -70,9 +72,7 @@ def inventory_from_yaml():
                 "groups"
             ),  # this is a hack, we will convert it later to the correct type
             defaults=defaults,
-            connection_options=get_connection_options(
-                data.get("connection_options", {})
-            ),
+            connection_options=get_connection_options(data.get("connection_options", {})),
         )
 
     host_file = f"{dir_path}/inventory_data/hosts.yaml"
@@ -119,20 +119,17 @@ class SerialRunner:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def inv(request):
+def inv() -> Inventory:
     return inventory_from_yaml()
 
 
 @pytest.fixture(scope="session", autouse=True)
-def nornir(request):
+def nornir() -> Nornir:
     """Initializes nornir"""
-    nr = Nornir(
-        inventory=inventory_from_yaml(), runner=SerialRunner(), data=global_data
-    )
-    return nr
+    return Nornir(inventory=inventory_from_yaml(), runner=SerialRunner(), data=global_data)
 
 
 @pytest.fixture(scope="function", autouse=True)
-def reset_data():
+def reset_data() -> None:
     global_data.dry_run = True
     global_data.reset_failed_hosts()

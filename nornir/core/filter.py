@@ -3,7 +3,7 @@ from typing import Any, List
 from nornir.core.inventory import Host
 
 
-class F_BASE(object):
+class F_BASE:
     def __call__(self, host: Host) -> bool:
         raise NotImplementedError()
 
@@ -47,9 +47,7 @@ class F(F_BASE):
         self.filters = kwargs
 
     def __call__(self, host: Host) -> bool:
-        return all(
-            F._verify_rules(host, k.split("__"), v) for k, v in self.filters.items()
-        )
+        return all(F._verify_rules(host, k.split("__"), v) for k, v in self.filters.items())
 
     def __and__(self, other: "F") -> AND:
         return AND(self, other)
@@ -70,6 +68,34 @@ class F(F_BASE):
         return self.__class__ == other.__class__ and self.filters == other.filters
 
     @staticmethod
+    def _verify_rule(data: Any, rule: str, value: Any) -> bool:
+        operator = "__{}__".format(rule)
+        if hasattr(data, operator):
+            return getattr(data, operator)(value) is True
+
+        if hasattr(data, rule):
+            if callable(getattr(data, rule)):
+                return bool(getattr(data, rule)(value))
+            return bool(getattr(data, rule) == value)
+
+        if rule == "in":
+            return bool(data in value)
+
+        if rule == "any":
+            if isinstance(data, list):
+                return any(x in data for x in value)
+            return any(x == data for x in value)
+
+        if rule == "all":
+            if isinstance(data, list):
+                return all(x in data for x in value)
+
+            # it doesn't make sense to check a single value meets more than one case
+            return False
+
+        return bool(data.get(rule) == value)
+
+    @staticmethod
     def _verify_rules(data: Any, rule: List[str], value: Any) -> bool:
         if len(rule) > 1:
             try:
@@ -78,44 +104,15 @@ class F(F_BASE):
                 return False
 
         elif len(rule) == 1:
-            operator = "__{}__".format(rule[0])
-            if hasattr(data, operator):
-                return getattr(data, operator)(value) is True
-
-            elif hasattr(data, rule[0]):
-                if callable(getattr(data, rule[0])):
-                    return bool(getattr(data, rule[0])(value))
-
-                else:
-                    return bool(getattr(data, rule[0]) == value)
-
-            elif rule == ["in"]:
-                return bool(data in value)
-            elif rule == ["any"]:
-                if isinstance(data, list):
-                    return any([x in data for x in value])
-                else:
-                    return any([x == data for x in value])
-            elif rule == ["all"]:
-                if isinstance(data, list):
-                    return all([x in data for x in value])
-                else:
-                    # it doesn't make sense to check a single value meets more than one case
-                    return False
-            else:
-                return bool(data.get(rule[0]) == value)
+            return F._verify_rule(data, rule[0], value)
 
         else:
-            raise Exception(
-                "I don't know how I got here:\n{}\n{}\n{}".format(data, rule, value)
-            )
+            raise Exception("I don't know how I got here:\n{}\n{}\n{}".format(data, rule, value))
 
 
 class NOT_F(F):
     def __call__(self, host: Host) -> bool:
-        return not any(
-            F._verify_rules(host, k.split("__"), v) for k, v in self.filters.items()
-        )
+        return not any(F._verify_rules(host, k.split("__"), v) for k, v in self.filters.items())
 
     def __invert__(self) -> F:
         return F(**self.filters)
