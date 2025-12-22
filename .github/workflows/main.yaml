@@ -7,7 +7,7 @@ jobs:
     name: linters
     strategy:
       matrix:
-        python-version: [ '3.9' ]
+        python-version: [ '3.14' ]
         platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -53,7 +53,6 @@ jobs:
     strategy:
       matrix:
         python-version:
-          - "3.9"
           - "3.10"
           - "3.11"
           - "3.12"
