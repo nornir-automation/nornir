@@ -1,16 +1,11 @@
+import builtins
+from collections import UserDict, UserList
+from collections.abc import ItemsView, Iterator, KeysView, ValuesView
 from typing import (
     Any,
-    Dict,
-    ItemsView,
-    Iterator,
-    KeysView,
-    List,
-    Optional,
     Protocol,
-    Set,
     TypeVar,
     Union,
-    ValuesView,
 )
 
 from nornir.core.configuration import Config
@@ -25,11 +20,11 @@ class BaseAttributes:
 
     def __init__(
         self,
-        hostname: Optional[str] = None,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-        platform: Optional[str] = None,
+        hostname: str | None = None,
+        port: int | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        platform: str | None = None,
     ) -> None:
         self.hostname = hostname
         self.port = port
@@ -38,7 +33,7 @@ class BaseAttributes:
         self.platform = platform
 
     @classmethod
-    def schema(cls) -> Dict[str, Any]:
+    def schema(cls) -> dict[str, Any]:
         return {
             "hostname": "str",
             "port": "int",
@@ -47,7 +42,7 @@ class BaseAttributes:
             "platform": "str",
         }
 
-    def dict(self) -> Dict[str, Any]:
+    def dict(self) -> dict[str, Any]:
         return {
             "hostname": object.__getattribute__(self, "hostname"),
             "port": object.__getattribute__(self, "port"),
@@ -62,12 +57,12 @@ class ConnectionOptions(BaseAttributes):
 
     def __init__(
         self,
-        hostname: Optional[str] = None,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-        platform: Optional[str] = None,
-        extras: Optional[Dict[str, Any]] = None,
+        hostname: str | None = None,
+        port: int | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        platform: str | None = None,
+        extras: dict[str, Any] | None = None,
     ) -> None:
         self.extras = extras
         super().__init__(
@@ -79,20 +74,20 @@ class ConnectionOptions(BaseAttributes):
         )
 
     @classmethod
-    def schema(cls) -> Dict[str, Any]:
+    def schema(cls) -> dict[str, Any]:
         return {
             "extras": {"$key": "$value"},
             **super().schema(),
         }
 
-    def dict(self) -> Dict[str, Any]:
+    def dict(self) -> dict[str, Any]:
         return {
             "extras": self.extras,
             **super().dict(),
         }
 
 
-class ParentGroups(List["Group"]):
+class ParentGroups(UserList["Group"]):
     def __contains__(self, value: object) -> bool:
         if isinstance(value, str):
             return any(value == g.name for g in self)
@@ -117,14 +112,14 @@ class InventoryElement(BaseAttributes):
 
     def __init__(
         self,
-        hostname: Optional[str] = None,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-        platform: Optional[str] = None,
-        groups: Optional[ParentGroups] = None,
-        data: Optional[Dict[str, Any]] = None,
-        connection_options: Optional[Dict[str, ConnectionOptions]] = None,
+        hostname: str | None = None,
+        port: int | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        platform: str | None = None,
+        groups: ParentGroups | None = None,
+        data: dict[str, Any] | None = None,
+        connection_options: dict[str, ConnectionOptions] | None = None,
     ) -> None:
         self.groups = groups or ParentGroups()
         self.data = data or {}
@@ -138,7 +133,7 @@ class InventoryElement(BaseAttributes):
         )
 
     @classmethod
-    def schema(cls) -> Dict[str, Any]:
+    def schema(cls) -> dict[str, Any]:
         return {
             "groups": ["$group_name"],
             "data": {"$key": "$value"},
@@ -146,7 +141,7 @@ class InventoryElement(BaseAttributes):
             **super().schema(),
         }
 
-    def dict(self) -> Dict[str, Any]:
+    def dict(self) -> dict[str, Any]:
         return {
             "groups": [g.name for g in self.groups],
             "data": self.data,
@@ -154,7 +149,7 @@ class InventoryElement(BaseAttributes):
             **super().dict(),
         }
 
-    def extended_groups(self) -> List["Group"]:
+    def extended_groups(self) -> list["Group"]:
         """
         Returns the groups this host belongs to by virtue of inheritance.
 
@@ -181,7 +176,7 @@ class InventoryElement(BaseAttributes):
 
         this will return [group_a, group_1, group_X, group_2, group_b, group_3]
         """
-        groups: List[Group] = []
+        groups: list[Group] = []
 
         for g in self.groups:
             if g not in groups:
@@ -199,13 +194,13 @@ class Defaults(BaseAttributes):
 
     def __init__(
         self,
-        hostname: Optional[str] = None,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-        platform: Optional[str] = None,
-        data: Optional[Dict[str, Any]] = None,
-        connection_options: Optional[Dict[str, ConnectionOptions]] = None,
+        hostname: str | None = None,
+        port: int | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        platform: str | None = None,
+        data: dict[str, Any] | None = None,
+        connection_options: dict[str, ConnectionOptions] | None = None,
     ) -> None:
         self.data = data or {}
         self.connection_options = connection_options or {}
@@ -218,14 +213,14 @@ class Defaults(BaseAttributes):
         )
 
     @classmethod
-    def schema(cls) -> Dict[str, Any]:
+    def schema(cls) -> dict[str, Any]:
         return {
             "data": {"$key": "$value"},
             "connection_options": {"$connection_type": ConnectionOptions.schema()},
             **super().schema(),
         }
 
-    def dict(self) -> Dict[str, Any]:
+    def dict(self) -> dict[str, Any]:
         return {
             "data": self.data,
             "connection_options": {k: v.dict() for k, v in self.connection_options.items()},
@@ -239,19 +234,19 @@ class Host(InventoryElement):
     def __init__(
         self,
         name: str,
-        hostname: Optional[str] = None,
-        port: Optional[int] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-        platform: Optional[str] = None,
-        groups: Optional[ParentGroups] = None,
-        data: Optional[Dict[str, Any]] = None,
-        connection_options: Optional[Dict[str, ConnectionOptions]] = None,
-        defaults: Optional[Defaults] = None,
+        hostname: str | None = None,
+        port: int | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        platform: str | None = None,
+        groups: ParentGroups | None = None,
+        data: dict[str, Any] | None = None,
+        connection_options: dict[str, ConnectionOptions] | None = None,
+        defaults: Defaults | None = None,
     ) -> None:
         self.name = name
         self.defaults = defaults or Defaults(None, None, None, None, None, None, None)
-        self.connections: Dict[str, ConnectionPlugin] = {}
+        self.connections: dict[str, ConnectionPlugin] = {}
         super().__init__(
             hostname=hostname,
             port=port,
@@ -263,7 +258,7 @@ class Host(InventoryElement):
             connection_options=connection_options,
         )
 
-    def extended_data(self) -> Dict[str, Any]:
+    def extended_data(self) -> dict[str, Any]:
         """
         Returns the data associated with the object including inherited data
         """
@@ -284,14 +279,14 @@ class Host(InventoryElement):
         return result
 
     @classmethod
-    def schema(cls) -> Dict[str, Any]:
+    def schema(cls) -> dict[str, Any]:
         return {
             "name": "str",
             "connection_options": {"$connection_type": ConnectionOptions.schema()},
             **super().schema(),
         }
 
-    def dict(self) -> Dict[str, Any]:
+    def dict(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "connection_options": {k: v.dict() for k, v in self.connection_options.items()},
@@ -397,7 +392,7 @@ class Host(InventoryElement):
         except KeyError:
             return default
 
-    def get_connection_parameters(self, connection: Optional[str] = None) -> ConnectionOptions:
+    def get_connection_parameters(self, connection: str | None = None) -> ConnectionOptions:
         if not connection:
             d = ConnectionOptions(
                 hostname=self.hostname,
@@ -429,7 +424,7 @@ class Host(InventoryElement):
                 )
         return d
 
-    def _get_connection_options_recursively(self, connection: str) -> Optional[ConnectionOptions]:
+    def _get_connection_options_recursively(self, connection: str) -> ConnectionOptions | None:
         p = self.connection_options.get(connection)
         if p is None:
             p = ConnectionOptions(None, None, None, None, None, None)
@@ -489,12 +484,12 @@ class Host(InventoryElement):
         self,
         connection: str,
         configuration: Config,
-        hostname: Optional[str] = None,
-        username: Optional[str] = None,
-        password: Optional[str] = None,
-        port: Optional[int] = None,
-        platform: Optional[str] = None,
-        extras: Optional[Dict[str, Any]] = None,
+        hostname: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        port: int | None = None,
+        platform: str | None = None,
+        extras: builtins.dict[str, Any] | None = None,
         default_to_host_attributes: bool = True,
     ) -> ConnectionPlugin:
         """
@@ -558,11 +553,11 @@ class Group(Host):
     pass
 
 
-class Hosts(Dict[str, Host]):
+class Hosts(UserDict[str, Host]):
     pass
 
 
-class Groups(Dict[str, Group]):
+class Groups(UserDict[str, Group]):
     pass
 
 
@@ -580,10 +575,10 @@ class Inventory:
     def __init__(
         self,
         hosts: Hosts,
-        groups: Optional[Groups] = None,
-        defaults: Optional[Defaults] = None,
-        transform_function: Optional[TransformFunction] = None,
-        transform_function_options: Optional[Dict[str, Any]] = None,
+        groups: Groups | None = None,
+        defaults: Defaults | None = None,
+        transform_function: TransformFunction | None = None,
+        transform_function_options: dict[str, Any] | None = None,
     ) -> None:
         self.hosts = hosts
         self.groups = groups or Groups()
@@ -591,8 +586,8 @@ class Inventory:
 
     def filter(
         self,
-        filter_obj: Optional[FilterObj] = None,
-        filter_func: Optional[FilterObj] = None,
+        filter_obj: FilterObj | None = None,
+        filter_func: FilterObj | None = None,
         **kwargs: Any,
     ) -> "Inventory":
         filter_func = filter_obj or filter_func
@@ -611,19 +606,19 @@ class Inventory:
     def __len__(self) -> int:
         return self.hosts.__len__()
 
-    def children_of_group(self, group: Union[str, Group]) -> Set[Host]:
+    def children_of_group(self, group: str | Group) -> set[Host]:
         """
         Returns set of hosts that belongs to a group including those that belong
         indirectly via inheritance
         """
-        hosts: Set[Host] = set()
+        hosts: set[Host] = set()
         for host in self.hosts.values():
             if host.has_parent_group(group):
                 hosts.add(host)
         return hosts
 
     @classmethod
-    def schema(cls) -> Dict[str, Any]:
+    def schema(cls) -> dict[str, Any]:
         """
         Return serialized dictionary of inventory
         """
@@ -633,7 +628,7 @@ class Inventory:
             "defaults": Defaults.schema(),
         }
 
-    def dict(self) -> Dict[str, Any]:
+    def dict(self) -> dict[str, Any]:
         """
         Return serialized dictionary of inventory
         """

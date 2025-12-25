@@ -1,19 +1,13 @@
-import sys
-from typing import Dict, Generic, TypeVar
+from importlib import metadata
+from typing import Generic, TypeVar
 
 from nornir.core.exceptions import PluginAlreadyRegistered, PluginNotRegistered
-
-if sys.version_info >= (3, 10):
-    from importlib import metadata
-else:
-    import importlib_metadata as metadata
-
 
 T = TypeVar("T")
 
 
 class PluginRegister(Generic[T]):
-    available: Dict[str, T] = {}
+    available: dict[str, T] = {}
 
     def __init__(self, entry_point: str) -> None:
         self._entry_point = entry_point

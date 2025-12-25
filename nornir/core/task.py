@@ -1,6 +1,8 @@
 import logging
 import traceback
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union, cast
+from collections import UserDict, UserList
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, Optional, Union, cast
 
 from nornir.core.exceptions import NornirExecutionError, NornirSubTaskError
 
@@ -44,7 +46,7 @@ class Task:
         nornir: "Nornir",
         global_dry_run: bool,
         processors: "Processors",
-        name: Optional[str] = None,
+        name: str | None = None,
         severity_level: int = DEFAULT_SEVERITY_LEVEL,
         parent_task: Optional["Task"] = None,
         **kwargs: str,
@@ -174,7 +176,7 @@ class Task:
 
         return r
 
-    def is_dry_run(self, override: Optional[bool] = None) -> bool:
+    def is_dry_run(self, override: bool | None = None) -> bool:
         """
         Returns whether current task is a dry_run or not.
         """
@@ -211,7 +213,7 @@ class Result:
         changed: bool = False,
         diff: str = "",
         failed: bool = False,
-        exception: Optional[BaseException] = None,
+        exception: BaseException | None = None,
         severity_level: int = DEFAULT_SEVERITY_LEVEL,
         **kwargs: Any,
     ) -> None:
@@ -224,8 +226,8 @@ class Result:
         self.name = None
         self.severity_level = severity_level
 
-        self.stdout: Optional[str] = None
-        self.stderr: Optional[str] = None
+        self.stdout: str | None = None
+        self.stderr: str | None = None
 
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -240,7 +242,7 @@ class Result:
         return str(self.result)
 
 
-class MultiResult(List[Result]):
+class MultiResult(UserList[Result]):
     """
     It is basically is a list-like object that gives you access to the results of all subtasks for
     a particular device/task.
@@ -279,7 +281,7 @@ class MultiResult(List[Result]):
             raise NornirExecutionError(self)
 
 
-class AggregatedResult(Dict[str, MultiResult]):
+class AggregatedResult(UserDict[str, MultiResult]):
     """
     It basically is a dict-like object that aggregates the results for all devices.
     You can access each individual result by doing ``my_aggr_result["hostname_of_device"]``.
@@ -298,7 +300,7 @@ class AggregatedResult(Dict[str, MultiResult]):
         return any(h.failed for h in self.values())
 
     @property
-    def failed_hosts(self) -> Dict[str, "MultiResult"]:
+    def failed_hosts(self) -> dict[str, "MultiResult"]:
         """Hosts that failed during the execution of the task."""
         return {h: r for h, r in self.items() if r.failed}
 

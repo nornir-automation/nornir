@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Set
+from typing import Any
 
 
 class GlobalState:
@@ -12,7 +12,7 @@ class GlobalState:
 
     __slots__ = "dry_run", "failed_hosts"
 
-    def __init__(self, dry_run: bool = False, failed_hosts: Optional[Set[str]] = None) -> None:
+    def __init__(self, dry_run: bool = False, failed_hosts: set[str] | None = None) -> None:
         self.dry_run = dry_run
         self.failed_hosts = failed_hosts or set()
 
@@ -24,6 +24,6 @@ class GlobalState:
         """Reset failed hosts and make all hosts available for future tasks."""
         self.failed_hosts = set()
 
-    def dict(self) -> Dict[str, Any]:
+    def dict(self) -> dict[str, Any]:
         """Return a dictionary representing the object."""
         return {item: getattr(self, item) for item in GlobalState.__slots__}

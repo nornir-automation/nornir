@@ -1,5 +1,4 @@
 import logging
-from typing import List, Optional
 
 from nornir.core import Nornir
 from nornir.core.exceptions import NornirSubTaskError
@@ -10,7 +9,7 @@ class CustomException(Exception):
     pass
 
 
-def a_task_for_testing(task: Task, fail_on: Optional[List[str]] = None) -> Result:
+def a_task_for_testing(task: Task, fail_on: list[str] | None = None) -> Result:
     fail_on = fail_on or []
     if task.host.name in fail_on:
         raise CustomException()
@@ -31,12 +30,12 @@ def a_failed_task_for_testing_overrides_severity(task: Task) -> Result:
 
 
 def a_task_to_test_dry_run(
-    task: Task, expected_dry_run_value: bool, dry_run: Optional[bool] = None
+    task: Task, expected_dry_run_value: bool, dry_run: bool | None = None
 ) -> None:
     assert task.is_dry_run(dry_run) is expected_dry_run_value
 
 
-def sub_task_for_testing(task: Task, fail_on: Optional[List[str]] = None) -> None:
+def sub_task_for_testing(task: Task, fail_on: list[str] | None = None) -> None:
     task.run(
         a_task_for_testing,
         fail_on=fail_on,
@@ -44,7 +43,7 @@ def sub_task_for_testing(task: Task, fail_on: Optional[List[str]] = None) -> Non
 
 
 def sub_task_for_testing_overrides_severity(
-    task: Task, fail_on: Optional[List[str]] = None
+    task: Task, fail_on: list[str] | None = None
 ) -> None:
     task.run(
         a_task_for_testing,
@@ -53,12 +52,12 @@ def sub_task_for_testing_overrides_severity(
     )
 
 
-def fail_command_subtask_no_capture(task: Task, fail_on: Optional[List[str]] = None) -> str:
+def fail_command_subtask_no_capture(task: Task, fail_on: list[str] | None = None) -> str:
     task.run(a_task_for_testing, fail_on=fail_on)
     return "I shouldn't be here"
 
 
-def fail_command_subtask_capture(task: Task, fail_on: Optional[List[str]] = None) -> Optional[str]:
+def fail_command_subtask_capture(task: Task, fail_on: list[str] | None = None) -> str | None:
     try:
         task.run(a_task_for_testing, fail_on=fail_on)
     except Exception:

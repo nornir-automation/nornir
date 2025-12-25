@@ -48,7 +48,7 @@ napalm = { git = "https://github.com/napalm-automation/napalm", rev = "e2f8e7e24
 nornir-napalm = "0.5.0"
 # ncclient 0.6.16 broke Windows support; should be fixed in next release of ncclient.
 ncclient = "0.6.15"
-ruff = "^0.4.9"
+ruff = "^0.14.10"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "6.2.1"
@@ -238,10 +238,18 @@ max-public-methods = 22
 max-returns = 11
 
 [tool.ruff.lint.per-file-ignores]
+"docs/**" = [
+    "ANN",  # Ignore all annotation (ANN) rules in the docs directory and notebooks
+    "PLR2004",  # Ignore magic value used in comparison for the docs/notebooks
+]
 
 "docs/conf.py" = [
     "A001",   # Variable `copyright` is shadowing a Python builtin
     "ERA001", # Commented out code, used to provide examples for Sphinx docs
+]
+
+"docs/tutorial/task_results.ipynb" = [
+    "W391",   # Extra newline in docs which I don't care about
 ]
 
 "nornir/core/configuration.py" = [

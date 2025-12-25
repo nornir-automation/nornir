@@ -16,7 +16,6 @@
 #
 import os
 import sys
-from typing import Dict
 
 from nornir import __version__
 
@@ -119,7 +118,7 @@ htmlhelp_basename = "nornirdoc"
 
 # -- Options for LaTeX output ---------------------------------------------
 
-latex_elements: Dict[str, str] = {
+latex_elements: dict[str, str] = {
     # The paper size ('letterpaper' or 'a4paper').
     #
     # 'papersize': 'letterpaper',

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from nornir.core.connection import Connection
@@ -49,7 +49,7 @@ class NornirExecutionError(Exception):
         self.result = result
 
     @property
-    def failed_hosts(self) -> Dict[str, "MultiResult"]:
+    def failed_hosts(self) -> dict[str, "MultiResult"]:
         """
         Hosts that failed to complete the task
         """

@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Protocol, Type
+from typing import Any, Protocol
 
 from nornir.core.configuration import Config
 from nornir.core.plugins.register import PluginRegister
@@ -9,13 +9,13 @@ CONNECTIONS_PLUGIN_PATH = "nornir.plugins.connections"
 class ConnectionPlugin(Protocol):
     def open(
         self,
-        hostname: Optional[str],
-        username: Optional[str],
-        password: Optional[str],
-        port: Optional[int],
-        platform: Optional[str],
-        extras: Optional[Dict[str, Any]] = None,
-        configuration: Optional[Config] = None,
+        hostname: str | None,
+        username: str | None,
+        password: str | None,
+        port: int | None,
+        platform: str | None,
+        extras: dict[str, Any] | None = None,
+        configuration: Config | None = None,
     ) -> None:
         """
         Connect to the device and populate the attribute :attr:`connection` with
@@ -32,6 +32,6 @@ class ConnectionPlugin(Protocol):
         """
 
 
-ConnectionPluginRegister: PluginRegister[Type[ConnectionPlugin]] = PluginRegister(
+ConnectionPluginRegister: PluginRegister[type[ConnectionPlugin]] = PluginRegister(
     CONNECTIONS_PLUGIN_PATH
 )

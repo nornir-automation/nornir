@@ -1,7 +1,7 @@
-from typing import Any, Dict
+from typing import Any
 
 
-def merge_two_dicts(x: Dict[Any, Any], y: Dict[Any, Any]) -> Dict[Any, Any]:
+def merge_two_dicts(x: dict[Any, Any], y: dict[Any, Any]) -> dict[Any, Any]:
     try:
         z = x.copy()
     except AttributeError:

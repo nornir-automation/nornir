@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any
 
 from nornir.core.inventory import Host
 
@@ -96,7 +96,7 @@ class F(F_BASE):
         return bool(data.get(rule) == value)
 
     @staticmethod
-    def _verify_rules(data: Any, rule: List[str], value: Any) -> bool:
+    def _verify_rules(data: Any, rule: list[str], value: Any) -> bool:
         if len(rule) > 1:
             try:
                 return F._verify_rules(data.get(rule[0], {}), rule[1:], value)

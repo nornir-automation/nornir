@@ -1,7 +1,8 @@
+import builtins
 import logging
-import logging.config
 import types
-from typing import Any, Callable, Dict, Generator, List, Optional, Type
+from collections.abc import Callable, Generator
+from typing import Any
 
 from nornir.core.configuration import Config
 from nornir.core.exceptions import PluginNotRegistered
@@ -35,10 +36,10 @@ class Nornir:
     def __init__(
         self,
         inventory: Inventory,
-        config: Optional[Config] = None,
-        data: Optional[GlobalState] = None,
-        processors: Optional[Processors] = None,
-        runner: Optional[RunnerPlugin] = None,
+        config: Config | None = None,
+        data: GlobalState | None = None,
+        processors: Processors | None = None,
+        runner: RunnerPlugin | None = None,
     ) -> None:
         self.data = data if data is not None else GlobalState()
         self.inventory = inventory
@@ -51,13 +52,13 @@ class Nornir:
 
     def __exit__(
         self,
-        exc_type: Optional[Type[BaseException]] = None,
-        exc_val: Optional[BaseException] = None,
-        exc_tb: Optional[types.TracebackType] = None,
+        exc_type: type[BaseException] | None = None,
+        exc_val: BaseException | None = None,
+        exc_tb: types.TracebackType | None = None,
     ) -> None:
         self.close_connections(on_good=True, on_failed=True)
 
-    def with_processors(self, processors: List[Processor]) -> "Nornir":
+    def with_processors(self, processors: list[Processor]) -> "Nornir":
         """
         Given a list of Processor objects return a copy of the nornir object with the processors
         assigned to the copy. The original object is left unmodified.
@@ -85,10 +86,10 @@ class Nornir:
     def run(
         self,
         task: Callable[..., Any],
-        raise_on_error: Optional[bool] = None,
+        raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
-        name: Optional[str] = None,
+        name: str | None = None,
         **kwargs: Any,
     ) -> AggregatedResult:
         """
@@ -154,7 +155,7 @@ class Nornir:
 
         return result
 
-    def dict(self) -> Dict[str, Any]:
+    def dict(self) -> dict[str, Any]:
         """Return a dictionary representing the object."""
         return {"data": self.data.dict(), "inventory": self.inventory.dict()}
 
@@ -171,7 +172,7 @@ class Nornir:
 
         raise PluginNotRegistered("Runner plugin not registered")
 
-    def _clone_parameters(self) -> Dict[str, Any]:
+    def _clone_parameters(self) -> builtins.dict[str, Any]:
         return {
             "data": self.data,
             "inventory": self.inventory,

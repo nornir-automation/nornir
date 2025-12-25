@@ -1,6 +1,7 @@
 import sys
+from collections.abc import Callable
 from io import StringIO
-from typing import Any, Callable, Dict
+from typing import Any
 
 from decorator import decorator
 
@@ -16,7 +17,7 @@ def wrap_cli_test(output: str, save_output: bool = False) -> Callable[[Callable[
     """
 
     @decorator
-    def run_test(func: Callable[..., Any], *args: Any, **kwargs: Dict[str, Any]) -> Any:
+    def run_test(func: Callable[..., Any], *args: Any, **kwargs: dict[str, Any]) -> Any:
         stdout = StringIO()
         backup_stdout = sys.stdout
         sys.stdout = stdout

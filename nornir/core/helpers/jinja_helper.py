@@ -1,10 +1,10 @@
-from typing import Any, Dict, Optional
+from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 
 def render_from_file(
-    path: str, template: str, jinja_filters: Optional[Dict[str, Any]] = None, **kwargs: Any
+    path: str, template: str, jinja_filters: dict[str, Any] | None = None, **kwargs: Any
 ) -> str:
     jinja_filters = jinja_filters or {}
     env = Environment(loader=FileSystemLoader(path), undefined=StrictUndefined, trim_blocks=True)
@@ -14,7 +14,7 @@ def render_from_file(
 
 
 def render_from_string(
-    template: str, jinja_filters: Optional[Dict[str, Any]] = None, **kwargs: Any
+    template: str, jinja_filters: dict[str, Any] | None = None, **kwargs: Any
 ) -> str:
     jinja_filters = jinja_filters or {}
     env = Environment(undefined=StrictUndefined, trim_blocks=True)

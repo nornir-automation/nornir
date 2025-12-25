@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, List, Type, TypeVar, Union
+from typing import Any, TypeVar
 
 import pytest
 import ruamel.yaml
@@ -18,7 +18,7 @@ from nornir.core.inventory import (
 from nornir.core.state import GlobalState
 from nornir.core.task import AggregatedResult, Task
 
-ElementType = TypeVar("ElementType", bound=Union[Group, Host])
+ElementType = TypeVar("ElementType", bound=Group | Host)
 
 global_data = GlobalState(dry_run=True)
 
@@ -27,7 +27,7 @@ def inventory_from_yaml() -> Inventory:
     dir_path = os.path.dirname(os.path.realpath(__file__))
     yml = ruamel.yaml.YAML(typ="safe")
 
-    def get_connection_options(data: Dict[str, Any]) -> Dict[str, ConnectionOptions]:
+    def get_connection_options(data: dict[str, Any]) -> dict[str, ConnectionOptions]:
         cp = {}
         for cn, c in data.items():
             cp[cn] = ConnectionOptions(
@@ -58,7 +58,7 @@ def inventory_from_yaml() -> Inventory:
             )
 
     def get_inventory_element(
-        typ: Type[ElementType], data: Dict[str, Any], name: str, defaults: Union[Defaults, None]
+        typ: type[ElementType], data: dict[str, Any], name: str, defaults: Defaults | None
     ) -> ElementType:
         return typ(
             name=name,
@@ -111,7 +111,7 @@ class SerialRunner:
     def __init__(self) -> None:
         pass
 
-    def run(self, task: Task, hosts: List[Host]) -> AggregatedResult:
+    def run(self, task: Task, hosts: list[Host]) -> AggregatedResult:
         result = AggregatedResult(task.name)
         for host in hosts:
             result[host.name] = task.copy().start(host)

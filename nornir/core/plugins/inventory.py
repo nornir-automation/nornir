@@ -1,4 +1,4 @@
-from typing import Any, Protocol, Type
+from typing import Any, Protocol
 
 from nornir.core.inventory import Inventory, TransformFunction
 from nornir.core.plugins.register import PluginRegister
@@ -21,7 +21,7 @@ class InventoryPlugin(Protocol):
         raise NotImplementedError("needs to be implemented by the plugin")
 
 
-InventoryPluginRegister: PluginRegister[Type[InventoryPlugin]] = PluginRegister(
+InventoryPluginRegister: PluginRegister[type[InventoryPlugin]] = PluginRegister(
     INVENTORY_PLUGIN_PATH
 )
 

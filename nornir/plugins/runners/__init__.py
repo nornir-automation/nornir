@@ -1,5 +1,4 @@
 from concurrent.futures import ThreadPoolExecutor
-from typing import List
 
 from nornir.core.inventory import Host
 from nornir.core.task import AggregatedResult, Task
@@ -13,7 +12,7 @@ class SerialRunner:
     def __init__(self) -> None:
         pass
 
-    def run(self, task: Task, hosts: List[Host]) -> AggregatedResult:
+    def run(self, task: Task, hosts: list[Host]) -> AggregatedResult:
         result = AggregatedResult(task.name)
         for host in hosts:
             result[host.name] = task.copy().start(host)
@@ -31,7 +30,7 @@ class ThreadedRunner:
     def __init__(self, num_workers: int = 20) -> None:
         self.num_workers = num_workers
 
-    def run(self, task: Task, hosts: List[Host]) -> AggregatedResult:
+    def run(self, task: Task, hosts: list[Host]) -> AggregatedResult:
         result = AggregatedResult(task.name)
         futures = []
         with ThreadPoolExecutor(self.num_workers) as pool:

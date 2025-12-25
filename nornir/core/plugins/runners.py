@@ -1,4 +1,4 @@
-from typing import Any, List, Protocol, Type
+from typing import Any, Protocol
 
 from nornir.core.inventory import Host
 from nornir.core.plugins.register import PluginRegister
@@ -14,11 +14,11 @@ class RunnerPlugin(Protocol):
         """
         raise NotImplementedError("needs to be implemented by the plugin")
 
-    def run(self, task: Task, hosts: List[Host]) -> AggregatedResult:
+    def run(self, task: Task, hosts: list[Host]) -> AggregatedResult:
         """
         This method runs the given task over all the hosts
         """
         raise NotImplementedError("needs to be implemented by the plugin")
 
 
-RunnersPluginRegister: PluginRegister[Type[RunnerPlugin]] = PluginRegister(RUNNERS_PLUGIN_PATH)
+RunnersPluginRegister: PluginRegister[type[RunnerPlugin]] = PluginRegister(RUNNERS_PLUGIN_PATH)

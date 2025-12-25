@@ -5,7 +5,7 @@ import os
 import sys
 import warnings
 from pathlib import Path
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar
+from typing import Any, Generic, TypeVar
 
 import ruamel.yaml
 
@@ -20,12 +20,12 @@ class Parameter(Generic[T]):
     def __init__(
         self,
         envvar: str,
-        typ: Optional[Type[T]] = None,
+        typ: type[T] | None = None,
         help: str = "",
-        default: Optional[T] = None,
+        default: T | None = None,
     ) -> None:
         if typ is not None:
-            self.type: Type[T] = typ
+            self.type: type[T] = typ
         elif default is not None:
             self.type = default.__class__
         else:
@@ -34,8 +34,8 @@ class Parameter(Generic[T]):
         self.help = help
         self.default = default or self.type()
 
-    def resolve(self, value: Optional[T]) -> T:
-        v: Optional[Any] = value
+    def resolve(self, value: T | None) -> T:
+        v: Any | None = value
         if value is None:
             t = os.environ.get(self.envvar)
             if self.type is bool and t:
@@ -60,10 +60,10 @@ class SSHConfig:
     class Parameters:
         config_file = Parameter[str](default=DEFAULT_SSH_CONFIG, envvar="NORNIR_SSH_CONFIG_FILE")
 
-    def __init__(self, config_file: Optional[str] = None) -> None:
+    def __init__(self, config_file: str | None = None) -> None:
         self.config_file = self.Parameters.config_file.resolve(config_file)
 
-    def dict(self) -> Dict[str, Any]:
+    def dict(self) -> dict[str, Any]:
         return {"config_file": self.config_file}
 
 
@@ -74,18 +74,18 @@ class InventoryConfig:
         plugin = Parameter[str](
             typ=str, default="SimpleInventory", envvar="NORNIR_INVENTORY_PLUGIN"
         )
-        options = Parameter[Dict[str, Any]](default={}, envvar="NORNIR_INVENTORY_OPTIONS")
+        options = Parameter[dict[str, Any]](default={}, envvar="NORNIR_INVENTORY_OPTIONS")
         transform_function = Parameter[str](typ=str, envvar="NORNIR_INVENTORY_TRANSFORM_FUNCTION")
-        transform_function_options = Parameter[Dict[str, Any]](
+        transform_function_options = Parameter[dict[str, Any]](
             default={}, envvar="NORNIR_INVENTORY_TRANSFORM_FUNCTION_OPTIONS"
         )
 
     def __init__(
         self,
-        plugin: Optional[str] = None,
-        options: Optional[Dict[str, Any]] = None,
-        transform_function: Optional[str] = None,
-        transform_function_options: Optional[Dict[str, Any]] = None,
+        plugin: str | None = None,
+        options: dict[str, Any] | None = None,
+        transform_function: str | None = None,
+        transform_function_options: dict[str, Any] | None = None,
     ) -> None:
         self.plugin = self.Parameters.plugin.resolve(plugin)
         self.options = self.Parameters.options.resolve(options) or {}
@@ -94,7 +94,7 @@ class InventoryConfig:
             transform_function_options
         )
 
-    def dict(self) -> Dict[str, Any]:
+    def dict(self) -> dict[str, Any]:
         return {
             "plugin": self.plugin,
             "options": self.options,
@@ -115,16 +115,16 @@ class LoggingConfig:
             envvar="NORNIR_LOGGING_FORMAT",
         )
         to_console = Parameter[bool](default=False, envvar="NORNIR_LOGGING_TO_CONSOLE")
-        loggers = Parameter[List[str]](default=["nornir"], envvar="NORNIR_LOGGING_LOGGERS")
+        loggers = Parameter[list[str]](default=["nornir"], envvar="NORNIR_LOGGING_LOGGERS")
 
     def __init__(
         self,
-        enabled: Optional[bool] = None,
-        level: Optional[str] = None,
-        log_file: Optional[str] = None,
-        format: Optional[str] = None,
-        to_console: Optional[bool] = None,
-        loggers: Optional[List[str]] = None,
+        enabled: bool | None = None,
+        level: str | None = None,
+        log_file: str | None = None,
+        format: str | None = None,
+        to_console: bool | None = None,
+        loggers: list[str] | None = None,
     ) -> None:
         self.enabled = self.Parameters.enabled.resolve(enabled)
         self.level = self.Parameters.level.resolve(level)
@@ -133,7 +133,7 @@ class LoggingConfig:
         self.to_console = self.Parameters.to_console.resolve(to_console)
         self.loggers = self.Parameters.loggers.resolve(loggers)
 
-    def dict(self) -> Dict[str, Any]:
+    def dict(self) -> dict[str, Any]:
         return {
             "enabled": self.enabled,
             "level": self.level,
@@ -201,15 +201,15 @@ class RunnerConfig:
 
     class Parameters:
         plugin = Parameter[str](default="threaded", envvar="NORNIR_RUNNER_PLUGIN")
-        options = Parameter[Dict[str, Any]](default={}, envvar="NORNIR_RUNNER_OPTIONS")
+        options = Parameter[dict[str, Any]](default={}, envvar="NORNIR_RUNNER_OPTIONS")
 
     def __init__(
-        self, plugin: Optional[str] = None, options: Optional[Dict[str, Any]] = None
+        self, plugin: str | None = None, options: dict[str, Any] | None = None
     ) -> None:
         self.plugin = self.Parameters.plugin.resolve(plugin)
         self.options = self.Parameters.options.resolve(options)
 
-    def dict(self) -> Dict[str, Any]:
+    def dict(self) -> dict[str, Any]:
         return {
             "plugin": self.plugin,
             "options": self.options,
@@ -222,10 +222,10 @@ class CoreConfig:
     class Parameters:
         raise_on_error = Parameter[bool](default=False, envvar="NORNIR_CORE_RAISE_ON_ERROR")
 
-    def __init__(self, raise_on_error: Optional[bool] = None) -> None:
+    def __init__(self, raise_on_error: bool | None = None) -> None:
         self.raise_on_error = self.Parameters.raise_on_error.resolve(raise_on_error)
 
-    def dict(self) -> Dict[str, Any]:
+    def dict(self) -> dict[str, Any]:
         return {
             "raise_on_error": self.raise_on_error,
         }
@@ -243,12 +243,12 @@ class Config:
 
     def __init__(
         self,
-        inventory: Optional[InventoryConfig] = None,
-        ssh: Optional[SSHConfig] = None,
-        logging: Optional[LoggingConfig] = None,
-        core: Optional[CoreConfig] = None,
-        runner: Optional[RunnerConfig] = None,
-        user_defined: Optional[Dict[str, Any]] = None,
+        inventory: InventoryConfig | None = None,
+        ssh: SSHConfig | None = None,
+        logging: LoggingConfig | None = None,
+        core: CoreConfig | None = None,
+        runner: RunnerConfig | None = None,
+        user_defined: dict[str, Any] | None = None,
     ) -> None:
         self.inventory = inventory or InventoryConfig()
         self.ssh = ssh or SSHConfig()
@@ -260,12 +260,12 @@ class Config:
     @classmethod
     def from_dict(
         cls,
-        inventory: Optional[Dict[str, Any]] = None,
-        ssh: Optional[Dict[str, Any]] = None,
-        logging: Optional[Dict[str, Any]] = None,
-        core: Optional[Dict[str, Any]] = None,
-        runner: Optional[Dict[str, Any]] = None,
-        user_defined: Optional[Dict[str, Any]] = None,
+        inventory: dict[str, Any] | None = None,
+        ssh: dict[str, Any] | None = None,
+        logging: dict[str, Any] | None = None,
+        core: dict[str, Any] | None = None,
+        runner: dict[str, Any] | None = None,
+        user_defined: dict[str, Any] | None = None,
     ) -> "Config":
         return cls(
             inventory=InventoryConfig(**inventory or {}),
@@ -280,12 +280,12 @@ class Config:
     def from_file(
         cls,
         config_file: str,
-        inventory: Optional[Dict[str, Any]] = None,
-        ssh: Optional[Dict[str, Any]] = None,
-        logging: Optional[Dict[str, Any]] = None,
-        core: Optional[Dict[str, Any]] = None,
-        runner: Optional[Dict[str, Any]] = None,
-        user_defined: Optional[Dict[str, Any]] = None,
+        inventory: dict[str, Any] | None = None,
+        ssh: dict[str, Any] | None = None,
+        logging: dict[str, Any] | None = None,
+        core: dict[str, Any] | None = None,
+        runner: dict[str, Any] | None = None,
+        user_defined: dict[str, Any] | None = None,
     ) -> "Config":
         inventory = inventory or {}
         ssh = ssh or {}
@@ -305,7 +305,7 @@ class Config:
             user_defined={**data.get("user_defined", {}), **user_defined},
         )
 
-    def dict(self) -> Dict[str, Any]:
+    def dict(self) -> dict[str, Any]:
         return {
             "inventory": self.inventory.dict(),
             "ssh": self.ssh.dict(),
