@@ -29,7 +29,6 @@ classifiers = [
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
 "ruamel.yaml" = ">=0.17"
-setuptools = ">=43.0.0"
 
 [tool.poetry.group.dev.dependencies]
 decorator = "*"
@@ -287,3 +286,8 @@ max-returns = 11
     "SIM118",  # Use `key in dict` instead of `key in dict.keys()`
 ]
 
+[tool.pytest]
+# addopts = ["--cov=nornir", "--cov-report=term-missing", "-vs"]
+filterwarnings = [
+    "ignore::nornir.core.exceptions.ConflictingConfigurationWarning",
+]
