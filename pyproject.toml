@@ -8,6 +8,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.plugins."nornir.plugins.inventory"]
 "SimpleInventory" = "nornir.plugins.inventory.simple:SimpleInventory"
+"SimpleInventoryAsync" = "nornir.plugins.inventory.simple:SimpleInventoryAsync"
 
 [tool.poetry]
 name = "nornir"
