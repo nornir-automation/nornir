@@ -302,6 +302,11 @@ class AggregatedResult(Dict[str, MultiResult]):
         """Hosts that failed during the execution of the task."""
         return {h: r for h, r in self.items() if r.failed}
 
+    @property
+    def changed(self) -> bool:
+        """If ``True`` at least a host changed the system."""
+        return any([h.changed for h in self.values()])
+
     def raise_on_error(self) -> None:
         """
         Raises:
