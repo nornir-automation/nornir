@@ -260,6 +260,12 @@ class MultiResult(List[Result]):
     def __repr__(self) -> str:
         return "{}: {}".format(self.__class__.__name__, super().__repr__())
 
+    def __getstate__(self) -> Dict[str, Any]:
+        return self.__dict__
+
+    def __setstate__(self, d) -> None:
+        self.__dict__.update(d)
+
     @property
     def failed(self) -> bool:
         """If ``True`` at least a task failed."""
