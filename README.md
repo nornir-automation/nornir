@@ -22,7 +22,7 @@ pip install nornir
 
 Since version 3.0.0 nornir doesn't ship with plugins, instead you can rely on `pip` to install them for you. You can find a non-exhaustive list of plugins here: [https://nornir.readthedocs.io/en/latest/community/plugin_list.html](https://nornir.readthedocs.io/en/latest/community/plugin_list.html)
 
-If you wrote a plugin and want to add it to the list don't hesitate to [add it yourself](https://github.com/nornir-automation/nornir.tech.src/blob/master/data/nornir/plugins.yaml)
+If you wrote a plugin and want to add it to the list don't hesitate to [add it yourself](https://github.com/nornir-automation/nornir/blob/main/docs/community/plugin_list.rst)
 
 ## Development version
 
@@ -31,10 +31,6 @@ If you want to clone the repo and install it from there you will need to use [po
 ## Documentation
 
 Read the [Nornir documentation](https://nornir.readthedocs.io/) online or review its [code here](https://github.com/nornir-automation/nornir/tree/develop/docs)
-
-## Examples
-
-You can find some examples and already made tools in the [nornir-tools](https://github.com/nornir-automation/nornir-tools/) repository.
 
 ## External Resources
 
