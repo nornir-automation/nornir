@@ -12,7 +12,9 @@ docker:
 
 .PHONY: pytest
 pytest:
-	uv run pytest --cov=nornir --cov-report=term-missing --cov-report xml -vs ${ARGS}
+	uv run coverage run --source=nornir -m pytest -vs ${ARGS}
+	uv run coverage report -m
+	uv run coverage xml
 
 .PHONY: mypy
 mypy:
