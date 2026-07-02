@@ -46,7 +46,7 @@ dev = [
     "nornir-napalm==0.5.0",
     # ncclient 0.6.16 broke Windows support; should be fixed in next release of ncclient.
     "ncclient==0.6.15",
-    "ruff>=0.4.9,<0.5",
+    "ruff>=0.15.20,<0.16",
 ]
 docs = [
     "sphinx==6.2.1",
@@ -123,6 +123,9 @@ disable_error_code = [
 
 [tool.ruff]
 line-length = 100
+# Notebooks are rendered documentation examples (prints, incremental imports, etc.) and were
+# not linted before ruff 0.6 started picking up .ipynb files by default
+extend-exclude = ["*.ipynb"]
 
 [tool.ruff.lint]
 preview = true
@@ -173,9 +176,8 @@ select = [
     "SIM",   # flake8-simplify
     "SLF",   # flake8-self
     "SLOT",  # flake8-slots
-    "TCH",   # flake8-type-checking
+    "TC",    # flake8-type-checking
     "TD",    # flake8-todos
-    "TRIO",  # flake8-trio
     "T10",   # flake8-debugger
     "T20",   # flake8-print
     "TID",   # flake8-tidy-imports
@@ -189,9 +191,6 @@ ignore = [
     "ISC001",  # Recommended to be disabled when used with ruff formatter
     "N801",    # Class name should use CapWords convention
     "N818",    # Exception name should be named with an Error suffix
-    "RUF200",  # False positive: ruff 0.4.x's vendored pyproject parser predates the final
-               # PEP 639 spec and rejects the `license-files = [...]` array form, which is
-               # valid and required by the uv_build backend
 
 ##################################################################################################
 # The ignored rules below should be removed once the code has been updated, they are included    #
@@ -216,9 +215,11 @@ ignore = [
     "PTH100",  # `os.path.abspath()` should be replaced by `Path.resolve()`
     "PTH120",  # `os.path.dirname()` should be replaced by `Path.parent`
     "PTH123",  # `open()` should be replaced by `Path.open()`
+    "PYI034",  # `__enter__` should return `Self`; requires Python 3.11+ (or typing_extensions)
     "RSE102",  # Unnecessary parentheses on raised exception
     "RUF001",  # String contains ambiguous `–` (EN DASH). Did you mean `-` (HYPHEN-MINUS)?
     "RUF012",  # Mutable class attributes should be annotated with `typing.ClassVar`
+    "RUF067",  # `__init__` module should only contain docstrings and re-exports
     "S701",    # By default, jinja2 sets `autoescape` to `False`. Consider using `autoescape=True` or the `select_autoescape` function to mitigate XSS vulnerabilities.
     "SLF001",  # Private member accessed
     "SIM108",  # Use ternary operator `config = Config.from_file(config_file, **kwargs) if config_file else Config.from_dict(**kwargs)` instead of `if`-`else`-block
@@ -234,6 +235,7 @@ ignore = [
     "UP034",   # Avoid extraneous parentheses
     "UP035",   # Import from `collections.abc` instead: `Callable`
     "UP036",   # Version block is outdated for minimum Python version
+    "UP045",   # Use `X | None` for type annotations (split out of UP007, which is also ignored)
 ]
 
 [tool.ruff.format]
@@ -295,7 +297,6 @@ max-returns = 11
     "PTH118",  # `os.path.join()` should be replaced by `Path` with `/` operator
     "PTH120",  # `os.path.dirname()` should be replaced by `Path.parent`
     "PT003",   # `scope='function'` is implied in `@pytest.fixture()`
-    "PT004",   # Fixture does not return anything, add leading underscore
     "PT006",   # Wrong type passed to first argument of `@pytest.mark.parametrize`; expected `tuple`
     "PT012",   # `pytest.raises()` block should contain a single simple statement
     "PT018",   # Assertion should be broken down into multiple parts
