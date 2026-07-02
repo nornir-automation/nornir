@@ -56,6 +56,11 @@ jobs:
           python-version: ${{ matrix.python-version }}
           enable-cache: true
 
+      # napalm's git checkout has ~200-char fixture paths that exceed MAX_PATH
+      - name: Enable git long paths
+        run: git config --system core.longpaths true
+        if: ${{ matrix.platform == 'windows-2022' }}
+
       - name: Install Dependencies
         run: uv sync --locked
 
