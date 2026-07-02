@@ -71,9 +71,8 @@ In order to run tests locally you need to have `Docker <https://docs.docker.com/
 Updating dependencies
 ---------------------
 
-| Nornir dependencies are managed by `poetry <https://github.com/sdispater/poetry>`_.
-| When installing `poetry`, please make sure it is not installed in the project virtual environment.
-| Either use the recommended way of installation: ``curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python`` or install it in your home directory ``python3 -m pip install --user poetry``.
+| Nornir dependencies are managed by `uv <https://docs.astral.sh/uv/>`_.
+| Either use the recommended way of installation: ``curl -LsSf https://astral.sh/uv/install.sh | sh`` or install it with ``pipx install uv``.
 
 The guidelines to pin dependencies are:
 
@@ -113,7 +112,7 @@ Nornir uses `Ruff <https://docs.astral.sh/ruff/>`_. Ruff makes it easy for you t
 
 .. code-block:: bash
 
-   poetry run ruff format --check .
+   uv run ruff format --check .
 
 The Ruff GitHub repo has information about how you can integrate Ruff in your editor.
 
@@ -125,7 +124,7 @@ After modifying any code in the core, at first, we recommend running unit tests 
 
 .. code-block:: bash
 
-   poetry run pytest
+   uv run pytest
 
 Note: unit tests which require additional services to be running are skipped automatically, when not running in Docker.
 

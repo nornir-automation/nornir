@@ -26,7 +26,7 @@ If you wrote a plugin and want to add it to the list don't hesitate to [add it y
 
 ## Development version
 
-If you want to clone the repo and install it from there you will need to use [poetry](https://github.com/sdispater/poetry).
+If you want to clone the repo and install it from there you will need to use [uv](https://github.com/astral-sh/uv).
 
 ## Documentation
 

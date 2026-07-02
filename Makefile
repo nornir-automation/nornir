@@ -12,24 +12,24 @@ docker:
 
 .PHONY: pytest
 pytest:
-	poetry run pytest --cov=nornir --cov-report=term-missing --cov-report xml -vs ${ARGS}
+	uv run pytest --cov=nornir --cov-report=term-missing --cov-report xml -vs ${ARGS}
 
 .PHONY: mypy
 mypy:
-	poetry run mypy nornir tests
+	uv run mypy nornir tests
 
 .PHONY: nbval
 nbval:
-	poetry run pytest --nbval --sanitize-with docs/nbval_sanitize.cfg \
+	uv run pytest --nbval --sanitize-with docs/nbval_sanitize.cfg \
 		docs/tutorial/ \
 		docs/howto/
 
 .PHONY: ruff
 ruff:
-	poetry run ruff check .
+	uv run ruff check .
 
 .PHONY: tests
-tests: ruff mypy nbval pytest sphinx
+tests: ruff mypy nbval pytest docs
 
 .PHONY: docker-tests
 docker-tests: docker
@@ -37,5 +37,5 @@ docker-tests: docker
 
 .PHONY: docs
 docs:
-	poetry run ./docs/build_api.sh
-	poetry run make -C docs clean html
+	uv run ./docs/build_api.sh
+	uv run make -C docs clean html

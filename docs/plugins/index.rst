@@ -26,7 +26,12 @@ Using entrypoints in your ``setup.py``::
         }
     )
 
-In your pyproject.toml if using ``poetry``::
+In your pyproject.toml, if using a standards-based build tool like ``uv`` (recommended)::
+
+    [project.entry-points."PATH"]
+    NAME = "path.to:Plugin"
+
+Or, if using ``poetry``::
 
     [tool.poetry.plugins."PATH"]
     "NAME" = "path.to:Plugin"
@@ -40,8 +45,8 @@ Where PATH is:
 
 Where NAME is the way you want to refer to it later on and ``path.to:Plugin`` the import path. For instance::
 
-    [tool.poetry.plugins."nornir.plugins.inventory"]
-    "inventory-name" = "path.to:InventoryPlugin"
+    [project.entry-points."nornir.plugins.inventory"]
+    inventory-name = "path.to:InventoryPlugin"
 
 
 To do it programmatically import the correct plugin register and use the ``register`` method. For instance::
