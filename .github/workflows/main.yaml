@@ -69,7 +69,9 @@ jobs:
         if: ${{ matrix.platform != 'windows-2022' }}
 
       - name: Run pytest
-        run: uv run pytest --cov=nornir --cov-report=term-missing
+        run: |
+          uv run coverage run --source=nornir -m pytest
+          uv run coverage report -m
         if: ${{ matrix.platform == 'windows-2022' }}
 
       - name: Run nbval
