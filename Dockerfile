@@ -11,7 +11,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     UV_LINK_MODE=copy
 
 RUN apt-get update \
-    && apt-get install -yq curl git pandoc make \
+    && apt-get install -yq git pandoc make \
     && rm -rf /var/lib/apt/lists/*
 
 ARG NAME=nornir
