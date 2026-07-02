@@ -7,10 +7,10 @@ build:
     python: "3.11"
   jobs:
     post_create_environment:
-      - pip install poetry
+      - pip install uv
     post_install:
-      # Instructs Poetry to use RTD venv
-      - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH poetry install --with docs
+      # Instructs uv to use the RTD venv
+      - UV_PROJECT_ENVIRONMENT=$READTHEDOCS_VIRTUALENV_PATH uv sync --locked
 
 sphinx:
   configuration: docs/conf.py

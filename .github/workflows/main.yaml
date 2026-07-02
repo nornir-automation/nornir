@@ -12,29 +12,14 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v6
-      - name: Setup python
-        uses: actions/setup-python@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8
         with:
           python-version: ${{ matrix.python-version }}
-          architecture: x64
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: 2.2.1
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-
-      - name: Cache Poetry virtualenv
-        uses: actions/cache@v5
-        id: cached-poetry-dependencies
-        with:
-          path: .venv
-          key: venv1-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
+          enable-cache: true
 
       - name: Install Dependencies
-        run: poetry install
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: uv sync --locked
 
       - name: Run ruff
         run: make ruff
@@ -65,36 +50,21 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v6
-      - name: Setup python
-        uses: actions/setup-python@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v8
         with:
           python-version: ${{ matrix.python-version }}
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          version: 2.2.1
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-
-      - name: Cache Poetry virtualenv
-        uses: actions/cache@v5
-        id: cached-poetry-dependencies
-        with:
-          path: .venv
-          key: venv1-${{ matrix.python-version }}-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
-        if: ${{ matrix.platform != 'windows-2022' }}  # windows hangs if using a cached venv
+          enable-cache: true
 
       - name: Install Dependencies
-        run: poetry install
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: uv sync --locked
 
       - name: Run pytest
         run: make pytest
         if: ${{ matrix.platform != 'windows-2022' }}
 
       - name: Run pytest
-        run: poetry run pytest --cov=nornir --cov-report=term-missing
+        run: uv run pytest --cov=nornir --cov-report=term-missing
         if: ${{ matrix.platform == 'windows-2022' }}
 
       - name: Run nbval
@@ -109,17 +79,14 @@ jobs:
 #    name: Releasing to pypi
 #    runs-on: ubuntu-latest
 #    steps:
-#      - uses: actions/checkout@master
+#      - uses: actions/checkout@v6
+#      - name: Install uv
+#        uses: astral-sh/setup-uv@v8
 #      - name: Build
-#        uses: abatilo/actions-poetry@v1.5.0
-#        with:
-#          python_version: 3.8.0
-#          poetry_version: 2.2.1
-#          working_directory: .
-#          args: build
+#        run: uv build
 #      - name: Publish package
 #        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
-#        uses: pypa/gh-action-pypi-publish@master
+#        uses: pypa/gh-action-pypi-publish@release/v1
 #        with:
 #          user: __token__
 #          password: ${{ secrets.pypi_password }}
