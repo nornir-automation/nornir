@@ -189,6 +189,9 @@ ignore = [
     "ISC001",  # Recommended to be disabled when used with ruff formatter
     "N801",    # Class name should use CapWords convention
     "N818",    # Exception name should be named with an Error suffix
+    "RUF200",  # False positive: ruff 0.4.x's vendored pyproject parser predates the final
+               # PEP 639 spec and rejects the `license-files = [...]` array form, which is
+               # valid and required by the uv_build backend
 
 ##################################################################################################
 # The ignored rules below should be removed once the code has been updated, they are included    #
