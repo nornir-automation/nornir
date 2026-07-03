@@ -1,8 +1,11 @@
 import logging
 from typing import List, Optional
 
+import pytest
+
 from nornir.core import Nornir
-from nornir.core.exceptions import NornirSubTaskError
+from nornir.core.exceptions import NornirSubTaskError, NornirTaskNotStartedError
+from nornir.core.processor import Processors
 from nornir.core.task import Result, Task
 
 
@@ -198,3 +201,22 @@ class Test:
         assert not r["dev1.group_1"][0].exception
         assert r["dev1.group_1"][0].result == "I captured this succcessfully"
         assert r["dev1.group_1"][1].exception.__class__ is CustomException
+
+    def test_run_outside_nested_task(self, nornir: Nornir) -> None:
+        t = Task(
+            a_task_for_testing,
+            nornir=nornir,
+            global_dry_run=False,
+            processors=Processors(),
+        )
+        # host attribute never set (Task.start() not called)
+        with pytest.raises(NornirTaskNotStartedError) as e:
+            t.run(a_task_for_testing)
+        assert str(e.value) == (
+            "You have to call this after setting host and nornir attributes. "
+            "You probably called this from outside a nested task"
+        )
+        # host explicitly falsy
+        t.host = None  # type: ignore[assignment]
+        with pytest.raises(NornirTaskNotStartedError):
+            t.run(a_task_for_testing)

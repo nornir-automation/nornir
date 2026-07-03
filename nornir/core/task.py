@@ -2,7 +2,11 @@ import logging
 import traceback
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union, cast
 
-from nornir.core.exceptions import NornirExecutionError, NornirSubTaskError
+from nornir.core.exceptions import (
+    NornirExecutionError,
+    NornirSubTaskError,
+    NornirTaskNotStartedError,
+)
 
 if TYPE_CHECKING:
     from nornir.core import Nornir
@@ -147,12 +151,8 @@ class Task:
 
         This method will ensure the subtask is run only for the host in the current thread.
         """
-        if not self.host:
-            msg = (
-                "You have to call this after setting host and nornir attributes. ",
-                "You probably called this from outside a nested task",
-            )
-            raise Exception(msg)
+        if not getattr(self, "host", None):
+            raise NornirTaskNotStartedError()
 
         if "severity_level" not in kwargs:
             kwargs["severity_level"] = self.severity_level
