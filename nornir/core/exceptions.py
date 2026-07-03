@@ -76,11 +76,14 @@ class NornirTaskNotStartedError(Exception):
     assigned a host, i.e. from outside a running (nested) task.
     """
 
-    def __init__(self) -> None:
-        super().__init__(
+    def __init__(
+        self,
+        message: str = (
             "You have to call this after setting host and nornir attributes. "
             "You probably called this from outside a nested task"
-        )
+        ),
+    ) -> None:
+        super().__init__(message)
 
 
 class NornirSubTaskError(Exception):
