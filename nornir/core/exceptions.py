@@ -1,4 +1,6 @@
-from typing import TYPE_CHECKING, Dict
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from nornir.core.connection import Connection
@@ -11,7 +13,7 @@ class ConnectionException(Exception):
     Superclass for all the Connection* Exceptions
     """
 
-    def __init__(self, connection: "Connection") -> None:
+    def __init__(self, connection: Connection) -> None:
         self.connection = connection
 
 
@@ -45,11 +47,11 @@ class NornirExecutionError(Exception):
     when any of the tasks fail.
     """
 
-    def __init__(self, result: "AggregatedResult") -> None:
+    def __init__(self, result: AggregatedResult) -> None:
         self.result = result
 
     @property
-    def failed_hosts(self) -> Dict[str, "MultiResult"]:
+    def failed_hosts(self) -> dict[str, MultiResult]:
         """
         Hosts that failed to complete the task
         """
@@ -75,7 +77,7 @@ class NornirSubTaskError(Exception):
     Raised by nornir when a sub task managed by :meth:`nornir.core.Task.run` has failed
     """
 
-    def __init__(self, task: "Task", result: "Result") -> None:
+    def __init__(self, task: Task, result: Result) -> None:
         self.task = task
         self.result = result
 
