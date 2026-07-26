@@ -1,6 +1,19 @@
 Changelog
 ==========
 
+3.6.0 - TBD
+-----------
+
+- Added Python 3.14 support and removed Python 3.9 support (#1010, #1012)
+- Fixed pickling of ``Result`` objects (#995)
+- Handle empty YAML inventory files gracefully (#1054)
+- Removed ``setuptools`` from the runtime dependencies (#1018)
+- Migrated project tooling from Poetry to uv
+- Upgraded Ruff from 0.4.x to 0.15.x
+- Documentation updates: plugin list added to the docs (#998), README converted
+  to Markdown headings, ``CONTRIBUTING.rst`` aligned with the uv-based workflow
+- Upgraded various dependencies
+
 3.5.0 - January 8 2025
 ----------------------
 
