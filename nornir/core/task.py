@@ -1,10 +1,14 @@
+from __future__ import annotations
+
 import logging
 import traceback
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from nornir.core.exceptions import NornirExecutionError, NornirSubTaskError
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from nornir.core import Nornir
     from nornir.core.inventory import Host
     from nornir.core.processor import Processors
@@ -41,12 +45,12 @@ class Task:
     def __init__(
         self,
         task: Callable[..., Any],
-        nornir: "Nornir",
+        nornir: Nornir,
         global_dry_run: bool,
-        processors: "Processors",
-        name: Optional[str] = None,
+        processors: Processors,
+        name: str | None = None,
         severity_level: int = DEFAULT_SEVERITY_LEVEL,
-        parent_task: Optional["Task"] = None,
+        parent_task: Task | None = None,
         **kwargs: str,
     ) -> None:
         self.task = task
@@ -59,7 +63,7 @@ class Task:
         self.severity_level = severity_level
         self.processors = processors
 
-    def copy(self) -> "Task":
+    def copy(self) -> Task:
         return Task(
             self.task,
             self.nornir,
@@ -74,7 +78,7 @@ class Task:
     def __repr__(self) -> str:
         return self.name
 
-    def start(self, host: "Host") -> "MultiResult":
+    def start(self, host: Host) -> MultiResult:
         """
         Run the task for the given host.
 
@@ -135,7 +139,7 @@ class Task:
             self.processors.task_instance_completed(self, host, self.results)
         return self.results
 
-    def run(self, task: Callable[..., Any], **kwargs: Any) -> "MultiResult":
+    def run(self, task: Callable[..., Any], **kwargs: Any) -> MultiResult:
         """
         This is a utility method to call a task from within a task. For instance:
 
@@ -174,7 +178,7 @@ class Task:
 
         return r
 
-    def is_dry_run(self, override: Optional[bool] = None) -> bool:
+    def is_dry_run(self, override: bool | None = None) -> bool:
         """
         Returns whether current task is a dry_run or not.
         """
@@ -206,12 +210,12 @@ class Result:
 
     def __init__(
         self,
-        host: Union["Host", None],
+        host: Host | None,
         result: Any = None,
         changed: bool = False,
         diff: str = "",
         failed: bool = False,
-        exception: Optional[BaseException] = None,
+        exception: BaseException | None = None,
         severity_level: int = DEFAULT_SEVERITY_LEVEL,
         **kwargs: Any,
     ) -> None:
@@ -224,8 +228,8 @@ class Result:
         self.name = None
         self.severity_level = severity_level
 
-        self.stdout: Optional[str] = None
-        self.stderr: Optional[str] = None
+        self.stdout: str | None = None
+        self.stderr: str | None = None
 
         for k, v in kwargs.items():
             setattr(self, k, v)
@@ -240,7 +244,7 @@ class Result:
         return str(self.result)
 
 
-class MultiResult(List[Result]):
+class MultiResult(list[Result]):
     """
     It is basically is a list-like object that gives you access to the results of all subtasks for
     a particular device/task.
@@ -279,7 +283,7 @@ class MultiResult(List[Result]):
             raise NornirExecutionError(self)
 
 
-class AggregatedResult(Dict[str, MultiResult]):
+class AggregatedResult(dict[str, MultiResult]):
     """
     It basically is a dict-like object that aggregates the results for all devices.
     You can access each individual result by doing ``my_aggr_result["hostname_of_device"]``.
@@ -298,7 +302,7 @@ class AggregatedResult(Dict[str, MultiResult]):
         return any(h.failed for h in self.values())
 
     @property
-    def failed_hosts(self) -> Dict[str, "MultiResult"]:
+    def failed_hosts(self) -> dict[str, MultiResult]:
         """Hosts that failed during the execution of the task."""
         return {h: r for h, r in self.items() if r.failed}
 

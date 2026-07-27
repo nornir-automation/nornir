@@ -1,7 +1,7 @@
 import logging
 import logging.config
 import os
-from typing import Any, Dict
+from typing import Any
 
 import pytest
 
@@ -46,7 +46,7 @@ def transform_func_with_options(host: Host, a: Any) -> None:
 
 
 class InventoryTest:
-    def __init__(self, *args: Any, **kwargs: Dict[str, Any]) -> None:
+    def __init__(self, *args: Any, **kwargs: dict[str, Any]) -> None:
         pass
 
     def load(self) -> Inventory:

@@ -204,6 +204,7 @@ ignore = [
     "FBT001",  # Boolean-typed positional argument in function definition
     "FBT002",  # Boolean default positional argument in function definition
     "FURB101", # `open` and `read` should be replaced by `Path(filename).read_text()`
+    "FURB189", # Subclassing `dict`/`list` should be replaced by `collections.UserDict`/`UserList` (would change behaviour)
     "INP001",  # File is part of an implicit namespace package. Add an `__init__.py`.
     "PERF203", # `try`-`except` within a loop incurs performance overhead
     "PIE800",  # Unnecessary spread `**`
@@ -224,18 +225,15 @@ ignore = [
     "SLF001",  # Private member accessed
     "SIM108",  # Use ternary operator `config = Config.from_file(config_file, **kwargs) if config_file else Config.from_dict(**kwargs)` instead of `if`-`else`-block
     "SIM110",  # Use `return any(g.name == group or g.has_parent_group(group) for g in self.groups)` instead of `for` loop
+    "TC001",   # Move application import into a type-checking block (first-party re-export restructuring is out of scope for the PEP 585/604 cleanup)
     "TRY002",  # Create your own exception
     "TRY003",  # Avoid specifying long messages outside the exception class
     "TRY004",  # Prefer `TypeError` exception for invalid type
     "TRY400",  # Use `logging.exception` instead of `logging.error`
-    "UP006",   # Use `dict` instead of `Dict` for type annotation
-    "UP007",   # Use `X | Y` for type annotations
     "UP015",   # Unnecessary open mode parameters
     "UP032",   # Use f-string instead of `format` call
     "UP034",   # Avoid extraneous parentheses
-    "UP035",   # Import from `collections.abc` instead: `Callable`
     "UP036",   # Version block is outdated for minimum Python version
-    "UP045",   # Use `X | None` for type annotations (split out of UP007, which is also ignored)
 ]
 
 [tool.ruff.format]

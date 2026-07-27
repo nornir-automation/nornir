@@ -1,4 +1,6 @@
-from typing import List, Protocol
+from __future__ import annotations
+
+from typing import Protocol
 
 from nornir.core.inventory import Host
 from nornir.core.task import AggregatedResult, MultiResult, Task
@@ -49,7 +51,7 @@ class Processor(Protocol):
         raise NotImplementedError("needs to be implemented by the processor")
 
 
-class Processors(List[Processor]):
+class Processors(list[Processor]):
     """
     Processors is a wrapper class that holds a list of Processor. Each method
     will just iterate over all the the Processor objects in ``self`` and call

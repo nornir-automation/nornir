@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import sys
-from typing import Dict, Generic, TypeVar
+from typing import Generic, TypeVar
 
 from nornir.core.exceptions import PluginAlreadyRegistered, PluginNotRegistered
 
@@ -13,7 +15,7 @@ T = TypeVar("T")
 
 
 class PluginRegister(Generic[T]):
-    available: Dict[str, T] = {}
+    available: dict[str, T] = {}
 
     def __init__(self, entry_point: str) -> None:
         self._entry_point = entry_point

@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import logging
 import pathlib
-from typing import Any, Dict, Type
+from typing import Any
 
 import ruamel.yaml
 
@@ -19,7 +21,7 @@ from nornir.core.inventory import (
 logger = logging.getLogger(__name__)
 
 
-def _get_connection_options(data: Dict[str, Any]) -> Dict[str, ConnectionOptions]:
+def _get_connection_options(data: dict[str, Any]) -> dict[str, ConnectionOptions]:
     cp = {}
     for cn, c in data.items():
         cp[cn] = ConnectionOptions(
@@ -33,7 +35,7 @@ def _get_connection_options(data: Dict[str, Any]) -> Dict[str, ConnectionOptions
     return cp
 
 
-def _get_defaults(data: Dict[str, Any]) -> Defaults:
+def _get_defaults(data: dict[str, Any]) -> Defaults:
     return Defaults(
         hostname=data.get("hostname"),
         port=data.get("port"),
@@ -46,7 +48,7 @@ def _get_defaults(data: Dict[str, Any]) -> Defaults:
 
 
 def _get_inventory_element(
-    typ: Type[HostOrGroup], data: Dict[str, Any], name: str, defaults: Defaults
+    typ: type[HostOrGroup], data: dict[str, Any], name: str, defaults: Defaults
 ) -> HostOrGroup:
     return typ(
         name=name,
@@ -97,8 +99,7 @@ class SimpleInventory:
                 defaults_dict = yml.load(f) or {}
             if defaults_dict == {}:
                 logger.warning(
-                    "'%s' is empty or contains only comments, "
-                    "defaulting to empty defaults.",
+                    "'%s' is empty or contains only comments, defaulting to empty defaults.",
                     self.defaults_file,
                 )
             defaults = _get_defaults(defaults_dict)
@@ -110,8 +111,7 @@ class SimpleInventory:
             hosts_dict = yml.load(f) or {}
         if hosts_dict == {}:
             logger.warning(
-                "'%s' is empty or contains only comments, "
-                "defaulting to empty hosts inventory.",
+                "'%s' is empty or contains only comments, defaulting to empty hosts inventory.",
                 self.host_file,
             )
 

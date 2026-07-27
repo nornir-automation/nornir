@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any
 
 import pytest
 
@@ -17,13 +17,13 @@ from nornir.core.task import Task
 class DummyConnectionPlugin:
     def open(
         self,
-        hostname: Optional[str],
-        username: Optional[str],
-        password: Optional[str],
-        port: Optional[int],
-        platform: Optional[str],
-        extras: Optional[Dict[str, Any]] = None,
-        configuration: Optional[Config] = None,
+        hostname: str | None,
+        username: str | None,
+        password: str | None,
+        port: int | None,
+        platform: str | None,
+        extras: dict[str, Any] | None = None,
+        configuration: Config | None = None,
     ) -> None:
         self.connection = True
         self.hostname = hostname
@@ -51,13 +51,13 @@ class FailedConnectionPlugin:
 
     def open(
         self,
-        hostname: Optional[str],
-        username: Optional[str],
-        password: Optional[str],
-        port: Optional[int],
-        platform: Optional[str],
-        extras: Optional[Dict[str, Any]] = None,
-        configuration: Optional[Config] = None,
+        hostname: str | None,
+        username: str | None,
+        password: str | None,
+        port: int | None,
+        platform: str | None,
+        extras: dict[str, Any] | None = None,
+        configuration: Config | None = None,
     ) -> None:
         raise FailedConnection(f"Failed to open connection to {hostname}:{port}")
 
@@ -104,7 +104,7 @@ def a_task(task: Task, nornir_config: Config) -> None:
     task.host.get_connection("dummy", nornir_config)
 
 
-def validate_params(task: Task, conn: str, params: Dict[str, Any], nornir_config: Config) -> None:
+def validate_params(task: Task, conn: str, params: dict[str, Any], nornir_config: Config) -> None:
     task.host.get_connection(conn, nornir_config)
     for k, v in params.items():
         assert getattr(task.host.connections[conn], k) == v

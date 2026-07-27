@@ -1,6 +1,7 @@
+from __future__ import annotations
+
 import logging
-import types
-from typing import Any, Callable, Dict, Generator, List, Optional, Type
+from typing import TYPE_CHECKING, Any
 
 from nornir.core.configuration import Config
 from nornir.core.exceptions import PluginNotRegistered
@@ -9,6 +10,11 @@ from nornir.core.plugins.runners import RunnerPlugin
 from nornir.core.processor import Processor, Processors
 from nornir.core.state import GlobalState
 from nornir.core.task import AggregatedResult, Task
+
+if TYPE_CHECKING:
+    import builtins
+    import types
+    from collections.abc import Callable, Generator
 
 logger = logging.getLogger(__name__)
 
@@ -34,10 +40,10 @@ class Nornir:
     def __init__(
         self,
         inventory: Inventory,
-        config: Optional[Config] = None,
-        data: Optional[GlobalState] = None,
-        processors: Optional[Processors] = None,
-        runner: Optional[RunnerPlugin] = None,
+        config: Config | None = None,
+        data: GlobalState | None = None,
+        processors: Processors | None = None,
+        runner: RunnerPlugin | None = None,
     ) -> None:
         self.data = data if data is not None else GlobalState()
         self.inventory = inventory
@@ -45,32 +51,32 @@ class Nornir:
         self.processors = processors or Processors()
         self._runner = runner
 
-    def __enter__(self) -> "Nornir":
+    def __enter__(self) -> Nornir:
         return self
 
     def __exit__(
         self,
-        exc_type: Optional[Type[BaseException]] = None,
-        exc_val: Optional[BaseException] = None,
-        exc_tb: Optional[types.TracebackType] = None,
+        exc_type: type[BaseException] | None = None,
+        exc_val: BaseException | None = None,
+        exc_tb: types.TracebackType | None = None,
     ) -> None:
         self.close_connections(on_good=True, on_failed=True)
 
-    def with_processors(self, processors: List[Processor]) -> "Nornir":
+    def with_processors(self, processors: list[Processor]) -> Nornir:
         """
         Given a list of Processor objects return a copy of the nornir object with the processors
         assigned to the copy. The original object is left unmodified.
         """
         return Nornir(**{**self._clone_parameters(), **{"processors": Processors(processors)}})
 
-    def with_runner(self, runner: RunnerPlugin) -> "Nornir":
+    def with_runner(self, runner: RunnerPlugin) -> Nornir:
         """
         Given a runner return a copy of the nornir object with the runner
         assigned to the copy. The original object is left unmodified.
         """
         return Nornir(**{**self._clone_parameters(), **{"runner": runner}})
 
-    def filter(self, *args: Any, **kwargs: Any) -> "Nornir":
+    def filter(self, *args: Any, **kwargs: Any) -> Nornir:
         """
         See :py:meth:`nornir.core.inventory.Inventory.filter`
 
@@ -84,10 +90,10 @@ class Nornir:
     def run(
         self,
         task: Callable[..., Any],
-        raise_on_error: Optional[bool] = None,
+        raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
-        name: Optional[str] = None,
+        name: str | None = None,
         **kwargs: Any,
     ) -> AggregatedResult:
         """
@@ -153,7 +159,7 @@ class Nornir:
 
         return result
 
-    def dict(self) -> Dict[str, Any]:
+    def dict(self) -> dict[str, Any]:
         """Return a dictionary representing the object."""
         return {"data": self.data.dict(), "inventory": self.inventory.dict()}
 
@@ -170,7 +176,7 @@ class Nornir:
 
         raise PluginNotRegistered("Runner plugin not registered")
 
-    def _clone_parameters(self) -> Dict[str, Any]:
+    def _clone_parameters(self) -> builtins.dict[str, Any]:
         return {
             "data": self.data,
             "inventory": self.inventory,
@@ -180,11 +186,11 @@ class Nornir:
         }
 
     @classmethod
-    def get_validators(cls) -> Generator[Callable[["Nornir"], "Nornir"], None, None]:
+    def get_validators(cls) -> Generator[Callable[[Nornir], Nornir], None, None]:
         yield cls.validate
 
     @classmethod
-    def validate(cls, v: "Nornir") -> "Nornir":
+    def validate(cls, v: Nornir) -> Nornir:
         if not isinstance(v, cls):
             raise ValueError(f"Nornir: Nornir expected not {type(v)}")
         return v

@@ -1,4 +1,6 @@
-from typing import Any, List
+from __future__ import annotations
+
+from typing import Any
 
 from nornir.core.inventory import Host
 
@@ -13,10 +15,10 @@ class F_OP_BASE(F_BASE):
         self.op1 = op1
         self.op2 = op2
 
-    def __and__(self, other: F_BASE) -> "AND":
+    def __and__(self, other: F_BASE) -> AND:
         return AND(self, other)
 
-    def __or__(self, other: F_BASE) -> "OR":
+    def __or__(self, other: F_BASE) -> OR:
         return OR(self, other)
 
     def __repr__(self) -> str:
@@ -49,13 +51,13 @@ class F(F_BASE):
     def __call__(self, host: Host) -> bool:
         return all(F._verify_rules(host, k.split("__"), v) for k, v in self.filters.items())
 
-    def __and__(self, other: "F") -> AND:
+    def __and__(self, other: F) -> AND:
         return AND(self, other)
 
-    def __or__(self, other: "F") -> OR:
+    def __or__(self, other: F) -> OR:
         return OR(self, other)
 
-    def __invert__(self) -> "F":
+    def __invert__(self) -> F:
         return NOT_F(**self.filters)
 
     def __repr__(self) -> str:
@@ -96,7 +98,7 @@ class F(F_BASE):
         return bool(data.get(rule) == value)
 
     @staticmethod
-    def _verify_rules(data: Any, rule: List[str], value: Any) -> bool:
+    def _verify_rules(data: Any, rule: list[str], value: Any) -> bool:
         if len(rule) > 1:
             try:
                 return F._verify_rules(data.get(rule[0], {}), rule[1:], value)

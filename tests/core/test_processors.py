@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any
 
 from nornir.core import Nornir
 from nornir.core.inventory import Host
@@ -23,7 +23,7 @@ def mock_subtask(task: Task) -> Result:
 
 
 class MockProcessor:
-    def __init__(self, data: Dict[str, Dict[str, Any]]) -> None:
+    def __init__(self, data: dict[str, dict[str, Any]]) -> None:
         self.data = data
 
     def task_started(self, task: Task) -> None:
@@ -39,8 +39,8 @@ class MockProcessor:
         self.data[task.name][host.name]["completed"] = True
         self.data[task.name][host.name]["failed"] = result.failed
 
-    def _get_subtask_dict(self, task: Task, host: Host) -> Dict[str, Any]:
-        parents: List[str] = []
+    def _get_subtask_dict(self, task: Task, host: Host) -> dict[str, Any]:
+        parents: list[str] = []
         parent = task.parent_task
         while True:
             if parent is None:
@@ -48,7 +48,7 @@ class MockProcessor:
             parents.insert(0, parent.name)
             parent = parent.parent_task
 
-        data: Dict[str, Any] = self.data[parents[0]][host.name]["subtasks"]
+        data: dict[str, Any] = self.data[parents[0]][host.name]["subtasks"]
         for p in parents[1:]:
             data = data[p]["subtasks"]
         return data
@@ -65,7 +65,7 @@ class MockProcessor:
 
 class Test:
     def test_processor(self, nornir: Nornir) -> None:
-        data: Dict[str, Any] = {}
+        data: dict[str, Any] = {}
         nornir.with_processors([MockProcessor(data)]).run(task=mock_task)
         assert data == {
             "mock_task": {
@@ -111,7 +111,7 @@ class Test:
         }
 
     def test_processor_subtasks(self, nornir: Nornir) -> None:
-        data: Dict[str, Any] = {}
+        data: dict[str, Any] = {}
         nornir.with_processors([MockProcessor(data)]).run(task=mock_subtask)
         assert data == {
             "mock_subtask": {
