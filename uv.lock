@@ -684,7 +684,7 @@ name = "exceptiongroup"
 version = "1.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+    { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/50/79/66800aadf48771f6b62f7eb014e352e5d06856655206165d775e675a02c9/exceptiongroup-1.3.1.tar.gz", hash = "sha256:8b412432c6055b0b7d14c310000ae93352ed6754f70fa8f7c34141f91c4e3219", size = 30371, upload-time = "2025-11-21T23:01:54.787Z" }
 wheels = [
@@ -824,17 +824,17 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 dependencies = [
-    { name = "colorama", marker = "python_full_version < '3.11' and sys_platform == 'win32'" },
-    { name = "decorator", marker = "python_full_version < '3.11'" },
-    { name = "exceptiongroup", marker = "python_full_version < '3.11'" },
-    { name = "jedi", marker = "python_full_version < '3.11'" },
-    { name = "matplotlib-inline", marker = "python_full_version < '3.11'" },
-    { name = "pexpect", marker = "python_full_version < '3.11' and sys_platform != 'emscripten' and sys_platform != 'win32'" },
-    { name = "prompt-toolkit", marker = "python_full_version < '3.11'" },
-    { name = "pygments", marker = "python_full_version < '3.11'" },
-    { name = "stack-data", marker = "python_full_version < '3.11'" },
-    { name = "traitlets", marker = "python_full_version < '3.11'" },
-    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "decorator" },
+    { name = "exceptiongroup" },
+    { name = "jedi" },
+    { name = "matplotlib-inline" },
+    { name = "pexpect", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "prompt-toolkit" },
+    { name = "pygments" },
+    { name = "stack-data" },
+    { name = "traitlets" },
+    { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/40/18/f8598d287006885e7136451fdea0755af4ebcbfe342836f24deefaed1164/ipython-8.39.0.tar.gz", hash = "sha256:4110ae96012c379b8b6db898a07e186c40a2a1ef5d57a7fa83166047d9da7624", size = 5513971, upload-time = "2026-03-27T10:02:13.94Z" }
 wheels = [
@@ -851,18 +851,18 @@ resolution-markers = [
     "python_full_version >= '3.11' and python_full_version < '3.14'",
 ]
 dependencies = [
-    { name = "colorama", marker = "python_full_version >= '3.11' and sys_platform == 'win32'" },
-    { name = "decorator", marker = "python_full_version >= '3.11'" },
-    { name = "ipython-pygments-lexers", marker = "python_full_version >= '3.11'" },
-    { name = "jedi", marker = "python_full_version >= '3.11'" },
-    { name = "matplotlib-inline", marker = "python_full_version >= '3.11'" },
-    { name = "pexpect", marker = "python_full_version >= '3.11' and sys_platform != 'emscripten' and sys_platform != 'win32'" },
-    { name = "prompt-toolkit", marker = "python_full_version >= '3.11'" },
-    { name = "psutil", marker = "python_full_version >= '3.11' and sys_platform != 'cygwin' and sys_platform != 'emscripten'" },
-    { name = "pygments", marker = "python_full_version >= '3.11'" },
-    { name = "stack-data", marker = "python_full_version >= '3.11'" },
-    { name = "traitlets", marker = "python_full_version >= '3.11'" },
-    { name = "typing-extensions", marker = "python_full_version == '3.11.*'" },
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "decorator" },
+    { name = "ipython-pygments-lexers" },
+    { name = "jedi" },
+    { name = "matplotlib-inline" },
+    { name = "pexpect", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "prompt-toolkit" },
+    { name = "psutil", marker = "sys_platform != 'cygwin' and sys_platform != 'emscripten'" },
+    { name = "pygments" },
+    { name = "stack-data" },
+    { name = "traitlets" },
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/53/59/165d3b4d75cc34add3122c4417ecb229085140ac573103c223cd01dde96f/ipython-9.15.0.tar.gz", hash = "sha256:da2819ce2aa83135257df830660b1176d986c3d2876db24df01974fa955b2756", size = 4442580, upload-time = "2026-06-26T11:03:35.913Z" }
 wheels = [
@@ -995,13 +995,12 @@ wheels = [
 
 [[package]]
 name = "junos-eznc"
-version = "2.7.3.dev0"
-source = { git = "https://github.com/ktbyers/py-junos-eznc.git?rev=468b0019ebad8361958604efafa83f009ef75683#468b0019ebad8361958604efafa83f009ef75683" }
+version = "2.8.2"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jinja2" },
     { name = "lxml" },
     { name = "ncclient" },
-    { name = "netmiko" },
     { name = "paramiko" },
     { name = "pyparsing" },
     { name = "pyserial" },
@@ -1009,7 +1008,11 @@ dependencies = [
     { name = "scp" },
     { name = "six" },
     { name = "transitions" },
-    { name = "yamlordereddictloader" },
+    { name = "yamlloader" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/34/66/aeab71e5844ff25b771c509b19f8c85e0e5d1c34851b52135de3e9609b9c/junos_eznc-2.8.2.tar.gz", hash = "sha256:bb0426e74bce4544405723a9047341ede91b29cd9b61f1be9e633a55c470fffc", size = 186097, upload-time = "2026-06-22T09:18:47.619Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7c/9c/e60c8fcc16093cc93e5b67d516e628597a3fd124622b3418e88e810f5809/junos_eznc-2.8.2-py2.py3-none-any.whl", hash = "sha256:2e0038910e8bcbc2eeb61f7221127e7cfcfab54a682462076534db56326157ce", size = 217126, upload-time = "2026-06-22T09:18:45.916Z" },
 ]
 
 [[package]]
@@ -1535,10 +1538,9 @@ wheels = [
 
 [[package]]
 name = "napalm"
-version = "5.0.0"
-source = { git = "https://github.com/napalm-automation/napalm?rev=e2f8e7e24f9cff5fc4ce5d67ab0a4d5e9fce097b#e2f8e7e24f9cff5fc4ce5d67ab0a4d5e9fce097b" }
+version = "5.2.0"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "cffi" },
     { name = "jinja2" },
     { name = "junos-eznc" },
     { name = "lxml" },
@@ -1550,12 +1552,14 @@ dependencies = [
     { name = "pyeapi" },
     { name = "pyyaml" },
     { name = "requests" },
-    { name = "scp" },
-    { name = "setuptools" },
     { name = "textfsm" },
     { name = "ttp" },
     { name = "ttp-templates" },
     { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/20/89/2258ac65b46b80c1ea5cfa5cd9675a02f4e582edbcdd5649296887f5c0a3/napalm-5.2.0.tar.gz", hash = "sha256:9d1250d61e9412542263aa14d20e507fd9f34b0483e9e2719aaa00e2fc6c04da", size = 218872, upload-time = "2026-07-27T19:27:16.465Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/61/84/17c84987286f7eabc3ce64939558316a39e2747c61620bffda8fa1d4f4b4/napalm-5.2.0-py3-none-any.whl", hash = "sha256:7de60abd0040f22e131487ff0635320342809e2ac1db44d1bf7dd6fc16604467", size = 261477, upload-time = "2026-07-27T19:27:15.177Z" },
 ]
 
 [[package]]
@@ -1648,15 +1652,13 @@ wheels = [
 
 [[package]]
 name = "ncclient"
-version = "0.6.15"
+version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "lxml" },
     { name = "paramiko" },
-    { name = "setuptools" },
-    { name = "six" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6d/db/887f9002c3e6c8b838ec7027f9d8ac36337f44bcd146c922e3deee60e55e/ncclient-0.6.15.tar.gz", hash = "sha256:6757cb41bc9160dfe47f22f5de8cf2f1adf22f27463fb50453cc415ab96773d8", size = 634885, upload-time = "2023-10-17T21:36:51.563Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c2/fb/29dbb4987f81d7932d8018079bf3e6d1d5cce320d7c2c90e84d3c7dba40c/ncclient-0.7.0.tar.gz", hash = "sha256:318e8e3e72b1d2a766f3665cabef33436fd25b607da5f15657a199c648a68435", size = 116221, upload-time = "2025-08-25T15:29:24.172Z" }
 
 [[package]]
 name = "nest-asyncio2"
@@ -1715,11 +1717,9 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "decorator" },
-    { name = "junos-eznc" },
     { name = "mypy" },
     { name = "napalm" },
     { name = "nbval" },
-    { name = "ncclient" },
     { name = "nornir-jinja2" },
     { name = "nornir-napalm" },
     { name = "nornir-utils" },
@@ -1727,8 +1727,6 @@ dev = [
     { name = "pytest-cov" },
     { name = "requests-mock" },
     { name = "ruff" },
-    { name = "types-jinja2" },
-    { name = "types-setuptools" },
 ]
 docs = [
     { name = "jupyter" },
@@ -1746,11 +1744,9 @@ requires-dist = [{ name = "ruamel-yaml", specifier = ">=0.17" }]
 [package.metadata.requires-dev]
 dev = [
     { name = "decorator" },
-    { name = "junos-eznc", git = "https://github.com/ktbyers/py-junos-eznc.git?rev=468b0019ebad8361958604efafa83f009ef75683" },
     { name = "mypy", specifier = ">=1.5.1,<2" },
-    { name = "napalm", git = "https://github.com/napalm-automation/napalm?rev=e2f8e7e24f9cff5fc4ce5d67ab0a4d5e9fce097b" },
+    { name = "napalm", specifier = ">=5.2.0" },
     { name = "nbval", specifier = ">=0.10.0,<0.11" },
-    { name = "ncclient", specifier = "==0.6.15" },
     { name = "nornir-jinja2", specifier = "==0.2.0" },
     { name = "nornir-napalm", specifier = "==0.5.0" },
     { name = "nornir-utils", specifier = "==0.2.0" },
@@ -1758,8 +1754,6 @@ dev = [
     { name = "pytest-cov" },
     { name = "requests-mock" },
     { name = "ruff", specifier = ">=0.15.20,<0.16" },
-    { name = "types-jinja2", specifier = ">=2.11.9,<3" },
-    { name = "types-setuptools", specifier = ">=75.5.0.20241116" },
 ]
 docs = [
     { name = "jupyter", specifier = "==1.0.0" },
@@ -2861,15 +2855,6 @@ wheels = [
 ]
 
 [[package]]
-name = "setuptools"
-version = "78.1.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/81/9c/42314ee079a3e9c24b27515f9fbc7a3c1d29992c33451779011c74488375/setuptools-78.1.1.tar.gz", hash = "sha256:fcc17fd9cd898242f6b4adfaca46137a9edef687f43e6f78469692a5e70d851d", size = 1368163, upload-time = "2025-04-19T18:23:36.68Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/90/99/158ad0609729111163fc1f674a5a42f2605371a4cf036d0441070e2f7455/setuptools-78.1.1-py3-none-any.whl", hash = "sha256:c3a9c4211ff4c309edb8b8c4f1cbfa7ae324c4ba9f91ff254e3d305b9fd54561", size = 1256462, upload-time = "2025-04-19T18:23:34.525Z" },
-]
-
-[[package]]
 name = "six"
 version = "1.17.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3192,36 +3177,6 @@ wheels = [
 ]
 
 [[package]]
-name = "types-jinja2"
-version = "2.11.9"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "types-markupsafe" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/46/c4/b82309bfed8195de7997672deac301bd6f5bd5cbb6a3e392b7fe780d7852/types-Jinja2-2.11.9.tar.gz", hash = "sha256:dbdc74a40aba7aed520b7e4d89e8f0fe4286518494208b35123bcf084d4b8c81", size = 13302, upload-time = "2021-11-26T06:21:17.496Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b7/b0/e79d84748f1d34304f13191424348a719c3febaa3493835370fe9528e1e6/types_Jinja2-2.11.9-py3-none-any.whl", hash = "sha256:60a1e21e8296979db32f9374d8a239af4cb541ff66447bb915d8ad398f9c63b2", size = 18190, upload-time = "2021-11-26T06:21:16.18Z" },
-]
-
-[[package]]
-name = "types-markupsafe"
-version = "1.1.10"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/39/31/b5f059142d058aec41e913d8e0eff0a967e7bc46f9a2ba2f31bc11cff059/types-MarkupSafe-1.1.10.tar.gz", hash = "sha256:85b3a872683d02aea3a5ac2a8ef590193c344092032f58457287fbf8e06711b1", size = 2986, upload-time = "2021-11-27T03:18:07.558Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/bc/d6/b8effb1c48539260a5eb4196afc55efac4ea1684a4991977555eb266b2ef/types_MarkupSafe-1.1.10-py3-none-any.whl", hash = "sha256:ca2bee0f4faafc45250602567ef38d533e877d2ddca13003b319c551ff5b3cc5", size = 3998, upload-time = "2021-11-27T03:18:06.398Z" },
-]
-
-[[package]]
-name = "types-setuptools"
-version = "82.0.0.20260518"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/38/bc/73c2c27e047e42f114ac50fb3bdef986c56cbdb68096f8690eeafb839a93/types_setuptools-82.0.0.20260518.tar.gz", hash = "sha256:3b743cfe63d0981ea4c15b90710fc1ed41e3464a537d51e705be514e891c1d07", size = 44999, upload-time = "2026-05-18T06:02:55.642Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/32/8f/d5e2d493f09a7a98c95619edda1cb37cee377626c0a869d53274c26f2858/types_setuptools-82.0.0.20260518-py3-none-any.whl", hash = "sha256:31c04a62b57a653a5021caf191be0f10f70df890f813b51f02bab3969d300f20", size = 68444, upload-time = "2026-05-18T06:02:54.582Z" },
-]
-
-[[package]]
 name = "typing-extensions"
 version = "4.15.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3315,13 +3270,13 @@ wheels = [
 ]
 
 [[package]]
-name = "yamlordereddictloader"
-version = "0.4.2"
+name = "yamlloader"
+version = "1.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/23/78/f853b0db6d8f3ea0ae4c648e4504ba376d024c139ba1292a256ce6180dd0/yamlordereddictloader-0.4.2.tar.gz", hash = "sha256:36af2f6210fcff5da4fc4c12e1d815f973dceb41044e795e1f06115d634bca13", size = 3905, upload-time = "2023-09-22T13:49:58.745Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e7/e6/81677e777ca8a3588012f74e215050e3001e39d253076beb1c3306fc9460/yamlloader-1.6.0.tar.gz", hash = "sha256:918232976c9910d079ef74b3266ff9ef674228609aa56e67718b3992940a823f", size = 77622, upload-time = "2025-11-10T15:34:30.228Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d3/b6/64e84e26c52343dc48e9ffefd7d5e82b986f3bc2bd6da753420f41645718/yamlordereddictloader-0.4.2-py3-none-any.whl", hash = "sha256:dc048adb67026786cd24119bd71241f35bc8b0fd37d24b415c37bbc8049f9cd7", size = 4190, upload-time = "2023-09-22T13:49:56.82Z" },
+    { url = "https://files.pythonhosted.org/packages/d2/8a/132113ebc0f5ef3e893c4c75b058f70206b80a8a69ba46fbaeb5d409eb32/yamlloader-1.6.0-py3-none-any.whl", hash = "sha256:d9ea9948759732eab65e1dbcea510f1582b9c096aab33c893bf55ae9d58783e8", size = 7804, upload-time = "2025-11-10T15:34:29.04Z" },
 ]
