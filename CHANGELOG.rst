@@ -1,8 +1,8 @@
 Changelog
 ==========
 
-3.6.0 - TBD
------------
+3.6.0 - July 30 2026
+--------------------
 
 - Added Python 3.14 support and removed Python 3.9 support (#1010, #1012)
 - Fixed pickling of ``Result`` objects (#995)
