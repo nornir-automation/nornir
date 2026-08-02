@@ -14,7 +14,7 @@ from nornir.core.task import AggregatedResult, Task
 if TYPE_CHECKING:
     import builtins
     import types
-    from collections.abc import Callable, Generator
+    from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -184,13 +184,3 @@ class Nornir:
             "processors": self.processors,
             "runner": self._runner,
         }
-
-    @classmethod
-    def get_validators(cls) -> Generator[Callable[[Nornir], Nornir], None, None]:
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v: Nornir) -> Nornir:
-        if not isinstance(v, cls):
-            raise ValueError(f"Nornir: Nornir expected not {type(v)}")
-        return v
