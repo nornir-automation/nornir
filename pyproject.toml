@@ -1,6 +1,6 @@
 [project]
 name = "nornir"
-version = "3.5.0"
+version = "3.6.0"
 description = "Pluggable multi-threaded framework with inventory management to help operate collections of devices"
 authors = [{ name = "David Barroso", email = "dbarrosop@dravetech.com" }]
 license = "Apache-2.0"
