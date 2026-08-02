@@ -1,15 +1,9 @@
 from __future__ import annotations
 
-import sys
+from importlib import metadata
 from typing import Generic, TypeVar
 
 from nornir.core.exceptions import PluginAlreadyRegistered, PluginNotRegistered
-
-if sys.version_info >= (3, 10):
-    from importlib import metadata
-else:
-    import importlib_metadata as metadata
-
 
 T = TypeVar("T")
 
