@@ -12,7 +12,7 @@ What Nornir brings to the table is that it takes care of dealing with your inven
 
 ## Install
 
-Please note that Nornir requires Python 3.10 or higher. Install Nornir with pip.
+ Install Nornir with pip.
 
 ```bash
 pip install nornir
