@@ -72,6 +72,22 @@ class NornirExecutionError(Exception):
         return text
 
 
+class NornirTaskNotStartedError(Exception):
+    """
+    Raised when :meth:`nornir.core.task.Task.run` is called before the task has been
+    assigned a host, i.e. from outside a running (nested) task.
+    """
+
+    def __init__(
+        self,
+        message: str = (
+            "You have to call this after setting host and nornir attributes. "
+            "You probably called this from outside a nested task"
+        ),
+    ) -> None:
+        super().__init__(message)
+
+
 class NornirSubTaskError(Exception):
     """
     Raised by nornir when a sub task managed by :meth:`nornir.core.Task.run` has failed
