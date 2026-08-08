@@ -120,64 +120,12 @@ extend-exclude = ["*.ipynb"]
 [tool.ruff.lint]
 preview = true
 
-select = [
-    "A",     # flake8-builtins
-    "AIR",   # Airflow
-    "ANN",   # flake8-annotations
-    "ARG",   # flake8-unused-arguments
-    "ASYNC", # flake8-async
-    "B",     # flake8-bugbear
-    "BLE",   # flake8-blind-except
-    "C4",    # flake8-comprehensions
-    "C90",   # mccabe complexity
-    "COM",   # flake8-commas
-    "DJ",    # flake8-django
-    "DTZ",   # flake8-datetimez
-    "E",     # pycodestyle errors
-    "ERA",   # eradicate
-    "EXE",   # flake8-executable
-    "F",     # pyflakes
-    "FBT",   # flake8-boolean-trap
-    "FIX",   # flake8-fixme
-    "FLY",   # flynt
-    "FURB",  # refurb
-    "I",     # isort-like checks
-    "ICN",   # flake8-import-conventions
-    "LOG",   # flake8-logging
-    "INP",   # flake8-no-pep420
-    "INT",   # flake8-gettext
-    "ISC",   # flake8-implicit-str-concat
-    "G",     # flake8-logging-format
-    "N",     # pep8-naming
-    "NPY",   # NumPy-specific rules
-    "PD",    # pandas-vet
-    "PERF",  # Perflint
-    "PGH",   # pygrep-hooks
-    "PIE",   # flake8-pie
-    "PL",    # pylint
-    "PT",    # flake8-pytest-style
-    "PTH",   # flake8-use-pathlib
-    "PYI",   # flake8-pyi
-    "Q",     # flake8-quotes
-    "RET",   # flake8-return
-    "RSE",   # flake8-raise
-    "RUF",   # Ruff-specific rules
-    "S",     # flake8-bandit
-    "SIM",   # flake8-simplify
-    "SLF",   # flake8-self
-    "SLOT",  # flake8-slots
-    "TC",    # flake8-type-checking
-    "TD",    # flake8-todos
-    "T10",   # flake8-debugger
-    "T20",   # flake8-print
-    "TID",   # flake8-tidy-imports
-    "TRY",   # tryceratops
-    "UP",    # pyupgrade
-    "W",     # pycodestyle warnings
-    "YTT",   # flake8-2020
-]
+select = [ "ALL" ]
 
 ignore = [
+    "CPY001",  # Missing copyright notice at top of file
+    "D203",    # Incompatible with D211 (no-blank-line-before-class), which we keep
+    "D213",    # Incompatible with D212 (multi-line-summary-first-line), which we keep
     "ISC001",  # Recommended to be disabled when used with ruff formatter
     "N801",    # Class name should use CapWords convention
     "N818",    # Exception name should be named with an Error suffix
@@ -191,6 +139,23 @@ ignore = [
     "ARG002",  # Unused method argument
     "B028",    # No explicit `stacklevel` keyword argument found
     "COM812",  # Trailing comma missing
+    "D100",    # Missing docstring in public module
+    "D101",    # Missing docstring in public class
+    "D102",    # Missing docstring in public method
+    "D103",    # Missing docstring in public function
+    "D104",    # Missing docstring in public package
+    "D107",    # Missing docstring in `__init__`
+    "D200",    # [*] One-line docstring should fit on one line (unsafe fix)
+    "D205",    # 1 blank line required between summary line and description
+    "D212",    # [*] Multi-line docstring summary should start at the first line
+    "D400",    # [*] First line should end with a period (unsafe fix)
+    "D401",    # First line of docstring should be in imperative mood
+    "D404",    # First word of the docstring should not be "This"
+    "D413",    # [*] Missing blank line after last section
+    "D415",    # [*] First line should end with a period, question mark, or exclamation point (unsafe fix)
+    "DOC201",  # `return` is not documented in docstring
+    "EM101",   # [*] Exception must not use a string literal, assign to variable first (unsafe fix)
+    "EM102",   # [*] Exception must not use an f-string literal, assign to variable first (unsafe fix)
     "FBT001",  # Boolean-typed positional argument in function definition
     "FBT002",  # Boolean default positional argument in function definition
     "FURB101", # `open` and `read` should be replaced by `Path(filename).read_text()`
@@ -247,6 +212,23 @@ max-returns = 11
 "docs/conf.py" = [
     "A001",   # Variable `copyright` is shadowing a Python builtin
     "ERA001", # Commented out code, used to provide examples for Sphinx docs
+]
+
+"nornir/**.py" = [
+##################################################################################################
+# The ignored rules below should be removed once the code has been updated, they are included    #
+# like this so that we can reactivate them one by one. Alternatively ignored after further       #
+# investigation if they are deemed to not make sense.                                            #
+##################################################################################################
+    "D105",    # Missing docstring in magic method
+    "D106",    # Missing docstring in public nested class
+    "D202",    # [*] No blank lines allowed after function docstring
+    "D412",    # [*] No blank lines allowed between a section header and its content
+    "D417",    # Missing argument description in the docstring
+    "D420",    # Section "Returns" appears after section "Raises" but should be before it
+    "DOC501",  # Raised exception missing from docstring
+    "DOC502",  # Raised exception is not explicitly raised
+    "EM103",   # [*] Exception must not use a `.format()` string directly, assign to variable first (unsafe fix)
 ]
 
 "nornir/core/configuration.py" = [
