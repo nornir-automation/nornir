@@ -129,7 +129,7 @@ def nornir() -> Nornir:
     return Nornir(inventory=inventory_from_yaml(), runner=SerialRunner(), data=global_data)
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture(autouse=True)
 def reset_data() -> None:
     global_data.dry_run = True
     global_data.reset_failed_hosts()

@@ -175,7 +175,7 @@ class Test:
         assert filtered == []
 
     @pytest.mark.parametrize(
-        "filter_a,filter_b",
+        ("filter_a", "filter_b"),
         [
             (F(), F()),
             (F(site="site1") & F(role="www"), AND(F(site="site1"), F(role="www"))),
@@ -188,7 +188,7 @@ class Test:
         assert filter_a == filter_b
 
     @pytest.mark.parametrize(
-        "filter_a,filter_b",
+        ("filter_a", "filter_b"),
         [
             (OR(F(site="site1"), F(role="www")), AND(F(site="site1"), F(role="www"))),
             (F(site="site1"), F(role="www")),

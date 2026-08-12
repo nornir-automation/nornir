@@ -151,7 +151,7 @@ class Test:
 
     def test_InitNornir_different_transform_function_by_string_with_bad_options(self) -> None:
         with pytest.raises(TypeError):
-            nr = InitNornir(
+            InitNornir(
                 config_file=os.path.join(dir_path, "a_config.yaml"),
                 inventory={
                     "plugin": "inventory-test",
@@ -163,7 +163,6 @@ class Test:
                     },
                 },
             )
-            assert nr
 
 
 class TestLogging:
