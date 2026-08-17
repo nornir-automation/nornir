@@ -123,15 +123,15 @@ class Test:
 
     def test_severity(self, nornir: Nornir) -> None:
         r = nornir.run(a_task_for_testing)
-        for host, result in r.items():
+        for result in r.values():
             assert result[0].severity_level == logging.INFO
 
         r = nornir.run(a_task_for_testing, severity_level=logging.WARN)
-        for host, result in r.items():
+        for result in r.values():
             assert result[0].severity_level == logging.WARN
 
         r = nornir.run(sub_task_for_testing, severity_level=logging.WARN)
-        for host, result in r.items():
+        for result in r.values():
             for sr in result:
                 assert sr.severity_level == logging.WARN
 
@@ -148,19 +148,19 @@ class Test:
                 assert result[1].severity_level == logging.DEBUG
 
         r = nornir.run(a_failed_task_for_testing)
-        for host, result in r.items():
+        for result in r.values():
             assert result[0].severity_level == logging.ERROR
         # Reset all failed host for next test
         nornir.data.reset_failed_hosts()
 
         r = nornir.run(a_failed_task_for_testing, severity_level=logging.WARN)
-        for host, result in r.items():
+        for result in r.values():
             assert result[0].severity_level == logging.ERROR
         # Reset all failed host for next test
         nornir.data.reset_failed_hosts()
 
         r = nornir.run(a_failed_task_for_testing_overrides_severity)
-        for host, result in r.items():
+        for result in r.values():
             assert result[0].severity_level == logging.CRITICAL
         # Reset all failed host for next test
         nornir.data.reset_failed_hosts()

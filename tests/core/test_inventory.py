@@ -373,7 +373,7 @@ class Test:
         ]
 
     def test_filtering(self, inv: inventory.Inventory) -> None:
-        unfiltered = sorted(list(inv.hosts.keys()))
+        unfiltered = sorted(inv.hosts.keys())
         assert unfiltered == [
             "dev1.group_1",
             "dev2.group_1",
@@ -383,29 +383,27 @@ class Test:
             "dev6.group_3",
         ]
 
-        www = sorted(list(inv.filter(role="www").hosts.keys()))
+        www = sorted(inv.filter(role="www").hosts.keys())
         assert www == ["dev1.group_1", "dev3.group_2"]
 
-        www_site1 = sorted(list(inv.filter(role="www", site="site1").hosts.keys()))
+        www_site1 = sorted(inv.filter(role="www", site="site1").hosts.keys())
         assert www_site1 == ["dev1.group_1"]
 
-        www_site1 = sorted(list(inv.filter(role="www").filter(site="site1").hosts.keys()))
+        www_site1 = sorted(inv.filter(role="www").filter(site="site1").hosts.keys())
         assert www_site1 == ["dev1.group_1"]
 
     def test_filtering_func(self, inv: inventory.Inventory) -> None:
-        long_names = sorted(
-            list(inv.filter(filter_func=lambda x: len(x["my_var"]) > 20).hosts.keys())
-        )
+        long_names = sorted(inv.filter(filter_func=lambda x: len(x["my_var"]) > 20).hosts.keys())
         assert long_names == ["dev1.group_1", "dev4.group_2", "dev6.group_3"]
 
         def longer_than(dev: Host, length: int) -> bool:
             return len(dev["my_var"]) > length
 
-        long_names = sorted(list(inv.filter(filter_func=longer_than, length=20).hosts.keys()))
+        long_names = sorted(inv.filter(filter_func=longer_than, length=20).hosts.keys())
         assert long_names == ["dev1.group_1", "dev4.group_2", "dev6.group_3"]
 
     def test_filter_unique_keys(self, inv: inventory.Inventory) -> None:
-        filtered = sorted(list(inv.filter(www_server="nginx").hosts.keys()))
+        filtered = sorted(inv.filter(www_server="nginx").hosts.keys())
         assert filtered == ["dev1.group_1"]
 
     def test_var_resolution(self, inv: inventory.Inventory) -> None:
