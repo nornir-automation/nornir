@@ -573,8 +573,10 @@ class Test:
         assert isinstance(inventory_dict, dict)
         assert inventory_dict["defaults"]["username"] == "root"
         assert def_extras["blah"] == "from_defaults"
-        assert "my_var" and "site" in grp_data
-        assert "www_server" and "role" in host_data
+        assert "my_var" in grp_data
+        assert "site" in grp_data
+        assert "www_server" in host_data
+        assert "role" in host_data
 
     def test_get_defaults_dict(self, inv: inventory.Inventory) -> None:
         defaults_dict = inv.defaults.dict()
@@ -643,5 +645,5 @@ class Test:
         assert h1.get("var3", None) is None
         assert h1.get("var1", None) == "val1"
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="x not in list"):
             h1.groups.remove(g3)
