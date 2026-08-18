@@ -3,7 +3,7 @@ from pathlib import Path
 
 from nornir.core.configuration import Config
 
-dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_configuration")
+dir_path = Path(__file__).resolve().parent / "test_configuration"
 
 
 DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)12s - %(levelname)8s - %(funcName)10s() - %(message)s"
@@ -86,7 +86,7 @@ class Test:
 
     def test_configuration_file_override_argument(self) -> None:
         config = Config.from_file(
-            os.path.join(dir_path, "config.yaml"),
+            str(dir_path / "config.yaml"),
             core={"raise_on_error": True},
         )
         assert config.core.raise_on_error
@@ -106,19 +106,17 @@ class Test:
         assert not config.core.raise_on_error
 
     def test_get_user_defined_from_file(self) -> None:
-        config = Config.from_file(os.path.join(dir_path, "config.yaml"))
+        config = Config.from_file(str(dir_path / "config.yaml"))
         assert config.user_defined["asd"] == "qwe"
 
     def test_order_of_resolution_config_higher_than_env(self) -> None:
         os.environ["NORNIR_CORE_RAISE_ON_ERROR"] = "1"
-        config = Config.from_file(os.path.join(dir_path, "config.yaml"))
+        config = Config.from_file(str(dir_path / "config.yaml"))
         os.environ.pop("NORNIR_CORE_RAISE_ON_ERROR")
         assert config.core.raise_on_error is False
 
     def test_order_of_resolution_code_is_higher_than_env(self) -> None:
         os.environ["NORNIR_CORE_RAISE_ON_ERROR"] = "0"
-        config = Config.from_file(
-            os.path.join(dir_path, "config.yaml"), core={"raise_on_error": True}
-        )
+        config = Config.from_file(str(dir_path / "config.yaml"), core={"raise_on_error": True})
         os.environ.pop("NORNIR_CORE_RAISE_ON_ERROR")
         assert config.core.raise_on_error is True

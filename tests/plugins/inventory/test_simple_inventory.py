@@ -1,15 +1,15 @@
-import os
+import pathlib
 
 from nornir.plugins.inventory import SimpleInventory
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
+data_path = pathlib.Path(__file__).resolve().parent / "data"
 
 
 class Test:
     def test(self) -> None:
-        host_file = f"{dir_path}/data/hosts.yaml"
-        group_file = f"{dir_path}/data/groups.yaml"
-        defaults_file = f"{dir_path}/data/defaults.yaml"
+        host_file = str(data_path / "hosts.yaml")
+        group_file = str(data_path / "groups.yaml")
+        defaults_file = str(data_path / "defaults.yaml")
 
         inv = SimpleInventory(host_file, group_file, defaults_file).load()
         assert inv.dict() == {
@@ -234,9 +234,9 @@ class Test:
 
     def test_simple_inventory_empty(self) -> None:
         """Verify completely empty groups.yaml and defaults.yaml doesn't generate exception."""
-        host_file = f"{dir_path}/data/hosts-nogroups.yaml"
-        group_file = f"{dir_path}/data/groups-empty.yaml"
-        defaults_file = f"{dir_path}/data/defaults-empty.yaml"
+        host_file = str(data_path / "hosts-nogroups.yaml")
+        group_file = str(data_path / "groups-empty.yaml")
+        defaults_file = str(data_path / "defaults-empty.yaml")
 
         inv = SimpleInventory(host_file, group_file, defaults_file).load()
         assert len(inv.hosts) == 1
@@ -245,9 +245,9 @@ class Test:
 
     def test_simple_inventory_empty_hosts(self) -> None:
         """Verify completely empty hosts.yaml doesn't generate exception."""
-        host_file = f"{dir_path}/data/hosts-empty.yaml"
-        group_file = f"{dir_path}/data/groups-empty.yaml"
-        defaults_file = f"{dir_path}/data/defaults-empty.yaml"
+        host_file = str(data_path / "hosts-empty.yaml")
+        group_file = str(data_path / "groups-empty.yaml")
+        defaults_file = str(data_path / "defaults-empty.yaml")
 
         inv = SimpleInventory(host_file, group_file, defaults_file).load()
         assert inv.hosts == {}

@@ -293,7 +293,7 @@ class Config:
         core = core or {}
         runner = runner or {}
         user_defined = user_defined or {}
-        with open(config_file, "r") as f:
+        with Path(config_file).open("r") as f:
             yml = ruamel.yaml.YAML(typ="safe")
             data = yml.load(f)
         return cls(

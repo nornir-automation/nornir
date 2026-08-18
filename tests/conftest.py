@@ -1,4 +1,4 @@
-import os
+import pathlib
 from typing import Any, TypeVar
 
 import pytest
@@ -24,7 +24,7 @@ global_data = GlobalState(dry_run=True)
 
 
 def inventory_from_yaml() -> Inventory:
-    dir_path = os.path.dirname(os.path.realpath(__file__))
+    data_path = pathlib.Path(__file__).resolve().parent / "inventory_data"
     yml = ruamel.yaml.YAML(typ="safe")
 
     def get_connection_options(data: dict[str, Any]) -> dict[str, ConnectionOptions]:
@@ -41,8 +41,8 @@ def inventory_from_yaml() -> Inventory:
         return cp
 
     def get_defaults() -> Defaults:
-        defaults_file = f"{dir_path}/inventory_data/defaults.yaml"
-        with open(defaults_file, "r") as f:
+        defaults_file = data_path / "defaults.yaml"
+        with defaults_file.open("r") as f:
             defaults_dict = yml.load(f)
 
             return Defaults(
@@ -75,20 +75,20 @@ def inventory_from_yaml() -> Inventory:
             connection_options=get_connection_options(data.get("connection_options", {})),
         )
 
-    host_file = f"{dir_path}/inventory_data/hosts.yaml"
-    group_file = f"{dir_path}/inventory_data/groups.yaml"
+    host_file = data_path / "hosts.yaml"
+    group_file = data_path / "groups.yaml"
 
     defaults = get_defaults()
 
     hosts = Hosts()
-    with open(host_file, "r") as f:
+    with host_file.open("r") as f:
         hosts_dict = yml.load(f)
 
     for n, h in hosts_dict.items():
         hosts[n] = get_inventory_element(Host, h, n, defaults)
 
     groups = Groups()
-    with open(group_file, "r") as f:
+    with group_file.open("r") as f:
         groups_dict = yml.load(f)
 
     for n, g in groups_dict.items():

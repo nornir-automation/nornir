@@ -14,16 +14,16 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import os
+import pathlib
 import sys
 
 from nornir import __version__
 
-sys.path.insert(0, os.path.abspath("../"))
+sys.path.insert(0, str(pathlib.Path("../").resolve()))
 
 
 # -- General configuration ------------------------------------------------
-BASEPATH = os.path.abspath(os.path.dirname(__file__))
+BASEPATH = str(pathlib.Path(__file__).parent.resolve())
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #

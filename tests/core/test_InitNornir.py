@@ -1,6 +1,7 @@
 import logging
 import logging.config
 import os
+import pathlib
 from typing import Any
 
 import pytest
@@ -13,7 +14,7 @@ from nornir.core.plugins.inventory import (
     TransformFunctionRegister,
 )
 
-dir_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "test_InitNornir")
+dir_path = pathlib.Path(__file__).resolve().parent / "test_InitNornir"
 
 LOGGING_DICT = {
     "version": 1,
@@ -80,7 +81,7 @@ class Test:
         assert len(nr.inventory.groups)
 
     def test_InitNornir_file(self) -> None:
-        nr = InitNornir(config_file=os.path.join(dir_path, "a_config.yaml"))
+        nr = InitNornir(config_file=str(dir_path / "a_config.yaml"))
         assert not nr.data.dry_run
         assert len(nr.inventory.hosts)
         assert len(nr.inventory.groups)
@@ -103,14 +104,14 @@ class Test:
 
     def test_InitNornir_override_partial_section(self) -> None:
         nr = InitNornir(
-            config_file=os.path.join(dir_path, "a_config.yaml"),
+            config_file=str(dir_path / "a_config.yaml"),
             core={"raise_on_error": True},
         )
         assert nr.config.core.raise_on_error
 
     def test_InitNornir_combined(self) -> None:
         nr = InitNornir(
-            config_file=os.path.join(dir_path, "a_config.yaml"),
+            config_file=str(dir_path / "a_config.yaml"),
             core={"raise_on_error": True},
         )
         assert not nr.data.dry_run
@@ -120,7 +121,7 @@ class Test:
 
     def test_InitNornir_different_transform_function_by_string(self) -> None:
         nr = InitNornir(
-            config_file=os.path.join(dir_path, "a_config.yaml"),
+            config_file=str(dir_path / "a_config.yaml"),
             inventory={
                 "plugin": "inventory-test",
                 "transform_function": "transform_func",
@@ -135,7 +136,7 @@ class Test:
 
     def test_InitNornir_different_transform_function_by_string_with_options(self) -> None:
         nr = InitNornir(
-            config_file=os.path.join(dir_path, "a_config.yaml"),
+            config_file=str(dir_path / "a_config.yaml"),
             inventory={
                 "plugin": "inventory-test",
                 "transform_function": "transform_func_with_options",
@@ -152,7 +153,7 @@ class Test:
     def test_InitNornir_different_transform_function_by_string_with_bad_options(self) -> None:
         with pytest.raises(TypeError):
             InitNornir(
-                config_file=os.path.join(dir_path, "a_config.yaml"),
+                config_file=str(dir_path / "a_config.yaml"),
                 inventory={
                     "plugin": "inventory-test",
                     "transform_function": "transform_func_with_options",
@@ -189,7 +190,7 @@ class TestLogging:
     def test_InitNornir_logging_defaults(self) -> None:
         self.cleanup()
         InitNornir(
-            config_file=os.path.join(dir_path, "a_config.yaml"),
+            config_file=str(dir_path / "a_config.yaml"),
         )
         nornir_logger = logging.getLogger("nornir")
 
@@ -200,7 +201,7 @@ class TestLogging:
     def test_InitNornir_logging_to_console(self) -> None:
         self.cleanup()
         InitNornir(
-            config_file=os.path.join(dir_path, "a_config.yaml"),
+            config_file=str(dir_path / "a_config.yaml"),
             logging={"to_console": True},
         )
         nornir_logger = logging.getLogger("nornir")
@@ -213,7 +214,7 @@ class TestLogging:
     def test_InitNornir_logging_disabled(self) -> None:
         self.cleanup()
         InitNornir(
-            config_file=os.path.join(dir_path, "a_config.yaml"),
+            config_file=str(dir_path / "a_config.yaml"),
             logging={"enabled": False},
         )
         nornir_logger = logging.getLogger("nornir")
@@ -224,7 +225,7 @@ class TestLogging:
         self.cleanup()
         logging.basicConfig()
         with pytest.warns(ConflictingConfigurationWarning):
-            InitNornir(config_file=os.path.join(dir_path, "a_config.yaml"))
+            InitNornir(config_file=str(dir_path / "a_config.yaml"))
         nornir_logger = logging.getLogger("nornir")
 
         assert logging.getLogger().hasHandlers()
@@ -235,7 +236,7 @@ class TestLogging:
         self.cleanup()
         logging.config.dictConfig(LOGGING_DICT)
         with pytest.warns(ConflictingConfigurationWarning):
-            InitNornir(config_file=os.path.join(dir_path, "a_config.yaml"))
+            InitNornir(config_file=str(dir_path / "a_config.yaml"))
 
         nornir_logger = logging.getLogger("nornir")
         root_logger = logging.getLogger()

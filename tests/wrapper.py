@@ -1,3 +1,4 @@
+import pathlib
 import sys
 from collections.abc import Callable
 from io import StringIO
@@ -33,17 +34,17 @@ def wrap_cli_test(output: str, save_output: bool = False) -> Callable[[Callable[
         output_file = output
 
         if save_output:
-            with open("{}.stdout".format(output_file), "w+") as f:
+            with pathlib.Path("{}.stdout".format(output_file)).open("w+") as f:
                 f.write(stdout.getvalue())
-            with open("{}.stderr".format(output_file), "w+") as f:
+            with pathlib.Path("{}.stderr".format(output_file)).open("w+") as f:
                 f.write(stderr.getvalue())
 
-        with open("{}.stdout".format(output_file), "r") as f:
+        with pathlib.Path("{}.stdout".format(output_file)).open("r") as f:
             screen_output = stdout.getvalue()
             reference_output = f.read()
             assert screen_output == reference_output
 
-        with open("{}.stderr".format(output_file), "r") as f:
+        with pathlib.Path("{}.stderr".format(output_file)).open("r") as f:
             screen_output = stderr.getvalue()
             reference_output = f.read()
             assert screen_output == reference_output
