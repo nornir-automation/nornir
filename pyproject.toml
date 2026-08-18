@@ -255,8 +255,6 @@ max-returns = 11
 # investigation if they are deemed to not make sense.                                            #
 ##################################################################################################
     "ARG001",  # Unused function argument
-    "B007",    # Loop control variable `host` not used within loop body
-    "C414",    # Unnecessary `list` call within `sorted()`
     "DTZ005",  # `datetime.datetime.now()` called without a `tz` argument
     "LOG009",  # Use of undocumented `logging.WARN` constant
     "N999",    # Invalid module name
