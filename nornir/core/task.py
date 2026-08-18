@@ -104,23 +104,12 @@ class Task:
                 r = Result(host=host, result=r)
 
         except NornirSubTaskError as e:
-            tb = traceback.format_exc()
-            logger.error(
-                "Host %r: task %r failed with traceback:\n%s",
-                self.host.name,
-                self.name,
-                tb,
-            )
+            logger.exception("Host %r: task %r failed", self.host.name, self.name)
             r = Result(host, exception=e, result=str(e), failed=True)
 
         except Exception as e:
             tb = traceback.format_exc()
-            logger.error(
-                "Host %r: task %r failed with traceback:\n%s",
-                self.host.name,
-                self.name,
-                tb,
-            )
+            logger.exception("Host %r: task %r failed", self.host.name, self.name)
             r = Result(host, exception=e, result=tb, failed=True)
 
         r.name = self.name
@@ -235,7 +224,7 @@ class Result:
             setattr(self, k, v)
 
     def __repr__(self) -> str:
-        return '{}: "{}"'.format(self.__class__.__name__, self.name)
+        return f'{self.__class__.__name__}: "{self.name}"'
 
     def __str__(self) -> str:
         if self.exception:
@@ -262,7 +251,7 @@ class MultiResult(list[Result]):
         return getattr(self[0], name)
 
     def __repr__(self) -> str:
-        return "{}: {}".format(self.__class__.__name__, super().__repr__())
+        return f"{self.__class__.__name__}: {super().__repr__()}"
 
     @property
     def failed(self) -> bool:
@@ -294,7 +283,7 @@ class AggregatedResult(dict[str, MultiResult]):
         super().__init__(**kwargs)
 
     def __repr__(self) -> str:
-        return "{} ({}): {}".format(self.__class__.__name__, self.name, super().__repr__())
+        return f"{self.__class__.__name__} ({self.name}): {super().__repr__()}"
 
     @property
     def failed(self) -> bool:

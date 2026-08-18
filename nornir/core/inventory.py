@@ -377,7 +377,7 @@ class Host(InventoryElement):
         return self.name
 
     def __repr__(self) -> str:
-        return "{}: {}".format(self.__class__.__name__, self.name or "")
+        return f"{self.__class__.__name__}: {self.name or ''}"
 
     def get(self, item: str, default: Any = None) -> Any:
         """

@@ -60,15 +60,15 @@ class NornirExecutionError(Exception):
     def __str__(self) -> str:
         text = "\n"
         for k, r in self.result.items():
-            text += "{}\n".format("#" * 40)
+            text += f"{'#' * 40}\n"
             if r.failed:
-                text += "# {} (failed)\n".format(k)
+                text += f"# {k} (failed)\n"
             else:
-                text += "# {} (succeeded)\n".format(k)
-            text += "{}\n".format("#" * 40)
+                text += f"# {k} (succeeded)\n"
+            text += f"{'#' * 40}\n"
             for sub_r in r:
-                text += "**** {}\n".format(sub_r.name)
-                text += "{}\n".format(sub_r)
+                text += f"**** {sub_r.name}\n"
+                text += f"{sub_r}\n"
         return text
 
 
@@ -82,7 +82,7 @@ class NornirSubTaskError(Exception):
         self.result = result
 
     def __str__(self) -> str:
-        return "Subtask: {} (failed)\n".format(self.task)
+        return f"Subtask: {self.task} (failed)\n"
 
 
 class NornirNoValidInventoryError(Exception):

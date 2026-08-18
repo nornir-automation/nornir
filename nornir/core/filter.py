@@ -22,7 +22,7 @@ class F_OP_BASE(F_BASE):
         return OR(self, other)
 
     def __repr__(self) -> str:
-        return "( {} {} {} )".format(self.op1, self.__class__.__name__, self.op2)
+        return f"( {self.op1} {self.__class__.__name__} {self.op2} )"
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, F_OP_BASE):
@@ -61,7 +61,7 @@ class F(F_BASE):
         return NOT_F(**self.filters)
 
     def __repr__(self) -> str:
-        return "<Filter ({})>".format(self.filters)
+        return f"<Filter ({self.filters})>"
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, F):
@@ -71,7 +71,7 @@ class F(F_BASE):
 
     @staticmethod
     def _verify_rule(data: Any, rule: str, value: Any) -> bool:
-        operator = "__{}__".format(rule)
+        operator = f"__{rule}__"
         if hasattr(data, operator):
             return getattr(data, operator)(value) is True
 
@@ -109,7 +109,7 @@ class F(F_BASE):
             return F._verify_rule(data, rule[0], value)
 
         else:
-            raise Exception("I don't know how I got here:\n{}\n{}\n{}".format(data, rule, value))
+            raise Exception(f"I don't know how I got here:\n{data}\n{rule}\n{value}")
 
 
 class NOT_F(F):
@@ -120,4 +120,4 @@ class NOT_F(F):
         return F(**self.filters)
 
     def __repr__(self) -> str:
-        return "<Filter NOT ({})>".format(self.filters)
+        return f"<Filter NOT ({self.filters})>"
