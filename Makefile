@@ -8,6 +8,11 @@ PYTHON:=3.10
 docker:
 	docker build --build-arg PYTHON=$(PYTHON) -t $(NAME):latest -f Dockerfile .
 
+.PHONY: wheel
+wheel:
+	uv build
+	uv run --no-project python tests/wheel_importability.py
+
 .PHONY: pytest
 pytest:
 	uv run coverage run --source=nornir -m pytest -vs ${ARGS}

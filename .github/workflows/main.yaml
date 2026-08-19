@@ -41,28 +41,8 @@ jobs:
           python-version: "3.14"
           enable-cache: true
 
-      - name: Build wheel
-        run: uv build
-
-      - name: Install and import wheel
-        run: |
-          uv venv /tmp/nornir-wheel-test
-          uv pip install --python /tmp/nornir-wheel-test/bin/python dist/*.whl
-          cd /tmp
-          /tmp/nornir-wheel-test/bin/python -I - <<'PY'
-          import pathlib
-          import sys
-
-          import nornir
-          from nornir import InitNornir
-
-          module_path = pathlib.Path(nornir.__file__).resolve()
-          environment = pathlib.Path(sys.prefix).resolve()
-          if environment not in module_path.parents:
-              raise SystemExit(f"Imported nornir from outside {environment}: {module_path}")
-          if InitNornir.__name__ != "InitNornir":
-              raise SystemExit("InitNornir is not importable from the built wheel")
-          PY
+      - name: Build and import wheel
+        run: make wheel
 
   pytest:
     name: Testing on Python ${{ matrix.python-version }} (${{ matrix.platform}})
