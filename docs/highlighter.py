@@ -1,3 +1,5 @@
+import pathlib
+
 from IPython.core.display import HTML
 from IPython.core.magic import register_line_magic
 from pygments import highlight
@@ -24,7 +26,7 @@ def highlight_file(filename: str) -> HTML:
 
     formatter = HtmlFormatter(style="default", cssclass="pygments", linenos=linenos)
 
-    with open(filename) as f:
+    with pathlib.Path(filename).open() as f:
         code = f.read()
 
     html_code = highlight(code, lexer, formatter)

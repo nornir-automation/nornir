@@ -1,4 +1,4 @@
-import os
+import pathlib
 
 import pytest
 import ruamel.yaml
@@ -7,12 +7,12 @@ from nornir.core import inventory
 from nornir.core.inventory import Host
 
 yaml = ruamel.yaml.YAML(typ="safe")
-dir_path = os.path.dirname(os.path.realpath(__file__))
-with open(f"{dir_path}/../inventory_data/hosts.yaml") as f:
+data_path = pathlib.Path(__file__).resolve().parent.parent / "inventory_data"
+with (data_path / "hosts.yaml").open() as f:
     hosts = yaml.load(f)
-with open(f"{dir_path}/../inventory_data/groups.yaml") as f:
+with (data_path / "groups.yaml").open() as f:
     groups = yaml.load(f)
-with open(f"{dir_path}/../inventory_data/defaults.yaml") as f:
+with (data_path / "defaults.yaml").open() as f:
     defaults = yaml.load(f)
 inv_dict = {"hosts": hosts, "groups": groups, "defaults": defaults}
 
