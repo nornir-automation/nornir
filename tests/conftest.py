@@ -104,9 +104,7 @@ def inventory_from_yaml() -> Inventory:
 
 
 class SerialRunner:
-    """
-    SerialRunner runs the task over each host one after the other without any parellelization
-    """
+    """Runner that executes the task over each host sequentially without parallelization."""
 
     def __init__(self) -> None:
         pass
@@ -125,7 +123,12 @@ def inv() -> Inventory:
 
 @pytest.fixture(scope="session", autouse=True)
 def nornir() -> Nornir:
-    """Initializes nornir"""
+    """Initialize nornir.
+
+    Returns:
+        A Nornir object using the test inventory and a serial runner.
+
+    """
     return Nornir(inventory=inventory_from_yaml(), runner=SerialRunner(), data=global_data)
 
 

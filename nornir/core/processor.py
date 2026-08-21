@@ -7,54 +7,43 @@ from nornir.core.task import AggregatedResult, MultiResult, Task
 
 
 class Processor(Protocol):
-    """
-    This defines the Processor interface. A processor plugin needs to implement each method with the
-    same exact signature. It's not necessary to subclass it.
+    """Interface that defines the Processor plugins.
+
+    A processor plugin needs to implement each method with the same exact signature.
+    It's not necessary to subclass this class.
 
     A processor is a plugin that gets called when certain events happen.
     """
 
     def task_started(self, task: Task) -> None:
-        """
-        This method is called right before starting the task
-        """
+        """Handle the event fired right before starting the task."""
         raise NotImplementedError("needs to be implemented by the processor")
 
     def task_completed(self, task: Task, result: AggregatedResult) -> None:
-        """
-        This method is called when all the hosts have completed executing their respective task
-        """
+        """Handle the event fired when all the hosts have completed their respective task."""
         raise NotImplementedError("needs to be implemented by the processor")
 
     def task_instance_started(self, task: Task, host: Host) -> None:
-        """
-        This method is called before a host starts executing its instance of the task
-        """
+        """Handle the event fired before a host starts executing its instance of the task."""
         raise NotImplementedError("needs to be implemented by the processor")
 
     def task_instance_completed(self, task: Task, host: Host, result: MultiResult) -> None:
-        """
-        This method is called when a host completes its instance of a task
-        """
+        """Handle the event fired when a host completes its instance of a task."""
         raise NotImplementedError("needs to be implemented by the processor")
 
     def subtask_instance_started(self, task: Task, host: Host) -> None:
-        """
-        This method is called before a host starts executing a subtask
-        """
+        """Handle the event fired before a host starts executing a subtask."""
         raise NotImplementedError("needs to be implemented by the processor")
 
     def subtask_instance_completed(self, task: Task, host: Host, result: MultiResult) -> None:
-        """
-        This method is called when a host completes executing a subtask
-        """
+        """Handle the event fired when a host completes executing a subtask."""
         raise NotImplementedError("needs to be implemented by the processor")
 
 
 class Processors(list[Processor]):
-    """
-    Processors is a wrapper class that holds a list of Processor. Each method
-    will just iterate over all the the Processor objects in ``self`` and call
+    """Wrapper class that holds a list of Processor objects.
+
+    Each method will just iterate over all the Processor objects in ``self`` and call
     its method. For instance::
 
         >>>    def my_method(...):

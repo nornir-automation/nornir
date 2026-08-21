@@ -19,8 +19,8 @@ DEFAULT_SEVERITY_LEVEL = logging.INFO
 
 
 class Task:
-    """
-    A task is basically a wrapper around a function that has to be run against multiple devices.
+    """Wrapper around a function that has to be run against multiple devices.
+
     You won't probably have to deal with this class yourself as
     :meth:`nornir.core.Nornir.run` will create it automatically.
 
@@ -40,6 +40,7 @@ class Task:
         nornir(:obj:`nornir.core.Nornir`): Populated right before calling
           the ``task``
         severity_level (logging.LEVEL): Severity level associated to the task
+
     """
 
     def __init__(
@@ -79,17 +80,15 @@ class Task:
         return self.name
 
     def start(self, host: Host) -> MultiResult:
-        """
-        Run the task for the given host.
+        """Run the task for the given host.
 
         Arguments:
             host (:obj:`nornir.core.inventory.Host`): Host we are operating with. Populated right
               before calling the ``task``
-            nornir(:obj:`nornir.core.Nornir`): Populated right before calling
-              the ``task``
 
         Returns:
-            host (:obj:`nornir.core.task.MultiResult`): Results of the task and its subtasks
+            :obj:`nornir.core.task.MultiResult`: Results of the task and its subtasks
+
         """
         self.host = host
 
@@ -140,8 +139,9 @@ class Task:
         return self.results
 
     def run(self, task: Callable[..., Any], **kwargs: Any) -> MultiResult:
-        """
-        This is a utility method to call a task from within a task. For instance:
+        """Call a task from within a task.
+
+        For instance::
 
             def grouped_tasks(task):
                 task.run(my_first_task)
@@ -150,6 +150,15 @@ class Task:
             nornir.run(grouped_tasks)
 
         This method will ensure the subtask is run only for the host in the current thread.
+
+        Returns:
+            :obj:`nornir.core.task.MultiResult`: Results of the subtask and its own subtasks
+
+        Raises:
+            Exception: the ``host`` attribute has not been set, which happens when calling
+                this from outside a nested task
+            nornir.core.exceptions.NornirSubTaskError: the subtask failed
+
         """
         if not self.host:
             msg = (
@@ -179,15 +188,17 @@ class Task:
         return r
 
     def is_dry_run(self, override: bool | None = None) -> bool:
-        """
-        Returns whether current task is a dry_run or not.
+        """Return whether the current task is a dry run or not.
+
+        Returns:
+            ``True`` if the task is a dry run, ``False`` otherwise.
+
         """
         return override if override is not None else self.global_dry_run
 
 
 class Result:
-    """
-    Result of running individual tasks.
+    """Result of running individual tasks.
 
     Arguments:
         changed (bool): ``True`` if the task is changing the system
@@ -206,6 +217,7 @@ class Result:
         failed (bool): Whether the execution failed or not
         severity_level (logging.LEVEL): Severity level associated to the result of the excecution
         exception (Exception): uncaught exception thrown during the exection of the task (if any)
+
     """
 
     def __init__(
@@ -245,10 +257,7 @@ class Result:
 
 
 class MultiResult(list[Result]):
-    """
-    It is basically is a list-like object that gives you access to the results of all subtasks for
-    a particular device/task.
-    """
+    """List-like object with the results of all the subtasks for a particular device/task."""
 
     def __init__(self, name: str) -> None:
         self.name = name
@@ -275,17 +284,19 @@ class MultiResult(list[Result]):
         return any(h.changed for h in self)
 
     def raise_on_error(self) -> None:
-        """
+        """Raise an exception if at least a task failed.
+
         Raises:
-            :obj:`nornir.core.exceptions.NornirExecutionError`: When at least a task failed
+            nornir.core.exceptions.NornirExecutionError: When at least a task failed
+
         """
         if self.failed:
             raise NornirExecutionError(self)
 
 
 class AggregatedResult(dict[str, MultiResult]):
-    """
-    It basically is a dict-like object that aggregates the results for all devices.
+    """Dict-like object that aggregates the results for all devices.
+
     You can access each individual result by doing ``my_aggr_result["hostname_of_device"]``.
     """
 
@@ -307,9 +318,11 @@ class AggregatedResult(dict[str, MultiResult]):
         return {h: r for h, r in self.items() if r.failed}
 
     def raise_on_error(self) -> None:
-        """
+        """Raise an exception if at least a task failed.
+
         Raises:
-            :obj:`nornir.core.exceptions.NornirExecutionError`: When at least a task failed
+            nornir.core.exceptions.NornirExecutionError: When at least a task failed
+
         """
         if self.failed:
             raise NornirExecutionError(self)

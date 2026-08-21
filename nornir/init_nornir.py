@@ -45,7 +45,8 @@ def InitNornir(
     dry_run: bool = False,
     **kwargs: Any,
 ) -> Nornir:
-    """
+    """Instantiate and configure a Nornir object.
+
     Arguments:
         config_file(str): Path to the configuration file (optional)
         dry_run(bool): Whether to simulate changes or not
@@ -57,6 +58,7 @@ def InitNornir(
 
     Returns:
         :obj:`nornir.core.Nornir`: fully instantiated and configured
+
     """
     ConnectionPluginRegister.auto_register()
 

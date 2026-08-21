@@ -9,52 +9,37 @@ if TYPE_CHECKING:
 
 
 class ConnectionException(Exception):
-    """
-    Superclass for all the Connection* Exceptions
-    """
+    """Superclass for all the Connection* Exceptions."""
 
     def __init__(self, connection: Connection) -> None:
         self.connection = connection
 
 
 class ConnectionAlreadyOpen(ConnectionException):
-    """
-    Raised when opening an already opened connection
-    """
+    """Raised when opening an already opened connection."""
 
 
 class ConnectionNotOpen(ConnectionException):
-    """
-    Raised when trying to close a connection that isn't open
-    """
+    """Raised when trying to close a connection that isn't open."""
 
 
 class PluginAlreadyRegistered(Exception):
-    """
-    Raised when trying to register an already registered plugin
-    """
+    """Raised when trying to register an already registered plugin."""
 
 
 class PluginNotRegistered(Exception):
-    """
-    Raised when trying to access a plugin that is not registered
-    """
+    """Raised when trying to access a plugin that is not registered."""
 
 
 class NornirExecutionError(Exception):
-    """
-    Raised by nornir when any of the tasks managed by :meth:`nornir.core.Nornir.run`
-    when any of the tasks fail.
-    """
+    """Raised by nornir when any of the tasks managed by :meth:`nornir.core.Nornir.run` fail."""
 
     def __init__(self, result: AggregatedResult) -> None:
         self.result = result
 
     @property
     def failed_hosts(self) -> dict[str, MultiResult]:
-        """
-        Hosts that failed to complete the task
-        """
+        """Hosts that failed to complete the task."""
         return {k: v for k, v in self.result.items() if v.failed}
 
     def __str__(self) -> str:
@@ -73,9 +58,7 @@ class NornirExecutionError(Exception):
 
 
 class NornirSubTaskError(Exception):
-    """
-    Raised by nornir when a sub task managed by :meth:`nornir.core.Task.run` has failed
-    """
+    """Raised by nornir when a sub task managed by :meth:`nornir.core.Task.run` has failed."""
 
     def __init__(self, task: Task, result: Result) -> None:
         self.task = task
@@ -86,9 +69,7 @@ class NornirSubTaskError(Exception):
 
 
 class NornirNoValidInventoryError(Exception):
-    """
-    Raised by nornir when :meth:`nornir.plugins.inventory.parse` fails to load any valid inventory
-    """
+    """Raised when :meth:`nornir.plugins.inventory.parse` cannot load a valid inventory."""
 
 
 class ConflictingConfigurationWarning(UserWarning):

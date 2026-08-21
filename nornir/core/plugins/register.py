@@ -19,15 +19,16 @@ class PluginRegister(Generic[T]):
             self.register(entry_point.name, entry_point.load())
 
     def register(self, name: str, plugin: T) -> None:
-        """Registers a plugin with a specified name
+        """Register a plugin with a specified name.
 
         Args:
             name: name of the connection plugin to register
             plugin: plugin class
 
         Raises:
-            :obj:`nornir.core.exceptions.PluginAlreadyRegistered` if
-                another plugin with the specified name was already registered
+            nornir.core.exceptions.PluginAlreadyRegistered: another plugin with the
+                specified name was already registered
+
         """
         existing_plugin = self.available.get(name)
         if existing_plugin is None:
@@ -40,30 +41,37 @@ class PluginRegister(Generic[T]):
             )
 
     def deregister(self, name: str) -> None:
-        """Deregisters a registered plugin by its name
+        """Deregister a registered plugin by its name.
 
         Args:
             name: name of the plugin to deregister
 
         Raises:
-            :obj:`nornir.core.exceptions.PluginNotRegistered`
+            nornir.core.exceptions.PluginNotRegistered: no plugin is registered under
+                the given name
+
         """
         if name not in self.available:
             raise PluginNotRegistered(f"plugin {name!r} is not registered")
         self.available.pop(name)
 
     def deregister_all(self) -> None:
-        """Deregisters all registered plugins"""
+        """Deregister all registered plugins."""
         self.available = {}
 
     def get_plugin(self, name: str) -> T:
-        """Fetches the plugin by name if already registered
+        """Fetch the plugin by name if already registered.
 
         Args:
             name: name of the plugin
 
+        Returns:
+            The plugin registered under the given name.
+
         Raises:
-            :obj:`nornir.core.exceptions.PluginNotRegistered`
+            nornir.core.exceptions.PluginNotRegistered: no plugin is registered under
+                the given name
+
         """
         if name not in self.available:
             raise PluginNotRegistered(f"plugin {name!r} is not registered")

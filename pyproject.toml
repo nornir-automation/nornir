@@ -145,15 +145,6 @@ ignore = [
     "D103",    # Missing docstring in public function
     "D104",    # Missing docstring in public package
     "D107",    # Missing docstring in `__init__`
-    "D200",    # [*] One-line docstring should fit on one line (unsafe fix)
-    "D205",    # 1 blank line required between summary line and description
-    "D212",    # [*] Multi-line docstring summary should start at the first line
-    "D400",    # [*] First line should end with a period (unsafe fix)
-    "D401",    # First line of docstring should be in imperative mood
-    "D404",    # First word of the docstring should not be "This"
-    "D413",    # [*] Missing blank line after last section
-    "D415",    # [*] First line should end with a period, question mark, or exclamation point (unsafe fix)
-    "DOC201",  # `return` is not documented in docstring
     "EM101",   # [*] Exception must not use a string literal, assign to variable first (unsafe fix)
     "EM102",   # [*] Exception must not use an f-string literal, assign to variable first (unsafe fix)
     "FBT001",  # Boolean-typed positional argument in function definition
@@ -219,11 +210,6 @@ max-returns = 11
 ##################################################################################################
     "D105",    # Missing docstring in magic method
     "D106",    # Missing docstring in public nested class
-    "D202",    # [*] No blank lines allowed after function docstring
-    "D412",    # [*] No blank lines allowed between a section header and its content
-    "D417",    # Missing argument description in the docstring
-    "D420",    # Section "Returns" appears after section "Raises" but should be before it
-    "DOC501",  # Raised exception missing from docstring
     "DOC502",  # Raised exception is not explicitly raised
     "EM103",   # [*] Exception must not use a `.format()` string directly, assign to variable first (unsafe fix)
 ]

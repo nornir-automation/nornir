@@ -11,15 +11,11 @@ TRANSFORM_FUNCTION_PLUGIN_PATH = "nornir.plugins.transform_function"
 
 class InventoryPlugin(Protocol):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """
-        This method configures the plugin
-        """
+        """Configure the plugin."""
         raise NotImplementedError("needs to be implemented by the plugin")
 
     def load(self) -> Inventory:
-        """
-        This method implements the plugin's business logic
-        """
+        """Implement the plugin's business logic."""
         raise NotImplementedError("needs to be implemented by the plugin")
 
 
