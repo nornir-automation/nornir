@@ -8,13 +8,15 @@ from decorator import decorator
 
 
 def wrap_cli_test(output: str, save_output: bool = False) -> Callable[[Callable[..., Any]], None]:
-    """
-    This decorator captures the stdout and stder and compare it
-    with the contects of the specified files.
+    """Capture the stdout and stderr and compare them with the contents of the given files.
 
     Arguments:
         output (string): Path to the output. stdout and stderr prefixes will be added automatically
         save_output (bool): Whether to save the output or not. Useful when creating the tests
+
+    Returns:
+        A decorator that wraps the test function.
+
     """
 
     @decorator

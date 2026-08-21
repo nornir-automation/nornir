@@ -98,9 +98,9 @@ class ParentGroups(list["Group"]):
         return any(value == g for g in self)
 
     def add(self, group: Group) -> None:
-        """
-        Add the ParentGroup.  The group will only be appended
-        if it does not exist.
+        """Add the ParentGroup.
+
+        The group will only be appended if it does not exist.
 
         :param group: Parent Group object to add
         :return: None
@@ -153,8 +153,7 @@ class InventoryElement(BaseAttributes):
         }
 
     def extended_groups(self) -> list[Group]:
-        """
-        Returns the groups this host belongs to by virtue of inheritance.
+        """Return the groups this host belongs to by virtue of inheritance.
 
         This list is ordered based on the inheritance rules and groups are not
         duplicated. For instance, given a host with the following groups:
@@ -178,6 +177,10 @@ class InventoryElement(BaseAttributes):
                 - group_X
 
         this will return [group_a, group_1, group_X, group_2, group_b, group_3]
+
+        Returns:
+            The groups this host belongs to, directly or through inheritance.
+
         """
         groups: list[Group] = []
 
@@ -262,8 +265,12 @@ class Host(InventoryElement):
         )
 
     def extended_data(self) -> dict[str, Any]:
-        """
-        Returns the data associated with the object including inherited data
+        """Return the data associated with the object including inherited data.
+
+        Returns:
+            The data of the object merged with the data inherited from its groups
+            and from the defaults.
+
         """
         processed = []
         result = {}
@@ -297,22 +304,41 @@ class Host(InventoryElement):
         }
 
     def keys(self) -> KeysView[str]:
-        """Returns the keys of the attribute ``data`` and of the parent(s) groups."""
+        """Return the keys of the attribute ``data`` and of the parent(s) groups.
+
+        Returns:
+            A view of the available keys.
+
+        """
         return self.extended_data().keys()
 
     def values(self) -> ValuesView[Any]:
-        """Returns the values of the attribute ``data`` and of the parent(s) groups."""
+        """Return the values of the attribute ``data`` and of the parent(s) groups.
+
+        Returns:
+            A view of the available values.
+
+        """
         return self.extended_data().values()
 
     def items(self) -> ItemsView[str, Any]:
-        """
-        Returns all the data accessible from a device, including
-        the one inherited from parent groups
+        """Return all the data accessible from a device.
+
+        This includes the data inherited from the parent groups.
+
+        Returns:
+            A view of the available key/value pairs.
+
         """
         return self.extended_data().items()
 
     def has_parent_group(self, group: str | Group) -> bool:
-        """Returns whether the object is a child of the :obj:`Group` ``group``"""
+        """Return whether the object is a child of the :obj:`Group` ``group``.
+
+        Returns:
+            ``True`` if the object is a child of ``group``, ``False`` otherwise.
+
+        """
         if isinstance(group, str):
             return self._has_parent_group_by_name(group)
 
@@ -380,12 +406,15 @@ class Host(InventoryElement):
         return "{}: {}".format(self.__class__.__name__, self.name or "")
 
     def get(self, item: str, default: Any = None) -> Any:
-        """
-        Returns the value ``item`` from the host or hosts group variables.
+        """Return the value ``item`` from the host or hosts group variables.
 
         Arguments:
             item(``str``): The variable to get
             default(``any``): Return value if item not found
+
+        Returns:
+            The value of ``item``, or ``default`` if it could not be found.
+
         """
         if hasattr(self, item):
             return getattr(self, item)
@@ -453,21 +482,24 @@ class Host(InventoryElement):
         return p
 
     def get_connection(self, connection: str, configuration: Config) -> Any:
-        """
+        """Return an established connection of the given type.
+
         The function of this method is twofold:
 
             1. If an existing connection is already established for the given type return it
             2. If none exists, establish a new connection of that type with default parameters
                and return it
 
-        Raises:
-            AttributeError: if it's unknown how to establish a connection for the given type
-
         Arguments:
             connection: Name of the connection, for instance, netmiko, paramiko, napalm...
+            configuration: Configuration to pass to the connection plugin
 
         Returns:
             An already established connection
+
+        Raises:
+            AttributeError: if it's unknown how to establish a connection for the given type
+
         """
         if connection not in self.connections:
             conn = self.get_connection_parameters(connection)
@@ -495,17 +527,19 @@ class Host(InventoryElement):
         extras: builtins.dict[str, Any] | None = None,
         default_to_host_attributes: bool = True,
     ) -> ConnectionPlugin:
-        """
-        Open a new connection.
+        """Open a new connection.
 
         If ``default_to_host_attributes`` is set to ``True`` arguments will default to host
         attributes if not specified.
 
+        Returns:
+            The newly opened connection
+
         Raises:
             AttributeError: if it's unknown how to establish a connection for the given type
+            nornir.core.exceptions.ConnectionAlreadyOpen: a connection of the given type
+                is already open
 
-        Returns:
-            An already established connection
         """
         conn_name = connection
         existing_conn = self.connections.get(conn_name)
@@ -536,7 +570,12 @@ class Host(InventoryElement):
         return conn_obj
 
     def close_connection(self, connection: str) -> None:
-        """Close the connection"""
+        """Close the connection.
+
+        Raises:
+            nornir.core.exceptions.ConnectionNotOpen: no connection of the given type is open
+
+        """
         conn_name = connection
         if conn_name not in self.connections:
             raise ConnectionNotOpen(conn_name)
@@ -610,9 +649,13 @@ class Inventory:
         return self.hosts.__len__()
 
     def children_of_group(self, group: str | Group) -> set[Host]:
-        """
-        Returns set of hosts that belongs to a group including those that belong
-        indirectly via inheritance
+        """Return the set of hosts that belong to a group.
+
+        This includes the hosts that belong to it indirectly via inheritance.
+
+        Returns:
+            The hosts that belong to ``group``.
+
         """
         hosts: set[Host] = set()
         for host in self.hosts.values():
@@ -622,8 +665,11 @@ class Inventory:
 
     @classmethod
     def schema(cls) -> dict[str, Any]:
-        """
-        Return serialized dictionary of inventory
+        """Return the schema of a serialized inventory.
+
+        Returns:
+            The schema of the hosts, groups and defaults of an inventory.
+
         """
         return {
             "hosts": {"$name": Host.schema()},
@@ -632,8 +678,11 @@ class Inventory:
         }
 
     def dict(self) -> dict[str, Any]:
-        """
-        Return serialized dictionary of inventory
+        """Return a serialized dictionary of the inventory.
+
+        Returns:
+            The hosts, groups and defaults of the inventory serialized as dictionaries.
+
         """
         return {
             "hosts": {n: h.dict() for n, h in self.hosts.items()},

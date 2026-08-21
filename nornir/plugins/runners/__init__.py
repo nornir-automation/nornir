@@ -7,9 +7,7 @@ from nornir.core.task import AggregatedResult, Task
 
 
 class SerialRunner:
-    """
-    SerialRunner runs the task over each host one after the other without any parellelization
-    """
+    """Runner that executes the task over each host sequentially without parallelization."""
 
     def __init__(self) -> None:
         pass
@@ -22,11 +20,11 @@ class SerialRunner:
 
 
 class ThreadedRunner:
-    """
-    ThreadedRunner runs the task over each host using threads
+    """Runner that executes the task over each host using threads.
 
     Arguments:
         num_workers: number of threads to use
+
     """
 
     def __init__(self, num_workers: int = 20) -> None:

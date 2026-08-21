@@ -60,7 +60,7 @@ class Test:
         assert inv.groups["g1"] in inv.groups["g2"].groups
 
     def test_inventory_data(self, inv: inventory.Inventory) -> None:
-        """Test Host values()/keys()/items()"""
+        """Test Host values()/keys()/items()."""
         h = inv.hosts["dev1.group_1"]
         assert "comes_from_dev1.group_1" in h.values()
         assert "blah" in h.values()

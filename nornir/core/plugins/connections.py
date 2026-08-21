@@ -19,19 +19,17 @@ class ConnectionPlugin(Protocol):
         extras: dict[str, Any] | None = None,
         configuration: Config | None = None,
     ) -> None:
-        """
-        Connect to the device and populate the attribute :attr:`connection` with
-        the underlying connection
+        """Connect to the device.
+
+        Populates the attribute :attr:`connection` with the underlying connection.
         """
 
     def close(self) -> None:
-        """Close the connection with the device"""
+        """Close the connection with the device."""
 
     @property
     def connection(self) -> Any:
-        """
-        Established connection
-        """
+        """Established connection."""
 
 
 ConnectionPluginRegister: PluginRegister[type[ConnectionPlugin]] = PluginRegister(

@@ -4,12 +4,14 @@ from typing import Any
 
 
 class GlobalState:
-    """
-    This class is just a placeholder to share data amongst different
-    versions of Nornir after running ``filter`` multiple times.
+    """Placeholder to share data amongst different versions of Nornir.
+
+    The same object is shared amongst all the versions of Nornir that result from
+    running ``filter`` multiple times.
 
     Attributes:
         failed_hosts: Hosts that have failed to run a task properly
+
     """
 
     __slots__ = "dry_run", "failed_hosts"
@@ -27,5 +29,10 @@ class GlobalState:
         self.failed_hosts = set()
 
     def dict(self) -> dict[str, Any]:
-        """Return a dictionary representing the object."""
+        """Return a dictionary representing the object.
+
+        Returns:
+            The value of each attribute in ``__slots__`` keyed by its name.
+
+        """
         return {item: getattr(self, item) for item in GlobalState.__slots__}
