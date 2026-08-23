@@ -34,15 +34,13 @@ Propagation status:
      time; no edit needed.
   ✅ .specify/templates/spec-template.md, tasks-template.md, checklist-template.md — verified: no
      constitution or principle references to keep in sync.
-  ⚠️ CONTRIBUTING.rst — "Updating dependencies" step 1 states that a pull request cannot update
-     dependencies and that a dedicated PR is required, which contradicts the maintainer-approval
-     gate in Quality Gates and Tooling. Governance requires the conflicting document be
-     corrected. ("Before you make any significant code changes ... it's recommended that you open
-     a GitHub issue" already matches the Development Workflow gate and needs no change.)
+  ✅ CONTRIBUTING.rst — "Updating dependencies" step 1 rewritten to the maintainer-approval gate:
+     no dedicated issue or dependency-only pull request is required, a feature PR may carry the
+     dependency change its own code needs, and a bulk pre-release refresh still lands on its own.
+     ("Before you make any significant code changes ... it's recommended that you open a GitHub
+     issue" already matched the Development Workflow gate and needed no change.)
 
 Deferred TODOs:
-  - TODO(CONTRIBUTING_DEPENDENCY_SECTION): align "Updating dependencies" with the maintainer-
-    approval gate in Quality Gates and Tooling.
   - TODO(DEV_DEPENDENCY_PINS): `pyproject.toml` currently constrains development dependencies
     with ranges (`ruff>=0.15.20,<0.16`, `mypy>=1.5.1,<2`, `nbval>=0.10.0,<0.11`) and pins the
     nornir plugin packages exactly, which does not match the stated policy of `*` for
