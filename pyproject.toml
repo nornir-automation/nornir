@@ -253,12 +253,12 @@ max-returns = 11
 ##################################################################################################
     "ARG001",  # Unused function argument
     "DTZ005",  # `datetime.datetime.now()` called without a `tz` argument
+    "FURB101", # `open` and `read` should be replaced by `Path(filename).read_text()`
     "LOG009",  # Use of undocumented `logging.WARN` constant
     "N999",    # Invalid module name
     "PLC1901", # Can be simplified as an empty string is falsey
     "PLR0904", # Too many public methods
     "PLR2004", # Magic value used in comparison, consider replacing with a constant variable
-    "FURB101", # `open` and `read` should be replaced by `Path(filename).read_text()`
     "PLW1514", # `open` in text mode without explicit `encoding` argument
     "SIM118",  # Use `key in dict` instead of `key in dict.keys()`
     "UP032",   # Use f-string instead of `format` call
