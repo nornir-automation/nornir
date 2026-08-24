@@ -94,7 +94,7 @@ class SimpleInventory:
         yml = ruamel.yaml.YAML(typ="safe")
 
         if self.defaults_file.exists():
-            with self.defaults_file.open("r", encoding=self.encoding) as f:
+            with self.defaults_file.open(encoding=self.encoding) as f:
                 defaults_dict = yml.load(f) or {}
             if defaults_dict == {}:
                 logger.warning(
@@ -106,7 +106,7 @@ class SimpleInventory:
             defaults = Defaults()
 
         hosts = Hosts()
-        with self.host_file.open("r", encoding=self.encoding) as f:
+        with self.host_file.open(encoding=self.encoding) as f:
             hosts_dict = yml.load(f) or {}
         if hosts_dict == {}:
             logger.warning(
@@ -119,7 +119,7 @@ class SimpleInventory:
 
         groups = Groups()
         if self.group_file.exists():
-            with self.group_file.open("r", encoding=self.encoding) as f:
+            with self.group_file.open(encoding=self.encoding) as f:
                 groups_dict = yml.load(f) or {}
             if groups_dict == {}:
                 logger.warning(
