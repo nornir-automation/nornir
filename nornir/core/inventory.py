@@ -345,16 +345,10 @@ class Host(InventoryElement):
         return self._has_parent_group_by_object(group)
 
     def _has_parent_group_by_name(self, group: str) -> bool:
-        for g in self.groups:
-            if g.name == group or g.has_parent_group(group):
-                return True
-        return False
+        return any(g.name == group or g.has_parent_group(group) for g in self.groups)
 
     def _has_parent_group_by_object(self, group: Group) -> bool:
-        for g in self.groups:
-            if g is group or g.has_parent_group(group):
-                return True
-        return False
+        return any(g is group or g.has_parent_group(group) for g in self.groups)
 
     def __getitem__(self, item: str) -> Any:
         try:
