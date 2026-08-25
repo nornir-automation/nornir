@@ -160,12 +160,9 @@ ignore = [
     "PYI034",  # `__enter__` should return `Self`; requires Python 3.11+ (or typing_extensions)
     "RSE102",  # Unnecessary parentheses on raised exception
     "RUF001",  # String contains ambiguous `–` (EN DASH). Did you mean `-` (HYPHEN-MINUS)?
-    "RUF012",  # Mutable class attributes should be annotated with `typing.ClassVar`
     "RUF067",  # `__init__` module should only contain docstrings and re-exports
     "S701",    # By default, jinja2 sets `autoescape` to `False`. Consider using `autoescape=True` or the `select_autoescape` function to mitigate XSS vulnerabilities.
     "SLF001",  # Private member accessed
-    "SIM108",  # Use ternary operator `config = Config.from_file(config_file, **kwargs) if config_file else Config.from_dict(**kwargs)` instead of `if`-`else`-block
-    "SIM110",  # Use `return any(g.name == group or g.has_parent_group(group) for g in self.groups)` instead of `for` loop
     "TC001",   # Move application import into a type-checking block (first-party re-export restructuring is out of scope for the PEP 585/604 cleanup)
     "TRY002",  # Create your own exception
     "TRY003",  # Avoid specifying long messages outside the exception class
@@ -216,6 +213,15 @@ max-returns = 11
 
 "nornir/core/configuration.py" = [
     "A002",    # Argument `format` / `help` is shadowing a Python builtin
+]
+
+"nornir/core/plugins/register.py" = [
+##################################################################################################
+# The ignored rules below should be removed once the code has been updated, they are included    #
+# like this so that we can reactivate them one by one. Alternatively ignored after further       #
+# investigation if they are deemed to not make sense.                                            #
+##################################################################################################
+    "RUF012",  # Mutable class attributes should be annotated with `typing.ClassVar` (every fix changes behaviour)
 ]
 
 "nornir/core/task.py" = [

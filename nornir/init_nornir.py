@@ -62,10 +62,7 @@ def InitNornir(
     """
     ConnectionPluginRegister.auto_register()
 
-    if config_file:
-        config = Config.from_file(config_file, **kwargs)
-    else:
-        config = Config.from_dict(**kwargs)
+    config = Config.from_file(config_file, **kwargs) if config_file else Config.from_dict(**kwargs)
 
     data = GlobalState(dry_run=dry_run)
 
