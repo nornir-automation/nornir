@@ -33,22 +33,14 @@ def wrap_cli_test(output: str, save_output: bool = False) -> Callable[[Callable[
         sys.stdout = backup_stdout
         sys.stderr = backup_stderr
 
-        output_file = output
+        stdout_file = pathlib.Path(f"{output}.stdout")
+        stderr_file = pathlib.Path(f"{output}.stderr")
 
         if save_output:
-            with pathlib.Path("{}.stdout".format(output_file)).open("w+") as f:
-                f.write(stdout.getvalue())
-            with pathlib.Path("{}.stderr".format(output_file)).open("w+") as f:
-                f.write(stderr.getvalue())
+            stdout_file.write_text(stdout.getvalue(), encoding="utf-8")
+            stderr_file.write_text(stderr.getvalue(), encoding="utf-8")
 
-        with pathlib.Path("{}.stdout".format(output_file)).open("r") as f:
-            screen_output = stdout.getvalue()
-            reference_output = f.read()
-            assert screen_output == reference_output
-
-        with pathlib.Path("{}.stderr".format(output_file)).open("r") as f:
-            screen_output = stderr.getvalue()
-            reference_output = f.read()
-            assert screen_output == reference_output
+        assert stdout.getvalue() == stdout_file.read_text(encoding="utf-8")
+        assert stderr.getvalue() == stderr_file.read_text(encoding="utf-8")
 
     return run_test

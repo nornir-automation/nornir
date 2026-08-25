@@ -26,8 +26,7 @@ def highlight_file(filename: str) -> HTML:
 
     formatter = HtmlFormatter(style="default", cssclass="pygments", linenos=linenos)
 
-    with pathlib.Path(filename).open() as f:
-        code = f.read()
+    code = pathlib.Path(filename).read_text(encoding="utf-8")
 
     html_code = highlight(code, lexer, formatter)
     css = formatter.get_style_defs()
