@@ -20,6 +20,19 @@ EXTRA_CSS = """span.lineno {
 
 @register_line_magic
 def highlight_file(filename: str) -> HTML:
+    """Render a file as syntax highlighted HTML.
+
+    Registered as the ``%highlight_file`` line magic so the documentation notebooks can
+    show inventory and configuration files with line numbers. The lexer is picked from
+    the extension of the file.
+
+    Arguments:
+        filename: Path of the file to render
+
+    Returns:
+        The highlighted file, ready for IPython to display.
+
+    """
     lexer = get_lexer_for_filename(filename)
 
     linenos = "inline"

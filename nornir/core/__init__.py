@@ -181,6 +181,19 @@ class Nornir:
         return {"data": self.data.dict(), "inventory": self.inventory.dict()}
 
     def close_connections(self, on_good: bool = True, on_failed: bool = False) -> None:
+        """Close all the connections open on the hosts of the inventory.
+
+        The connections are closed by running a task, so the call goes through the
+        runner and the processors see it like any other task. Using the object as a
+        context manager closes the connections of every host on exit, failed ones
+        included.
+
+        Arguments:
+            on_good(``bool``): Whether to close the connections of the hosts marked as good
+            on_failed(``bool``): Whether to close the connections of the hosts marked as failed
+
+        """
+
         def close_connections_task(task: Task) -> None:
             task.host.close_connections()
 
@@ -188,6 +201,17 @@ class Nornir:
 
     @property
     def runner(self) -> RunnerPlugin:
+        """The runner this object dispatches its tasks with.
+
+        Returns:
+            :obj:`nornir.core.plugins.runners.RunnerPlugin`: The runner assigned to ``self``.
+
+        Raises:
+            nornir.core.exceptions.PluginNotRegistered: no runner was assigned. Objects
+                built by :obj:`nornir.InitNornir` always have one, so this is only
+                reachable when constructing :obj:`Nornir` directly.
+
+        """
         if self._runner:
             return self._runner
 
@@ -204,10 +228,30 @@ class Nornir:
 
     @classmethod
     def get_validators(cls) -> Generator[Callable[[Nornir], Nornir], None, None]:
+        """Yield the validators used to accept a :obj:`Nornir` as a field of a model.
+
+        Yields:
+            :py:meth:`validate`.
+
+        """
+        # Left over from the time nornir modelled its objects with pydantic. Nothing in
+        # nornir calls it, and the name does not match the hook any released pydantic
+        # looks for (__get_validators__ in v1, __get_pydantic_core_schema__ in v2), so
+        # it has no effect on its own.
         yield cls.validate
 
     @classmethod
     def validate(cls, v: Nornir) -> Nornir:
+        """Return ``v`` unchanged if it is a :obj:`Nornir` object.
+
+        Returns:
+            :obj:`Nornir`: The object that was passed in.
+
+        Raises:
+            ValueError: ``v`` is not an instance of this class.
+
+        """
+        # Counterpart of get_validators, and equally unused.
         if not isinstance(v, cls):
             raise ValueError(f"Nornir: Nornir expected not {type(v)}")
         return v
