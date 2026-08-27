@@ -43,18 +43,25 @@ def load_runner(
 def InitNornir(
     config_file: str = "",
     dry_run: bool = False,
-    **kwargs: Any,
+    *,
+    inventory: dict[str, Any] | None = None,
+    ssh: dict[str, Any] | None = None,
+    logging: dict[str, Any] | None = None,
+    core: dict[str, Any] | None = None,
+    runner: dict[str, Any] | None = None,
+    user_defined: dict[str, Any] | None = None,
 ) -> Nornir:
     """Instantiate and configure a Nornir object.
 
     Arguments:
         config_file(str): Path to the configuration file (optional)
         dry_run(bool): Whether to simulate changes or not
-        configure_logging: Whether to configure logging or not. This argument is being
-            deprecated. Please use logging.enabled parameter in the configuration
-            instead.
-        **kwargs: Extra information to pass to the
-            :obj:`nornir.core.configuration.Config` object
+        inventory(dict): Inventory configuration section
+        ssh(dict): SSH configuration section
+        logging(dict): Logging configuration section
+        core(dict): Core configuration section
+        runner(dict): Runner configuration section
+        user_defined(dict): User-defined configuration section
 
     Returns:
         :obj:`nornir.core.Nornir`: fully instantiated and configured
@@ -62,7 +69,25 @@ def InitNornir(
     """
     ConnectionPluginRegister.auto_register()
 
-    config = Config.from_file(config_file, **kwargs) if config_file else Config.from_dict(**kwargs)
+    if config_file:
+        config = Config.from_file(
+            config_file,
+            inventory=inventory,
+            ssh=ssh,
+            logging=logging,
+            core=core,
+            runner=runner,
+            user_defined=user_defined,
+        )
+    else:
+        config = Config.from_dict(
+            inventory=inventory,
+            ssh=ssh,
+            logging=logging,
+            core=core,
+            runner=runner,
+            user_defined=user_defined,
+        )
 
     data = GlobalState(dry_run=dry_run)
 
