@@ -10,6 +10,7 @@ docker:
 
 .PHONY: wheel
 wheel:
+	rm -rf dist
 	uv build
 	uv run --no-project python tests/wheel_importability.py
 
