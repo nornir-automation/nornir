@@ -65,6 +65,17 @@ class Task:
         self.processors = processors
 
     def copy(self) -> Task:
+        """Return a copy of this task with no host and no results yet.
+
+        :py:meth:`start` records the host it ran against and the results it produced on
+        the task object itself, so the runners hand each host its own copy rather than
+        sharing one task across hosts.
+
+        Returns:
+            :obj:`Task`: A task with the same callable, parameters, processors and
+            severity level as ``self``.
+
+        """
         return Task(
             self.task,
             self.nornir,

@@ -52,25 +52,31 @@ class Processors(list[Processor]):
     """
 
     def task_started(self, task: Task) -> None:
+        """Call ``task_started`` on every processor, in order."""
         for p in self:
             p.task_started(task)
 
     def task_completed(self, task: Task, result: AggregatedResult) -> None:
+        """Call ``task_completed`` on every processor, in order."""
         for p in self:
             p.task_completed(task, result)
 
     def task_instance_started(self, task: Task, host: Host) -> None:
+        """Call ``task_instance_started`` on every processor, in order."""
         for p in self:
             p.task_instance_started(task, host)
 
     def task_instance_completed(self, task: Task, host: Host, result: MultiResult) -> None:
+        """Call ``task_instance_completed`` on every processor, in order."""
         for p in self:
             p.task_instance_completed(task, host, result)
 
     def subtask_instance_started(self, task: Task, host: Host) -> None:
+        """Call ``subtask_instance_started`` on every processor, in order."""
         for p in self:
             p.subtask_instance_started(task, host)
 
     def subtask_instance_completed(self, task: Task, host: Host, result: MultiResult) -> None:
+        """Call ``subtask_instance_completed`` on every processor, in order."""
         for p in self:
             p.subtask_instance_completed(task, host, result)

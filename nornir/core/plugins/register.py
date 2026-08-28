@@ -15,6 +15,18 @@ class PluginRegister(Generic[T]):
         self._entry_point = entry_point
 
     def auto_register(self) -> None:
+        """Register every plugin advertised under the entry point of this register.
+
+        Any installed package that declares an entry point in the group given to the
+        constructor is picked up, which is how third party plugins become available
+        without being imported explicitly. Registering the same plugin twice under the
+        same name is not an error, so this is safe to call repeatedly.
+
+        Raises:
+            nornir.core.exceptions.PluginAlreadyRegistered: two different plugins are
+                advertised under the same name
+
+        """
         for entry_point in metadata.entry_points(group=self._entry_point):
             self.register(entry_point.name, entry_point.load())
 

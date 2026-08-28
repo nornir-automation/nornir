@@ -37,6 +37,16 @@ class BaseAttributes:
 
     @classmethod
     def schema(cls) -> dict[str, Any]:
+        """Return a description of the serialized form of the object.
+
+        This is documentation rather than a schema you can validate against: the values
+        are the names of the expected types, and elsewhere ``$name`` placeholders stand
+        for keys the user chooses.
+
+        Returns:
+            The shape of what :py:meth:`dict` returns.
+
+        """
         return {
             "hostname": "str",
             "port": "int",
@@ -46,6 +56,17 @@ class BaseAttributes:
         }
 
     def dict(self) -> dict[str, Any]:
+        """Return the object serialized as a dictionary.
+
+        Only the values set on the object itself are returned. Subclasses that resolve
+        their attributes through groups and defaults, :obj:`Host` and :obj:`Group`, are
+        deliberately bypassed here, so a value inherited rather than set directly shows
+        up as ``None``.
+
+        Returns:
+            The attributes of the object.
+
+        """
         return {
             "hostname": object.__getattribute__(self, "hostname"),
             "port": object.__getattribute__(self, "port"),
@@ -78,12 +99,25 @@ class ConnectionOptions(BaseAttributes):
 
     @classmethod
     def schema(cls) -> dict[str, Any]:
+        """Return a description of the serialized form of the connection options.
+
+        Returns:
+            The shape of what :py:meth:`dict` returns, with ``extras`` holding whatever
+            keys the connection plugin accepts.
+
+        """
         return {
             "extras": {"$key": "$value"},
             **super().schema(),
         }
 
     def dict(self) -> dict[str, Any]:
+        """Return the connection options serialized as a dictionary.
+
+        Returns:
+            The attributes of the object, including ``extras``.
+
+        """
         return {
             "extras": self.extras,
             **super().dict(),
@@ -137,6 +171,12 @@ class InventoryElement(BaseAttributes):
 
     @classmethod
     def schema(cls) -> dict[str, Any]:
+        """Return a description of the serialized form of the object.
+
+        Returns:
+            The shape of what :py:meth:`dict` returns.
+
+        """
         return {
             "groups": ["$group_name"],
             "data": {"$key": "$value"},
@@ -145,6 +185,15 @@ class InventoryElement(BaseAttributes):
         }
 
     def dict(self) -> dict[str, Any]:
+        """Return the object serialized as a dictionary.
+
+        The parent groups are reduced to their names, so the result is a flat structure
+        that can be written back out as YAML or JSON.
+
+        Returns:
+            The attributes of the object, without anything it inherits.
+
+        """
         return {
             "groups": [g.name for g in self.groups],
             "data": self.data,
@@ -220,6 +269,12 @@ class Defaults(BaseAttributes):
 
     @classmethod
     def schema(cls) -> dict[str, Any]:
+        """Return a description of the serialized form of the defaults.
+
+        Returns:
+            The shape of what :py:meth:`dict` returns.
+
+        """
         return {
             "data": {"$key": "$value"},
             "connection_options": {"$connection_type": ConnectionOptions.schema()},
@@ -227,6 +282,12 @@ class Defaults(BaseAttributes):
         }
 
     def dict(self) -> dict[str, Any]:
+        """Return the defaults serialized as a dictionary.
+
+        Returns:
+            The attributes of the object, with the connection options serialized too.
+
+        """
         return {
             "data": self.data,
             "connection_options": {k: v.dict() for k, v in self.connection_options.items()},
@@ -290,6 +351,18 @@ class Host(InventoryElement):
 
     @classmethod
     def schema(cls) -> dict[str, Any]:
+        """Return a description of the serialized form of the host.
+
+        This is the structure a host takes in an inventory file, which makes it a handy
+        reference when writing one::
+
+            >>> import json
+            >>> print(json.dumps(Host.schema(), indent=4))
+
+        Returns:
+            The shape of what :py:meth:`dict` returns.
+
+        """
         return {
             "name": "str",
             "connection_options": {"$connection_type": ConnectionOptions.schema()},
@@ -297,6 +370,17 @@ class Host(InventoryElement):
         }
 
     def dict(self) -> dict[str, Any]:
+        """Return the host serialized as a dictionary.
+
+        Only what is set on the host itself is returned. Attribute access resolves
+        through the groups and the defaults but this does not, so ``host.hostname`` and
+        ``host.dict()["hostname"]`` differ whenever the hostname comes from a group or
+        from the defaults. Use :py:meth:`extended_data` for the data as the host sees it.
+
+        Returns:
+            The attributes of the host, with its groups reduced to their names.
+
+        """
         return {
             "name": self.name,
             "connection_options": {k: v.dict() for k, v in self.connection_options.items()},
@@ -419,6 +503,22 @@ class Host(InventoryElement):
             return default
 
     def get_connection_parameters(self, connection: str | None = None) -> ConnectionOptions:
+        """Return the parameters to open a connection of the given type with.
+
+        The options set for ``connection`` on the host win, then those of its groups in
+        the order they are listed, then those of the defaults. Anything still unset
+        falls back to the matching attribute of the host, which resolves through the
+        groups and the defaults in turn.
+
+        Arguments:
+            connection: Name of the connection, for instance, netmiko, paramiko,
+                napalm... When omitted, the attributes of the host are returned with no
+                connection specific options at all
+
+        Returns:
+            :obj:`ConnectionOptions`: The parameters to open the connection with.
+
+        """
         if not connection:
             d = ConnectionOptions(
                 hostname=self.hostname,
@@ -579,6 +679,11 @@ class Host(InventoryElement):
             conn_obj.close()
 
     def close_connections(self) -> None:
+        """Close every connection open on this host.
+
+        Closing a connection that was never opened is not an error here, unlike
+        :py:meth:`close_connection`: a host with nothing open is left alone.
+        """
         # Decouple deleting dictionary elements from iterating over connections dict
         existing_conns = list(self.connections.keys())
         for connection in existing_conns:
@@ -598,11 +703,41 @@ class Groups(dict[str, Group]):
 
 
 class TransformFunction(Protocol):
-    def __call__(self, host: Host, **kwargs: Any) -> None: ...
+    """Interface a transform function has to implement.
+
+    A transform function is called once per host after the inventory has been loaded,
+    which is where you enrich hosts with data that does not belong in the inventory
+    files, such as credentials pulled from a vault.
+    """
+
+    def __call__(self, host: Host, **kwargs: Any) -> None:
+        """Modify the host in place.
+
+        Anything returned is discarded, so the host has to be changed in place for the
+        change to survive.
+
+        Arguments:
+            host: Host to modify
+            **kwargs: The ``transform_function_options`` of the configuration
+
+        """
 
 
 class FilterObj(Protocol):
-    def __call__(self, host: Host, **kwargs: Any) -> bool: ...
+    """Interface a filter passed to :py:meth:`Inventory.filter` has to implement."""
+
+    def __call__(self, host: Host, **kwargs: Any) -> bool:
+        """Return whether the host is kept.
+
+        Arguments:
+            host: Host to consider
+            **kwargs: The keyword arguments given to :py:meth:`Inventory.filter`
+
+        Returns:
+            ``True`` to keep ``host`` in the filtered inventory, ``False`` to drop it.
+
+        """
+        ...
 
 
 class Inventory:
@@ -626,6 +761,29 @@ class Inventory:
         filter_func: FilterObj | None = None,
         **kwargs: Any,
     ) -> Inventory:
+        """Return a new inventory with only the hosts that match.
+
+        Without a callable, a host is kept when every keyword argument equals the value
+        the host has under that name. The lookup is the one :py:meth:`Host.get` performs,
+        so it sees attributes as well as data, inherited or not, but it compares for
+        equality only. Use ``filter_obj`` with an :obj:`nornir.core.filter.F` object for
+        anything richer.
+
+        The hosts, groups and defaults are the same objects as in the original
+        inventory, not copies, so filtering is cheap and a change made to a host through
+        one inventory is visible from the other.
+
+        Arguments:
+            filter_obj: Callable deciding whether to keep each host
+            filter_func: Same as ``filter_obj``, kept for backwards compatibility and
+                ignored when ``filter_obj`` is given
+            **kwargs: Passed to the callable, or compared against the hosts when there
+                is none
+
+        Returns:
+            :obj:`Inventory`: A new inventory holding the hosts that matched.
+
+        """
         filter_func = filter_obj or filter_func
         if filter_func:
             filtered = Hosts({n: h for n, h in self.hosts.items() if filter_func(h, **kwargs)})

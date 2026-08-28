@@ -37,6 +37,30 @@ class Parameter(Generic[T]):
         self.default = default or self.type()
 
     def resolve(self, value: T | None) -> T:
+        """Resolve the value of the parameter.
+
+        The first of these that is not ``None`` wins:
+
+            1. ``value``, as given by the user
+            2. the environment variable named by ``envvar``
+            3. ``default``
+
+        Environment variables are always strings, so they are converted to the type of
+        the parameter. For a ``bool`` parameter, ``true``, ``True``, ``1`` and ``yes``
+        mean ``True`` and any other non-empty value means ``False``. Types other than
+        ``str`` and ``bool`` are parsed with :py:func:`ast.literal_eval`.
+
+        Arguments:
+            value: value given by the user, or ``None`` to fall back to the environment
+                variable and then the default
+
+        Returns:
+            The resolved value.
+
+        Raises:
+            TypeError: the resolved value is not of the type of the parameter
+
+        """
         v: Any | None = value
         if value is None:
             t = os.environ.get(self.envvar)
@@ -66,6 +90,13 @@ class SSHConfig:
         self.config_file = self.Parameters.config_file.resolve(config_file)
 
     def dict(self) -> dict[str, Any]:
+        """Return the ssh configuration as a dictionary.
+
+        Returns:
+            The values in effect, after the environment variables and the defaults have
+            been applied.
+
+        """
         return {"config_file": self.config_file}
 
 
@@ -97,6 +128,13 @@ class InventoryConfig:
         )
 
     def dict(self) -> dict[str, Any]:
+        """Return the inventory configuration as a dictionary.
+
+        Returns:
+            The values in effect, after the environment variables and the defaults have
+            been applied.
+
+        """
         return {
             "plugin": self.plugin,
             "options": self.options,
@@ -136,6 +174,13 @@ class LoggingConfig:
         self.loggers = self.Parameters.loggers.resolve(loggers)
 
     def dict(self) -> dict[str, Any]:
+        """Return the logging configuration as a dictionary.
+
+        Returns:
+            The values in effect, after the environment variables and the defaults have
+            been applied.
+
+        """
         return {
             "enabled": self.enabled,
             "level": self.level,
@@ -146,6 +191,21 @@ class LoggingConfig:
         }
 
     def configure(self) -> None:
+        """Configure the loggers named in ``loggers`` from this configuration.
+
+        Records of level ``INFO`` and below go to stdout and the rest to stderr, but
+        only when ``to_console`` is set. A rotating file handler is added when
+        ``log_file`` is set. Nothing happens at all when ``enabled`` is ``False``.
+
+        Loggers that already have handlers are left untouched, so calling this more
+        than once, which happens when :obj:`nornir.InitNornir` is called repeatedly,
+        does not duplicate log records.
+
+        Warns:
+            nornir.core.exceptions.ConflictingConfigurationWarning: the root logger has
+                already been configured elsewhere, which can lead to unexpected results
+
+        """
         if not self.enabled:
             return
 
@@ -210,6 +270,13 @@ class RunnerConfig:
         self.options = self.Parameters.options.resolve(options)
 
     def dict(self) -> dict[str, Any]:
+        """Return the runner configuration as a dictionary.
+
+        Returns:
+            The values in effect, after the environment variables and the defaults have
+            been applied.
+
+        """
         return {
             "plugin": self.plugin,
             "options": self.options,
@@ -226,6 +293,13 @@ class CoreConfig:
         self.raise_on_error = self.Parameters.raise_on_error.resolve(raise_on_error)
 
     def dict(self) -> dict[str, Any]:
+        """Return the core configuration as a dictionary.
+
+        Returns:
+            The values in effect, after the environment variables and the defaults have
+            been applied.
+
+        """
         return {
             "raise_on_error": self.raise_on_error,
         }
@@ -267,6 +341,15 @@ class Config:
         runner: dict[str, Any] | None = None,
         user_defined: dict[str, Any] | None = None,
     ) -> Config:
+        """Build a configuration from one dictionary per section.
+
+        Every section is optional, and so is every key within a section: whatever is
+        left out falls back to its environment variable and then to its default.
+
+        Returns:
+            :obj:`Config`: The resulting configuration.
+
+        """
         return cls(
             inventory=InventoryConfig(**inventory or {}),
             ssh=SSHConfig(**ssh or {}),
@@ -287,6 +370,27 @@ class Config:
         runner: dict[str, Any] | None = None,
         user_defined: dict[str, Any] | None = None,
     ) -> Config:
+        """Build a configuration from a YAML file.
+
+        The keyword arguments are merged on top of the contents of the file key by key,
+        so passing one overrides that single setting and leaves the rest of its section
+        as the file defined it. This is what lets
+        ``InitNornir(config_file="config.yaml", core={"raise_on_error": True})`` change
+        one value without restating the file.
+
+        Arguments:
+            config_file: path to the YAML file to read
+            inventory: overrides for the ``inventory`` section of the file
+            ssh: overrides for the ``ssh`` section of the file
+            logging: overrides for the ``logging`` section of the file
+            core: overrides for the ``core`` section of the file
+            runner: overrides for the ``runner`` section of the file
+            user_defined: overrides for the ``user_defined`` section of the file
+
+        Returns:
+            :obj:`Config`: The resulting configuration.
+
+        """
         inventory = inventory or {}
         ssh = ssh or {}
         logging = logging or {}
@@ -306,6 +410,13 @@ class Config:
         )
 
     def dict(self) -> dict[str, Any]:
+        """Return the whole configuration as a dictionary.
+
+        Returns:
+            Every section serialized as a dictionary, with the values in effect after
+            the environment variables and the defaults have been applied.
+
+        """
         return {
             "inventory": self.inventory.dict(),
             "ssh": self.ssh.dict(),

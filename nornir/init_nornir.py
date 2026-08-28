@@ -17,6 +17,23 @@ from nornir.core.state import GlobalState
 def load_inventory(
     config: Config,
 ) -> Inventory:
+    """Build the inventory the configuration asks for.
+
+    The inventory plugin named in ``config.inventory.plugin`` is instantiated with
+    ``config.inventory.options`` and asked to load. When a transform function is
+    configured it is then applied to every host in turn.
+
+    Arguments:
+        config: Configuration to read the inventory settings from
+
+    Returns:
+        :obj:`nornir.core.inventory.Inventory`: The loaded inventory.
+
+    Raises:
+        nornir.core.exceptions.PluginNotRegistered: no plugin is registered under the
+            configured name
+
+    """
     InventoryPluginRegister.auto_register()
     inventory_plugin = InventoryPluginRegister.get_plugin(config.inventory.plugin)
     inv = inventory_plugin(**config.inventory.options).load()
@@ -35,6 +52,20 @@ def load_inventory(
 def load_runner(
     config: Config,
 ) -> RunnerPlugin:
+    """Build the runner the configuration asks for.
+
+    Arguments:
+        config: Configuration to read the runner settings from
+
+    Returns:
+        :obj:`nornir.core.plugins.runners.RunnerPlugin`: The plugin named in
+        ``config.runner.plugin``, instantiated with ``config.runner.options``.
+
+    Raises:
+        nornir.core.exceptions.PluginNotRegistered: no plugin is registered under the
+            configured name
+
+    """
     RunnersPluginRegister.auto_register()
     runner_plugin = RunnersPluginRegister.get_plugin(config.runner.plugin)
     return runner_plugin(**config.runner.options)

@@ -141,8 +141,6 @@ ignore = [
     "COM812",  # Trailing comma missing
     "D100",    # Missing docstring in public module
     "D101",    # Missing docstring in public class
-    "D102",    # Missing docstring in public method
-    "D103",    # Missing docstring in public function
     "D104",    # Missing docstring in public package
     "D107",    # Missing docstring in `__init__`
     "EM101",   # [*] Exception must not use a string literal, assign to variable first (unsafe fix)
@@ -239,6 +237,8 @@ max-returns = 11
 # investigation if they are deemed to not make sense.                                            #
 ##################################################################################################
     "ARG001",  # Unused function argument
+    "D102",    # Missing docstring in public method
+    "D103",    # Missing docstring in public function
     "DTZ005",  # `datetime.datetime.now()` called without a `tz` argument
     "LOG009",  # Use of undocumented `logging.WARN` constant
     "N999",    # Invalid module name

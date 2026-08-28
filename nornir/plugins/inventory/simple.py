@@ -91,6 +91,17 @@ class SimpleInventory:
         self.encoding = encoding
 
     def load(self) -> Inventory:
+        """Build the inventory from the YAML files given to the constructor.
+
+        Only the hosts file is required. A missing groups or defaults file is skipped,
+        and a file that is empty or holds nothing but comments is treated as empty and
+        logged as a warning. The group names the hosts refer to are resolved into the
+        group objects themselves, so a name that is not in the groups file is an error.
+
+        Returns:
+            :obj:`nornir.core.inventory.Inventory`: The inventory the files describe.
+
+        """
         yml = ruamel.yaml.YAML(typ="safe")
 
         if self.defaults_file.exists():
