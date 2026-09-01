@@ -1,0 +1,6 @@
+child_group:
+    groups:
+        - later_group
+later_group:
+    data:
+        inherited: from_later_group

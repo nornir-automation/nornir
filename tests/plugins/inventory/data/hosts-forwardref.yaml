@@ -1,0 +1,4 @@
+dev1.forwardref:
+    hostname: localhost
+    groups:
+        - child_group

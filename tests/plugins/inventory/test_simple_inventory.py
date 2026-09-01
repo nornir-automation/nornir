@@ -1,5 +1,7 @@
 import pathlib
 
+import pytest
+
 from nornir.plugins.inventory import SimpleInventory
 
 data_path = pathlib.Path(__file__).resolve().parent / "data"
@@ -242,6 +244,38 @@ class Test:
         assert len(inv.hosts) == 1
         assert inv.groups == {}
         assert inv.defaults.data == {}
+
+    def test_simple_inventory_null_groups(self) -> None:
+        """Verify a present but empty ``groups:`` key is treated as no groups."""
+        host_file = str(data_path / "hosts-nullgroups.yaml")
+        group_file = str(data_path / "groups-nullgroups.yaml")
+        defaults_file = str(data_path / "defaults-empty.yaml")
+
+        inv = SimpleInventory(host_file, group_file, defaults_file).load()
+        assert inv.hosts["dev1.nullgroups"].groups == []
+        assert inv.groups["group_1"].groups == []
+
+    def test_simple_inventory_forward_group_reference(self) -> None:
+        """Verify a group can reference a parent group defined later in the file."""
+        host_file = str(data_path / "hosts-forwardref.yaml")
+        group_file = str(data_path / "groups-forwardref.yaml")
+        defaults_file = str(data_path / "defaults-empty.yaml")
+
+        inv = SimpleInventory(host_file, group_file, defaults_file).load()
+        assert [g.name for g in inv.groups["child_group"].groups] == ["later_group"]
+
+        host = inv.hosts["dev1.forwardref"]
+        assert [g.name for g in host.extended_groups()] == ["child_group", "later_group"]
+        assert host["inherited"] == "from_later_group"
+
+    def test_simple_inventory_unknown_group(self) -> None:
+        """Verify referencing an undefined group fails loudly rather than silently."""
+        host_file = str(data_path / "hosts-unknowngroup.yaml")
+        group_file = str(data_path / "groups-empty.yaml")
+        defaults_file = str(data_path / "defaults-empty.yaml")
+
+        with pytest.raises(KeyError, match="does_not_exist"):
+            SimpleInventory(host_file, group_file, defaults_file).load()
 
     def test_simple_inventory_empty_hosts(self) -> None:
         """Verify completely empty hosts.yaml doesn't generate exception."""
