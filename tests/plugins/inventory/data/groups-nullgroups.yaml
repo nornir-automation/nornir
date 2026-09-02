@@ -1,0 +1,4 @@
+group_1:
+    data:
+        a_var: blah
+    groups:

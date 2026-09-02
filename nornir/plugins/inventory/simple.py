@@ -47,6 +47,10 @@ def _get_defaults(data: dict[str, Any]) -> Defaults:
     )
 
 
+def _get_parent_groups(data: dict[str, Any], groups: Groups) -> ParentGroups:
+    return ParentGroups([groups[name] for name in data.get("groups") or []])
+
+
 def _get_inventory_element(
     typ: type[HostOrGroup], data: dict[str, Any], name: str, defaults: Defaults
 ) -> HostOrGroup:
@@ -58,7 +62,6 @@ def _get_inventory_element(
         password=data.get("password"),
         platform=data.get("platform"),
         data=data.get("data"),
-        groups=data.get("groups"),  # this is a hack, we will convert it later to the correct type
         defaults=defaults,
         connection_options=_get_connection_options(data.get("connection_options", {})),
     )
@@ -142,10 +145,10 @@ class SimpleInventory:
             for n, g in groups_dict.items():
                 groups[n] = _get_inventory_element(Group, g, n, defaults)
 
-            for g in groups.values():
-                g.groups = ParentGroups([groups[g] for g in g.groups])
+            for n, g in groups_dict.items():
+                groups[n].groups = _get_parent_groups(g, groups)
 
-        for h in hosts.values():
-            h.groups = ParentGroups([groups[g] for g in h.groups])
+        for n, h in hosts_dict.items():
+            hosts[n].groups = _get_parent_groups(h, groups)
 
         return Inventory(hosts=hosts, groups=groups, defaults=defaults)

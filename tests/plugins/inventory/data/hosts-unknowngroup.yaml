@@ -1,0 +1,4 @@
+dev1.unknowngroup:
+    hostname: localhost
+    groups:
+        - does_not_exist

@@ -237,7 +237,7 @@ class Result:
         self.diff = diff
         self.failed = failed
         self.exception = exception
-        self.name = None
+        self.name: str | None = None
         self.severity_level = severity_level
 
         self.stdout: str | None = None

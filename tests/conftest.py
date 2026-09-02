@@ -68,9 +68,6 @@ def inventory_from_yaml() -> Inventory:
             password=data.get("password"),
             platform=data.get("platform"),
             data=data.get("data"),
-            groups=data.get(
-                "groups"
-            ),  # this is a hack, we will convert it later to the correct type
             defaults=defaults,
             connection_options=get_connection_options(data.get("connection_options", {})),
         )
@@ -94,11 +91,11 @@ def inventory_from_yaml() -> Inventory:
     for n, g in groups_dict.items():
         groups[n] = get_inventory_element(Group, g, n, defaults)
 
-    for h in hosts.values():
-        h.groups = ParentGroups([groups[g] for g in h.groups])
+    for n, h in hosts_dict.items():
+        hosts[n].groups = ParentGroups([groups[name] for name in h.get("groups") or []])
 
-    for g in groups.values():
-        g.groups = ParentGroups([groups[g] for g in g.groups])
+    for n, g in groups_dict.items():
+        groups[n].groups = ParentGroups([groups[name] for name in g.get("groups") or []])
 
     return Inventory(hosts=hosts, groups=groups, defaults=defaults)
 

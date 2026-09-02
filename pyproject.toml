@@ -35,7 +35,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "requests-mock",
-    "mypy>=1.5.1,<2",
+    "mypy>=2.3.1,<3",
     "nornir-jinja2==0.2.0",
     "nornir-utils==0.2.0",
     "napalm>=5.2.0",
@@ -76,12 +76,6 @@ warn_return_any = true
 warn_redundant_casts = true
 
 [[tool.mypy.overrides]]
-module = "tests.conftest"
-disable_error_code = [
-    "return-value",
-]
-
-[[tool.mypy.overrides]]
 module = "tests.core.test_InitNornir"
 disable_error_code = [
     "arg-type",
@@ -105,9 +99,8 @@ disable_error_code = [
 [[tool.mypy.overrides]]
 module = "tests.wrapper"
 disable_error_code = [
-    "import-untyped",
-    "misc",
-    "no-any-return"
+    "no-any-return",
+    "untyped-decorator"
 ]
 
 
