@@ -92,8 +92,8 @@ The guidelines to pin dependencies are:
 
 Then, to update them:
 
-1. PRs can't update dependencies, if development or application dependencies need to be updated we will have a dedicated PR
-2. Prior to a release we will update dependencies
+1. Adding, removing or changing a dependency requires **maintainer approval**, recorded in the pull request that makes the change. Approval is the gate: no dedicated issue and no dependency-only pull request is required, and your work does not need to wait for one. A feature or fix PR may carry the dependency change its own code needs, provided the change is limited to what that code actually requires, includes the resulting ``uv.lock`` update, and is called out explicitly for review.
+2. Prior to a release we will update dependencies. A bulk refresh unrelated to any feature should still land on its own, so that lockfile churn is never mixed into a behavioural change.
 
 These guidelines are not set in stone and can be changed or broken if there is a compelling reason.
 
