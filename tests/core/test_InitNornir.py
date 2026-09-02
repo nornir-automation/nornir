@@ -1,3 +1,4 @@
+import inspect
 import logging
 import logging.config
 import os
@@ -64,6 +65,42 @@ TransformFunctionRegister.register("transform_func_with_options", transform_func
 
 
 class Test:
+    def test_InitNornir_exposes_config_sections_as_keyword_only(self) -> None:
+        parameters = inspect.signature(InitNornir).parameters
+        config_sections = {"inventory", "ssh", "logging", "core", "runner", "user_defined"}
+
+        assert set(parameters) == {"config_file", "dry_run", *config_sections}
+        for name in config_sections:
+            assert parameters[name].kind is inspect.Parameter.KEYWORD_ONLY
+
+    @pytest.mark.parametrize(
+        ("config_file", "raise_on_error"),
+        [
+            ("", True),
+            (str(dir_path / "a_config.yaml"), False),
+        ],
+    )
+    def test_InitNornir_forwards_config_sections(
+        self, config_file: str, raise_on_error: bool
+    ) -> None:
+        ssh_config_file = str(dir_path / "ssh_config")
+        nr = InitNornir(
+            config_file=config_file,
+            inventory={"plugin": "inventory-test"},
+            ssh={"config_file": ssh_config_file},
+            logging={"enabled": False},
+            core={"raise_on_error": raise_on_error},
+            runner={"plugin": "serial"},
+            user_defined={"my_opt": True},
+        )
+
+        assert nr.config.inventory.plugin == "inventory-test"
+        assert nr.config.ssh.config_file == ssh_config_file
+        assert not nr.config.logging.enabled
+        assert nr.config.core.raise_on_error is raise_on_error
+        assert nr.config.runner.plugin == "serial"
+        assert nr.config.user_defined == {"my_opt": True}
+
     def test_InitNornir_bare(self) -> None:
         os.chdir("tests/inventory_data/")
         nr = InitNornir()
