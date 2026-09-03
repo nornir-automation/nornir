@@ -75,32 +75,27 @@ warn_unused_ignores = true
 warn_return_any = true
 warn_redundant_casts = true
 
+##################################################################################################
+# The overrides below should be removed once the tests have been updated, they are included      #
+# like this so that we can reactivate them one by one.                                           #
+##################################################################################################
+
+# The registered transform functions take their options as named parameters, which the
+# TransformFunction protocol cannot describe: it declares **kwargs, so it demands that an
+# implementation accept every keyword. Widening the register would drop TransformFunction
+# from nornir.core.plugins.inventory, breaking that import for plugin authors.
 [[tool.mypy.overrides]]
 module = "tests.core.test_InitNornir"
 disable_error_code = [
     "arg-type",
 ]
 
-[[tool.mypy.overrides]]
-module = "tests.core.test_filter"
-disable_error_code = [
-    "arg-type",
-    "assignment",
-    "operator"
-]
-
+# Passing bare dicts where Hosts/Groups/ParentGroups are declared, and a dict[str, str] as
+# Defaults(connection_options=...). All of it works at runtime and is covered by tests.
 [[tool.mypy.overrides]]
 module = "tests.core.test_inventory"
 disable_error_code = [
     "arg-type",
-    "index"
-]
-
-[[tool.mypy.overrides]]
-module = "tests.wrapper"
-disable_error_code = [
-    "no-any-return",
-    "untyped-decorator"
 ]
 
 
