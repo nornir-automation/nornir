@@ -8,6 +8,14 @@
       "source": "bundled",
       "installed_at": "2026-08-22T15:57:47.692318+00:00",
       "updated_at": "2026-08-22T15:57:47.692325+00:00"
+    },
+    "implement-phased": {
+      "name": "Phased implementation with validation loop",
+      "version": "1.2.0",
+      "description": "Executes tasks.md one '## Phase' group at a time. Each group is implemented by a fresh agent, then checked by the repository gates and an independent judge agent; failing rounds get a fix agent, up to max_rounds, before the next group starts. Ends with a whole-diff review, the full gate, and a committed report.",
+      "source": "local",
+      "installed_at": "2026-09-06T16:01:02.915318+00:00",
+      "updated_at": "2026-09-06T16:34:54.273415+00:00"
     }
   }
 }

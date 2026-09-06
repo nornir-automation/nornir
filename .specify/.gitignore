@@ -7,3 +7,9 @@ feature.json
 
 # Per-machine extension config overrides.
 extensions/*/local-config.yml
+
+# Workflow run state (specify workflow run/resume); per-machine, never shared.
+workflows/runs/
+
+# Lock taken by "specify workflow add"; transient, never shared.
+.workflow-install.lock
