@@ -38,7 +38,7 @@ package layout), `docs/` (Sphinx + executed notebooks). Loops: `make pytest`, `m
 
 - [X] T001 [P] Create `tests/plugins/runners/__init__.py` (empty) so `tests/plugins/runners/` is a test package mirroring `nornir/plugins/runners/`
 - [X] T002 [P] Create `tests/plugins/connections/__init__.py` (empty) so `tests/plugins/connections/` is a test package for the `AsyncEcho` fixture and its test
-- [X] T003 Run `make pytest` and `make mypy` to record the green baseline before any core change (no file edits; note the pass counts in the PR description later)
+- [X] T003 Run `make pytest ARGS="tests/"` and `make mypy` to record the green baseline for the whole suite before any core change (this phase only adds empty test packages, so the baseline is deliberately the full suite and not the two new directories; no file edits, note the pass counts in the PR description later)
 
 ---
 
