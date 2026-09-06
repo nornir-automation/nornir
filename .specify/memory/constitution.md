@@ -1,51 +1,25 @@
 <!--
-Sync Impact Report — v1.0.0
+Sync Impact Report — v1.1.0
 =====================================
-Version change: (unversioned Spec Kit template) → 1.0.0
+Version change: 1.0.0 → 1.1.0
 
-Initial ratification. The file was still the shipped Spec Kit template with every placeholder
-unfilled; this is its first concrete adoption in this repository. Text derives from the
-constitution maintained on the `proto4` branch, adapted to this branch: `main` is the
-integration branch and pull request target, and branch naming admits both conventions in
-active use — intent prefixes (`docs/fix-993-filtering-typo`) and contributor-scoped prefixes
-(`dga/chore-36-hqgef`). Verified against this tree: `origin/HEAD -> origin/main`, no `develop`
-or `stable` branch exists, and pull requests #1067-#1074 all merged into `main`.
+Amendment incorporating maintainer review on PR #1094 (ogenstad):
 
-Principle count: 6 (the template ships 5). Backward compatibility is split out from
-documentation because they are distinct obligations — one is an API contract with the
-third-party plugin ecosystem, the other is a CI quality gate.
-
-Modified principles:
-  PRINCIPLE_1_NAME → I. Python-First, No DSL (NON-NEGOTIABLE)
-  PRINCIPLE_2_NAME → II. Thin Core, Capability at the Edge
-  PRINCIPLE_3_NAME → III. Typed and Statically Verified
-  PRINCIPLE_4_NAME → IV. Tested Across the Whole Support Matrix
-  PRINCIPLE_5_NAME → V. Executable, Current Documentation
-  (added)            → VI. Stable Public API, Semantic Versioning
-
-Added sections:
-  SECTION_2_NAME → Quality Gates and Tooling
-  SECTION_3_NAME → Development Workflow
-
-Removed sections: none
+- Principle IV: inherently platform-specific functionality is directed out of tree as a plugin
+  (aligning with Principle II) rather than merely being declared in the pull request.
+- Quality Gates / Dependency policy: development dependencies MAY be pinned or range-constrained
+  in pyproject.toml — nothing downstream is affected and the constraint doubles as a quick
+  reference — while runtime dependencies stay as loose as possible for broad installation.
+  Prose documents no longer cite dependency versions; pyproject.toml and uv.lock are the
+  reference. This resolves the former TODO(DEV_DEPENDENCY_PINS) in favour of the pins, and
+  drops the ruff-only exact-pin special case.
 
 Propagation status:
-  ✅ .specify/templates/plan-template.md — "Constitution Check" is a generic slot filled at plan
-     time; no edit needed.
-  ✅ .specify/templates/spec-template.md, tasks-template.md, checklist-template.md — verified: no
-     constitution or principle references to keep in sync.
-  ✅ CONTRIBUTING.rst — "Updating dependencies" step 1 rewritten to the maintainer-approval gate:
-     no dedicated issue or dependency-only pull request is required, a feature PR may carry the
-     dependency change its own code needs, and a bulk pre-release refresh still lands on its own.
-     ("Before you make any significant code changes ... it's recommended that you open a GitHub
-     issue" already matched the Development Workflow gate and needed no change.)
+  ✅ CONTRIBUTING.rst — "Updating dependencies" pinning guidelines rewritten to match.
+  ✅ AGENTS.md — the "known drift" caveat replaced by the ratified policy, version numbers removed.
+  ✅ .specify/templates/ — no constitution-specific text to keep in sync; no edit needed.
 
 Deferred TODOs:
-  - TODO(DEV_DEPENDENCY_PINS): `pyproject.toml` currently constrains development dependencies
-    with ranges (`ruff>=0.15.20,<0.16`, `mypy>=1.5.1,<2`, `nbval>=0.10.0,<0.11`) and pins the
-    nornir plugin packages exactly, which does not match the stated policy of `*` for
-    development dependencies with `ruff` alone pinned exactly. Either the pins or the policy
-    needs to change; this document keeps the policy as stated in CONTRIBUTING.rst.
   - TODO(COMMIT_CONVENTION): Conventional Commits is stated as a forward requirement. Recent
     history does not follow it (16 of the last 60 subjects carry a type prefix), so the rule
     binds new work rather than describing existing history.
@@ -108,8 +82,9 @@ the fix and passes after it.
 platform (Linux, macOS, Windows). Windows is a first-class target, not best-effort: code MUST NOT
 assume POSIX path separators, unlimited path lengths, or shell semantics.
 
-Work that genuinely cannot be exercised on a platform MUST state that explicitly in the pull
-request rather than being silently skipped.
+Functionality that is inherently platform-specific SHOULD NOT live in the core at all — it belongs
+out of tree as a plugin (Principle II). Where a change genuinely cannot be exercised on a platform,
+that MUST be stated explicitly in the pull request rather than being silently skipped.
 
 **Rationale**: Nornir runs inside operators' production environments across the full matrix, and
 the matrix in CI is the only honest statement of what is actually supported.
@@ -155,10 +130,14 @@ environment locally for changes that behave differently outside it.
 
 Dependency policy:
 
-- Runtime dependencies pin to the major version when the upstream project follows semver, and to an
-  exact version when it does not.
-- Development dependencies are unpinned (`*`), except `ruff`, which is pinned exactly so that
-  formatting and lint results are reproducible across contributors and CI.
+- Runtime dependencies (`[project.dependencies]`) are kept as loose as possible so that Nornir
+  installs into the broadest range of environments: pin to the major version when the upstream
+  project follows semver, and to an exact version only when it does not. Adding one to the core is
+  exceptional and governed by Principle II.
+- Development dependencies MAY be pinned or constrained to ranges in `pyproject.toml`: nothing
+  downstream is affected, and the constraint doubles as a quick reference for the versions in use.
+- `pyproject.toml` and `uv.lock` are the authority on dependency versions. Prose documents MUST NOT
+  cite dependency versions — they go stale.
 - Adding, removing, or changing a dependency requires **maintainer approval**, recorded in the pull
   request that makes the change. Approval is the gate — a dedicated issue or a separate
   dependency-only pull request is NOT required, and development MUST NOT be blocked waiting for one.
@@ -215,4 +194,4 @@ principles above. Any deliberate deviation MUST be recorded in the pull request 
 justification and, when it affects design, in the Complexity Tracking table of the feature's
 `plan.md`.
 
-**Version**: 1.0.0 | **Ratified**: 2026-08-22 | **Last Amended**: 2026-08-22
+**Version**: 1.1.0 | **Ratified**: 2026-08-22 | **Last Amended**: 2026-09-06

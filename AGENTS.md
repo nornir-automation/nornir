@@ -27,11 +27,10 @@ Read these rather than inferring the rules from the code:
   Also rendered as the docs' contributing page.
 - `CHANGELOG.rst` — user-visible history; every user-visible change adds an entry here.
 
-One known drift, so you do not "fix" the wrong side of it: both the constitution and
-`CONTRIBUTING.rst` state that development dependencies are unpinned (`*`) with `ruff` alone pinned
-exactly, but `pyproject.toml` currently uses ranges (`ruff>=0.15.20,<0.16`, `mypy>=1.5.1,<2`) and
-pins the nornir plugin packages exactly. The policy is the stated one; whether the pins or the
-policy changes has not been decided, so do not quietly "correct" either to match the other.
+Dependency policy in one line: runtime dependencies (`[project.dependencies]`) stay as loose as
+possible so Nornir installs broadly, while development dependencies may be pinned or constrained
+to ranges. `pyproject.toml` and `uv.lock` are the reference for the actual versions — never cite
+dependency versions in prose documents, they go stale.
 
 ## Repository map
 

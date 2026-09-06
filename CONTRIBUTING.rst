@@ -83,12 +83,10 @@ Nornir dependencies are managed by `uv <https://docs.astral.sh/uv/>`_ (see `Sett
 
 The guidelines to pin dependencies are:
 
-1. For the application dependencies:
+1. Application (runtime) dependencies are kept as loose as possible so Nornir installs into the broadest range of environments:
     a. if semver is supported we pin to major release
     b. if semver is not supported we pin to specific version
-2. For development:
-    a. ruff is pinned to a specific version
-    b. everything is set to *
+2. Development dependencies may be pinned or constrained to ranges; ``pyproject.toml`` and ``uv.lock`` are the reference for the actual versions in use.
 
 Then, to update them:
 
