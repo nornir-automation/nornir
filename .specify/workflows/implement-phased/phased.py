@@ -17,6 +17,7 @@ import subprocess  # noqa: S404  # every argv here is a fixed string from this m
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from fnmatch import fnmatch
 from pathlib import Path
 from typing import Any
 
@@ -49,6 +50,7 @@ SPEC_CANDIDATES = (
 LINT_CMD = "make ruff"
 TYPE_CMD = "make mypy"
 TEST_CMD = "make pytest"
+TEST_FILE_PATTERNS = ("test_*.py", "*_test.py")  # pytest's default ``python_files``
 FULL_CMD = "make tests"
 
 # The agent CLI and the permission mode every agent step runs with. ``auto`` approves routine
@@ -335,11 +337,33 @@ def parse_tasks(tasks_md: Path) -> list[Group]:
     return [g for g in groups if g.tasks]
 
 
+def holds_tests(path: Path) -> bool:
+    """Return whether *path* is something pytest can collect a test from.
+
+    Args:
+        path: An absolute path to a file or directory.
+
+    Returns:
+        ``True`` for a test module or a directory holding one, ``False`` otherwise.
+
+    """
+    candidates = path.rglob("*.py") if path.is_dir() else iter((path,))
+    return any(
+        fnmatch(candidate.name, pattern)
+        for candidate in candidates
+        for pattern in TEST_FILE_PATTERNS
+    )
+
+
 def scoped_test_command(group: Group) -> str:
     """Return the pytest command for *group*.
 
     Prefers the group's own ``make pytest ARGS="..."`` task, then the existing ``tests/`` paths
     its tasks mention, and falls back to the whole suite.
+
+    A group can name ``tests/`` paths that hold no test module yet - a scaffolding phase creating
+    empty test packages, for one. Scoping to those would make pytest collect nothing and exit 5,
+    so the whole suite is run instead: the fallback always broadens the run, never narrows it.
 
     Returns:
         A shell command string.
@@ -353,7 +377,7 @@ def scoped_test_command(group: Group) -> str:
         path = mention.split("::", 1)[0]
         if (ROOT / path).exists() and path not in paths:
             paths.append(path)
-    if paths:
+    if any(holds_tests(ROOT / path) for path in paths):
         return f'{TEST_CMD} ARGS="{" ".join(paths)}"'
     return TEST_CMD
 
