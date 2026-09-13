@@ -12,9 +12,3 @@ extensions/*/local-config.yml
 # Execution consent is stored separately in the user's local trust registry.
 integrations/packages/
 integrations/packages.json
-
-# Workflow run state (specify workflow run/resume); per-machine, never shared.
-workflows/runs/
-
-# Lock taken by "specify workflow add"; transient, never shared.
-.workflow-install.lock
