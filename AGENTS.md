@@ -46,9 +46,7 @@ docs/api/             Sphinx API reference — GENERATED, see Gotchas
 docs/upgrading/       major-version upgrade guides
 .agents/              agent-facing source of truth: skills/, commands/, rules/
 .claude/              Claude adapter; skills/commands/rules are symlink views of .agents/
-.specify/             Spec Kit engine (specify -> plan -> tasks -> implement);
-                      workflows/implement-phased/ runs tasks.md group by group with a
-                      validation loop (see its README.md)
+.specify/             Spec Kit engine (specify -> plan -> tasks -> implement)
 ```
 
 ## Commands
