@@ -160,10 +160,10 @@ class Task:
             nornir.core.exceptions.NornirSubTaskError: the subtask failed
 
         """
-        if not self.host:
+        if not getattr(self, "host", None):
             msg = (
-                "You have to call this after setting host and nornir attributes. ",
-                "You probably called this from outside a nested task",
+                "You have to call this after setting host and nornir attributes. "
+                "You probably called this from outside a nested task"
             )
             raise Exception(msg)
 

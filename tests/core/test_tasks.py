@@ -1,7 +1,10 @@
 import logging
 
+import pytest
+
 from nornir.core import Nornir
 from nornir.core.exceptions import NornirSubTaskError
+from nornir.core.processor import Processors
 from nornir.core.task import Result, Task
 
 
@@ -195,3 +198,26 @@ class Test:
         assert not r["dev1.group_1"][0].exception
         assert r["dev1.group_1"][0].result == "I captured this succcessfully"
         assert r["dev1.group_1"][1].exception.__class__ is CustomException
+
+    def test_run_called_outside_nested_task_readable_message(self) -> None:
+        # Regression test: task.run() called before start() (i.e. from
+        # outside a nested task) used to raise a bare AttributeError, or,
+        # once ``host`` was falsy-but-set, a two-element tuple as the
+        # exception message instead of a single readable string.
+        expected_msg = (
+            "You have to call this after setting host and nornir attributes. "
+            "You probably called this from outside a nested task"
+        )
+
+        task = Task(
+            a_task_for_testing,
+            nornir=None,  # type: ignore[arg-type]  # host check must fire before nornir is used
+            global_dry_run=False,
+            processors=Processors(),
+        )
+        with pytest.raises(Exception, match=expected_msg):
+            task.run(a_task_for_testing)
+
+        task.host = None  # type: ignore[assignment]
+        with pytest.raises(Exception, match=expected_msg):
+            task.run(a_task_for_testing)
