@@ -1,6 +1,13 @@
 Changelog
 ==========
 
+Unreleased
+----------
+
+- Fixed ``Task.run()`` raising a garbled tuple (or a bare ``AttributeError``) as the
+  exception message when called before ``Task.start()``, e.g. from outside a nested
+  task (#1051)
+
 3.6.0 - August 2 2026
 ---------------------
 
