@@ -393,7 +393,10 @@ class Test:
         assert www_site1 == ["dev1.group_1"]
 
     def test_filtering_func(self, inv: inventory.Inventory) -> None:
-        long_names = sorted(inv.filter(filter_func=lambda x: len(x["my_var"]) > 20).hosts.keys())
+        def long_name(dev: Host) -> bool:
+            return len(dev["my_var"]) > 20
+
+        long_names = sorted(inv.filter(filter_func=long_name).hosts.keys())
         assert long_names == ["dev1.group_1", "dev4.group_2", "dev6.group_3"]
 
         def longer_than(dev: Host, length: int) -> bool:
@@ -535,7 +538,9 @@ class Test:
         assert "test_var" in inv.hosts["h3"].defaults.data.keys()
         assert inv.hosts["h3"].defaults.data.get("test_var") == "test_value"
         assert inv.hosts["h3"].platform == "TestPlatform"
-        assert inv.hosts["h3"].connection_options["netmiko"].extras["device_type"] == "cisco_ios"
+        h3_extras = inv.hosts["h3"].connection_options["netmiko"].extras
+        assert h3_extras is not None
+        assert h3_extras["device_type"] == "cisco_ios"
 
     def test_add_group(self) -> None:
         connection_options = {"username": "test_user", "password": "test_pass"}
@@ -561,7 +566,9 @@ class Test:
         assert inv.groups["g3"].defaults.connection_options.get("password") == "test_pass"
         assert "test_var" in inv.groups["g3"].defaults.data.keys()
         assert inv.groups["g3"].defaults.data.get("test_var") == "test_value"
-        assert inv.groups["g3"].connection_options["netmiko"].extras["device_type"] == "cisco_ios"
+        g3_extras = inv.groups["g3"].connection_options["netmiko"].extras
+        assert g3_extras is not None
+        assert g3_extras["device_type"] == "cisco_ios"
 
     def test_dict(self, inv: inventory.Inventory) -> None:
         inventory_dict = inv.dict()

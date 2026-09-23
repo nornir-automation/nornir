@@ -1,7 +1,7 @@
 import pytest
 
 from nornir.core import Nornir
-from nornir.core.filter import AND, OR, F
+from nornir.core.filter import AND, F_BASE, OR, F
 
 
 class Test:
@@ -24,7 +24,7 @@ class Test:
         assert filtered == ["dev1.group_1", "dev2.group_1", "dev3.group_2"]
 
     def test_combined(self, nornir: Nornir) -> None:
-        f = F(site="site2") | (F(role="www") & F(my_var="comes_from_dev1.group_1"))
+        f: F_BASE = F(site="site2") | (F(role="www") & F(my_var="comes_from_dev1.group_1"))
         filtered = sorted(nornir.inventory.filter(f).hosts.keys())
 
         assert filtered == [
