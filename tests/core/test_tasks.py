@@ -2,7 +2,7 @@ import logging
 
 from nornir.core import Nornir
 from nornir.core.exceptions import NornirSubTaskError
-from nornir.core.task import Result, Task
+from nornir.core.task import MultiResult, Result, Task
 
 
 class CustomException(Exception):
@@ -14,6 +14,15 @@ def a_task_for_testing(task: Task, fail_on: list[str] | None = None) -> Result:
     if task.host.name in fail_on:
         raise CustomException()
     return Result(host=task.host, stdout=task.host.name)
+
+
+def task_returning_value(task: Task, value: str) -> Result:
+    return Result(host=task.host, result=value)
+
+
+def task_with_duplicate_subtasks(task: Task) -> None:
+    task.run(task_returning_value, name="duplicate", value="first")
+    task.run(task_returning_value, name="duplicate", value="second")
 
 
 def a_failed_task_for_testing(task: Task) -> Result:
@@ -78,6 +87,22 @@ class Test:
             assert r[1].name == "a_task_for_testing"
             assert r[1].stdout is not None
             assert h == r[1].stdout.strip()
+
+    def test_get_results_by_task_name(self, nornir: Nornir) -> None:
+        result = nornir.run(task_with_duplicate_subtasks)
+
+        for host_results in result.values():
+            original_results = list(host_results)
+            matching_results = host_results.get_results_by_task_name("duplicate")
+            assert isinstance(matching_results, MultiResult)
+            assert [item.result for item in matching_results] == ["first", "second"]
+            assert matching_results[0] is host_results[1]
+            assert matching_results[1] is host_results[2]
+
+            missing_results = host_results.get_results_by_task_name("missing")
+            assert len(missing_results) == 0
+            assert missing_results.name == "missing"
+            assert host_results == original_results
 
     def test_skip_failed_host(self, nornir: Nornir) -> None:
         result = nornir.run(sub_task_for_testing, fail_on=["dev3.group_2"])
