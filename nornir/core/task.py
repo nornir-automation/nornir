@@ -262,6 +262,24 @@ class MultiResult(list[Result]):
     def __init__(self, name: str) -> None:
         self.name = name
 
+    def get_results_by_task_name(self, name: str) -> MultiResult:
+        """Return all results with the given task name, preserving their order.
+
+        Only results directly contained in this ``MultiResult`` are searched. If multiple
+        results have the same name, all are returned. If no results match, the returned
+        ``MultiResult`` is empty.
+
+        Args:
+            name: Name of the task to find.
+
+        Returns:
+            A ``MultiResult`` containing the matching results.
+
+        """
+        results = MultiResult(name)
+        results.extend(result for result in self if result.name == name)
+        return results
+
     def __getattr__(self, name: str) -> Any:
 
         # without this pickling breaks

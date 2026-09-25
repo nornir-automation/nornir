@@ -1,6 +1,11 @@
 Changelog
 ==========
 
+Unreleased
+----------
+
+- Added lookup of task results by name to ``MultiResult`` (#1000)
+
 3.6.0 - August 2 2026
 ---------------------
 
