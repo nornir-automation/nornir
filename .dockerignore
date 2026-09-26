@@ -10,3 +10,9 @@ docs/_build
 .tox/
 **/*.egg-info
 pip-wheel-metadata/
+.git/
+Dockerfile*
+.dockerignore
+.env*
+coverage/
+htmlcov/

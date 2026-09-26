@@ -1,138 +1,158 @@
-# Quickstart: validating the Asyncio Runner end to end
+# Quickstart: validating the capability-aware asyncio feature
 
-**Feature**: 001-asyncio-runner | **Plan**: [plan.md](plan.md) | **Contracts**: [contracts/](contracts/)
+**Feature**: 001-asyncio-runner | [Plan](plan.md) | [Contracts](contracts/entry-points.md)
 
-This is a validation guide: the scenarios below prove the feature works once implemented.
-Implementation detail lives in `tasks.md` and the code.
+These scenarios validate the feature after implementation. The regenerated tasks.md
+maps this guide to story checkpoints; the commands below do not imply that the planned
+runtime APIs or test files already exist.
 
-## Prerequisites
+## Environment and design check
 
 ```bash
-uv sync --locked          # the only supported environment manager
-uv run python --version   # any of 3.10 – 3.14
+uv sync --locked
+uv run python --version
+uv run mypy specs/001-asyncio-runner/contracts/protocols.py
 ```
 
-## 1. The authoritative gate
+Use a supported Python interpreter. The last command checks the proposed signatures;
+it does not validate the implemented feature or third-party plugin behavior.
+
+## Focused implementation loops
 
 ```bash
-make tests                # ruff, mypy, nbval, pytest, docs — all five must pass
-```
-
-Expected: green on Linux, macOS and Windows for every supported Python. The pre-existing suite
-passes with exactly one modified assertion (`test_registered_runners` now includes `asyncio`).
-
-## 2. Focused loops while implementing
-
-```bash
-make pytest ARGS="tests/plugins/runners tests/core/test_async_run.py tests/core/test_async_tasks.py tests/core/test_async_connections.py tests/plugins/connections"
+make pytest ARGS="tests/plugins/runners tests/core/test_async_run.py tests/core/test_async_tasks.py"
+make pytest ARGS="tests/core/test_capability_plugins.py tests/core/test_async_connections.py tests/plugins/connections"
 make mypy
-make ruff && uv run ruff format --check .
-make nbval                # re-executes docs/howto/asyncio_runner.ipynb among the others
-make docs                 # Sphinx must build the new prose page and literalinclude the fixture
+make ruff
 ```
 
-## 3. Scenario checks (each maps to a spec story or criterion)
+Keep runner tests in a sequential file-edit stream and Nornir tests in another. Before
+Nornir.aclose_connections exists, the echo integration test must clean via Host methods;
+the Nornir cleanup integration scenario is introduced afterward.
 
-### US1 — run async tasks from inside an event loop
+## 1. Registration and capability matrix — FR-011, FR-021–FR-023, SC-005/007
 
-```python
-import asyncio
-from nornir import InitNornir
+The new test suite provides four fixture kinds:
 
-async def hello(task):
-    await asyncio.sleep(0.01)
-    return f"{task.host.name} is up"
+| Fixture | Registry | Declared capability | Expected usable paths |
+|---|---|---|---|
+| Unchanged legacy plugin | ConnectionPluginRegister | Implicit sync | Sync only |
+| Capability sync fixture | CapabilityConnectionPluginRegister | frozenset({"sync"}) | Sync only |
+| AsyncEcho | CapabilityConnectionPluginRegister | frozenset({"asyncio"}) | Asyncio only |
+| Dual fixture | CapabilityConnectionPluginRegister | frozenset({"sync", "asyncio"}) | Both |
 
-async def main():
-    nr = InitNornir(config_file="docs/howto/asyncio_runner/config.yaml")   # runner: asyncio
-    result = await nr.arun(hello)
-    assert set(result) == set(nr.inventory.hosts)
-    assert not result.failed
+Run the capability registry and lifecycle tests. Verify:
 
-asyncio.run(main())
-```
+- Programmatic registration accepts each new-contract fixture once. AsyncEcho implements
+  no fake open/close methods. Typed examples conform to the relevant public operation facet.
+- Automatic discovery loads `nornir.plugins.capability_connections` beside legacy
+  `nornir.plugins.connections`, including through InitNornir. New registry storage is
+  isolated even before any deregister_all call.
+- Capability reporting works before opening and performs no device I/O. Empty/unknown
+  declarations, invalid reporting methods, and missing declared operation pairs fail
+  with ConnectionPluginContractError before opening. Undeclared extra methods do not
+  enable a mode. A missing async close on a dual declaration fails even for sync requests.
+- Cross-registry duplicate names fail with ConnectionPluginAmbiguousError, including
+  identical classes and names duplicated after a connection was cached.
+- Deregistration/replacement does not reclassify an existing cached object. Cleanup still
+  closes it when registrations are missing or ambiguous.
 
-Expected: one `MultiResult` per host; processor events in the same order as a threaded run
-(covered by `tests/core/test_async_run.py`).
+## 2. Connection identity and cleanup — US2/US3, FR-012–FR-015
 
-### US1 scenario 3/4 — subtask failure and `failed_hosts`
+For the dual fixture, open synchronously and retrieve asynchronously, then repeat in the
+reverse direction on a fresh host. Assert object identity and a single opening operation.
+Repeat incompatible retrieval on cached and uncached sync-only/async-only fixtures;
+assert the named mismatch and intact cache entry. No transport is returned on rejection.
 
-Covered by `tests/core/test_async_tasks.py` (`task.arun` of a raising subtask records a failed
-`Result`, the parent receives `NornirSubTaskError`, the host lands in `nr.data.failed_hosts`
-and is skipped by the next `arun` with default `on_good`/`on_failed`).
+Host.connections contains legacy/sync/dual instances; async-only instances are private.
+Therefore an empty public connections dictionary alone is not proof of complete cleanup.
+Tests must assert fixture close counters, resource closure, and both internal stores.
 
-### US1 scenarios 5–8 and the seven-surface error matrix
+Also verify concurrent gets raise ConnectionAlreadyOpen, failed/cancelled opens release
+reservations/resources, stale metadata is not applied after public-cache replacement,
+filtered views share the Host's connections, and empty-host copy/pickle succeeds.
 
-Run `tests/core/test_async_run.py -k error` and `tests/core/test_async_tasks.py -k error`.
-Expected: every case in [contracts/errors.md](contracts/errors.md) raises the named class and no
-`task_instance_started` was observed by the recording processor.
+Open a legacy, capability-sync, capability-asyncio and dual connection on one host; async
+bulk cleanup calls close for sync-only and aclose for async/dual. Failed async closing
+retains that entry for retry and does not prevent ordinary-error cleanup of other names.
+Sync mismatch leaves an async-only entry intact; legacy synchronous failure semantics stay.
 
-### US2 — async connection plugin through `AsyncEcho`
+After Nornir cleanup is implemented, verify async with closes good and failed hosts,
+explicit cleanup honors all four on_good/on_failed combinations, and processors observe
+the cleanup task. Cancellation during async closing leaves retryable cached state.
+Retry through Nornir with on_failed=True after a cleanup failure, or use Host cleanup
+directly. Serialize access while a connection name is closing; arbitrary overlapping
+cleanup/use is outside this contract.
+
+## 3. End-to-end async transport — AsyncEcho
 
 ```bash
 make pytest ARGS="tests/plugins/connections/test_async_echo.py -vs"
 ```
 
-Expected: the echo server starts on an ephemeral port on `127.0.0.1`, each host's task obtains
-the connection with `await task.host.aget_connection("async_echo", task.nornir.config)`, sends a
-payload, receives it back, a second `aget_connection` does not reopen, and `aclose_connections`
-empties every host's connection table. Must pass on Windows too (Proactor loop).
+Expected: a loopback echo server starts on an ephemeral port; each host obtains AsyncEcho
+through the new registry, sends bytes and receives them back; repeat retrieval reuses
+the connection; cleanup closes transports and server handlers. Repeated aclose is safe.
+The same path runs on every supported OS, including Windows.
 
-### US2 scenarios 2–4 — sync/async plugin combinations and the shared cache
+## 4. Task dispatch, errors, and processors — US1, SC-004
 
-Covered by `tests/core/test_async_connections.py` using three dummies (sync-only, async-only,
-both): `aget_connection` on sync-only raises `ConnectionPluginNotAsyncError`; `get_connection`
-on async-only raises `ConnectionPluginNotSyncError`; a connection opened by the sync path is
-returned by `aget_connection` without `aopen` being called; two concurrent `aget_connection`
-calls for the same name make the second raise `ConnectionAlreadyOpen`.
+Run the async-run/task tests. Check ordinary tasks and callable async objects/partials
+(supply explicit name for forms without __name__), positional
+task/name/kwargs behavior, all four host-selection combinations, default and explicit
+raise_on_error settings, failed-host bookkeeping, and zero-host warning/empty aggregate.
 
-### US3 — cleanup with `async with`
+Top-level mismatches emit no host events. Child mismatches emit no child events/results;
+uncaught errors become failed parent results. Task.run of a synchronous child remains
+inline. User function names/source appear in failure tracebacks; a debugger breakpoint
+steps directly into the original task.
 
-```python
-async with InitNornir(config_file="docs/howto/asyncio_runner/config.yaml") as nr:
-    await nr.arun(hello)
-# every host's `connections` is empty here, failed hosts included
-```
+Processor assertions allow cross-host interleaving. Require global start before host
+events, per-host start before completion, nested child events, and global completion
+after hosts when it is emitted. Preserve failure/cancellation omissions. The documentation
+must explain that synchronous subtasks and processor callbacks can block the event loop.
 
-Covered by `tests/core/test_async_run.py` (mixed sync + async connections on one host, a second
-host marked failed, a recording processor sees `task_started` for the cleanup task).
-
-### US4 — cancellation
-
-Covered by `tests/plugins/runners/test_asyncio.py::test_cancel_propagates`: cancel the awaiting
-`arun` after the first host started; expect `asyncio.CancelledError` at the caller,
-`asyncio.all_tasks()` free of host coroutines, `failed_hosts` unchanged, no `task_completed`.
-
-### SC-002 / SC-003 — performance
+## 5. Cancellation, worker counts, and performance — US4, SC-002/003
 
 ```bash
-make pytest ARGS="tests/plugins/runners/test_asyncio.py -k 'starve or thousand'"
+make pytest ARGS="tests/plugins/runners/test_asyncio.py"
 ```
 
-Expected: 1,000 hosts × 100 ms with `num_workers=1000` in < 2 s and unchanged
-`threading.active_count()`; a heartbeat coroutine beside a 100-host run never gaps > 50 ms.
+Use barriers to wait until the intended hosts are running before cancelling; include
+more hosts than workers to verify semaphore waiters are drained too. At the caller's
+CancelledError, no runner-owned coroutine remains, failed_hosts is unchanged, and global
+completion did not fire. Include a promptly cancelling host alongside one with awaited
+finally cleanup, and assert that the latter finishes cleanup after one caller cancellation.
+Also repeat caller cancellation while draining: it must not re-cancel host cleanup.
 
-### SC-005 — two methods make a plugin async-capable
+Validate worker count 20 by default, counts larger than inventory, and rejection of zero,
+negative, non-integer and boolean values. On measured runs, retain the exact specification
+thresholds: 100-host heartbeat gap at most 50 ms, and 1,000 hosts with 1,000 workers and
+100 ms simulated I/O under two seconds with unchanged live thread count. Inventory setup
+is outside timing; the heartbeat is ready before measurement. Investigate failures rather
+than weakening thresholds to make the suite pass.
 
-Take `DummyConnectionPlugin` from `tests/core/test_connections.py`, add `aopen`/`aclose` (the
-"both" dummy in `tests/core/test_async_connections.py` is exactly that), register it once, and
-use it from both `get_connection` and `aget_connection`. No registration or configuration change.
-
-### SC-006 — documentation
+## 6. Documentation, packaging, and final gate
 
 ```bash
-make nbval && make docs
+make tests
 ```
 
-Expected: `docs/howto/asyncio_runner.ipynb` re-executes with matching stored output (errors are
-printed from `except` blocks, so they are stable), and the built HTML contains the
-`writing_async_connection_plugins` page with the `AsyncEcho` source inlined.
+Expected: all five gates pass. Run the supported Python/OS CI matrix. The one permitted
+pre-existing test edit is the runner-registry assertion/import. Inspect make docs output
+for legitimate generated API changes; never hand-edit generated reference files.
 
-## 4. Before opening the pull request
+Review the executed asyncio notebook and
+`docs/howto/writing_capability_connection_plugins.rst`: the guide includes AsyncEcho's
+real source, native async method rules, capability/discovery examples, the legacy path,
+cache visibility, dual-mode transport semantics, and blocking limitations. Verify the
+wheel contains nornir and excludes the test-only fixture.
 
-- [ ] `CHANGELOG.rst` has a `3.7.0` entry naming #1085 and the sync-path behaviour change.
-- [ ] The follow-up issue for synchronous tasks in async runs exists and its URL replaced
-      `#1085` in `SYNC_TASKS_IN_ASYNC_RUNS_ISSUE`.
-- [ ] The PR description restates maintainer approval for `AsyncioRunner` as an in-tree plugin
-      (Constitution II) and lists the two spec deviations from [plan.md](plan.md).
-- [ ] `docs/api/nornir/**` unchanged (`git status` clean after `make docs`).
+Before merge:
+
+- Record #1085 and the feature in CHANGELOG.rst, including synchronous coroutine-task rejection.
+- Restate in-tree AsyncioRunner approval in the PR.
+- Open the synchronous-task follow-up and replace its temporary URL in the error constant.
+- Preserve genuine notebook output and review generated API changes.
+- Confirm the task list's requirement coverage against actual implementation evidence,
+  especially registry isolation and typed storage.

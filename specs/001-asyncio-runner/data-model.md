@@ -1,159 +1,129 @@
-# Data Model: Asyncio Runner
+# Data Model: Asyncio Runner and capability-aware connections
 
-**Feature**: 001-asyncio-runner | **Date**: 2026-09-06 | **Plan**: [plan.md](plan.md)
+**Feature**: 001-asyncio-runner | **Updated**: 2026-09-13 | [Plan](plan.md)
 
-Nornir is a library, so the "data model" is the set of Python objects the feature adds or
-extends, their fields, the invariants they keep, and the state they move through. Signatures are
-given in [contracts/](contracts/); this file describes meaning and rules.
+## Registries and protocols
 
-## Entities
-
-### AsyncioRunner (new, `nornir/plugins/runners/__init__.py`)
-
-| Field | Type | Meaning |
+| Entity | Type / contents | Identity and validation |
 |---|---|---|
-| `num_workers` | `int`, default `20` | Maximum number of hosts in flight at once |
+| Legacy registry | Existing PluginRegister[type[ConnectionPlugin]] | Existing group and public signatures; registrations imply sync only |
+| Capability registry | PluginRegister[type[CapabilityConnectionPlugin]] | Instance-owned available map; group nornir.plugins.capability_connections |
+| CapabilityConnectionPlugin | get_capabilities and established connection | Structural, no-argument construction, stable instance declaration |
+| ConnectionCapability | Literal["sync", "asyncio"] | Nonempty frozenset; exactly three valid combinations |
+| SyncCapabilityConnectionPlugin | Base capability protocol + existing ConnectionPlugin | Both synchronous open and close |
+| AsyncCapabilityConnectionPlugin | Base + aopen/aclose | Both native async methods |
+| DualCapabilityConnectionPlugin | Both operation facets | Same transport reusable/closable through either mode |
 
-- Satisfies both `RunnerPlugin` (its `run()` always raises `RunnerNotSyncError`) and
-  `AsyncRunnerPlugin` (`arun()` does the work).
-- Holds no loop-bound state between calls: the semaphore is created inside `arun()`.
-- Invariants: `len(result) == len(hosts)`; result keys are host names in the order given;
-  at most `num_workers` `astart` coroutines are past the semaphore at any instant; the process
-  thread count is unchanged by a run.
+The capability result is authoritative but does not narrow a static type. Private guards
+validate all declared operations and narrow to the appropriate facet. A declaration with
+missing operations is invalid even when the current request uses another declared mode.
+The connection property is accessed after opening, never used as a pre-open probe.
 
-### Nornir (extended, `nornir/core/__init__.py`)
+Cross-registry duplicate names are ambiguous, including duplicates referring to the same
+class. Current ambiguity is checked on every get/open; cleanup uses cached ownership.
+Replacing a registration does not replace or reclassify an already cached instance.
 
-New members: `arun`, `aclose_connections`, `__aenter__`, `__aexit__`. Existing members and
-their signatures are unchanged. `run` is refactored onto shared private helpers with no
-behavioural change, except that an `async def` task now raises `AsyncTaskOnSyncRunError`
-before `task_started` instead of recording a coroutine object as a successful result.
+## Host connection state
 
-Shared state touched by both `run` and `arun`: `data.failed_hosts` (a set of host names in
-`GlobalState`), updated only when `raise_on_error` is false, exactly as today.
-
-### Task (extended, `nornir/core/task.py`)
-
-| Field | Set by | Meaning |
-|---|---|---|
-| `task` | constructor | the user callable (`def` or `async def`) |
-| `host` | `_begin` (from `start`/`astart`) | host this copy runs against |
-| `results` | `_finish`, `_record_subtask` | `MultiResult`, own result at index 0, subtasks appended |
-| `parent_task` | constructor | `None` for a top-level task, the parent for a subtask |
-
-New members: `astart(host) -> MultiResult`, `arun(task, **kwargs) -> MultiResult`.
-
-Validation rules:
-- `Task.run(subtask)` raises `AsyncTaskOnSyncRunError` if `subtask` is a coroutine function.
-- `Task.arun(subtask)` raises `SyncTaskOnAsyncRunError` if `subtask` is not a coroutine function.
-- Both checks happen before the subtask's `*_instance_started` event.
-- `Task.run(def_subtask)` inside an `async def` task runs inline on the event loop (FR-009);
-  no check or warning is added.
-
-### Host connection cache (extended, `nornir/core/inventory.py`)
-
-| Field | Type | Visibility | Meaning |
+| Field | Type | Visibility | Purpose |
 |---|---|---|---|
-| `connections` | `dict[str, ConnectionPlugin]` | public (existing) | open connections keyed by connection name, regardless of which path opened them |
-| `_opening` | `set[str]` | private (new slot) | names whose `aopen` is currently being awaited |
+| connections | dict[str, ConnectionPlugin] | Existing public | Legacy, capability-sync, and capability-dual instances |
+| _async_connections | dict[str, AsyncCapabilityConnectionPlugin] | New private slot | Capability-asyncio-only instances |
+| _capability_connections | dict[str, _CapabilityConnectionState] | New private slot | Validated origin/declaration associated with each new-contract instance |
+| _opening | set[str] | New private slot | Names reserved by in-progress async opens |
 
-New members: `aget_connection`, `aopen_connection`, `aclose_connection`, `aclose_connections`.
+`_CapabilityConnectionState` is an immutable private record with
+`plugin: CapabilityConnectionPlugin` and
+`capabilities: frozenset[ConnectionCapability]`. It references the actual plugin rather
+than wrapping its operations. Legacy connections have no such record. Identity comparison
+against the active cached object prevents stale metadata from applying after public-cache
+replacement. Untracked public entries are legacy sync-only. A simultaneous public/private
+entry caused by external mutation is a contract error.
 
-Invariants:
-- A name is never in both `connections` and `_opening`.
-- `_opening` is empty whenever no `aopen_connection` coroutine is suspended for this host;
-  a failed `aopen` removes the name (try/finally).
-- The cache is keyed by name only: a connection opened by `get_connection` is returned by
-  `aget_connection` for the same name without calling `aopen`, and vice versa.
+### Invariants
 
-### AsyncConnectionPlugin (new Protocol, `nornir/core/plugins/connections.py`)
+- A managed name is in at most one instance cache and is not also opening.
+- Dual-capability plugins use connections even when aopen established them.
+- Both opening paths check all stores; only successful opening publishes state.
+- Cached capability checks precede returning the transport and preserve entries on mismatch.
+- Deregistering or replacing the plugin class does not change the cached object's origin.
+- Successful close removes instance and matching metadata; async close failure/cancellation
+  retains both for retry. Sync close preserves legacy pop-before-close behavior.
+  Matching metadata is removed with the sync instance even if close raises.
+- Async bulk close snapshots both stores; attempts all entries on ordinary errors and raises
+  the first error afterward. Cancellation interrupts cleanup and propagates.
+- Sync bulk cleanup snapshots both stores, remains fail-fast, and raises a mismatch for
+  async-only entries. Callers serialize use/cleanup while a name is closing; awaited-close
+  removal checks identity so a replacement cannot be deleted accidentally.
+- Filtered inventories and Nornir wrappers retaining a Host share all its connection state.
+- Inventory dict/schema output omits all runtime connection state. Empty Host copy/pickle
+  includes empty private slots; live transport serialization is not newly guaranteed.
 
-Members `aopen`, `aclose`, `connection`. Same parameters, same order as `open`/`close`. A class
-may implement `ConnectionPlugin`, `AsyncConnectionPlugin`, or both; which it implements is
-determined by the presence of `open` (callable) and `aopen` (coroutine function). Registration
-goes through the existing `ConnectionPluginRegister` under the existing entry-point group.
-
-Rules for authors (documented, not enforced): `aopen` and `aclose` must not block the event
-loop; `aclose` must be safe to call more than once.
-
-### AsyncRunnerPlugin (new Protocol, `nornir/core/plugins/runners.py`)
-
-Members `__init__(*args, **kwargs)` and `async def arun(task, hosts) -> AggregatedResult`.
-Detected by the presence of a coroutine-function `arun`.
-
-### Named errors (new, `nornir/core/exceptions.py`)
-
-```text
-Exception
-└── SyncAsyncMismatchError
-    ├── SyncTaskOnAsyncRunError        (task_name)
-    ├── AsyncTaskOnSyncRunError        (task_name)
-    ├── RunnerNotSyncError             (runner_name)
-    ├── RunnerNotAsyncError            (runner_name)
-    ├── ConnectionPluginNotAsyncError  (connection_name)
-    └── ConnectionPluginNotSyncError   (connection_name)
-```
-
-Each carries the offending name as an attribute and renders a message that names the entry
-point to use instead (see [contracts/errors.md](contracts/errors.md)). `SyncTaskOnAsyncRunError`
-also renders `SYNC_TASKS_IN_ASYNC_RUNS_ISSUE`.
-
-### AsyncEcho fixture (new, test-only, `tests/plugins/connections/async_echo.py`)
-
-| Object | Fields | Meaning |
-|---|---|---|
-| `AsyncEcho` | `_connection: EchoConnection \| None` | the plugin; implements only the async contract |
-| `EchoConnection` | `reader: asyncio.StreamReader`, `writer: asyncio.StreamWriter` | what `connection` returns; `send(payload) -> bytes` echoes through the socket |
-
-`aclose` is idempotent: a second call is a no-op. `hostname` and `port` are the only connection
-parameters it uses; the others are accepted and ignored, as the contract requires.
-
-## State transitions
-
-### A host's run of a task (per `Task` copy)
+### Connection state transitions
 
 ```text
-created ──_begin(host)──▶ started ──task returns/raises Exception──▶ completed (Result recorded,
-                                                                     *_instance_completed emitted)
-                              │
-                              └──BaseException (e.g. CancelledError)──▶ abandoned (nothing recorded,
-                                                                          no completed event)
+absent -- validate name, declaration, mode --> reserve -- await aopen --> open
+                                                  | failure/cancel       |
+                                                  +--> absent            |
+open -- supported get, either declared mode ----------------------------> open
+open -- incompatible get/close -----------------------------------------> open + error
+open -- successful close -----------------------------------------------> absent
+open -- failed/cancelled async close -----------------------------------> open + error
+open -- synchronous close (pop first) ----------------------------------> absent, even if close raises
+reserved -- another get/open ------------------------------------------> unchanged + ConnectionAlreadyOpen
 ```
 
-### A run (`Nornir.run` / `Nornir.arun`)
+Sync opening has the same successful publication boundary without an await. A plugin is
+responsible for releasing partially acquired resources before a failed/cancelled aopen
+exits; the Host's finally releases its name reservation.
+
+## Nornir run state
+
+New methods: arun, aclose_connections, __aenter__, __aexit__. Existing signatures and
+defaults remain. Preparation explicitly receives task/name/kwargs/on_good/on_failed.
+The selected list preserves existing good-host then failed-host grouping and ordering.
 
 ```text
-validate task kind ─▶ [arun only: validate runner kind] ─▶ task_started ─▶ select hosts
-   ─▶ runner.run / await runner.arun ─▶ raise_on_error | update failed_hosts ─▶ task_completed
+validate task -- [async path: validate runner] -- global start -- select hosts
+  -- runner execution -- apply raise_on_error / update failed_hosts -- global completion
 ```
 
-Cancellation of `arun` while awaiting the runner: every in-flight host coroutine is cancelled
-and awaited, `CancelledError` propagates, no step after the runner executes (no result, no
-`failed_hosts` change, no `task_completed`).
+If raise_on_error is true and results fail, the exception precedes failed-host mutation
+and global completion, matching existing behavior. Cancellation while awaiting the runner
+skips finalization entirely. Async context exit cleans good and failed hosts.
 
-### A connection slot on a host (per name)
+## Task state and event order
 
-```text
-absent ──open() [sync]──────────────────────────────▶ open
-absent ──aopen_connection(): add to _opening──▶ opening ──aopen succeeds──▶ open
-                                                   │
-                                                   └──aopen raises──▶ absent (name discarded)
-open ──close() / await aclose()──▶ absent
-opening ──concurrent aget_connection / aopen_connection──▶ raises ConnectionAlreadyOpen, slot unchanged
-```
+Task keeps its existing callable, host, parent_task, params, and MultiResult fields.
+New astart and arun share result bookkeeping helpers with start and run, calling/awaiting
+the original user callable directly. Ordinary exceptions become failed results containing
+the user's traceback; BaseException propagates without a cancellation result.
 
-## Validation rules (consolidated)
+Reject incompatible children before creating child execution events or results. The parent
+already has start events; if it does not catch the mismatch, it records its normal failure.
+Per-host start precedes completion; child events are nested; global completion follows
+host completion when emitted. Events from different hosts may interleave.
 
-| Surface | Condition | Error |
-|---|---|---|
-| `Nornir.run(task)` | task is a coroutine function | `AsyncTaskOnSyncRunError` |
-| `Nornir.run(task)` | runner is `AsyncioRunner` | `RunnerNotSyncError` (from `AsyncioRunner.run`) |
-| `Nornir.arun(task)` | task is not a coroutine function | `SyncTaskOnAsyncRunError` |
-| `Nornir.arun(task)` | runner has no coroutine-function `arun` | `RunnerNotAsyncError` |
-| `Task.run(subtask)` | subtask is a coroutine function | `AsyncTaskOnSyncRunError` |
-| `Task.arun(subtask)` | subtask is not a coroutine function | `SyncTaskOnAsyncRunError` |
-| `Host.get_connection` / `open_connection` | plugin has no callable `open` | `ConnectionPluginNotSyncError` |
-| `Host.close_connection` | stored plugin has no callable `close` | `ConnectionPluginNotSyncError` |
-| `Host.aget_connection` / `aopen_connection` | plugin has no coroutine-function `aopen` | `ConnectionPluginNotAsyncError` |
-| `Host.aopen_connection` | name already open or opening | `ConnectionAlreadyOpen` (existing) |
-| `Host.aget_connection` | name currently opening | `ConnectionAlreadyOpen` (existing) |
-| `Host.aclose_connection` | name not open | `ConnectionNotOpen` (existing) |
+## AsyncioRunner
+
+Field `num_workers: int`, default 20, validated positive and non-boolean at construction.
+No loop-bound state survives a call. Semaphore limits active host copies; ordered gather
+preserves selected-host result order. The runner owns and drains all scheduled host
+futures, including waiters, on BaseException. Shield the initial aggregate wait and give
+the runner sole ownership of child cancellation: cancel unfinished children once, drain
+them under shielding, and retrieve the aggregate exception before re-raising. Additional
+caller cancellations do not repeatedly cancel children performing cleanup. It creates
+no executor threads.
+
+## AsyncEcho fixture
+
+AsyncEcho structurally implements AsyncCapabilityConnectionPlugin, reports
+frozenset({"asyncio"}), and registers in the capability registry. Its connection contains
+an asyncio StreamReader/StreamWriter and an async send(payload: bytes) -> bytes operation.
+Opening uses a local TCP server; closing is idempotent. Fixture and server clean up partial
+opens, handlers, and sockets on errors/cancellation. Nothing under tests ships in the wheel.
+
+## Errors
+
+See [errors.md](contracts/errors.md) for the six mismatch errors, registry ambiguity and
+contract errors, constructor argument errors, reused exceptions, and validation precedence.
