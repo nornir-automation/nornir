@@ -6,7 +6,14 @@
 
 **Status**: Draft
 
-**Input**: User description: "Idea brief for nornir-automation/nornir#1085 (Async Runner), sharpened in a grilling session on 2026-09-02..06. Add opt-in native `asyncio` support next to the threaded runner: an `asyncio` runner plugin, `await nr.arun(task)` for callers already inside an event loop, a coroutine-aware `Task`, and an optional sibling `AsyncConnectionPlugin` protocol so async transports plug in first-class. Nothing changes unless the async runner is selected. Ships in 3.7 (MINOR) per Discussion #1091. Decisions taken during grilling: the connection-plugin protocol ships together with the runner as a single P1; synchronous tasks passed to the async entry points are rejected in this release with an error that names the follow-up issue; `Task.run()` keeps working inside an async task for backward compatibility; the runner is named `asyncio` / `AsyncioRunner`; `AsyncioRunner` is approved as an in-tree plugin but the `AsyncEcho` reference connection plugin lives under `tests/` as a fixture; cancellation propagates and records nothing, everything richer belongs to #1086; documentation is one executed notebook plus one prose page with the fixture's source included."
+**Input**: Async runner feature from nornir-automation/nornir#1085, refined on
+2026-09-02..06 and updated on 2026-09-13: add opt-in native asyncio task execution and
+the capability-aware `CapabilityConnectionPlugin` contract with its own
+`CapabilityConnectionPluginRegister`. The new registry supports synchronous plugins,
+asyncio plugins, and plugins supporting both. Preserve `ConnectionPlugin` and
+`ConnectionPluginRegister` as the legacy compatibility path. All four stories ship
+together in 3.7 (MINOR) per Discussion #1091. `AsyncioRunner` is approved in-tree;
+the reference connection plugin remains a test fixture.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -42,8 +49,8 @@ connection plugin is needed.
    same shape as `nr.run()` returns.
 2. **Given** the same setup and a processor attached, **When** the run executes,
    **Then** the processor receives `task_started`, one `task_instance_started` and
-   `task_instance_completed` per host, and `task_completed`, in the same order and with
-   the same arguments as on a threaded run.
+   `task_instance_completed` per host, and `task_completed`, with the same arguments
+   and per-host ordering as on a threaded run. Events from different hosts may interleave.
 3. **Given** an async task that awaits `task.arun(async_subtask)`, **When** the subtask
    raises, **Then** the subtask's result is recorded as failed, the parent receives the
    same subtask error it would receive from `task.run()` today, and the host is marked
@@ -54,7 +61,8 @@ connection plugin is needed.
    skips it.
 5. **Given** a `Nornir` configured with the `asyncio` runner, **When** the caller passes
    a plain `def` task to `nr.arun()` or to `task.arun()`, **Then** a named error is
-   raised before any host starts, and its message says to define the task with
+   raised before any host starts for `nr.arun()`, or before the subtask starts for
+   `task.arun()`, and its message says to define the task with
    `async def` or use a synchronous runner, and names the issue that tracks
    synchronous-task support in async runs.
 6. **Given** a `Nornir` configured with the `serial` or `threaded` runner, **When** the
@@ -75,46 +83,70 @@ connection plugin is needed.
 
 ---
 
-### User Story 2 - Plug in an async transport as a connection plugin (Priority: P1)
+### User Story 2 - Register a capability-aware connection plugin (Priority: P1)
 
-A transport author whose library is async-native (SSH over an async SSH library, gNMI or
-RESTCONF over an async HTTP client) implements the optional `AsyncConnectionPlugin`
-contract — `aopen`, `aclose`, `connection` — alongside or instead of the existing
-synchronous contract, registers it in the existing `nornir.plugins.connections` entry
-point group, and users obtain the connection from an async task with
-`await task.host.aget_connection(name, config)`. Existing synchronous connection plugins
-are untouched and keep working exactly as they do today.
+A transport author implements `CapabilityConnectionPlugin`, reports whether the plugin
+supports synchronous execution, asyncio execution, or both, and registers it once in
+`CapabilityConnectionPluginRegister`. Users obtain connections by name through
+`task.host.get_connection(name, config)` or
+`await task.host.aget_connection(name, config)`, according to the declared capabilities.
+The new contract serves synchronous and asynchronous transports alike. Existing plugins
+continue using `ConnectionPlugin` and `ConnectionPluginRegister` without migration or
+a new capability method.
 
 **Why this priority**: A runner nobody can connect through is a demonstration, not a
 feature. The grilling session merged this into the first slice for that reason.
 
 **Independent Test**: Can be fully tested with the standard-library-only `AsyncEcho`
 test fixture plugin talking to a local echo server: an async task obtains the
-connection, sends a payload, receives it back, and the connection is closed by
-`aclose_connections`.
+connection from a plugin registered in the new registry, sends a payload, receives it
+back, and the connection is closed by `aclose_connections`. Synchronous-only and
+dual-capability test plugins additionally prove all capability combinations, alongside
+an unchanged legacy plugin.
 
 **Acceptance Scenarios**:
 
-1. **Given** a plugin implementing `AsyncConnectionPlugin` registered under a name,
+1. **Given** a `CapabilityConnectionPlugin` declaring asyncio support and registered
+   under a name in `CapabilityConnectionPluginRegister`,
    **When** an async task awaits `task.host.aget_connection(name, config)`, **Then**
    the plugin's `aopen` is awaited once with the host's connection parameters, the
    established connection is returned, and a second call on the same host returns the
    cached connection without opening again.
-2. **Given** a plugin that implements only the synchronous `ConnectionPlugin` contract,
+2. **Given** a legacy `ConnectionPlugin` or a capability-aware plugin declaring only
+   synchronous support,
    **When** an async task awaits `task.host.aget_connection(name, config)`, **Then** a
-   named error is raised whose message says the plugin has no async members and points
+   named error is raised whose message says the plugin does not support asyncio and points
    to `get_connection()` from a synchronous task.
-3. **Given** a plugin that implements only `AsyncConnectionPlugin`, **When** a
+3. **Given** a capability-aware plugin declaring only asyncio support, **When** a
    synchronous task calls `task.host.get_connection(name, config)`, **Then** the mirror
    named error is raised and points to `aget_connection()` from an async task.
-4. **Given** a plugin implementing both contracts and a connection already opened on a
+4. **Given** a capability-aware plugin declaring both capabilities and a connection already opened on a
    host through the synchronous path, **When** an async task awaits
    `aget_connection` for the same name, **Then** the already-open connection is
-   returned and `aopen` is not called: the per-host connection cache is keyed by name,
-   not by kind.
+   returned and `aopen` is not called. The reverse direction also reuses the connection:
+   there is one logical connection per host and name, regardless of execution mode.
 5. **Given** an existing third-party synchronous connection plugin unchanged since
-   before this release, **When** it is used from a synchronous task on any runner,
+   before this release and registered in `ConnectionPluginRegister`, **When** it is
+   used through the existing synchronous execution path,
    **Then** its behaviour is identical to the previous release.
+6. **Given** a synchronous-only capability-aware plugin registered in the new registry,
+   **When** a synchronous task requests its connection, **Then** `open` is called with
+   the resolved host parameters, repeated requests reuse the connection, and synchronous
+   cleanup calls `close` without invoking an async operation.
+7. **Given** one plugin for each supported capability combination, **When** the plugin's
+   capability method is queried before opening a connection, **Then** it reports sync,
+   asyncio, or both accurately, without device I/O. Each plugin is registered once in
+   the new registry and can be used through every declared execution path.
+8. **Given** an installed capability-aware plugin advertised for automatic discovery,
+   **When** plugins are discovered, **Then** it is available in the new registry and
+   usable by connection name without a manual registration call. Legacy discovery
+   continues to populate the existing registry.
+9. **Given** different plugins with the same connection name in the two registries,
+   **When** that name is resolved, **Then** an explicit ambiguity error occurs before
+   either plugin opens a connection; neither silently overrides the other.
+10. **Given** a capability-aware plugin with an empty or unsupported capability declaration,
+    or missing operations required by its declaration, **When** it is validated for use,
+    **Then** an explicit contract error occurs before any connection is opened.
 
 ---
 
@@ -183,13 +215,24 @@ event was emitted.
 - A `def` task or subtask reaches an async entry point, or an `async def` task reaches a
   synchronous one, at any of the seven surfaces (`nr.arun`, `nr.run`, `task.arun`,
   `task.run`, `nr.close_connections`, `host.get_connection`, `host.aget_connection`):
-  a named error is raised before any host starts, and the message names the entry point
-  to use instead.
+  a named error is raised before host execution for top-level calls, before subtask
+  execution for subtask calls, and before opening or returning an incompatible
+  connection for connection calls. The message names the entry point to use instead.
 - The caller cancels `arun` mid-run: cancellation propagates, nothing is recorded.
 - A host holds a mix of synchronous and asynchronous connections at cleanup: both kinds
   are closed.
-- A connection was opened by a synchronous task and is later requested from an async
-  task under the same name: the cached connection is returned, nothing is reopened.
+- A connection from a capability-aware plugin declaring both capabilities was opened by a synchronous
+  task and is later requested from an async task under the same name: the cached
+  connection is returned, nothing is reopened. Cached connections from plugins lacking
+  the requested capability raise the same named mismatch error as an uncached request.
+- A capability-aware plugin exposes extra methods but does not declare the corresponding
+  capability: that execution path remains unavailable. Method presence does not override
+  the declaration.
+- A legacy plugin exposes async methods as extensions: legacy registration alone still
+  provides only synchronous support. Opting into the new contract enables capability-aware use.
+- A name exists in both registries: lookup reports ambiguity before opening a connection.
+- A capability declaration is invalid or its required operations are missing: fail before
+  opening a connection, rather than reporting support that cannot be used.
 - Two concurrent `aget_connection` calls for the same host and name from inside one task
   (the user fans out inside the task): the second call raises rather than opening a
   second connection. Taken as-is from the proposal.
@@ -230,18 +273,24 @@ event was emitted.
   subtask inline, as it does today.
 - **FR-010**: `Task.run()` called inside an async task with an `async def` subtask MUST
   raise a named error pointing to `Task.arun()`.
-- **FR-011**: A new optional `AsyncConnectionPlugin` contract MUST exist with `aopen`
-  and `aclose` taking the same parameters, in the same order, as `open` and `close`,
-  plus the `connection` property. The existing `ConnectionPlugin` contract MUST NOT
-  change. Plugins MUST register in the existing `nornir.plugins.connections` entry-point
-  group.
+- **FR-011**: A new optional `CapabilityConnectionPlugin` contract MUST support plugins
+  declaring synchronous execution, asyncio execution, or both. It MUST expose the
+  established `connection` and require working open/close operations for every declared
+  capability: `open`/`close` for sync and `aopen`/`aclose` for asyncio. Async operations
+  MUST accept the same connection parameters, in the same order, as their synchronous
+  counterparts. Existing `ConnectionPlugin` members and signatures MUST NOT change.
 - **FR-012**: `Host` MUST provide `aget_connection`, `aopen_connection`,
   `aclose_connection` and `aclose_connections`, mirroring the existing synchronous
-  methods, sharing the same per-host connection cache keyed by connection name.
-- **FR-013**: `Host.aget_connection()` on a plugin without async members MUST raise a
+  methods. Both execution paths MUST resolve plugins by name across the legacy and
+  capability-aware registries and maintain one logical connection per host and name.
+  A plugin declaring both capabilities MUST reuse its established connection across
+  paths. Storage MUST preserve existing public cache types and synchronous behavior;
+  the internal representation is a planning decision.
+- **FR-013**: `Host.aget_connection()` on a plugin without asyncio capability MUST raise a
   named error pointing to `get_connection()`; `Host.get_connection()` on a plugin
-  without synchronous members MUST raise the mirror error pointing to
-  `aget_connection()`.
+  without synchronous capability MUST raise the mirror error pointing to
+  `aget_connection()`. These checks MUST apply before opening a connection and before
+  returning a cached connection; rejection MUST leave an existing cache entry intact.
 - **FR-014**: `Host.aclose_connections()` MUST close every open connection on the host,
   awaiting `aclose` on async-capable plugins and calling `close` on synchronous ones.
 - **FR-015**: `Nornir.aclose_connections()` MUST run as a task through `arun()` so that
@@ -250,18 +299,40 @@ event was emitted.
 - **FR-016**: Cancelling `Nornir.arun()` MUST cancel every in-flight host, propagate
   the cancellation to the caller, and MUST NOT record a result, update
   `failed_hosts`, or emit `task_completed`.
-- **FR-017**: Processors attached to an async run MUST receive the same events, in the
-  same order, with the same arguments as on a synchronous run.
+- **FR-017**: Processors attached to an async run MUST receive the same events and
+  arguments as on a synchronous run. Global start MUST precede host events; each host's
+  start MUST precede its completion; child events MUST occur within their parent's
+  execution; global completion, when emitted, MUST follow host completions. Cross-host
+  interleaving is permitted. Failure and cancellation retain their specified rules for
+  omitted completion events.
 - **FR-018**: A standard-library-only reference async connection plugin (`AsyncEcho`)
-  MUST exist as a test fixture, exercising the complete async connection path in the
+  MUST implement `CapabilityConnectionPlugin`, declare asyncio support, and register in
+  `CapabilityConnectionPluginRegister` as a test fixture, exercising the complete async connection path in the
   test suite on every supported platform; it MUST NOT ship in the installed package.
 - **FR-019**: Documentation MUST include an executed how-to notebook demonstrating
   runner selection, an async task, `arun`, `async with`, and the named errors as real
   output, and a prose how-to page for plugin authors that includes the source of the
   reference fixture and the two rules for async members (`aopen`/`aclose` must not
-  block; `aclose` must be safe to call more than once).
+  block; `aclose` must be safe to call more than once). The plugin-author guide MUST
+  explain capability reporting, registration and discovery through the new registry,
+  all three capability combinations, and continued support for legacy plugins.
 - **FR-020**: No existing public signature, protocol member, default value or
-  entry-point name MAY change; the pre-existing test suite MUST pass unmodified.
+  entry-point name MAY change; the pre-existing test suite MUST pass unmodified except
+  for updating the runner-registry assertion and its import in
+  `tests/core/test_registered_plugins.py` to include `asyncio` / `AsyncioRunner`.
+- **FR-021**: `CapabilityConnectionPluginRegister` MUST register and discover plugins
+  implementing the new contract for all three capability combinations. A plugin MUST
+  register once in this registry regardless of how many capabilities it supports.
+  `ConnectionPluginRegister` and the existing `nornir.plugins.connections` discovery
+  group MUST continue accepting legacy plugins without changes to their code or registration.
+- **FR-022**: `CapabilityConnectionPlugin` MUST provide a capability-reporting method
+  usable before opening a connection and without device I/O. It MUST report a nonempty
+  selection of sync and asyncio capabilities. Dispatch MUST honor that declaration;
+  legacy registrations MUST be treated as sync-only. Invalid declarations or missing
+  required operations MUST produce an explicit contract error before opening a connection.
+- **FR-023**: Connection lookup MUST reject a name present in both registries with an
+  explicit ambiguity error before opening a connection. Lookup MUST NOT silently select
+  one registry based on execution mode or discovery order.
 
 ### Key Entities
 
@@ -273,11 +344,19 @@ event was emitted.
   manager support. Existing entity, new members; the synchronous members are unchanged.
 - **Coroutine-aware `Task`**: `astart` and `arun` as async twins of `start` and `run`,
   sharing the same result and failure semantics. Existing entity, new members.
-- **`AsyncConnectionPlugin` contract**: An optional sibling of `ConnectionPlugin` with
-  `aopen`, `aclose` and `connection`. A plugin may satisfy one or both contracts. New.
+- **`CapabilityConnectionPlugin` contract**: The new capability-aware connection plugin
+  contract, with capability reporting, the established connection, and operations for
+  every declared execution mode. It accepts sync-only, asyncio-only, and dual-capability plugins.
+- **`CapabilityConnectionPluginRegister`**: The new registry for all plugins implementing
+  the capability-aware contract, independent of their supported execution modes.
+- **Legacy connection contract and registry**: `ConnectionPlugin` and
+  `ConnectionPluginRegister`, preserved for existing synchronous plugins without migration.
+- **Connection capabilities**: Sync, asyncio, or both, reported by the new contract and
+  used to validate execution-path requests. Exact method signature and value types belong
+  to planning.
 - **Async connection methods on `Host`**: `aget_connection`, `aopen_connection`,
-  `aclose_connection`, `aclose_connections`, over the existing per-host connection
-  cache. Existing entity, new members.
+  `aclose_connection`, `aclose_connections`, maintaining a per-host connection identity
+  keyed by name across execution paths and plugin registries. Existing entity, new members.
 - **Named errors**: One error per wrong sync/async combination, each message naming the
   entry point to use instead. New.
 - **`AsyncEcho` fixture**: A standard-library-only async connection plugin living in the
@@ -288,9 +367,10 @@ event was emitted.
 
 ### Measurable Outcomes
 
-- **SC-001**: The complete pre-existing test suite passes without modification once the
-  feature is merged, and upgrading requires zero code changes for users who do not
-  select the `asyncio` runner.
+- **SC-001**: The complete pre-existing test suite passes once the feature is merged,
+  with only the runner-registry assertion and its import updated to include `asyncio` /
+  `AsyncioRunner`. Upgrading requires zero code changes for users who do not select the
+  `asyncio` runner.
 - **SC-002**: During a run over 100 hosts whose task awaits 100 ms of simulated I/O,
   another coroutine sharing the caller's event loop is never starved for more than
   50 ms.
@@ -298,12 +378,37 @@ event was emitted.
   `num_workers=1000`, completes in under 2 seconds of wall-clock time, and the number
   of live threads in the process is the same before and after the run.
 - **SC-004**: Every wrong sync/async combination listed in the edge cases raises a
-  named error before a single per-host event is emitted.
-- **SC-005**: A plugin author can add async support to an existing synchronous
-  connection plugin by adding exactly two methods (`aopen`, `aclose`) and changing
-  nothing else — no registration change, no configuration change.
+  named error at the relevant operation boundary: top-level mismatches before any host
+  execution or per-host event; subtask mismatches before the subtask executes or emits
+  a subtask event; connection mismatches before opening or returning an incompatible
+  connection, including on cache hits. Parent host events may already have occurred
+  for subtask and connection calls.
+- **SC-005**: A plugin author can implement the capability-aware contract and register
+  once in `CapabilityConnectionPluginRegister` to serve every declared execution path.
+  Tests demonstrate sync-only, asyncio-only, and dual-capability plugins, including
+  cross-path connection reuse for the dual-capability case. Existing legacy plugins
+  remain usable without implementing the new contract or changing registration.
 - **SC-006**: The how-to notebook executes in the documentation build and its stored
   output matches the run on every documentation build.
+- **SC-007**: Registration and discovery tests demonstrate both registries coexisting:
+  legacy names resolve through the synchronous path, capability-aware names resolve
+  through each declared path, duplicate cross-registry names fail explicitly, and invalid
+  capability declarations fail before connection-opening operations are invoked.
+
+## Clarifications
+
+### Session 2026-09-13
+
+- Q: May registering `asyncio` update the existing exact runner-registry test? → A: Yes;
+  the assertion and its import may include `asyncio` / `AsyncioRunner`. Other existing
+  tests must pass unmodified.
+- Q: When must mismatch errors be raised? → A: Before host execution for top-level
+  calls, before subtask execution for subtask calls, and before opening or returning
+  an incompatible connection for connection calls, including cached connections.
+- Q: Is the successor registry specific to async plugins? → A: No. Use
+  `CapabilityConnectionPlugin` and `CapabilityConnectionPluginRegister` for plugins
+  supporting sync, asyncio, or both, with a method reporting capabilities. Preserve the
+  existing protocol and registry as the legacy compatibility path.
 
 ## Assumptions
 
@@ -318,9 +423,16 @@ event was emitted.
 - Until the follow-up issue on synchronous tasks in async runs is opened, the error
   messages of FR-005 reference #1085; the number is replaced once the follow-up issue
   exists, and opening it is a precondition of merging this feature.
-- Whether a connection plugin supports the async path is determined structurally, from
-  the presence of its async members, consistent with the structural `Protocol` design
-  of the existing contracts.
+- New plugins satisfy the capability-aware contract structurally, consistent with the
+  existing plugin model, but supported execution modes come from the capability method,
+  not from method-presence heuristics. Legacy registrations are synchronous-only.
+- Default namespace policy: any name present in both registries is ambiguous, even if
+  both entries refer to the same class. Authors opting into the new registry remove the
+  old registration for that name; dual-capability plugins need only the new registration.
+- The capability method's exact signature and result type, typed operation interfaces,
+  discovery entry-point name for the new registry, error class names, and internal
+  storage design are settled during planning. They must satisfy FR-011–FR-013 and
+  FR-020–FR-023 without weakening existing public types or signatures.
 - Processors are called synchronously on the async path. A processor that performs slow
   I/O blocks the loop while it runs; #1090 addresses that separately.
 - The release is only useful in practice to users with genuinely async I/O until the
@@ -345,4 +457,6 @@ event was emitted.
 - trio or `anyio` support; any new runtime dependency.
 - Migrating the plugin ecosystem, or shipping a usable async transport in the core
   package.
+- Renaming, removing, or requiring deprecation warnings for the legacy connection
+  protocol and registry; existing plugins need not adopt the new contract in this release.
 - A major-version upgrade guide: the release is additive and nothing breaks.

@@ -28,7 +28,9 @@ __________
    :widths: 15 85
 
    * - **Description**
-     - Plugin to use as Runner. Must be registered
+     - Registered runner plugin to use. ``Threaded`` runs synchronous tasks in a thread
+       pool and remains the default. Select ``asyncio`` explicitly to run native
+       coroutine tasks with ``await nr.arun(...)``.
    * - **Type**
      - ``string``
    * - **Default**
@@ -45,7 +47,10 @@ ___________
    :widths: 15 85
 
    * - **Description**
-     - kwargs to pass to the plugin
+     - Keyword arguments passed to the runner plugin. ``Threaded`` and ``asyncio`` accept
+       ``num_workers``, the maximum number of hosts in flight; both default to ``20``.
+       For ``asyncio``, ``num_workers`` must be a positive integer. ``Serial`` has no
+       options.
    * - **Type**
      - ``object``
    * - **Default**
@@ -54,6 +59,18 @@ ___________
      - ``False``
    * - **Environment Variable**
      - ``NORNIR_RUNNER_OPTIONS``
+
+For example, select the asyncio runner and allow up to 100 concurrent hosts::
+
+    runner:
+      plugin: asyncio
+      options:
+        num_workers: 100
+
+The asyncio runner uses the caller's event loop and requires ``async def`` tasks invoked
+through ``await nr.arun(...)``. Omitting the runner configuration continues to select
+``Threaded``. See :doc:`../plugins/execution_model` and the executed
+:doc:`../howto/asyncio_runner` notebook.
 
 inventory
 ---------

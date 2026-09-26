@@ -2,6 +2,7 @@
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-09-06
+**Last validated**: 2026-09-13
 **Feature**: [spec.md](../spec.md)
 
 ## Content Quality
@@ -38,8 +39,24 @@
   planning), so no clarification markers were needed.
 - "No implementation details" is read as: no mechanism (thread pools, semaphores, event-loop
   internals, attribute probing). The spec does name the public entry points (`arun`,
-  `aget_connection`, `AsyncConnectionPlugin`) because for a library those names *are* the
-  user-facing product and are fixed by the proposal in #1085; the plan owns everything
-  behind them.
+  `aget_connection`, `CapabilityConnectionPlugin`, `CapabilityConnectionPluginRegister`)
+  because for a library those names are the user-facing product. The plan owns the
+  internal mechanisms, concrete capability signature, and storage design.
 - The four user stories carry priorities to express dependency order, but the grilling
   session decided they ship together as one release slice; the spec says so explicitly.
+- Validation pass 2 (2026-09-13): incorporated the capability-aware contract and registry.
+  FR-011–FR-013 and SC-005 now describe the successor contract; FR-021–FR-023 and SC-007
+  cover registration, capability reporting, legacy coexistence, and ambiguous names.
+  US2 scenarios 1–10 provide corresponding acceptance checks, including synchronous-only
+  use of the new registry and automatic discovery. No clarification markers remain.
+- Capability declarations, unsupported paths, invalid contracts, and cross-registry
+  collisions have testable outcomes. Rejecting every cross-registry duplicate name is
+  a default recorded under Assumptions, not a previously ratified user decision.
+- Validation clarified FR-017 as per-host and nested event ordering with cross-host
+  interleaving, rather than requiring a concurrent run to reproduce a serial event list.
+- Checklist completion assesses specification quality, not implemented behavior or passing
+  runtime gates. The plan, research, data model, contracts, and quickstart have now been
+  reconciled with this revision, including typed storage and interface feasibility checks.
+  The regenerated tasks.md includes all 23 functional requirements and seven success
+  criteria, preserves completed setup work, and maps prior IDs. Runtime gates remain
+  pending; run speckit-analyze to review the new cross-artifact mapping before implementation.

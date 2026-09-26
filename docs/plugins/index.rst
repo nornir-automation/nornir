@@ -41,7 +41,8 @@ Where PATH is:
 * ``nornir.plugins.inventory`` - for inventory plugins
 * ``nornir.plugins.transform_function`` - for transform functions
 * ``nornir.plugins.runners`` - for runners
-* ``nornir.plugins.connections`` - for connection plugins
+* ``nornir.plugins.connections`` - for legacy synchronous connection plugins
+* ``nornir.plugins.capability_connections`` - for capability-aware connection plugins
 
 Where NAME is the way you want to refer to it later on and ``path.to:Plugin`` the import path. For instance::
 
@@ -61,7 +62,24 @@ To do it programmatically import the correct plugin register and use the ``regis
 Connections
 -----------
 
-A connection plugin is a nornir plugin that allows nornir to manage connections with devices
+A connection plugin allows Nornir to manage connections with devices. There are two
+connection plugin registries:
+
+* ``ConnectionPluginRegister`` and the ``nornir.plugins.connections`` entry-point
+  group retain the existing synchronous connection plugin contract. Plugins registered
+  here are treated as synchronous, including plugins that happen to expose additional
+  asynchronous methods.
+* ``CapabilityConnectionPluginRegister`` and the
+  ``nornir.plugins.capability_connections`` entry-point group use the
+  ``CapabilityConnectionPlugin`` contract. A plugin reports ``sync``, ``asyncio``, or
+  both from ``get_capabilities()`` and implements the operations for each declared mode.
+  Register a capability-aware plugin once, even when it supports both modes.
+
+Nornir consults both registries when resolving a connection. A connection name must be
+unique across them; duplicate names are rejected as ambiguous rather than selected by
+execution mode. Existing plugins and their registration remain compatible without
+changes. For the complete contract and examples, see
+:doc:`../howto/writing_capability_connection_plugins`.
 
 Inventory
 ---------
@@ -85,7 +103,10 @@ During inventory initialization, the transform function will be called in a for 
 Runners
 -------
 
-A runner is a plugin that dictates how to execute the tasks over the hosts
+A runner is a plugin that dictates how to execute tasks over hosts. Nornir includes
+serial, threaded, and asyncio execution. The threaded runner remains the default;
+selecting the asyncio runner is explicit. See :doc:`execution_model` and the executed
+:doc:`../howto/asyncio_runner` notebook for usage.
 
 Included
 ________
@@ -94,9 +115,14 @@ ________
   :members:
   :undoc-members:
 
-For more details about ``ThreadedRunner`` read the :doc:`execution_model`.
+For more details about the included runners, read the :doc:`execution_model`.
 
 Processors
 ----------
 
 A processor is a plugin that taps into certain events and allows the user to execute arbitrary code on those events.
+
+Processor hooks are synchronous in every execution mode. During an asyncio run, a
+processor hook executes on the caller's event-loop thread and blocks other work until it
+returns. Asynchronous processor support is tracked in `issue #1090
+<https://github.com/nornir-automation/nornir/issues/1090>`_.

@@ -22,6 +22,7 @@ dependencies = [
 Repository = "https://github.com/nornir-automation/nornir"
 
 [project.entry-points."nornir.plugins.runners"]
+asyncio = "nornir.plugins.runners:AsyncioRunner"
 serial = "nornir.plugins.runners:SerialRunner"
 threaded = "nornir.plugins.runners:ThreadedRunner"
 

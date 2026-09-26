@@ -1,6 +1,17 @@
 Changelog
 ==========
 
+3.7.0 - Unreleased
+------------------
+
+- Added opt-in native asyncio task dispatch through ``AsyncioRunner`` and ``Nornir.arun``,
+  a capability-aware connection plugin contract and registry for synchronous, asyncio,
+  and dual-mode plugins, and asynchronous connection cleanup. Existing synchronous
+  runners and legacy connection plugins remain compatible, with ``ThreadedRunner`` still
+  the default. The synchronous ``Nornir.run`` and ``Task.run`` entry points now reject
+  coroutine tasks with ``AsyncTaskOnSyncRunError`` instead of treating an un-awaited
+  coroutine as a successful result (#1085)
+
 3.6.0 - August 2 2026
 ---------------------
 

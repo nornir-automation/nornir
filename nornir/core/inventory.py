@@ -1,21 +1,130 @@
 from __future__ import annotations
 
+import inspect
+from dataclasses import dataclass
 from typing import (
     TYPE_CHECKING,
     Any,
     Protocol,
+    TypeGuard,
     TypeVar,
 )
 
 from nornir.core.configuration import Config
-from nornir.core.exceptions import ConnectionAlreadyOpen, ConnectionNotOpen
-from nornir.core.plugins.connections import ConnectionPlugin, ConnectionPluginRegister
+from nornir.core.exceptions import (
+    ConnectionAlreadyOpen,
+    ConnectionNotOpen,
+    ConnectionPluginAmbiguousError,
+    ConnectionPluginContractError,
+    ConnectionPluginNotAsyncError,
+    ConnectionPluginNotSyncError,
+)
+from nornir.core.plugins.connections import (
+    AsyncCapabilityConnectionPlugin,
+    CapabilityConnectionPlugin,
+    CapabilityConnectionPluginRegister,
+    ConnectionCapability,
+    ConnectionPlugin,
+    ConnectionPluginRegister,
+    DualCapabilityConnectionPlugin,
+    SyncCapabilityConnectionPlugin,
+)
 
 if TYPE_CHECKING:
     import builtins
-    from collections.abc import ItemsView, Iterator, KeysView, ValuesView
+    from collections.abc import Callable, ItemsView, Iterator, KeysView, ValuesView
 
 HostOrGroup = TypeVar("HostOrGroup", "Host", "Group")
+
+
+@dataclass(frozen=True)
+class _CapabilityConnectionState:
+    plugin: CapabilityConnectionPlugin
+    capabilities: frozenset[ConnectionCapability]
+
+
+def _is_sync_capability_plugin(
+    plugin: CapabilityConnectionPlugin,
+) -> TypeGuard[SyncCapabilityConnectionPlugin]:
+    open_method = getattr(plugin, "open", None)
+    close_method = getattr(plugin, "close", None)
+    return (
+        callable(open_method)
+        and not inspect.iscoroutinefunction(open_method)
+        and callable(close_method)
+        and not inspect.iscoroutinefunction(close_method)
+    )
+
+
+def _is_async_capability_plugin(
+    plugin: CapabilityConnectionPlugin,
+) -> TypeGuard[AsyncCapabilityConnectionPlugin]:
+    async_open = inspect.iscoroutinefunction(getattr(plugin, "aopen", None))
+    async_close = inspect.iscoroutinefunction(getattr(plugin, "aclose", None))
+    return async_open and async_close
+
+
+def _is_dual_capability_plugin(
+    plugin: CapabilityConnectionPlugin,
+) -> TypeGuard[DualCapabilityConnectionPlugin]:
+    return _is_sync_capability_plugin(plugin) and _is_async_capability_plugin(plugin)
+
+
+def _validate_capability_plugin(
+    connection_name: str, plugin: CapabilityConnectionPlugin
+) -> frozenset[ConnectionCapability]:
+    try:
+        reporter = getattr(plugin, "get_capabilities", None)
+    except Exception as exc:
+        raise ConnectionPluginContractError(
+            connection_name, "get_capabilities could not be accessed"
+        ) from exc
+    if not callable(reporter) or inspect.iscoroutinefunction(reporter):
+        raise ConnectionPluginContractError(
+            connection_name, "get_capabilities must be a synchronous callable"
+        )
+
+    try:
+        capabilities = reporter()
+    except Exception as exc:
+        raise ConnectionPluginContractError(connection_name, "get_capabilities failed") from exc
+
+    valid_declarations = (
+        frozenset({"sync"}),
+        frozenset({"asyncio"}),
+        frozenset({"sync", "asyncio"}),
+    )
+    if not isinstance(capabilities, frozenset) or capabilities not in valid_declarations:
+        raise ConnectionPluginContractError(
+            connection_name,
+            "get_capabilities must return a nonempty frozenset containing only "
+            "'sync' and/or 'asyncio'",
+        )
+
+    operation_guard: Callable[[CapabilityConnectionPlugin], bool]
+    if capabilities == valid_declarations[2]:
+        operation_guard = _is_dual_capability_plugin
+        invalid_reason = (
+            "dual capability requires synchronous open/close and native async aopen/aclose"
+        )
+    elif "sync" in capabilities:
+        operation_guard = _is_sync_capability_plugin
+        invalid_reason = "sync capability requires synchronous open and close"
+    else:
+        operation_guard = _is_async_capability_plugin
+        invalid_reason = "asyncio capability requires native async aopen and aclose"
+
+    try:
+        operations_valid = operation_guard(plugin)
+    except Exception as exc:
+        raise ConnectionPluginContractError(
+            connection_name, "declared operations could not be accessed"
+        ) from exc
+
+    if not operations_valid:
+        raise ConnectionPluginContractError(connection_name, invalid_reason)
+
+    return capabilities
 
 
 class BaseAttributes:
@@ -295,8 +404,15 @@ class Defaults(BaseAttributes):
         }
 
 
-class Host(InventoryElement):
-    __slots__ = ("connections", "defaults", "name")
+class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds four required methods.
+    __slots__ = (
+        "_async_connections",
+        "_capability_connections",
+        "_opening",
+        "connections",
+        "defaults",
+        "name",
+    )
 
     def __init__(
         self,
@@ -314,6 +430,9 @@ class Host(InventoryElement):
         self.name = name
         self.defaults = defaults or Defaults(None, None, None, None, None, None, None)
         self.connections: dict[str, ConnectionPlugin] = {}
+        self._async_connections: dict[str, AsyncCapabilityConnectionPlugin] = {}
+        self._capability_connections: dict[str, _CapabilityConnectionState] = {}
+        self._opening: set[str] = set()
         super().__init__(
             hostname=hostname,
             port=port,
@@ -593,9 +712,20 @@ class Host(InventoryElement):
 
         Raises:
             AttributeError: if it's unknown how to establish a connection for the given type
+            ConnectionPluginNotSyncError: if the cached or registered plugin is async-only
 
         """
-        if connection not in self.connections:
+        self._check_connection_lookup(connection)
+        existing = self.connections.get(connection)
+        if existing is not None:
+            state = self._public_capability_state(connection, existing)
+            if state is not None and "sync" not in state.capabilities:
+                raise ConnectionPluginNotSyncError(connection)
+            return existing.connection
+        if connection in self._async_connections:
+            raise ConnectionPluginNotSyncError(connection)
+
+        if existing is None:
             conn = self.get_connection_parameters(connection)
             self.open_connection(
                 connection=connection,
@@ -608,6 +738,44 @@ class Host(InventoryElement):
                 extras=conn.extras,
             )
         return self.connections[connection].connection
+
+    async def aget_connection(self, connection: str, configuration: Config) -> Any:
+        """Return an established asyncio-capable connection, opening it if needed.
+
+        Returns:
+            The established connection.
+
+        Raises:
+            ConnectionPluginNotAsyncError: if the plugin does not declare asyncio support
+
+        """
+        self._check_connection_lookup(connection)
+        existing = self.connections.get(connection)
+        if existing is not None:
+            state = self._public_capability_state(connection, existing)
+            if state is None or "asyncio" not in state.capabilities:
+                raise ConnectionPluginNotAsyncError(connection)
+            return existing.connection
+
+        async_existing = self._async_connections.get(connection)
+        if async_existing is not None:
+            state = self._private_capability_state(connection, async_existing)
+            if "asyncio" not in state.capabilities:
+                raise ConnectionPluginNotAsyncError(connection)
+            return async_existing.connection
+
+        conn = self.get_connection_parameters(connection)
+        plugin = await self.aopen_connection(
+            connection=connection,
+            configuration=configuration,
+            hostname=conn.hostname,
+            port=conn.port,
+            username=conn.username,
+            password=conn.password,
+            platform=conn.platform,
+            extras=conn.extras,
+        )
+        return plugin.connection
 
     def open_connection(
         self,
@@ -633,15 +801,31 @@ class Host(InventoryElement):
             AttributeError: if it's unknown how to establish a connection for the given type
             nornir.core.exceptions.ConnectionAlreadyOpen: a connection of the given type
                 is already open
+            ConnectionPluginContractError: if a capability declaration is malformed
+            ConnectionPluginNotSyncError: if the plugin does not declare sync support
 
         """
         conn_name = connection
-        existing_conn = self.connections.get(conn_name)
-        if existing_conn is not None:
-            raise ConnectionAlreadyOpen(conn_name)
+        self._check_connection_lookup(conn_name)
+        self._raise_if_connection_exists(conn_name)
 
-        plugin = ConnectionPluginRegister.get_plugin(conn_name)
-        conn_obj = plugin()
+        capability_plugin = CapabilityConnectionPluginRegister.available.get(conn_name)
+        if capability_plugin is None:
+            plugin = ConnectionPluginRegister.get_plugin(conn_name)
+            conn_obj = plugin()
+            capability_state = None
+        else:
+            capability_conn_obj = capability_plugin()
+            capabilities = _validate_capability_plugin(conn_name, capability_conn_obj)
+            if "sync" not in capabilities:
+                raise ConnectionPluginNotSyncError(conn_name)
+            if not _is_sync_capability_plugin(capability_conn_obj):
+                raise ConnectionPluginContractError(
+                    conn_name, "validated sync operations are no longer available"
+                )
+            conn_obj = capability_conn_obj
+            capability_state = _CapabilityConnectionState(capability_conn_obj, capabilities)
+
         if default_to_host_attributes:
             conn_params = self.get_connection_parameters(conn_name)
             hostname = hostname if hostname is not None else conn_params.hostname
@@ -661,22 +845,144 @@ class Host(InventoryElement):
             configuration=configuration,
         )
         self.connections[conn_name] = conn_obj
+        if capability_state is not None:
+            self._capability_connections[conn_name] = capability_state
         return conn_obj
+
+    async def aopen_connection(
+        self,
+        connection: str,
+        configuration: Config,
+        hostname: str | None = None,
+        username: str | None = None,
+        password: str | None = None,
+        port: int | None = None,
+        platform: str | None = None,
+        extras: builtins.dict[str, Any] | None = None,
+        default_to_host_attributes: bool = True,
+    ) -> AsyncCapabilityConnectionPlugin:
+        """Open a capability-aware connection through its native asyncio operations.
+
+        Returns:
+            The opened plugin instance.
+
+        Raises:
+            ConnectionPluginContractError: if a capability declaration is malformed
+            ConnectionPluginNotAsyncError: if the plugin does not declare asyncio support
+
+        """
+        conn_name = connection
+        self._check_connection_lookup(conn_name)
+        self._raise_if_connection_exists(conn_name)
+
+        if conn_name in ConnectionPluginRegister.available:
+            raise ConnectionPluginNotAsyncError(conn_name)
+        plugin = CapabilityConnectionPluginRegister.get_plugin(conn_name)
+
+        conn_obj = plugin()
+        capabilities = _validate_capability_plugin(conn_name, conn_obj)
+        if "asyncio" not in capabilities:
+            raise ConnectionPluginNotAsyncError(conn_name)
+        if not _is_async_capability_plugin(conn_obj):
+            raise ConnectionPluginContractError(
+                conn_name, "validated asyncio operations are no longer available"
+            )
+
+        if default_to_host_attributes:
+            conn_params = self.get_connection_parameters(conn_name)
+            hostname = hostname if hostname is not None else conn_params.hostname
+            username = username if username is not None else conn_params.username
+            password = password if password is not None else conn_params.password
+            port = port if port is not None else conn_params.port
+            platform = platform if platform is not None else conn_params.platform
+            extras = extras if extras is not None else conn_params.extras
+
+        self._opening.add(conn_name)
+        try:
+            await conn_obj.aopen(
+                hostname=hostname,
+                username=username,
+                password=password,
+                port=port,
+                platform=platform,
+                extras=extras,
+                configuration=configuration,
+            )
+            if "sync" in capabilities:
+                if not _is_dual_capability_plugin(conn_obj):
+                    raise ConnectionPluginContractError(
+                        conn_name, "validated dual operations are no longer available"
+                    )
+                self.connections[conn_name] = conn_obj
+            else:
+                self._async_connections[conn_name] = conn_obj
+            self._capability_connections[conn_name] = _CapabilityConnectionState(
+                conn_obj, capabilities
+            )
+            return conn_obj
+        finally:
+            self._opening.remove(conn_name)
 
     def close_connection(self, connection: str) -> None:
         """Close the connection.
 
         Raises:
             nornir.core.exceptions.ConnectionNotOpen: no connection of the given type is open
+            ConnectionPluginNotSyncError: if the connection is async-only
 
         """
         conn_name = connection
+        self._check_connection_cache_conflict(conn_name)
+        if conn_name in self._async_connections:
+            raise ConnectionPluginNotSyncError(conn_name)
         if conn_name not in self.connections:
             raise ConnectionNotOpen(conn_name)
 
-        conn_obj = self.connections.pop(conn_name)
+        conn_obj = self.connections[conn_name]
+        state = self._public_capability_state(conn_name, conn_obj)
+        if state is not None and "sync" not in state.capabilities:
+            raise ConnectionPluginNotSyncError(conn_name)
+        self.connections.pop(conn_name)
+        self._remove_capability_state(conn_name, conn_obj)
         if conn_obj is not None:
             conn_obj.close()
+
+    async def aclose_connection(self, connection: str) -> None:
+        """Close one connection, awaiting native async cleanup when declared.
+
+        Raises:
+            ConnectionNotOpen: if the connection is not open
+            ConnectionPluginContractError: if private connection state is inconsistent
+
+        """
+        conn_name = connection
+        self._check_connection_cache_conflict(conn_name)
+        async_conn = self._async_connections.get(conn_name)
+        if async_conn is not None:
+            self._private_capability_state(conn_name, async_conn)
+            await async_conn.aclose()
+            if self._async_connections.get(conn_name) is async_conn:
+                self._async_connections.pop(conn_name)
+            self._remove_capability_state(conn_name, async_conn)
+            return
+
+        conn_obj = self.connections.get(conn_name)
+        if conn_obj is None:
+            raise ConnectionNotOpen(conn_name)
+        state = self._public_capability_state(conn_name, conn_obj)
+        if state is not None and "asyncio" in state.capabilities:
+            plugin = state.plugin
+            if not _is_async_capability_plugin(plugin):
+                raise ConnectionPluginContractError(
+                    conn_name, "cached asyncio operations are no longer available"
+                )
+            await plugin.aclose()
+        else:
+            conn_obj.close()
+
+        if self.connections.get(conn_name) is conn_obj:
+            self.connections.pop(conn_name)
+        self._remove_capability_state(conn_name, conn_obj)
 
     def close_connections(self) -> None:
         """Close every connection open on this host.
@@ -684,10 +990,75 @@ class Host(InventoryElement):
         Closing a connection that was never opened is not an error here, unlike
         :py:meth:`close_connection`: a host with nothing open is left alone.
         """
-        # Decouple deleting dictionary elements from iterating over connections dict
-        existing_conns = list(self.connections.keys())
+        # Snapshot both stores so synchronous cleanup remains deterministic and fail-fast.
+        existing_conns = list(self.connections) + list(self._async_connections)
         for connection in existing_conns:
             self.close_connection(connection)
+
+    async def aclose_connections(self) -> None:
+        """Close every connection, attempting all entries after ordinary errors.
+
+        Callers must serialize use and cleanup of an individual connection name.
+        """
+        existing_conns = list(self.connections) + list(self._async_connections)
+        first_error: Exception | None = None
+        for connection in existing_conns:
+            try:
+                await self.aclose_connection(connection)
+            except Exception as exc:  # noqa: BLE001 - plugin errors must not skip later cleanup.
+                if first_error is None:
+                    first_error = exc
+        if first_error is not None:
+            raise first_error
+
+    def _check_connection_ambiguity(self, connection: str) -> None:
+        if (
+            connection in ConnectionPluginRegister.available
+            and connection in CapabilityConnectionPluginRegister.available
+        ):
+            raise ConnectionPluginAmbiguousError(connection)
+
+    def _check_connection_cache_conflict(self, connection: str) -> None:
+        if connection in self.connections and connection in self._async_connections:
+            raise ConnectionPluginContractError(
+                connection, "connection exists in both the public and private caches"
+            )
+
+    def _check_connection_lookup(self, connection: str) -> None:
+        self._check_connection_ambiguity(connection)
+        self._check_connection_cache_conflict(connection)
+        if connection in self._opening:
+            raise ConnectionAlreadyOpen(connection)
+
+    def _raise_if_connection_exists(self, connection: str) -> None:
+        if connection in self.connections or connection in self._async_connections:
+            raise ConnectionAlreadyOpen(connection)
+
+    def _public_capability_state(
+        self, connection: str, plugin: ConnectionPlugin
+    ) -> _CapabilityConnectionState | None:
+        state = self._capability_connections.get(connection)
+        if state is not None and state.plugin is not plugin:
+            self._capability_connections.pop(connection)
+            return None
+        return state
+
+    def _private_capability_state(
+        self, connection: str, plugin: AsyncCapabilityConnectionPlugin
+    ) -> _CapabilityConnectionState:
+        state = self._capability_connections.get(connection)
+        if state is None or state.plugin is not plugin:
+            raise ConnectionPluginContractError(
+                connection, "private connection cache has no matching capability metadata"
+            )
+        return state
+
+    def _remove_capability_state(
+        self, connection: str, plugin: ConnectionPlugin | CapabilityConnectionPlugin
+    ) -> None:
+        state = self._capability_connections.get(connection)
+        if state is not None and state.plugin is plugin:
+            self._capability_connections.pop(connection)
 
 
 class Group(Host):

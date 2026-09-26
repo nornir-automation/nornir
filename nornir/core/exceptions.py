@@ -8,6 +8,102 @@ if TYPE_CHECKING:
     from nornir.core.tasks import Task
 
 
+SYNC_TASKS_IN_ASYNC_RUNS_ISSUE = "https://github.com/nornir-automation/nornir/issues/1085"
+
+
+class SyncAsyncMismatchError(Exception):
+    """Raised when an operation is used from an unsupported execution mode."""
+
+
+class SyncTaskOnAsyncRunError(SyncAsyncMismatchError):
+    """Raised when an asynchronous run receives a synchronous task."""
+
+    def __init__(self, task_name: str) -> None:
+        self.task_name = task_name
+        super().__init__(
+            f"Task {task_name!r} is synchronous and cannot run asynchronously. "
+            "Define it with 'async def' or use a synchronous runner. "
+            f"See {SYNC_TASKS_IN_ASYNC_RUNS_ISSUE}."
+        )
+
+
+class AsyncTaskOnSyncRunError(SyncAsyncMismatchError):
+    """Raised when a synchronous run receives an asynchronous task."""
+
+    def __init__(self, task_name: str) -> None:
+        self.task_name = task_name
+        super().__init__(
+            f"Task {task_name!r} is asynchronous and cannot run synchronously. "
+            "Use 'await nr.arun(...)' or 'await task.arun(...)', or define a synchronous task."
+        )
+
+
+class RunnerNotSyncError(SyncAsyncMismatchError):
+    """Raised when a runner does not support synchronous operations."""
+
+    def __init__(self, runner_name: str) -> None:
+        self.runner_name = runner_name
+        super().__init__(
+            f"Runner {runner_name!r} does not support synchronous operations. "
+            "Use 'await nr.arun(...)', 'await nr.aclose_connections()', or 'async with nr'."
+        )
+
+
+class RunnerNotAsyncError(SyncAsyncMismatchError):
+    """Raised when a runner does not support asynchronous operations."""
+
+    def __init__(self, runner_name: str) -> None:
+        self.runner_name = runner_name
+        super().__init__(
+            f"Runner {runner_name!r} does not support asynchronous operations. "
+            "Use 'nr.run(...)', 'nr.close_connections()', or 'with nr', or select an "
+            "asyncio runner."
+        )
+
+
+class ConnectionPluginNotAsyncError(SyncAsyncMismatchError):
+    """Raised when a connection plugin does not support asyncio."""
+
+    def __init__(self, connection_name: str) -> None:
+        self.connection_name = connection_name
+        super().__init__(
+            f"Connection plugin {connection_name!r} does not declare asyncio support. "
+            "Use 'get_connection(...)' from a synchronous task."
+        )
+
+
+class ConnectionPluginNotSyncError(SyncAsyncMismatchError):
+    """Raised when a connection plugin does not support synchronous operations."""
+
+    def __init__(self, connection_name: str) -> None:
+        self.connection_name = connection_name
+        super().__init__(
+            f"Connection plugin {connection_name!r} does not declare synchronous support. "
+            "Use 'aget_connection(...)', 'aopen_connection(...)', or "
+            "'aclose_connection(...)'."
+        )
+
+
+class ConnectionPluginAmbiguousError(Exception):
+    """Raised when a connection name is registered in both plugin registries."""
+
+    def __init__(self, connection_name: str) -> None:
+        self.connection_name = connection_name
+        super().__init__(
+            f"Connection plugin {connection_name!r} is registered in both the legacy and "
+            "capability-aware registries. Remove one registration or rename the plugin."
+        )
+
+
+class ConnectionPluginContractError(Exception):
+    """Raised when a capability-aware connection plugin violates its contract."""
+
+    def __init__(self, connection_name: str, reason: str) -> None:
+        self.connection_name = connection_name
+        self.reason = reason
+        super().__init__(f"Connection plugin {connection_name!r} violates its contract: {reason}")
+
+
 class ConnectionException(Exception):
     """Superclass for all the Connection* Exceptions."""
 

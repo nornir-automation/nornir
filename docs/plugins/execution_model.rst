@@ -1,22 +1,56 @@
 Execution Model
 ===============
 
-One of the many advantages of using nornir is that it will be parallelize the execution of tasks for you. The way it works is as follows:
+Nornir delegates host concurrency to its configured runner. It includes three execution
+modes:
 
-1. You trigger the parallelization by running a task via :obj:`nornir.core.Nornir.run` with ``num_workers > 1`` (defaults to ``20``).
-2. If ``num_workers == 1`` we run the task over all hosts one after the other in a simple loop. This is useful for troubleshooting/debugging, for writing to disk/database or just for printing on screen.
-3. When parallelizing tasks nornir will use a different thread for each host.
+* ``ThreadedRunner`` is the default. :obj:`nornir.core.Nornir.run` executes synchronous
+  tasks in a thread pool, with at most ``num_workers`` hosts in flight. The default is
+  20 workers; setting it to 1 serializes host execution while retaining the thread-pool
+  runner.
+* ``SerialRunner`` executes synchronous tasks for one host at a time in the caller's
+  thread. This is useful for troubleshooting, stepping through tasks, or accessing a
+  resource that must not be used concurrently.
+* ``AsyncioRunner`` is opt-in. :obj:`nornir.core.Nornir.arun` executes native
+  ``async def`` tasks on the caller's event loop, with at most ``num_workers`` hosts in
+  flight. It does not create a thread per host. See the executed
+  :doc:`../howto/asyncio_runner` notebook for a complete example.
+
+Execution entry points are explicit. ``run()`` accepts synchronous tasks and ``arun()``
+accepts coroutine tasks. Passing a coroutine task to ``run()`` is rejected with
+``AsyncTaskOnSyncRunError`` instead of storing an un-awaited coroutine as a successful
+result. Conversely, ``arun()`` rejects synchronous tasks, and requires a runner with an
+asynchronous ``arun`` capability. Select the asyncio runner before using asynchronous
+entry points.
 
 Below you can see a simple diagram illustrating how this works:
 
 .. image:: _static/execution_model_1.png
 
-Note that you can create tasks with other tasks inside. When tasks are nested the inner tasks will run serially for that host in parallel to other hosts. This is useful as it let's you control the flow of the execution at your own will. For instance, you could compose a different workflow to the previous one as follows:
+Tasks can run other tasks. Nested tasks execute in order for that host while other hosts
+continue concurrently. A synchronous parent uses ``Task.run`` for synchronous subtasks.
+An asynchronous parent uses ``await Task.arun`` for coroutine subtasks, but may still use
+``Task.run`` for short synchronous subtasks. Synchronous subtasks run inline and block the
+event loop until they return.
 
 .. image:: _static/execution_model_2.png
 
-Why would you do this? Most of the time you will want to group as many tasks as possible. That will ensure your script runs as fast as possible. However, some tasks might require to be run after ensuring the some others are done. For instance, you could do something like:
+This lets a workflow enforce dependencies without giving up concurrency between hosts.
+For instance, it could:
 
 1. Configure everything in parallel
 2. Run some verification tests
 3. Enable services
+
+Processors receive the same lifecycle events in synchronous and asynchronous runs, but
+processor hooks are synchronous. In an asyncio run they execute on the caller's event
+loop and block all other tasks until the hook returns. Native asynchronous processor
+hooks are outside the current execution contract and are tracked in `issue #1090
+<https://github.com/nornir-automation/nornir/issues/1090>`_.
+
+Connection execution capabilities are independent of runner selection. Legacy plugins
+registered in ``ConnectionPluginRegister`` are synchronous only. Plugins registered in
+``CapabilityConnectionPluginRegister`` declare ``sync``, ``asyncio``, or both and use
+the matching host connection entry points. See
+:doc:`../howto/writing_capability_connection_plugins` for registration and lifecycle
+details.

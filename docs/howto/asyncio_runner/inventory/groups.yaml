@@ -1,0 +1,5 @@
+---
+routers:
+    platform: eos
+    data:
+        role: edge

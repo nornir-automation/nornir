@@ -1,292 +1,299 @@
 ---
-
-description: "Task list for the asyncio runner feature"
+description: "Implementation tasks for the asyncio runner and capability-aware connection plugins"
 ---
 
 # Tasks: Asyncio Runner
 
-**Input**: Design documents from `/specs/001-asyncio-runner/`
+**Updated**: 2026-09-13
+**Input**: `specs/001-asyncio-runner/`
+**Prerequisites**: [spec.md](spec.md), [plan.md](plan.md), [research.md](research.md)
+(R1–R14), [data-model.md](data-model.md), [contracts/](contracts/), [quickstart.md](quickstart.md).
 
-**Prerequisites**: plan.md, spec.md, research.md (decisions R1–R16), data-model.md, contracts/
-(protocols.py, entry-points.md, errors.md), quickstart.md
+**Tests**: Required by the specification and constitution. Write new behavior tests before
+implementation and observe the missing behavior where applicable. Broader regression tests
+may already pass when earlier phases implemented their behavior; never manufacture a failure.
+Use ordinary fully typed pytest functions driving asyncio.run, without new dependencies.
+
+**Organization**: Four user stories, all shipped together. Checkpoints validate increments;
+they are not separate releases. T001–T003 preserve completion recorded in the previous list.
+Scaffolding files were confirmed present; historical baseline results are not reasserted as
+current evidence. T004 explicitly refreshes that baseline before implementation.
+
+## Format and conventions
+
+- Tasks use checkbox, sequential ID, optional [P], required story label in story phases,
+  and exact repository-relative paths. Completed historical tasks retain checked boxes.
+- [P] marks independent file streams after stated prerequisites. It never permits two
+  concurrent writers to one file or execution before a dependency is ready.
+- Existing public signatures/types and the legacy registry remain unchanged. The only
+  permitted pre-existing test edit is the runner assertion/import in T017.
+- Tests reset/snapshot both connection registries within new local fixtures; preserve
+  existing test fixtures and module behavior. No unchecked suppression or dependency additions.
+- Commands/evidence go in `specs/001-asyncio-runner/validation.md` during implementation.
+  Do not mark a gate complete without actual results. Commit/push only when explicitly requested.
+
+## Phase 1: Setup
+
+**Goal**: Retain scaffolding and establish fresh execution evidence.
 
-**Tests**: Included. The specification mandates a test-only reference plugin (FR-018) and the
-constitution (Principle IV) requires every behavioural change to arrive with tests. Within each
-story the test tasks come first and must fail before the implementation task that makes them pass.
+- [X] T001 [P] Create `tests/plugins/runners/__init__.py` as an empty package marker mirroring the runner package (retained completed task).
+- [X] T002 [P] Create `tests/plugins/connections/__init__.py` as an empty package marker for connection fixtures and integration tests (retained completed task).
+- [X] T003 Run `make pytest` and `make mypy` from `Makefile` to record the original green baseline before core changes (historical completion retained; T004 refreshes evidence).
+- [X] T004 Verify the environment with `uv sync --locked`, then run `make pytest` and `make mypy` from `Makefile` before editing core code; create `specs/001-asyncio-runner/validation.md` with interpreter/platform, commands, outcomes, and any baseline blockers; retain dependency choices in `pyproject.toml` and `uv.lock`.
 
-**Organization**: Tasks are grouped by user story. The four stories ship together in one release
-(spec), but each phase is independently testable so implementation can stop and validate at every
-checkpoint.
+## Phase 2: Foundational prerequisites
 
-## Format: `[ID] [P?] [Story] Description`
+**Goal**: Shared contracts/errors and behavior-preserving execution bookkeeping. All user
+stories depend on the T011 checkpoint.
 
-- **[P]**: Can run in parallel (different files, no dependencies on incomplete tasks)
-- **[Story]**: User story the task belongs to (US1–US4)
-- Every task names the exact file(s) it touches
+- [X] T005 [P] Add the six mismatch errors under `SyncAsyncMismatchError`, separate `ConnectionPluginAmbiguousError(connection_name)` and `ConnectionPluginContractError(connection_name, reason)`, and `SYNC_TASKS_IN_ASYNC_RUNS_ISSUE` to `nornir/core/exceptions.py` following `specs/001-asyncio-runner/contracts/errors.md`; preserve existing exception definitions and use the temporary #1085 URL until T056.
+- [X] T006 [P] Add private coroutine detection and safe diagnostic-name helpers in `nornir/core/task.py`: support native async functions, partials and async callable instances; derive mismatch names from an explicit name, string `__name__`, or callable type name; preserve existing Task naming so unnamed callable forms still require `name=` (research R8).
+- [X] T007 [P] Add `AsyncRunnerPlugin` to `nornir/core/plugins/runners.py` with the signature in `specs/001-asyncio-runner/contracts/protocols.py`; keep `RunnerPlugin` and `RunnersPluginRegister` unchanged.
+- [X] T008 After T006, refactor `Task.start` in `nornir/core/task.py` onto private begin, exception-to-result, and finish helpers, retaining result coercion/naming/severity, user tracebacks, event order, and `except Exception` rather than `BaseException`; keep direct invocation of the original callable visible (research R8).
+- [X] T009 After T008, refactor `Task.run` in `nornir/core/task.py` onto private child construction and result-recording helpers, preserving host validation, inherited severity, parent linkage, result insertion, and `NornirSubTaskError` semantics.
+- [X] T010 [P] Refactor `Nornir.run` in `nornir/core/__init__.py` onto `_prepare_run(task, name, kwargs, on_good, on_failed)` and a shared finalizer; explicitly pass both selection flags, preserve good/failed host ordering, zero-host warning, raise_on_error resolution, failed_hosts mutation, and global completion order.
+- [X] T011 Run `make pytest`, `make mypy`, and `make ruff` from `Makefile` after T005–T010; require the entire pre-existing suite to pass unmodified at this stage and record results in `specs/001-asyncio-runner/validation.md` (FR-020).
 
-## Path Conventions
+**Checkpoint**: Synchronous execution remains compatible; shared helpers, errors, and runner
+contract are available. T010 may run alongside the sequential T006 → T008 → T009 stream.
 
-Single library project at the repository root: `nornir/` (package), `tests/` (pytest, mirrors the
-package layout), `docs/` (Sphinx + executed notebooks). Loops: `make pytest`, `make mypy`,
-`make ruff`, `make nbval`, `make docs`; the authoritative gate is `make tests`.
+## Phase 3: US1 — Run async tasks from an event loop (P1)
 
----
+**Goal**: Async tasks and subtasks on the caller's loop, with bounded concurrency and
+existing result/failure semantics.
 
-## Phase 1: Setup (Shared Infrastructure)
+**Independent test**: An in-memory inventory and simulated async I/O produce one result
+per selected host, preserve event ordering constraints, and keep a sibling heartbeat responsive.
+No connection plugin is required.
 
-**Purpose**: Package scaffolding for the new test modules; nothing user-visible yet.
+### Tests
 
-- [X] T001 [P] Create `tests/plugins/runners/__init__.py` (empty) so `tests/plugins/runners/` is a test package mirroring `nornir/plugins/runners/`
-- [X] T002 [P] Create `tests/plugins/connections/__init__.py` (empty) so `tests/plugins/connections/` is a test package for the `AsyncEcho` fixture and its test
-- [X] T003 Run `make pytest` and `make mypy` to record the green baseline before any core change (no file edits; note the pass counts in the PR description later)
+- [X] T012 [P] [US1] Create `tests/plugins/runners/test_asyncio.py` with typed tests for ordered host results, independent host failure, concurrency bound, default 20 workers, worker counts above inventory size, empty host input, TypeError for boolean/non-integer counts, ValueError for zero/negative counts, sync `run` rejection, and a basic cancellation/drain test; use barriers/counters rather than scheduling sleeps for coordination (FR-001/004, research R9).
+- [X] T013 [US1] After T012, add SC-002/003 tests to `tests/plugins/runners/test_asyncio.py`: 100 hosts with 100 ms I/O and heartbeat maximum gap at most 50 ms, and 1,000 hosts with 1,000 workers and 100 ms I/O under two seconds with unchanged live thread count; exclude inventory construction from timing, establish heartbeat readiness, and include the final active-run interval; never loosen bounds to mask failures (research R11).
+- [X] T014 [P] [US1] Create `tests/core/test_async_run.py` with an independent local recording processor and tests for aggregate shape, InitNornir configuration/with_runner selection, task/name/kwargs, named partial/async-callable tasks, all four on_good/on_failed combinations, good/failed ordering, default/configured/overridden raise_on_error, failed-host reuse/skipping, and zero-host warning; assert global/per-host partial event ordering and arguments while permitting cross-host interleaving (FR-002/003/017).
+- [X] T015 [US1] After T014, add top-level mismatch tests to `tests/core/test_async_run.py` for sync tasks on async arun, async tasks on serial and threaded run, and incompatible runner selection; assert named errors/message alternatives, safe diagnostics for unnamed callable forms, follow-up URL, and no host events; allow global task_started before AsyncioRunner.run rejects (FR-005/006, SC-004).
+- [X] T016 [P] [US1] Create `tests/core/test_async_tasks.py` with async child success/failure and nested-result/event tests, inline sync children, both child mismatch directions, no child result/events on rejection, normal failed-parent conversion when uncaught, explicit names for partial/callable forms, and user-function source/name in tracebacks (FR-008–FR-010, Constitution I).
+- [X] T017 [P] [US1] Update only the runner-registry assertion and import in `tests/core/test_registered_plugins.py` to include `"asyncio": AsyncioRunner`, the explicit FR-020/SC-001 exception; no other existing tests are modified.
 
----
+### Implementation
 
-## Phase 2: Foundational (Blocking Prerequisites)
+- [X] T018 [US1] Implement `Task.astart(host)` in `nornir/core/task.py` using the shared helpers around a direct await of the original user callable; preserve ordinary exception-to-result handling and let BaseException escape without recording cancellation results.
+- [X] T019 [US1] After T018, implement `Task.arun` and the synchronous Task.run mismatch guard in `nornir/core/task.py`; validate before child construction/execution events, reuse shared child bookkeeping, and retain inline synchronous children and explicit naming rules.
+- [X] T020 [US1] Add private structural runner narrowing and the Nornir.run coroutine-task guard to `nornir/core/__init__.py`, using the task helpers before preparation and preserving existing public annotations.
+- [X] T021 [US1] After T020, implement `Nornir.arun` in `nornir/core/__init__.py` with the exact new signature in `specs/001-asyncio-runner/contracts/entry-points.md`: task-kind check, runner check, explicit selection inputs to preparation, await runner, then existing finalization.
+- [X] T022 [US1] Implement `AsyncioRunner` in `nornir/plugins/runners/__init__.py`: positive non-boolean worker validation, per-invocation semaphore, one copied Task per host, ordered gather, and unconditional sync run mismatch; shield the initial aggregate wait, explicitly cancel unfinished children once on BaseException, shield/re-await draining through repeated caller cancellation, retrieve aggregate exceptions, and re-raise only after owned work is drained (research R1/R9). Cancellation correctness is required here, not deferred to US4.
+- [X] T023 [US1] After T022, register `asyncio = "nornir.plugins.runners:AsyncioRunner"` under the existing runner entry-point group in `pyproject.toml`; refresh package installation with `uv sync --locked`, updating `uv.lock` with uv only if package metadata requires it while retaining dependency choices; verify selection through InitNornir configuration and with_runner using `tests/core/test_async_run.py`.
+- [X] T024 [US1] Run `make pytest ARGS="tests/plugins/runners tests/core/test_async_run.py tests/core/test_async_tasks.py tests/core/test_registered_plugins.py"`, `make mypy`, and `make ruff` from `Makefile`; resolve failures, manually verify a debugger enters the original async task, and record evidence in `specs/001-asyncio-runner/validation.md`.
 
-**Purpose**: Shared building blocks every story relies on: the named errors, the coroutine-function
-detector, the sync/async-neutral refactors of `Task` and `Nornir.run`, and the async runner
-contract. Behaviour of the synchronous path must be identical after this phase.
+**Checkpoint**: US1 is independently demonstrable. Async dispatch includes cancellation
+ownership; US4 will exercise more demanding cleanup and cancellation cases.
 
-**⚠️ CRITICAL**: No user story work can begin until this phase is complete
+## Phase 4: US2 — Register capability-aware connection plugins (P1)
 
-- [ ] T004 Add `SyncAsyncMismatchError(Exception)` and the six subclasses `SyncTaskOnAsyncRunError(task_name)`, `AsyncTaskOnSyncRunError(task_name)`, `RunnerNotSyncError(runner_name)`, `RunnerNotAsyncError(runner_name)`, `ConnectionPluginNotAsyncError(connection_name)`, `ConnectionPluginNotSyncError(connection_name)` plus the module constant `SYNC_TASKS_IN_ASYNC_RUNS_ISSUE = "https://github.com/nornir-automation/nornir/issues/1085"` to `nornir/core/exceptions.py`; each stores its argument as an attribute and its `__str__` contains the pointers listed in `specs/001-asyncio-runner/contracts/errors.md` (research R4)
-- [ ] T005 [P] Add the private helper `_is_coroutine_function(obj: object) -> bool` to `nornir/core/task.py` using `inspect.iscoroutinefunction`, falling back to `type(obj).__call__` for callable instances (research R3)
-- [ ] T006 [P] Add the optional sibling Protocol `AsyncRunnerPlugin` (`__init__(*args, **kwargs)`, `async def arun(self, task: Task, hosts: list[Host]) -> AggregatedResult`) to `nornir/core/plugins/runners.py` exactly as in `specs/001-asyncio-runner/contracts/protocols.py`; leave `RunnerPlugin` and `RunnersPluginRegister` untouched (research R2)
-- [ ] T007 Refactor `Task.start` in `nornir/core/task.py` onto three private helpers with no behaviour change: `_begin(host)` (set `self.host`, emit `task_instance_started`/`subtask_instance_started`, debug log), `_result_from_exception(host, exc)` (the two existing `except` branches returning a failed `Result`), `_finish(host, r)` (coerce non-`Result`, set name and severity, `results.insert(0, r)`, emit `*_instance_completed`, return `self.results`); keep `except Exception` (not `BaseException`) (research R5)
-- [ ] T008 Refactor `Task.run` in `nornir/core/task.py` onto `_new_subtask(task, kwargs) -> Task` (the host-set check, `severity_level` inheritance, `Task(..., parent_task=self)`) and `_record_subtask(run_task, r) -> MultiResult` (append `r[0]` or `r`, raise `NornirSubTaskError` if failed), with `run` calling `start` between them; no behaviour change (research R5)
-- [ ] T009 Refactor `Nornir.run` in `nornir/core/__init__.py` onto `_prepare_run(task, name, kwargs) -> tuple[Task, list[Host]]` (build `Task`, emit `task_started`, select hosts by `on_good`/`on_failed`, the existing info/warning logs) and `_finish_run(run_task, result, raise_on_error) -> AggregatedResult` (resolve `raise_on_error`, `result.raise_on_error()` or update `data.failed_hosts`, emit `task_completed`); `run` = `_prepare_run` → `self.runner.run` → `_finish_run` (research R7)
-- [ ] T010 Run `make pytest`, `make mypy`, `make ruff` and confirm the pre-existing suite passes unmodified after T004–T009 (FR-020 check on the refactors; no file edits)
+**Goal**: New generic contract and isolated registry for sync, asyncio, or both; typed
+Host storage, capability-based access, legacy coexistence, and portable AsyncEcho.
 
-**Checkpoint**: Foundation ready. Synchronous behaviour unchanged; errors and contract exist.
+**Independent test**: All capability combinations work through their declared paths;
+AsyncEcho sends/receives real bytes through a local server and uses Host-level cleanup.
+Nornir async cleanup is not used until Phase 5.
 
----
+### Tests
 
-## Phase 3: User Story 1 - Run async tasks from inside an event loop (Priority: P1) 🎯 MVP
+- [X] T025 [P] [US2] Create `tests/core/test_capability_plugins.py` with fully typed structural author fixtures for the base/sync/async/dual protocols, including an async-only class with no sync stubs; test single programmatic registration, cold-start registry isolation, same-registry idempotency, automatic discovery for all capability combinations, and InitNornir discovery alongside legacy plugins. Local fixtures must snapshot/restore both registries; prove sync/dual objects fit unchanged public sync types (FR-011/021, SC-005/007).
+- [X] T026 [P] [US2] Create `tests/core/test_async_connections.py` with independent local typed legacy/sync/async/dual fixtures and Host lifecycle tests: parameter inheritance/explicit overrides/default_to_host_attributes, single opening/cache reuse, both dual-mode reuse directions, mode checks before cached and uncached returns, legacy extras remaining sync-only, both stores' cleanup, and public cache type/visibility expectations (FR-012–FR-014).
+- [X] T027 [US2] After T025, extend `tests/core/test_capability_plugins.py` with get/open tests for cross-registry duplicate names in either discovery order, same-class duplicates, and duplicate introduction after caching; add malformed reporting method/results, empty/unknown capabilities, missing opening/closing operations for any declared mode, and undeclared extra methods; assert contract/ambiguity errors before I/O, no connection-property probing, and cleanup remains possible despite ambiguity (FR-022/023).
+- [X] T028 [US2] After T026, extend `tests/core/test_async_connections.py` with pending-open rejection, failed-open reservation cleanup, cached origin after deregistration/replacement, identity-matched metadata after public-cache replacement, conflicting public/private entries, filtered Host sharing, empty-Host copy/pickle, and unchanged inventory dict/schema output; include retained async-close failures/retry, identity-safe removal, sync metadata removal on close failure, and fail-fast sync versus attempt-all async bulk cleanup.
+- [X] T029 [P] [US2] Create `tests/plugins/connections/test_async_echo.py` with a typed loopback/ephemeral-port asyncio server fixture and a failing end-to-end test that registers AsyncEcho in the capability registry, runs per-host send/receive via Nornir.arun, verifies cached reuse, and closes through Host.aclose_connections; assert repeated plugin aclose is safe and server/handler resources are drained. Do not call the later Nornir.aclose_connections API (FR-018).
 
-**Goal**: Select `runner: asyncio`, write an `async def` task, `await nr.arun(task)` from a running
-loop, and get the same `AggregatedResult`, processor events and `failed_hosts` bookkeeping as a
-threaded run; `await task.arun(subtask)` inside the task; every wrong sync/async task or runner
-combination raises its named error before any host starts.
+### Implementation
 
-**Independent Test**: With the test inventory and a task that awaits a short sleep, `nr.arun`
-completes with one entry per host, at most `num_workers` hosts are in flight, a heartbeat coroutine
-is never starved, and the seven task/runner error surfaces raise the named classes. No connection
-plugin involved.
+- [X] T030 [US2] Add ConnectionCapability, CapabilityConnectionPlugin, SyncCapabilityConnectionPlugin, AsyncCapabilityConnectionPlugin, and DualCapabilityConnectionPlugin to `nornir/core/plugins/connections.py` exactly as specified in `specs/001-asyncio-runner/contracts/protocols.py`; document no-argument/no-I/O construction, stable instance reporting, required operations per mode, native async operations, and dual transport reuse; leave the legacy protocol intact.
+- [X] T031 [US2] After T030, add `CapabilityConnectionPluginRegister: PluginRegister[type[CapabilityConnectionPlugin]]` and `CAPABILITY_CONNECTIONS_PLUGIN_PATH = "nornir.plugins.capability_connections"` to `nornir/core/plugins/connections.py`; explicitly allocate this registry's own available dictionary without changing `nornir/core/plugins/register.py` or legacy registration behavior.
+- [X] T032 [US2] After T031, add capability-registry auto-discovery beside legacy discovery in `nornir/init_nornir.py`, before inventory loading; keep direct Nornir construction behavior unchanged and retain the legacy discovery group.
+- [X] T033 [US2] After T031, implement private capability validation, full sync/async/dual TypeGuard helpers, and cross-registry name resolution in `nornir/core/inventory.py`; honor declarations rather than incidental methods, validate all declared pairs before mode selection, avoid reading connection before open, reject current duplicates even on get cache hits, and preserve registry-independent cleanup and cached origin (contracts/errors.md precedence).
+- [X] T034 [US2] After T033, add `_async_connections`, `_capability_connections`, and `_opening` private Host slots and immutable `_CapabilityConnectionState` in `nornir/core/inventory.py`; preserve public `connections: dict[str, ConnectionPlugin]`, store original plugin identity/declaration, classify untracked public entries as legacy, and reject cross-store conflicts; preserve inventory serialization and shared Host ownership.
+- [X] T035 [US2] After T034, implement Host.aopen_connection and capability-aware synchronous opening in `nornir/core/inventory.py`; reuse parameter resolution, check both stores/reservations, validate before opening, reserve async names before suspension, publish metadata/cache only on success, and clear reservations in finally. Return the async facet from aopen and retain ConnectionPlugin return from sync open; place sync/dual instances in public storage and async-only instances privately.
+- [X] T036 [US2] After T035, implement Host.aget_connection and capability-aware get_connection in `nornir/core/inventory.py`; check current registry ambiguity, pending state, and identity-matched cached capabilities before returning transport; reuse dual-mode connections without reopening and preserve entries on mismatch, deregistration, or class replacement.
+- [X] T037 [US2] After T036, implement Host.aclose_connection and extend synchronous close_connection in `nornir/core/inventory.py`; use cached ownership independent of registries, prefer aclose for dual/async, retain async entries on failure/cancellation, identity-check removal after awaits, and preserve sync pop-before-close with matching metadata removal; reject sync mode mismatch before removing anything.
+- [X] T038 [US2] After T037, implement Host.aclose_connections and capability-aware close_connections in `nornir/core/inventory.py`; snapshot both stores, keep sync bulk fail-fast including async-only mismatch, attempt every async bulk entry after ordinary errors then raise the first, and propagate cancellation immediately; document that callers serialize use/cleanup while a name closes.
+- [X] T039 [US2] Implement the fully typed standard-library-only AsyncEcho fixture in `tests/plugins/connections/async_echo.py`: report frozenset({"asyncio"}), expose an async send(bytes) transport over StreamReader/StreamWriter, implement native aopen/aclose with the exact parameter contract, release partial resources on failed/cancelled open, and make close idempotent; no sync stubs or test-framework imports in the literalincluded module.
+- [X] T040 [US2] Run `make pytest ARGS="tests/core/test_capability_plugins.py tests/core/test_async_connections.py tests/plugins/connections tests/core/test_connections.py tests/core/test_pickle.py"`, `make mypy`, and `make ruff` from `Makefile`; verify the new Host copy/pickle tests separately cover what the pre-existing MultiResult tests do not, and record results in `specs/001-asyncio-runner/validation.md`.
 
-### Tests for User Story 1
+**Checkpoint**: Capability-aware registry and Host lifecycle work for every declared mode,
+legacy plugins remain compatible, and AsyncEcho is validated without the Phase 5 API.
 
-> Write these first; they must fail (ImportError/AttributeError or wrong behaviour) before T017–T022.
+## Phase 5: US3 — Clean up in an async context (P2)
 
-- [ ] T011 [P] [US1] Create `tests/plugins/runners/test_asyncio.py` with `asyncio.run()`-driven tests (research R10) for `AsyncioRunner`: results keyed by host name in host order; at most `num_workers` hosts in flight (count concurrent entries with a shared counter in the task); a raising task records a failed `Result` and does not stop other hosts; `num_workers` larger than the host count runs all hosts concurrently; zero hosts returns an empty `AggregatedResult`; `AsyncioRunner().run(...)` raises `RunnerNotSyncError`; `AsyncioRunner().num_workers == 20`
-- [ ] T012 [P] [US1] Add to `tests/plugins/runners/test_asyncio.py` the two performance tests from research R11: `test_thousand_hosts_under_two_seconds` (1,000 in-memory `Host` objects, `asyncio.sleep(0.1)` task, `num_workers=1000`, wall clock < 2 s, `threading.active_count()` unchanged; SC-003) and `test_sibling_coroutine_not_starved` (100 hosts, heartbeat coroutine sleeping 10 ms recording max gap with `time.monotonic()`, assert max gap < 0.05 s; SC-002)
-- [ ] T013 [P] [US1] Create `tests/core/test_async_run.py` with a recording processor and tests for `Nornir.arun` on `nornir.with_runner(AsyncioRunner())`: returns `AggregatedResult` with one `MultiResult` per host; processor event sequence and arguments equal to a `SerialRunner` run of the equivalent `def` task (`task_started`, per-host started/completed, `task_completed`); a failing host is added to `nr.data.failed_hosts` and skipped by the next `arun` with default `on_good`/`on_failed`; `raise_on_error=True` raises `NornirExecutionError`; `arun` accepts `name=` and task kwargs like `run`
-- [ ] T014 [P] [US1] Add to `tests/core/test_async_run.py` the error-matrix tests, each asserting the recording processor saw no `task_instance_started`: `nr.arun(def_task)` → `SyncTaskOnAsyncRunError` whose message contains `SYNC_TASKS_IN_ASYNC_RUNS_ISSUE`; `nr.arun(async_task)` on the conftest `SerialRunner` → `RunnerNotAsyncError`; `nr.run(async_task)` on `SerialRunner` → `AsyncTaskOnSyncRunError` (not a coroutine stored as success); `nr.run(def_task)` on `AsyncioRunner` → `RunnerNotSyncError`
-- [ ] T015 [P] [US1] Create `tests/core/test_async_tasks.py` with tests for `Task.arun`/`astart` on `AsyncioRunner`: `await task.arun(async_subtask)` appends to the parent's results and emits `subtask_instance_started/completed`; a raising async subtask records a failed `Result`, raises `NornirSubTaskError` in the parent and marks the host failed; `task.run(def_subtask)` inside an `async def` task runs inline and records normally (FR-009); `task.run(async_subtask)` inside an async task → `AsyncTaskOnSyncRunError`; `task.arun(def_subtask)` → `SyncTaskOnAsyncRunError`; `task.run(async_subtask)` inside a `def` task on `SerialRunner` → `AsyncTaskOnSyncRunError`
-- [ ] T016 [US1] Update the single pre-existing assertion in `tests/core/test_registered_plugins.py::test_registered_runners` to expect `{"threaded": ThreadedRunner, "serial": SerialRunner, "asyncio": AsyncioRunner}` (import `AsyncioRunner` from `nornir.plugins.runners`); this is the SC-001 deviation recorded in plan.md
+**Goal**: Nornir-level cleanup is visible to processors and honors host selection, with
+async context exit closing good and failed hosts across both connection stores.
 
-### Implementation for User Story 1
+**Independent test**: Open mixed legacy/new-contract connections, mark a host failed,
+exit async with, and assert all transports were closed with matching processor events.
 
-- [ ] T017 [US1] Add `async def astart(self, host: Host) -> MultiResult` to `Task` in `nornir/core/task.py`: `_begin(host)`; `try: r = await self.task(self, **self.params)`; `except Exception as e: r = self._result_from_exception(host, e)`; `return self._finish(host, r)`; `BaseException` (incl. `asyncio.CancelledError`) propagates unrecorded (contracts/entry-points.md)
-- [ ] T018 [US1] Add `async def arun(self, task: Callable[..., Coroutine[Any, Any, Any]], **kwargs: Any) -> MultiResult` to `Task` in `nornir/core/task.py`: raise `SyncTaskOnAsyncRunError(getattr(task, "__name__", repr(task)))` if not `_is_coroutine_function(task)`; `run_task = self._new_subtask(task, kwargs)`; `r = await run_task.astart(self.host)`; `return self._record_subtask(run_task, r)`; and make `Task.run` raise `AsyncTaskOnSyncRunError` first when `_is_coroutine_function(task)` (FR-010)
-- [ ] T019 [US1] In `nornir/core/__init__.py` add the private `TypeGuard` helper `_is_async_runner(runner: object) -> TypeGuard[AsyncRunnerPlugin]` (checks `inspect.iscoroutinefunction(getattr(runner, "arun", None))`) and make `Nornir.run` raise `AsyncTaskOnSyncRunError` before `_prepare_run` when `_is_coroutine_function(task)` (FR-006)
-- [ ] T020 [US1] Add `async def arun(self, task, raise_on_error=None, on_good=True, on_failed=False, name=None, **kwargs) -> AggregatedResult` to `Nornir` in `nornir/core/__init__.py` with the signature from `specs/001-asyncio-runner/contracts/entry-points.md`: raise `SyncTaskOnAsyncRunError` if the task is not a coroutine function, raise `RunnerNotAsyncError(type(self.runner).__name__)` if not `_is_async_runner(self.runner)`, then `_prepare_run` → `await self.runner.arun(run_task, run_on)` → `_finish_run`; docstring mirrors `run`
-- [ ] T021 [US1] Add `class AsyncioRunner` to `nornir/plugins/runners/__init__.py`: `__init__(self, num_workers: int = 20)`; `run()` raises `RunnerNotSyncError("AsyncioRunner")`; `async def arun(task, hosts)` creates `asyncio.Semaphore(self.num_workers)` per call, schedules `asyncio.ensure_future(_run_host(host))` per host where `_run_host` does `async with semaphore: return await task.copy().astart(host)`, `await asyncio.gather(*futures)`, and builds `AggregatedResult(task.name)` keyed by `host.name` in host order; module and class docstrings in the style of `ThreadedRunner` (research R6; cancellation drain is T034)
-- [ ] T022 [US1] Register the runner in `pyproject.toml` under `[project.entry-points."nornir.plugins.runners"]` as `asyncio = "nornir.plugins.runners:AsyncioRunner"` and run `uv sync --locked` so the entry point is visible to `RunnersPluginRegister.auto_register()` (research R1)
-- [ ] T023 [US1] Run `make pytest ARGS="tests/plugins/runners tests/core/test_async_run.py tests/core/test_async_tasks.py tests/core/test_registered_plugins.py"`, then `make mypy` and `make ruff`; fix until green with no new `# type: ignore` / `# noqa` (Principle III)
+### Tests
 
-**Checkpoint**: US1 is fully functional: async tasks run on the caller's loop with identical
-result/processor/failed-host semantics, and every task/runner mismatch raises its named error.
+- [X] T041 [US3] Create Nornir cleanup/context tests in `tests/core/test_async_run.py` using local or completed Phase 4 fixtures: mixed legacy/sync/async/dual cleanup, good and failed hosts on async exit, all four selection combinations for explicit cleanup, processor visibility, sync cleanup/context mismatch on AsyncioRunner, and async cleanup/context mismatch on SerialRunner (FR-007/015).
+- [X] T042 [US3] After T041, extend `tests/core/test_async_run.py` with failed async cleanup retaining connection state, failed-host bookkeeping under default raise_on_error, retry with on_failed=True, and propagation when raise_on_error is enabled; assert empty public connections alone is not treated as proof of complete async cleanup.
 
----
+### Implementation
 
-## Phase 4: User Story 2 - Plug in an async connection plugin (Priority: P1)
+- [X] T043 [US3] Implement `Nornir.aclose_connections(on_good=True, on_failed=False)` in `nornir/core/__init__.py` as a typed async Host-cleanup task dispatched through arun; preserve processor visibility, selection flags, result/error bookkeeping, and the None return contract.
+- [X] T044 [US3] After T043, implement fully typed async context entry/exit in `nornir/core/__init__.py`; return self on entry and clean with both host-selection flags true on exit; document retrying failed-host cleanup with on_failed=True or direct Host cleanup.
+- [X] T045 [US3] Run `make pytest ARGS="tests/core/test_async_run.py tests/core/test_async_connections.py tests/plugins/connections"`, `make mypy`, and `make ruff` from `Makefile`; record US3 evidence in `specs/001-asyncio-runner/validation.md`.
 
-**Goal**: An optional `AsyncConnectionPlugin` contract (`aopen`, `aclose`, `connection`) registered
-through the existing entry-point group, with `Host.aget_connection` / `aopen_connection` /
-`aclose_connection` / `aclose_connections` sharing the per-host cache keyed by name; sync plugins
-untouched; mismatches raise the two connection errors.
+## Phase 6: US4 — Cancel a run in progress (P3)
 
-**Independent Test**: The standard-library-only `AsyncEcho` fixture talking to a local echo server:
-an async task obtains the connection, sends a payload, receives it back, a second call reuses the
-cached connection, and `aclose_connections` empties the host's table. Runs on Linux, macOS, Windows.
+**Goal**: Prove the cancellation ownership introduced in US1 also holds with awaited
+resource cleanup, queued hosts, repeated cancellation, and real connection opening.
 
-### Tests for User Story 2
+**Independent test**: Cancel after a barrier confirms twenty active hosts and additional
+waiters. Assert CancelledError, completed host cleanup, unchanged failed_hosts, no global
+completion, and no runner-owned work remaining.
 
-- [ ] T024 [P] [US2] Create `tests/core/test_async_connections.py` with three dummy plugins (sync-only: a copy of `DummyConnectionPlugin` from `tests/core/test_connections.py`; async-only: `aopen`/`aclose`/`connection` only, recording an `aopen_calls` counter; both: the sync dummy plus `aopen`/`aclose` — SC-005) registered in `setup_class`/`teardown_method` like `tests/core/test_connections.py`, and tests driven by `nornir.with_runner(AsyncioRunner())` + `asyncio.run()`: `aget_connection` awaits `aopen` once with the host's resolved parameters and a second call returns the cached connection without reopening (US2-1); `aget_connection` on sync-only → `ConnectionPluginNotAsyncError` (US2-2); `get_connection` from a `def` task on async-only → `ConnectionPluginNotSyncError` (US2-3); a connection opened through `get_connection` is returned by `aget_connection` for the same name with `aopen_calls == 0` (US2-4); two concurrent `aget_connection` calls for one name via `asyncio.gather` make exactly one raise `ConnectionAlreadyOpen` and leave one connection; `aopen` raising leaves the name absent from `connections`; `aclose_connections` awaits `aclose` on async plugins and calls `close` on sync ones (mixed host; FR-014); sync `close_connection` on an async-only connection → `ConnectionPluginNotSyncError`
-- [ ] T025 [P] [US2] Create the fixture plugin `tests/plugins/connections/async_echo.py` per research R12: fully typed, standard library only, module docstring explaining it is a protocol reference not a transport; `EchoConnection` (`reader`, `writer`, `async def send(payload: bytes) -> bytes` doing write/drain/`readexactly(len(payload))`); `AsyncEcho` with `async def aopen(hostname, username, password, port, platform, extras=None, configuration=None)` calling `asyncio.open_connection(hostname, port)`, an idempotent `async def aclose()` (close writer, `await wait_closed()`, set `_connection = None`, no-op when already closed), and the `connection` property; no test imports (the docs `literalinclude` this file)
-- [ ] T026 [P] [US2] Create `tests/plugins/connections/test_async_echo.py`: inside each test's `asyncio.run()` scope start `asyncio.start_server(echo_handler, "127.0.0.1", 0)`, read the port from `server.sockets[0].getsockname()[1]`, register `AsyncEcho` as `"async_echo"` in `ConnectionPluginRegister` (deregister in teardown), point the test hosts at that port via `ConnectionOptions`, and assert through `nr.arun` with `AsyncioRunner(num_workers=2)`: every host sends and receives its own payload; a second `aget_connection` in the same task reuses the connection; after `await nr.aclose_connections()` every host's `connections` is empty; a second `aclose` on the plugin is a no-op (US2 independent test, FR-018, Principle IV)
+### Tests
 
-### Implementation for User Story 2
+- [X] T046 [P] [US4] Extend `tests/plugins/runners/test_asyncio.py` with deterministic cancellation tests: twenty active hosts plus semaphore waiters, a prompt child beside an awaited-finally child, repeated caller cancellation during draining, and aggregate exception retrieval; assert cleanup completes, cancellation propagates, failed_hosts is unchanged, no global completion occurs, and no owned task is pending; do not require rollback of previously observed events (FR-016).
+- [X] T047 [P] [US4] Extend `tests/core/test_async_connections.py` with cancellation during aopen and aclose: partial resources released by the plugin, opening reservation cleared without publishing a cache entry, failed/cancelled async close retained for retry, successful retry removing matching state, and no stale metadata applied after replacement.
+- [X] T048 [P] [US4] Extend `tests/plugins/connections/test_async_echo.py` with cancellation/error integration scenarios exercising partial transport opening and handler cleanup; assert sockets/writers and server tasks are closed or drained after completion on all supported platforms, with no external service dependency.
 
-- [ ] T027 [US2] Add the optional sibling Protocol `AsyncConnectionPlugin` (`aopen` with the same parameters and order as `open`, `aclose`, `connection` property) to `nornir/core/plugins/connections.py` exactly as in `specs/001-asyncio-runner/contracts/protocols.py`, with a docstring stating the two author rules; leave `ConnectionPlugin` and `ConnectionPluginRegister` unchanged (research R8)
-- [ ] T028 [US2] In `nornir/core/inventory.py` add the private `TypeGuard` helpers `_has_async_members(plugin) -> TypeGuard[AsyncConnectionPlugin]` (coroutine-function `aopen`) and `_has_sync_members(plugin) -> TypeGuard[ConnectionPlugin]` (callable `open`), add `"_opening"` to `Host.__slots__` and initialise `self._opening: set[str] = set()` in `Host.__init__` (research R9)
-- [ ] T029 [US2] Add `async def aopen_connection(...) -> AsyncConnectionPlugin` to `Host` in `nornir/core/inventory.py` with the same parameters and defaulting logic as `open_connection`: raise `ConnectionAlreadyOpen(conn_name)` if the name is in `connections` or `_opening`; instantiate the registered plugin; raise `ConnectionPluginNotAsyncError(conn_name)` unless `_has_async_members`; add to `_opening`; `try: await conn_obj.aopen(...)` `finally: self._opening.discard(conn_name)`; store in `connections` and return it
-- [ ] T030 [US2] Add `async def aget_connection(self, connection: str, configuration: Config) -> Any` to `Host` in `nornir/core/inventory.py`: raise `ConnectionAlreadyOpen(connection)` if the name is in `_opening`; if absent from `connections`, resolve parameters with `get_connection_parameters` and `await self.aopen_connection(...)` exactly as `get_connection` does; return `self.connections[connection].connection`
-- [ ] T031 [US2] Add `async def aclose_connection(self, connection: str) -> None` (raise `ConnectionNotOpen` if absent; pop; `await aclose()` if `_has_async_members` else `close()`) and `async def aclose_connections(self) -> None` (snapshot keys, await `aclose_connection` for each) to `Host` in `nornir/core/inventory.py` (FR-014)
-- [ ] T032 [US2] Add the sync-side guards in `nornir/core/inventory.py`: `open_connection` raises `ConnectionPluginNotSyncError(conn_name)` after instantiation when not `_has_sync_members(conn_obj)`; `close_connection` raises `ConnectionPluginNotSyncError(conn_name)` when the stored plugin has no callable `close` (pop only after the check so the connection is not lost) (FR-013)
-- [ ] T033 [US2] Run `make pytest ARGS="tests/core/test_async_connections.py tests/plugins/connections tests/core/test_connections.py tests/core/test_pickle.py"` (pickle covers the new slot), then `make mypy` and `make ruff`; fix until green
+### Integration and validation
 
-**Checkpoint**: US1 and US2 work independently; the full async connection path is exercised by a
-real socket on every platform in CI.
+- [X] T049 [US4] Verify and, if the expanded tests expose gaps, correct cancellation/resource ownership in `nornir/plugins/runners/__init__.py`, `nornir/core/inventory.py`, and `tests/plugins/connections/async_echo.py` against `specs/001-asyncio-runner/contracts/entry-points.md`; preserve single child-cancellation ownership, shielded draining, exception retrieval, and cache/resource failure boundaries. Do not weaken tests or add workarounds that hide unfinished tasks.
+- [X] T050 [US4] Run `make pytest ARGS="tests/plugins/runners tests/core/test_async_connections.py tests/plugins/connections"`, `make mypy`, and `make ruff` from `Makefile`; record cancellation evidence in `specs/001-asyncio-runner/validation.md`.
 
----
+## Phase 7: Documentation and cross-cutting gates
 
-## Phase 5: User Story 3 - Clean up connections in an async context (Priority: P2)
+- [X] T051 [P] Create `docs/howto/asyncio_runner/config.yaml` and `docs/howto/asyncio_runner/inventory/hosts.yaml`, `groups.yaml`, and `defaults.yaml` with a small inventory and asyncio runner selection; inventory paths must resolve from the notebook working directory `docs/howto/`.
+- [X] T052 After T051, create and execute `docs/howto/asyncio_runner.ipynb` demonstrating runner selection, native async tasks/subtasks, arun, async with, genuine printed named mismatch errors, and explicit names for callable forms without __name__; explain inline synchronous subtasks and processor-hook blocking without fabricated timing/output. Store exactly the executed output (FR-019, SC-006).
+- [X] T053 [P] Create `docs/howto/writing_capability_connection_plugins.rst` documenting the base and operation facets, stable no-I/O capability method, all three declarations, programmatic/discovered registration via `nornir.plugins.capability_connections`, legacy coexistence, duplicate-name policy, typed/public cache visibility, cross-mode reuse, cleanup retry, serialized use while closing, native async/idempotent-close/partial-open-cleanup rules; literalinclude `../../tests/plugins/connections/async_echo.py` as the runnable reference.
+- [X] T054 [P] Update `docs/plugins/index.rst`, `docs/plugins/execution_model.rst`, and `docs/configuration/parameters.rst` to link the new guide/notebook, explain both registries and execution-mode capabilities, document synchronous processor blocking with #1090, and list asyncio runner options while preserving the threaded default.
+- [X] T055 [P] Add an unreleased minor-release entry to `CHANGELOG.rst` citing #1085 and describing asyncio dispatch, capability-aware contract/registry, async cleanup, legacy compatibility, and named rejection of coroutine tasks on synchronous task entry points; do not invent a PR number.
+- [ ] T056 Open the dedicated synchronous-tasks-in-async-runs follow-up issue described in `specs/001-asyncio-runner/spec.md`, replace the temporary URL in `nornir/core/exceptions.py`, and update any hard-coded expectation in `tests/core/test_async_run.py`; record the actual URL in `specs/001-asyncio-runner/validation.md` (merge prerequisite).
+- [X] T057 Run `make nbval` and `make docs` from `Makefile` after documentation changes; inspect and retain legitimate generated changes under `docs/api/nornir/`, fix prose/include/link issues at their source, and re-execute changed notebooks rather than editing outputs by hand; record evidence in `specs/001-asyncio-runner/validation.md`.
+- [X] T058 Build the distribution with `uv build` using `pyproject.toml`, run the existing wheel importability validation in `tests/wheel_importability.py`, and inspect wheel contents/entry points to verify nornir imports, asyncio registration, and exclusion of `tests/plugins/connections/async_echo.py`; record evidence in `specs/001-asyncio-runner/validation.md` and preserve dependency choices in `uv.lock`.
+- [X] T059 Run the authoritative `make tests` from `Makefile` after all implementation/documentation changes, with all five gates passing; review the diff to confirm no legacy public signature/type changed and only T017 modified pre-existing tests; record actual outcomes in `specs/001-asyncio-runner/validation.md`.
+- [ ] T060 Verify the project's CI results for the full supported Python 3.10–3.14 and Linux/macOS/Windows matrix, including capability discovery, AsyncEcho, performance, and cancellation paths defined in `specs/001-asyncio-runner/quickstart.md`; record check URLs/platform results in `specs/001-asyncio-runner/validation.md`, keeping this gate pending if remote matrix evidence is unavailable rather than extrapolating from local results.
+- [ ] T061 Walk through `specs/001-asyncio-runner/quickstart.md` and the coverage table below; record completion/blockers in `specs/001-asyncio-runner/validation.md`, confirm the follow-up issue and in-tree AsyncioRunner approval are ready to cite in the eventual PR, and re-run speckit-analyze if implementation required changes to the spec/plan/contracts.
 
-**Goal**: `async with nr:` and `await nr.aclose_connections()` close every connection, sync or
-async, on good and failed hosts, as a task the processors observe; the synchronous `with nr:` and
-`nr.close_connections()` on the `asyncio` runner raise `RunnerNotSyncError`.
+## Dependencies and execution order
 
-**Independent Test**: Open one sync and one async connection on a host inside a run, mark a second
-host failed, exit the `async with` block; every host's connection table is empty and a recording
-processor saw the cleanup task's `task_started`.
+### Phase graph
 
-### Tests for User Story 3
-
-- [ ] T034 [P] [US3] Add to `tests/core/test_async_run.py` (reusing the dummies from `tests/core/test_async_connections.py` via import or local copies) tests for: `async with nr:` closes connections of good and failed hosts alike (US3-1); a host holding one sync and one async connection has both closed by `await nr.aclose_connections()` with `aclose` awaited and `close` called (US3-2); the recording processor sees `task_started` for the cleanup task and `on_good`/`on_failed` are honoured (US3-3); on `AsyncioRunner`, `nr.close_connections()` and `with nr:` exit raise `RunnerNotSyncError` (US3-4, FR-007); on `SerialRunner`, `await nr.aclose_connections()` and `async with nr:` exit raise `RunnerNotAsyncError`
-
-### Implementation for User Story 3
-
-- [ ] T035 [US3] Add `async def aclose_connections(self, on_good: bool = True, on_failed: bool = False) -> None` to `Nornir` in `nornir/core/__init__.py`, defining an inner `async def aclose_connections_task(task: Task) -> None: await task.host.aclose_connections()` and running it through `await self.arun(task=aclose_connections_task, on_good=on_good, on_failed=on_failed)`; docstring mirrors `close_connections` (FR-015)
-- [ ] T036 [US3] Add `async def __aenter__(self) -> Nornir` (return `self`) and `async def __aexit__(self, exc_type, exc_val, exc_tb) -> None` (await `self.aclose_connections(on_good=True, on_failed=True)`) to `Nornir` in `nornir/core/__init__.py`, typed like the existing `__exit__`
-- [ ] T037 [US3] Run `make pytest ARGS="tests/core/test_async_run.py"`, `make mypy`, `make ruff`; fix until green
-
-**Checkpoint**: Async applications can open, run and clean up without leaking device sessions.
-
----
-
-## Phase 6: User Story 4 - Cancel a run in progress (Priority: P3)
-
-**Goal**: Cancelling the awaiting `arun` cancels every in-flight host, propagates to the caller, and
-records nothing: no result, no `failed_hosts` change, no `task_completed`, no host coroutine left
-pending.
-
-**Independent Test**: Start a run whose task awaits a long sleep, cancel the awaiting task after
-the first host has started, and assert `CancelledError` at the caller, `asyncio.all_tasks()` free of
-host coroutines, `failed_hosts` unchanged, and no `task_completed` recorded.
-
-### Tests for User Story 4
-
-- [ ] T038 [P] [US4] Add `test_cancel_propagates` and `test_cancel_records_nothing` to `tests/plugins/runners/test_asyncio.py`: wrap `nr.arun(long_sleep_task)` in `asyncio.ensure_future`, wait on an `asyncio.Event` set by the first host, call `.cancel()`, assert `pytest.raises(asyncio.CancelledError)` on awaiting it, then assert `asyncio.all_tasks()` contains only the current task, `nr.data.failed_hosts` is unchanged, the recording processor got `task_started` but no `task_completed`, and twenty hosts (`num_workers=20`) were all in flight when cancelled (US4-1, US4-2, FR-016)
-
-### Implementation for User Story 4
-
-- [ ] T039 [US4] Add the cancel-and-drain block to `AsyncioRunner.arun` in `nornir/plugins/runners/__init__.py`: wrap the `await asyncio.gather(*futures)` in `try/except BaseException:` that cancels every future, awaits `asyncio.gather(*futures, return_exceptions=True)`, and re-raises; document in the `arun` docstring that cancellation propagates and records nothing (research R6, contracts/protocols.py)
-- [ ] T040 [US4] Run `make pytest ARGS="tests/plugins/runners"`, `make mypy`, `make ruff`; fix until green
-
-**Checkpoint**: All four stories are independently functional.
-
----
-
-## Phase 7: Polish & Cross-Cutting Concerns
-
-**Purpose**: Documentation (Principle V), changelog, the merge precondition, and the full gate.
-
-- [ ] T041 [P] Create `docs/howto/asyncio_runner/config.yaml` (`inventory: plugin: SimpleInventory` with `host_file`/`group_file`/`defaults_file` under `asyncio_runner/inventory/`, and `runner: plugin: asyncio` with `options: num_workers: 100`) and `docs/howto/asyncio_runner/inventory/{hosts,groups,defaults}.yaml` with three hosts, modelled on `docs/howto/handling_connections/`
-- [ ] T042 Create and execute `docs/howto/asyncio_runner.ipynb` (kernel cwd `docs/howto/`) covering, as real output: `InitNornir(config_file="asyncio_runner/config.yaml")` and `nr.runner`; an `async def` task awaiting `asyncio.sleep`; top-level `await nr.arun(task)` and printing per-host results; `await task.arun(subtask)`; `async with nr:`; and the named errors each printed from a `try/except SyncAsyncMismatchError as exc: print(type(exc).__name__, exc)` cell (`nr.arun(def_task)`, `nr.run(async_task)`, `nr.with_runner(ThreadedRunner()).run(async_task)`); no timings printed; commit the notebook exactly as executed (research R13, FR-019, SC-006)
-- [ ] T043 [P] Create `docs/howto/writing_async_connection_plugins.rst`: when to implement `AsyncConnectionPlugin`, the sibling relationship to `ConnectionPlugin`, `.. literalinclude:: ../../tests/plugins/connections/async_echo.py` with `:language: python`, the two rules (`aopen`/`aclose` must not block the loop; `aclose` must be safe to call more than once), a "both contracts in one class" example with unchanged `[project.entry-points."nornir.plugins.connections"]` registration, and usage via `await task.host.aget_connection(name, task.nornir.config)` (FR-019)
-- [ ] T044 [P] Update `docs/plugins/index.rst` (Connections: mention `AsyncConnectionPlugin` and link to `../howto/writing_async_connection_plugins`; Runners: note `AsyncioRunner` and link to `../howto/asyncio_runner`), `docs/plugins/execution_model.rst` (a paragraph on the `asyncio` model: coroutines on the caller's loop bounded by `num_workers`, no threads), and `docs/configuration/parameters.rst` (`runner.plugin` description lists `serial`, `threaded`, `asyncio`; default stays `threaded`)
-- [ ] T045 [P] Add a `3.7.0 - unreleased` section at the top of `CHANGELOG.rst` with entries for: the `asyncio` runner, `Nornir.arun`/`aclose_connections`/`async with`, `Task.astart`/`arun`, the `AsyncConnectionPlugin` contract and `Host.a*` connection methods (#1085); and the one synchronous-path change: an `async def` task given to `nr.run()`/`task.run()` now raises `AsyncTaskOnSyncRunError` instead of recording the coroutine as a successful result
-- [ ] T046 Open the follow-up GitHub issue "Synchronous tasks in async runs" (thread-backed execution and its opt-in surface, per spec Assumptions and #1085 question 2) and replace the URL in `SYNC_TASKS_IN_ASYNC_RUNS_ISSUE` in `nornir/core/exceptions.py` with the new issue's URL; update the assertion in `tests/core/test_async_run.py` if it hard-codes the number (merge precondition)
-- [ ] T047 Run `make tests` (ruff, mypy, nbval, pytest, docs) on the local platform and confirm `git status` shows no change under `docs/api/` after `make docs` (plan: no module added or removed)
-- [ ] T048 Walk through `specs/001-asyncio-runner/quickstart.md` sections 1–4 and tick its pre-PR checklist; draft the PR description restating maintainer approval for `AsyncioRunner` as an in-tree plugin (Constitution II) and the two spec deviations from `specs/001-asyncio-runner/plan.md`; propose the SC-001 rewording in `specs/001-asyncio-runner/spec.md`
-
----
-
-## Dependencies & Execution Order
-
-### Phase Dependencies
-
-- **Setup (Phase 1)**: no dependencies; T001/T002 in parallel, T003 anytime before Phase 2 edits.
-- **Foundational (Phase 2)**: depends on Setup. T004, T005, T006 in parallel; T007 → T008 (same
-  file, `task.py`); T009 independent of T007/T008; T010 after all.
-- **US1 (Phase 3)**: depends on Phase 2. Tests T011–T015 in parallel, T016 with them;
-  T017 → T018 (`task.py`); T019 → T020 (`nornir/core/__init__.py`); T021 → T022; T023 last.
-- **US2 (Phase 4)**: depends on Phase 2 and on T020/T021 (tests drive through `nr.arun` on
-  `AsyncioRunner`). Tests T024–T026 in parallel; T027 first; T028 → T029 → T030 → T031 → T032
-  (all `inventory.py`); T033 last.
-- **US3 (Phase 5)**: depends on US1 (uses `arun`) and US2 (uses `Host.aclose_connections`).
-  T034 → T035 → T036 → T037.
-- **US4 (Phase 6)**: depends on US1 (edits `AsyncioRunner.arun`). T038 → T039 → T040.
-- **Polish (Phase 7)**: depends on all stories. T041 → T042 (notebook needs its config);
-  T043, T044, T045 in parallel with each other and with T041/T042; T046 anytime after T014;
-  T047 after everything else; T048 last.
-
-### User Story Dependencies
-
-- **US1 (P1)**: only the Foundational phase. Delivers the MVP on its own.
-- **US2 (P1)**: Foundational plus the `arun` entry point and runner from US1 for its tests; the
-  `Host`/protocol implementation itself (T027–T032) does not depend on US1 code.
-- **US3 (P2)**: US1 + US2 (composes `arun` with `Host.aclose_connections`).
-- **US4 (P3)**: US1 (adds the drain block to the runner written in T021).
-
-### Within Each User Story
-
-- Test tasks first; confirm they fail before the implementation tasks.
-- Tasks touching the same file are sequential (`nornir/core/task.py`, `nornir/core/__init__.py`,
-  `nornir/core/inventory.py`, `nornir/plugins/runners/__init__.py`).
-- Each story ends with its own `make pytest ARGS=...` + `make mypy` + `make ruff` task.
-
-### Parallel Opportunities
-
-- Phase 2: T004 ‖ T005 ‖ T006; T009 ‖ (T007 → T008).
-- Phase 3: T011 ‖ T012 ‖ T013 ‖ T014 ‖ T015 ‖ T016; then (T017 → T018) ‖ (T019 → T020) ‖ (T021 → T022).
-- Phase 4: T024 ‖ T025 ‖ T026; T027 ‖ T028 (different files), then T029 → T032 sequentially.
-- Phase 7: T041 ‖ T043 ‖ T044 ‖ T045; T046 in parallel with the docs tasks.
-
----
-
-## Parallel Example: User Story 1
-
-```bash
-# Write all US1 tests together (different files):
-Task: "T011 AsyncioRunner behaviour tests in tests/plugins/runners/test_asyncio.py"
-Task: "T013 Nornir.arun semantics tests in tests/core/test_async_run.py"
-Task: "T015 Task.arun/astart tests in tests/core/test_async_tasks.py"
-Task: "T016 registry assertion in tests/core/test_registered_plugins.py"
-
-# Then implement across the three source files in parallel streams:
-Stream A: "T017 Task.astart" -> "T018 Task.arun + Task.run guard"        (nornir/core/task.py)
-Stream B: "T019 _is_async_runner + Nornir.run guard" -> "T020 Nornir.arun" (nornir/core/__init__.py)
-Stream C: "T021 AsyncioRunner" -> "T022 entry point in pyproject.toml"   (nornir/plugins/runners/__init__.py)
+```text
+Setup T001–T004
+  → Foundation T005–T011
+      → US1 T012–T024
+          → US2 T025–T040
+              → US3 T041–T045
+              → US4 T046–T050
+                  → Final documentation/gates T051–T061
 ```
 
----
+Both US3 and US4 are required before final gates. They can be developed in parallel only
+with exclusive file ownership; their gate runs serialize once both streams are stable.
+US2 registry-only code can be explored after Foundation, but its integration checkpoint
+requires completed US1. No test at a phase checkpoint may call an API scheduled later.
 
-## Implementation Strategy
+### Within phases
 
-### MVP First (User Story 1 Only)
+- Foundation: T005, T007, T010, and the T006 → T008 → T009 stream are independent;
+  T011 follows all of them. Each waits for T004.
+- US1 tests: T012 → T013; T014 → T015; T016; T017. Write these streams before their
+  implementation. Implementation streams: T018 → T019, T020 → T021, T022 → T023;
+  all join at T024. T023 verifies the configuration/with_runner tests authored in T014.
+- US2 tests: T025 → T027, T026 → T028, T029. Fixtures are local per test stream so no
+  unfinished cross-file fixture dependency is introduced. Implementation: T030 → T031,
+  then T032 in parallel with T033 → T034 → T035 → T036 → T037 → T038. T039 can run
+  beside these once T030 defines its imported contract. T040 follows all US2 tasks.
+- US3: T041 → T042 → T043 → T044 → T045.
+- US4: T046, T047, T048 are separate-file test streams; T049 follows all, then T050.
+- Final: T051 → T052; T053, T054, T055, and T056 can run independently after story
+  checkpoints. T057/T058 follow source/docs readiness; serialize environment-mutating
+  verification. T059 follows T057/T058 and all changes, T060 requires matrix evidence,
+  and T061 follows both. New fixes invalidate affected gate evidence and require reruns.
 
-1. Phase 1 Setup, Phase 2 Foundational (the refactors must leave `make pytest` green: T010).
-2. Phase 3 US1: async tasks run on the caller's loop with identical semantics; all task/runner
-   mismatches raise named errors.
-3. **STOP and VALIDATE**: `make pytest ARGS="tests/plugins/runners tests/core/test_async_run.py tests/core/test_async_tasks.py"`, then the SC-002/SC-003 tests.
+### Parallel examples by story
 
-### Incremental Delivery
+| Story | Independent streams | Join point |
+|---|---|---|
+| US1 | Runner tests T012→T013; Nornir tests T014→T015; Task tests T016; registry assertion T017 | Before implementation streams and T024 |
+| US2 | Registry tests T025→T027; Host tests T026→T028; echo integration tests T029 | Before implementation and T040 |
+| US3 | No independent same-phase tasks: one test file and one implementation file, ordered deliberately | T045 |
+| US4 | Runner tests T046; Host cancellation tests T047; echo cancellation tests T048 | T049, then T050 |
 
-1. US1 → MVP: embeddable in an async application, no connections yet.
-2. US2 → async connection plugins plug in; `AsyncEcho` proves the path in CI on all platforms.
-3. US3 → cleanup with `async with`; no leaked sessions.
-4. US4 → cancellation propagates and records nothing.
-5. Phase 7 → executed notebook, plugin-author page, changelog, follow-up issue, `make tests`.
+## Requirement coverage
 
-The spec ships all four together in 3.7; the checkpoints are validation points, not release
-boundaries.
+| Requirement | Task IDs | Acceptance focus |
+|---|---|---|
+| FR-001 | T012, T017, T022–T024, T051 | Configuration, default, with_runner |
+| FR-002 | T010, T014, T021 | Arguments/results and selection flags |
+| FR-003 | T010, T014, T021 | raise_on_error and failed hosts |
+| FR-004 | T012, T022 | Bounded active hosts |
+| FR-005 | T005–T006, T015–T016, T019–T021, T056 | Named async-entry rejection and issue URL |
+| FR-006 | T015, T020 | Coroutine-task rejection on serial/threaded |
+| FR-007 | T022, T041, T043–T044 | Synchronous run/cleanup/context mismatch |
+| FR-008 | T008–T009, T016, T018–T019 | Child result/failure semantics |
+| FR-009 | T016, T019, T052 | Inline sync child and limitation |
+| FR-010 | T016, T019 | Async child on sync entry rejection |
+| FR-011 | T025–T027, T030, T035 | Base/facet contracts and legacy typing |
+| FR-012 | T026, T028, T033–T036 | One logical connection and stable public cache types |
+| FR-013 | T026–T028, T033, T035–T037 | Capability checks including cached transport |
+| FR-014 | T026, T028, T037–T038, T041 | Both-store cleanup |
+| FR-015 | T041–T045 | Observable Nornir cleanup and selection |
+| FR-016 | T012, T022, T046–T050 | Single-owner cancellation and draining |
+| FR-017 | T014, T016, T021, T041 | Partial event ordering and arguments |
+| FR-018 | T029, T039–T040, T048, T058, T060 | Portable test-only real transport |
+| FR-019 | T051–T054, T057 | Executed notebook and capability-author guide |
+| FR-020 | T004, T007–T011, T017, T025, T030–T031, T059 | Public compatibility and existing-suite exception |
+| FR-021 | T025, T030–T032 | New registry, all modes, both discovery groups |
+| FR-022 | T025, T027, T030, T033 | Authoritative valid capability reporting |
+| FR-023 | T027–T028, T033, T036 | Duplicate-name rejection, including cached lookup |
+| SC-001 | T011, T017, T059–T060 | Existing-suite compatibility |
+| SC-002 | T013, T022, T060 | At most 50 ms heartbeat gap |
+| SC-003 | T013, T022, T060 | Under two seconds, unchanged live threads |
+| SC-004 | T015–T016, T026–T028, T033, T036, T041 | Operation-specific mismatch boundaries |
+| SC-005 | T025–T026, T030–T039, T053 | One registration for every declared mode |
+| SC-006 | T052, T057, T059–T060 | Genuine notebook output and nbval |
+| SC-007 | T025, T027, T031–T033 | Registry coexistence, discovery and invalid declarations |
 
-### Parallel Team Strategy
+## Previous task ID mapping
 
-After Phase 2: one developer on US1 (runner + `Nornir.arun` + `Task.a*`), one on the
-`Host`/protocol half of US2 (T027–T032) with its unit tests (T024) stubbed against a temporary
-`asyncio.run` harness until `arun` lands; US3 and US4 follow once US1 merges. Docs (T041–T045)
-can be drafted in parallel and executed once the code is green.
+Only T001–T003 were completed in the prior list; they retain their IDs and completion
+state. All other tasks remain pending. New T004 refreshes baseline evidence. References
+to older pending IDs must use this mapping rather than their former meaning.
 
----
+| Previous IDs | Revised IDs | Change |
+|---|---|---|
+| T001–T003 | T001–T003 | Completion preserved |
+| T004–T023 | T005–T024 respectively | Expanded contracts/validation; fixed selection inputs and cancellation ownership |
+| T024 | T025–T028 | Split registry/typing, lifecycle, invalid declaration, and state coverage |
+| T025 | T039 | Capability-aware AsyncEcho fixture |
+| T026 | T029 | Echo integration uses Host cleanup at this phase |
+| T027 | T030–T032 | Base/facets, separate isolated registry, initialization discovery |
+| T028 | T033–T034 | Typed validation, resolution, storage and provenance |
+| T029 | T035 | Both opening paths, typed caches |
+| T030 | T036 | Both retrieval paths and current ambiguity |
+| T031–T032 | T037–T038, plus T035–T036 | Cleanup policy and sync access guards |
+| T033 | T040 | Expanded capability/Host integration gate |
+| T034 | T041–T042 | Nornir cleanup and retry tests |
+| T035–T037 | T043–T045 respectively | Cleanup/context implementation and gate |
+| T038 | T046–T048 | Cancellation across runner, Host, and real transport |
+| T039 | T022, T049 | Cancellation ownership implemented early, audited after expanded tests |
+| T040 | T050 | Cancellation gate |
+| T041–T046 | T051–T056 respectively | Updated capability documentation and release prerequisites |
+| T047 | T057–T060 | Docs, packaging, local five gates and matrix evidence |
+| T048 | T061 | Final quickstart/coverage review |
 
-## Notes
+## Implementation strategy
 
-- No new runtime or development dependency: tests use `asyncio.run()` (research R10).
-- Never add to the ruff or mypy ignore lists without a comment saying why (Principle III).
-- Notebook output is committed exactly as executed; never edited by hand (Principle V).
-- `docs/api/nornir/**` must not change: no module is added or removed.
-- Commit after each task or logical group with Conventional Commits (`feat:`, `test:`, `docs:`).
+**MVP validation scope:** Setup + Foundation + US1, ending at T024. This demonstrates
+async task execution without transport dependencies. It is not the release boundary.
+
+Then complete US2's registry and Host lifecycle before composing Nornir cleanup in US3.
+US4 validates demanding cancellation cases against the ownership already built into US1
+and resource contracts from US2. Finish documentation, packaging, and all five gates plus
+matrix evidence. All four stories ship together as required by the specification.
+
+Use speckit-analyze before implementation to check this regenerated list against the
+current spec and plan. Mark task completion only after its acceptance work and required
+verification are actually done; unavailable CI evidence remains pending.

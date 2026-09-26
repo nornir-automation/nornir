@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
+from nornir.core.exceptions import RunnerNotSyncError
 from nornir.core.inventory import Host
-from nornir.core.task import AggregatedResult, Task
+from nornir.core.task import AggregatedResult, MultiResult, Task
 
 
 class SerialRunner:
@@ -68,4 +70,64 @@ class ThreadedRunner:
         for future in futures:
             worker_result = future.result()
             result[worker_result.host.name] = worker_result
+        return result
+
+
+class AsyncioRunner:
+    """Runner that executes asynchronous tasks on the caller's event loop."""
+
+    def __init__(self, num_workers: int = 20) -> None:
+        if isinstance(num_workers, bool) or not isinstance(num_workers, int):
+            msg = "num_workers must be an integer"
+            raise TypeError(msg)
+        if num_workers <= 0:
+            msg = "num_workers must be positive"
+            raise ValueError(msg)
+        self.num_workers = num_workers
+
+    def run(self, task: Task, hosts: list[Host]) -> AggregatedResult:
+        """Reject synchronous execution regardless of the task or host list.
+
+        Raises:
+            RunnerNotSyncError: Always, because this runner only supports asynchronous execution.
+
+        """
+        raise RunnerNotSyncError(type(self).__name__)
+
+    async def arun(self, task: Task, hosts: list[Host]) -> AggregatedResult:
+        """Run one task copy per host with bounded concurrency and ordered results.
+
+        Returns:
+            Results keyed in the same order as ``hosts``.
+
+        """
+        semaphore = asyncio.Semaphore(self.num_workers)
+
+        async def run_host(host: Host) -> MultiResult:
+            async with semaphore:
+                return await task.copy().astart(host)
+
+        children = [asyncio.create_task(run_host(host)) for host in hosts]
+        aggregate = asyncio.gather(*children)
+        try:
+            host_results = await asyncio.shield(aggregate)
+        except BaseException:
+            for child in children:
+                if not child.done():
+                    child.cancel()
+
+            drain = asyncio.gather(*children, return_exceptions=True)
+            while not drain.done():
+                try:
+                    await asyncio.shield(drain)
+                except asyncio.CancelledError:
+                    continue
+
+            if aggregate.done() and not aggregate.cancelled():
+                aggregate.exception()
+            raise
+
+        result = AggregatedResult(task.name)
+        for host, host_result in zip(hosts, host_results, strict=True):
+            result[host.name] = host_result
         return result

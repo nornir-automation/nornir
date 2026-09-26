@@ -5,7 +5,10 @@ from typing import Any
 from nornir.core import Nornir
 from nornir.core.configuration import Config
 from nornir.core.inventory import Inventory
-from nornir.core.plugins.connections import ConnectionPluginRegister
+from nornir.core.plugins.connections import (
+    CapabilityConnectionPluginRegister,
+    ConnectionPluginRegister,
+)
 from nornir.core.plugins.inventory import (
     InventoryPluginRegister,
     TransformFunctionRegister,
@@ -99,6 +102,7 @@ def InitNornir(
 
     """
     ConnectionPluginRegister.auto_register()
+    CapabilityConnectionPluginRegister.auto_register()
 
     if config_file:
         config = Config.from_file(

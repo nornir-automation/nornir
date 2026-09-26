@@ -1,32 +1,53 @@
-"""Public contracts added by the asyncio runner feature.
+"""Proposed public signatures; design artifact, not installed implementation.
 
-This file is a design artifact, not shipped code: it fixes the signatures that the
-implementation must expose. Both protocols are optional siblings of the existing
-``ConnectionPlugin`` and ``RunnerPlugin``, which are not modified. Plugins satisfy them
-structurally, and the core detects support by the presence of ``aopen`` / ``arun`` as
-coroutine functions (see research R2 and R8).
+Connection protocols belong in nornir.core.plugins.connections. The existing
+ConnectionPlugin and ConnectionPluginRegister retain their signatures and types.
+Plugins satisfy these protocols structurally, without inheritance or unsupported
+operation stubs. The runner contracts belong in their existing runner modules.
 """
 
 from __future__ import annotations
 
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol
 
 from nornir.core.configuration import Config
 from nornir.core.inventory import Host
+from nornir.core.plugins.connections import ConnectionPlugin
+from nornir.core.plugins.register import PluginRegister
 from nornir.core.task import AggregatedResult, Task
 
+ConnectionCapability = Literal["sync", "asyncio"]
 
-class AsyncConnectionPlugin(Protocol):
-    """Optional async counterpart of :class:`nornir.core.plugins.connections.ConnectionPlugin`.
 
-    A plugin may implement this contract, the synchronous one, or both. Registration is
-    unchanged: the existing ``nornir.plugins.connections`` entry-point group.
+class CapabilityConnectionPlugin(Protocol):
+    """Common contract for all plugins in the capability-aware registry.
 
-    Rules for the async members:
+    Classes must be constructible without arguments. Capability reporting is
+    synchronous, performs no device I/O, and is stable for the instance's lifetime.
+    Operations are required only for declared capabilities. Connection is accessed
+    after a successful open, not probed during pre-open validation.
+    """
 
-    1. ``aopen`` and ``aclose`` must not block the event loop; wrap blocking libraries with
-       ``asyncio.to_thread``.
-    2. ``aclose`` must be safe to call more than once.
+    def get_capabilities(self) -> frozenset[ConnectionCapability]:
+        """Return exactly {'sync'}, {'asyncio'}, or {'sync', 'asyncio'}."""
+        ...
+
+    @property
+    def connection(self) -> Any:
+        """The established transport."""
+        ...
+
+
+class SyncCapabilityConnectionPlugin(ConnectionPlugin, CapabilityConnectionPlugin, Protocol):
+    """Capability-aware plugin with synchronous open and close operations."""
+
+
+class AsyncCapabilityConnectionPlugin(CapabilityConnectionPlugin, Protocol):
+    """Capability-aware plugin with native async operations.
+
+    Both operations must be async def methods and must not block the event loop.
+    An unsuccessful or cancelled aopen releases resources it acquired before it
+    exits. aclose is idempotent, including after an unsuccessful opening attempt.
     """
 
     async def aopen(
@@ -39,48 +60,56 @@ class AsyncConnectionPlugin(Protocol):
         extras: dict[str, Any] | None = None,
         configuration: Config | None = None,
     ) -> None:
-        """Connect to the device; same parameters, same order as ``open``.
-
-        Populates :attr:`connection` with the underlying connection.
-        """
+        """Establish the connection using the legacy open parameter contract."""
+        ...
 
     async def aclose(self) -> None:
-        """Close the connection with the device. Idempotent."""
+        """Close the transport; safe to call more than once."""
+        ...
 
-    @property
-    def connection(self) -> Any:
-        """Established connection."""
+
+class DualCapabilityConnectionPlugin(
+    SyncCapabilityConnectionPlugin, AsyncCapabilityConnectionPlugin, Protocol
+):
+    """Both paths operate on the same connection, regardless of opening mode."""
+
+
+CAPABILITY_CONNECTIONS_PLUGIN_PATH = "nornir.plugins.capability_connections"
+
+# New registry only: allocate instance-owned storage because PluginRegister's
+# initial available dictionary is otherwise shared between registry instances.
+CapabilityConnectionPluginRegister: PluginRegister[type[CapabilityConnectionPlugin]] = (
+    PluginRegister(CAPABILITY_CONNECTIONS_PLUGIN_PATH)
+)
+CapabilityConnectionPluginRegister.available = {}
 
 
 class AsyncRunnerPlugin(Protocol):
-    """Optional async counterpart of :class:`nornir.core.plugins.runners.RunnerPlugin`.
-
-    ``Nornir.arun`` dispatches to ``arun`` when the assigned runner has one. A runner that
-    has *only* an async path still defines ``run`` so it satisfies ``RunnerPlugin`` for the
-    registry and the ``Nornir`` constructor, and raises ``RunnerNotSyncError`` from it.
-    """
+    """Optional sibling runner protocol; existing RunnerPlugin is unchanged."""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """Configure the plugin."""
-        raise NotImplementedError("needs to be implemented by the plugin")
+        """Configure the runner."""
+        ...
 
     async def arun(self, task: Task, hosts: list[Host]) -> AggregatedResult:
-        """Run the given task over all the hosts on the current event loop.
-
-        Must call ``task.copy().astart(host)`` for each host, bound the number in flight,
-        key the result by ``host.name`` in the order given, and on cancellation cancel
-        and await every in-flight host before letting the cancellation propagate.
-        """
-        raise NotImplementedError("needs to be implemented by the plugin")
+        """Run on the caller's loop; cancel and await owned work before propagating cancellation."""
+        ...
 
 
 class AsyncioRunner:
-    """Reference implementation registered as ``asyncio`` (signature only)."""
+    """Reference runner signatures; registered under asyncio.
 
-    def __init__(self, num_workers: int = 20) -> None: ...
+    num_workers must be a positive integer; booleans are not worker counts.
+    """
+
+    def __init__(self, num_workers: int = 20) -> None:
+        """Reject non-integers with TypeError and nonpositive counts with ValueError."""
+        raise NotImplementedError
 
     def run(self, task: Task, hosts: list[Host]) -> AggregatedResult:
-        """Raise ``RunnerNotSyncError`` pointing to ``await nr.arun(...)``, unconditionally."""
+        """Raise RunnerNotSyncError pointing to await nr.arun(...)."""
+        raise NotImplementedError
 
     async def arun(self, task: Task, hosts: list[Host]) -> AggregatedResult:
-        """Run the task over the hosts, at most ``num_workers`` in flight, on the current loop."""
+        """Fan out task copies with bounded concurrency; preserve host result order."""
+        raise NotImplementedError
