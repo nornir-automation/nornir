@@ -79,8 +79,7 @@
 ## Pending Release Gates
 
 - T056 is blocked because the user declined creation of the synchronous-tasks-in-async-runs follow-up issue.
-- T060 is unavailable because no remote pull request or CI matrix exists.
-- T061 remains pending on both T056 and T060.
+- T061 remains pending on T056.
 
 ## Python 3.14 CI Follow-up
 
@@ -91,3 +90,6 @@
   isolation without installing Python 3.14's exception-logging shield callback.
 - Python 3.14: 25 runner tests, 258 full tests, mypy, Ruff, and 123 nbval tests passed.
 - Python 3.10: 25 runner tests passed.
+- Push CI for fix commit `777cd55` passed on Python 3.10-3.14 across Ubuntu, macOS,
+  and Windows, including linters, Sphinx, and wheel import:
+  https://github.com/nornir-automation/nornir/actions/runs/36307946893
