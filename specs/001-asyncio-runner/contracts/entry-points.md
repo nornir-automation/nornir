@@ -61,8 +61,9 @@ Async context entry returns self; exit cleans good and failed hosts by passing b
 selection flags as true. Sync context exit and sync cleanup on AsyncioRunner raise
 RunnerNotSyncError with the async alternatives.
 
-Cancellation escapes as BaseException. The runner shields its initial aggregate wait,
-then explicitly cancels each unfinished owned host future once on failure/cancellation
+Cancellation escapes as BaseException. The runner waits for its initial aggregate without
+propagating caller cancellation into it, then explicitly cancels each unfinished owned host
+future once on failure/cancellation
 (including semaphore waiters). It drains all children and retrieves the aggregate's
 exception before re-raising. Shield draining from subsequent caller cancellations and
 continue awaiting it without re-cancelling children, so awaited host cleanup can finish.
