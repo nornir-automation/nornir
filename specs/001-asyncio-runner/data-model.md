@@ -109,8 +109,9 @@ host completion when emitted. Events from different hosts may interleave.
 Field `num_workers: int`, default 20, validated positive and non-boolean at construction.
 No loop-bound state survives a call. Semaphore limits active host copies; ordered gather
 preserves selected-host result order. The runner owns and drains all scheduled host
-futures, including waiters, on BaseException. Shield the initial aggregate wait and give
-the runner sole ownership of child cancellation: cancel unfinished children once, drain
+futures, including waiters, on BaseException. Wait for the initial aggregate without
+propagating caller cancellation and give the runner sole ownership of child cancellation:
+cancel unfinished children once, drain
 them under shielding, and retrieve the aggregate exception before re-raising. Additional
 caller cancellations do not repeatedly cancel children performing cleanup. It creates
 no executor threads.

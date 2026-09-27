@@ -81,3 +81,13 @@
 - T056 is blocked because the user declined creation of the synchronous-tasks-in-async-runs follow-up issue.
 - T060 is unavailable because no remote pull request or CI matrix exists.
 - T061 remains pending on both T056 and T060.
+
+## Python 3.14 CI Follow-up
+
+- Push CI for commit `e4b797a` failed because Python 3.14 reports a cancelled
+  `asyncio.shield` wrapper as `CancelledError exception in shielded future`.
+- Reproduced with Python 3.14.6 using the existing aggregate-exception cancellation test.
+- Replaced the initial shield wrapper with `asyncio.wait`, which preserves cancellation
+  isolation without installing Python 3.14's exception-logging shield callback.
+- Python 3.14: 25 runner tests, 258 full tests, mypy, Ruff, and 123 nbval tests passed.
+- Python 3.10: 25 runner tests passed.

@@ -158,7 +158,8 @@ the earlier async-only protocol and legacy-registry registration design.
 ## R9. Concurrency and cancellation
 
 - **Decision:** AsyncioRunner creates a semaphore per invocation; schedules host copies;
-  shields its ordered aggregate wait; builds results in selected-host order. On
+  waits for its ordered aggregate without propagating caller cancellation; builds results
+  in selected-host order. On
   BaseException, explicitly cancel each unfinished owned future once, drain all children,
   and retrieve the aggregate's exception before re-raising. Shield the drain against
   subsequent caller cancellations and re-await it without re-cancelling children. Never schedule
@@ -251,7 +252,7 @@ the earlier async-only protocol and legacy-registry registration design.
   probe imported these exact contracts and passed async-only base registration/private
   cache assignment plus sync/dual assignment to the unchanged legacy cache/return types.
 - Ruff lint and format checks pass for the protocol artifact. A read-only asyncio probe
-  of the shielded single-owner cancellation design passed with a prompt child and a child
+  of the cancellation-isolated single-owner design passed with a prompt child and a child
   awaiting finally cleanup: repeated caller cancellation preserved cleanup completion,
   and no runner-owned task remained afterward. This validates the selected mechanism
   locally; the implementation must still carry regression tests across the support matrix.

@@ -99,7 +99,8 @@ supported platform/Python matrix remain required before implementation is comple
 3. Processor tests assert partial ordering, not equality with a serial event list.
 4. Validate positive non-boolean worker counts on AsyncioRunner construction. Per-call
    semaphore and ordered gather create no executor and retain selected-host result order.
-5. Shield the initial gather wait and let the runner explicitly cancel unfinished hosts
+5. Wait for the initial gather without propagating caller cancellation and let the runner
+   explicitly cancel unfinished hosts
    once, drain them under shielding, and retrieve aggregate exceptions before re-raising.
    Repeated cancellation must not interrupt host cleanup by re-cancelling children.
    Cancellation drains every owned future, including queued hosts, and skips

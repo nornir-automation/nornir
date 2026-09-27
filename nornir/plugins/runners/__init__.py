@@ -110,7 +110,8 @@ class AsyncioRunner:
         children = [asyncio.create_task(run_host(host)) for host in hosts]
         aggregate = asyncio.gather(*children)
         try:
-            host_results = await asyncio.shield(aggregate)
+            await asyncio.wait((aggregate,))
+            host_results = aggregate.result()
         except BaseException:
             for child in children:
                 if not child.done():
