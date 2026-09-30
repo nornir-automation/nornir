@@ -26,7 +26,7 @@ mypy:
 
 .PHONY: nbval
 nbval:
-	uv run pytest --nbval --sanitize-with docs/nbval_sanitize.cfg \
+	uv run pytest --nb-test-files \
 		docs/tutorial/ \
 		docs/howto/
 
