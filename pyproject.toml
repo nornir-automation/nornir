@@ -251,6 +251,7 @@ nb_diff_ignore = [
     "/metadata/language_info/version",
 ]
 nb_diff_replace = [
+    '/cells/*/outputs/*/text \n\s*\^+\n \n',
     '/cells/*/outputs/*/text /[^"]*nornir/core/task.py /nornir/core/task.py',
     '/cells/*/outputs/*/text /tmp/ipykernel_[^"]*\.py /tmp/ipykernel_random.py',
     '/cells/*/outputs/*/text D:[^"]*task.py /nornir/core/task.py',
