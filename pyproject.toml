@@ -253,7 +253,7 @@ nb_diff_ignore = [
 nb_diff_replace = [
     '/cells/*/outputs/*/text \n\s*\^+\n \n',
     '/cells/*/outputs/*/text /[^"]*nornir/core/task.py /nornir/core/task.py',
-    '/cells/*/outputs/*/text /tmp/ipykernel_[^"]*\.py /tmp/ipykernel_random.py',
+    '/cells/*/outputs/*/text /[^"]*ipykernel_[^"]*\.py /tmp/ipykernel_random.py',
     '/cells/*/outputs/*/text D:[^"]*task.py /nornir/core/task.py',
     '/cells/*/outputs/*/text D:[^"]*ipykernel_[^"]*\.py /tmp/ipykernel_random.py',
 ]
