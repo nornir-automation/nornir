@@ -108,7 +108,7 @@ The Ruff GitHub repo has information about how you can integrate Ruff in your ed
 
 Tests
 -------------
-As part of the automatic CI on every pull request, besides coding style checks and linting with ``ruff``, static type checking with ``mypy``, unit tests with ``pytest``, docs generation with ``sphinx`` and ``nbsphinx`` (for Jupyter notebooks) and verification of outputs in Jupyter notebook tutorials with pytest plugin ``nbval``.
+As part of the automatic CI on every pull request, besides coding style checks and linting with ``ruff``, static type checking with ``mypy``, unit tests with ``pytest``, docs generation with ``sphinx`` and ``nbsphinx`` (for Jupyter notebooks) and verification of outputs in Jupyter notebook tutorials with ``pytest-notebook``.
 
 After modifying any code in the core, at first, we recommend running unit tests locally before running the whole test suite (which takes longer time):
 
@@ -122,7 +122,7 @@ To run all CI tests, execute:
 
    make tests
 
-To run only verification of Jupyter notebook tutorials outputs with ``nbval`` execute:
+To run only verification of Jupyter notebook tutorials outputs with ``pytest-notebook`` execute:
 
 .. code-block:: bash
 

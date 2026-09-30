@@ -88,7 +88,7 @@ jobs:
           uv run coverage report -m
         if: ${{ matrix.platform == 'windows-2022' }}
 
-      - name: Run nbval
+      - name: Run pytest-notebook
         run: make nbval
         if: ${{ matrix.platform != 'windows-2022' }}
 
