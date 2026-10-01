@@ -27,8 +27,8 @@ def render_from_file(
 
     """
     warnings.warn(
-        "nornir.core.helpers.jinja_helper.render_from_file is deprecated; "
-        "use nornir_jinja2 instead",
+        "nornir.core.helpers.jinja_helper.render_from_file is deprecated and will be "
+        "removed in a future release; use nornir_jinja2 instead",
         DeprecationWarning,
         stacklevel=2,
     )
@@ -63,8 +63,8 @@ def render_from_string(
 
     """
     warnings.warn(
-        "nornir.core.helpers.jinja_helper.render_from_string is deprecated; "
-        "use nornir_jinja2 instead",
+        "nornir.core.helpers.jinja_helper.render_from_string is deprecated and will be "
+        "removed in a future release; use nornir_jinja2 instead",
         DeprecationWarning,
         stacklevel=2,
     )
