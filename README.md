@@ -20,9 +20,9 @@ pip install nornir
 
 ## Plugins
 
-Since version 3.0.0 nornir doesn't ship with plugins, instead you can rely on `pip` to install them for you. You can find a non-exhaustive list of plugins here: [https://nornir.readthedocs.io/en/latest/community/plugin_list.html](https://nornir.readthedocs.io/en/latest/community/plugin_list.html)
+Since version 3.0.0 nornir doesn't ship with plugins, instead you can rely on `pip` to install them for you. You can find a non-exhaustive list of plugins here: [https://nornir.readthedocs.io/en/latest/community/plugin_list](https://nornir.readthedocs.io/en/latest/community/plugin_list)
 
-If you wrote a plugin and want to add it to the list don't hesitate to [add it yourself](https://github.com/nornir-automation/nornir/blob/main/docs/community/plugin_list.rst)
+If you wrote a plugin and want to add it to the list don't hesitate to [add it yourself](https://github.com/nornir-automation/nornir/blob/main/docs/docs/community/plugin_list.md)
 
 ## Development version
 
@@ -57,6 +57,6 @@ There's also a Slack channel in the [networktoCode Slack team](https://networkto
 
 ## Contributing to Nornir
 
-If you want to help the project, the [Contribution Guidelines](https://nornir.readthedocs.io/en/develop/contributing/index.html) is the best place to start.
+If you want to help the project, the [Contribution Guidelines](https://github.com/nornir-automation/nornir/blob/main/CONTRIBUTING.rst) is the best place to start.
 
 [logo]: https://raw.githubusercontent.com/nornir-automation/nornir/main/docs/_static/logo/nornir_logo_02.jpg "nornir logo"

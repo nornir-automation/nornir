@@ -43,13 +43,10 @@ dev = [
     "ruff>=0.15.20,<0.16",
 ]
 docs = [
-    "sphinx==6.2.1",
-    "sphinx-rtd-theme==1.2.2",
-    "sphinxcontrib-napoleon>=0.7,<0.8",
     "jupyter==1.0.0",
-    "nbsphinx==0.9.2",
+    "mdxify>=0.2.45",
+    "nbformat>=5",
     "pygments==2.20.0",
-    "sphinx-issues==3.0.1",
 ]
 
 [tool.uv]
@@ -179,11 +176,6 @@ max-public-methods = 22
 max-returns = 11
 
 [tool.ruff.lint.per-file-ignores]
-
-"docs/conf.py" = [
-    "A001",   # Variable `copyright` is shadowing a Python builtin
-    "ERA001", # Commented out code, used to provide examples for Sphinx docs
-]
 
 "nornir/**.py" = [
 ##################################################################################################

@@ -1,0 +1,9 @@
+---
+default: true
+MD013: false # line length; prose is wrapped by the renderer
+MD014: false # dollar signs used before commands that show output
+MD024: false # duplicate headings, e.g. `options` under several configuration sections
+MD033: false # inline HTML, used for <br /> in tables and <img> in MDX
+MD041: false # first line need not be a heading when a page has front matter
+MD025:
+  front_matter_title: "" # a front matter title alongside the page's H1 is fine

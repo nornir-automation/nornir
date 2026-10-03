@@ -63,9 +63,7 @@ instance/
 # Scrapy stuff:
 .scrapy
 
-# Sphinx documentation
-docs/_build/
-docs/configuration/generated/*.rst
+# Documentation: see docs/.gitignore for the Docusaurus build and generated pages
 
 # PyBuilder
 target/

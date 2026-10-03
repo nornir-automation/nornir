@@ -2,7 +2,9 @@
 **/*.pyo
 **/*.log
 **/__pycache__
-docs/_build
+docs/build
+docs/node_modules
+docs/.docusaurus
 **/.ipynb_checkpoints
 .venv/
 .mypy_cache/

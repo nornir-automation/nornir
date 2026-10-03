@@ -1,16 +1,15 @@
 ---
+# Read the Docs builds the Docusaurus site. READTHEDOCS_CANONICAL_URL (set by Read the Docs)
+# gives docusaurus.config.ts the per-version base URL, e.g. /en/latest/.
 version: 2
-formats: []
 build:
-  os: "ubuntu-22.04"
+  os: "ubuntu-24.04"
   tools:
-    python: "3.11"
-  jobs:
-    post_create_environment:
-      - pip install uv
-    post_install:
-      # Instructs uv to use the RTD venv
-      - UV_PROJECT_ENVIRONMENT=$READTHEDOCS_VIRTUALENV_PATH uv sync --locked
-
-sphinx:
-  configuration: docs/conf.py
+    python: "3.12"
+    nodejs: "22"
+  commands:
+    - pip install uv
+    - uv sync --locked --no-default-groups --group docs
+    - uv run --no-sync python docs/generate.py
+    - npm --prefix docs ci
+    - npm --prefix docs run build -- --out-dir "$READTHEDOCS_OUTPUT/html"

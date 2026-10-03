@@ -25,10 +25,6 @@ jobs:
         run: make ruff
       - name: Run mypy
         run: make mypy
-      - name: Run sphinx
-        run: |
-          sudo apt-get install pandoc
-          make docs
 
   wheel:
     name: Build and import wheel
