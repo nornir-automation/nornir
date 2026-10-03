@@ -59,4 +59,4 @@ There's also a Slack channel in the [networktoCode Slack team](https://networkto
 
 If you want to help the project, the [Contribution Guidelines](https://github.com/nornir-automation/nornir/blob/main/CONTRIBUTING.rst) is the best place to start.
 
-[logo]: https://raw.githubusercontent.com/nornir-automation/nornir/main/docs/_static/logo/nornir_logo_02.jpg "nornir logo"
+[logo]: https://raw.githubusercontent.com/nornir-automation/nornir/main/docs/static/img/logo/nornir_logo_02.jpg "nornir logo"
