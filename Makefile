@@ -27,8 +27,8 @@ mypy:
 .PHONY: nbval
 nbval:
 	uv run pytest --nbval --sanitize-with docs/nbval_sanitize.cfg \
-		docs/tutorial/ \
-		docs/howto/
+		docs/docs/tutorial/ \
+		docs/docs/howto/
 
 .PHONY: ruff
 ruff:
@@ -41,7 +41,19 @@ tests: ruff mypy nbval pytest docs
 docker-tests: docker
 	docker run --name nornir-tests --rm $(NAME):latest make tests
 
+# Reinstall the Docusaurus toolchain only when the lockfile changes
+docs/node_modules: docs/package.json docs/package-lock.json
+	npm --prefix docs ci
+	touch docs/node_modules
+
+.PHONY: docs-generate
+docs-generate:
+	uv run python docs/generate.py
+
 .PHONY: docs
-docs:
-	uv run ./docs/build_api.sh
-	uv run make -C docs clean html
+docs: docs/node_modules docs-generate
+	npm --prefix docs run build
+
+.PHONY: docs-serve
+docs-serve: docs/node_modules docs-generate
+	npm --prefix docs start

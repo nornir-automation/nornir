@@ -40,10 +40,12 @@ nornir/core/plugins/  the plugin Protocol contracts and the registry
 nornir/plugins/       the only in-tree reference plugins: SimpleInventory, SerialRunner,
                       ThreadedRunner. Adding another needs maintainer approval.
 tests/                pytest suite, mirroring the package layout; YAML fixtures alongside
-docs/tutorial/        learning-oriented notebooks (executed in CI)
-docs/howto/           task-oriented notebooks and guides (executed in CI)
-docs/api/             Sphinx API reference — GENERATED, see Gotchas
-docs/upgrading/       major-version upgrade guides
+docs/                 Docusaurus project (package.json, docusaurus.config.ts, sidebars.ts)
+docs/generate.py      renders notebooks and the API reference into docs/docs/ before a build
+docs/docs/tutorial/   learning-oriented notebooks and pages (notebooks executed in CI)
+docs/docs/howto/      task-oriented notebooks and guides (notebooks executed in CI)
+docs/docs/api/        API reference — GENERATED and gitignored, see Gotchas
+docs/docs/upgrading/  major-version upgrade guides
 .agents/              agent-facing source of truth: skills/, commands/, rules/
 .claude/              Claude adapter; skills/commands/rules are symlink views of .agents/
 .specify/             Spec Kit engine (specify -> plan -> tasks -> implement)
@@ -51,7 +53,8 @@ docs/upgrading/       major-version upgrade guides
 
 ## Commands
 
-`uv` is the only supported environment manager. Set up with `uv sync --locked`.
+`uv` is the only supported environment manager. Set up with `uv sync --locked`. Building the
+documentation also needs Node.js 20 or newer; `make docs` installs the npm dependencies itself.
 
 | Command | What it does |
 |---|---|
@@ -60,7 +63,8 @@ docs/upgrading/       major-version upgrade guides
 | `make mypy` | Type-checks `nornir` and `tests`. |
 | `make ruff` | Lints (`ruff check .`). Format separately with `uv run ruff format .`. |
 | `make nbval` | Re-executes the documentation notebooks and verifies their stored output. |
-| `make docs` | Regenerates the API reference, then builds Sphinx HTML. |
+| `make docs` | Renders notebooks and the API reference, then builds the Docusaurus site. Fails on broken links or anchors. |
+| `make docs-serve` | Same, then serves the site locally with live reload. |
 | `make docker-tests` | Runs the whole suite in the CI Linux image. |
 
 Supported Python is 3.10 through 3.14, on Linux, macOS, and Windows. All three platforms are
@@ -82,7 +86,7 @@ updated". Removing entries is welcome. Adding one requires a comment saying why.
 after it. If something genuinely cannot be exercised on a platform, say so explicitly in the pull
 request instead of skipping quietly.
 
-**Notebook output must be real.** The notebooks under `docs/tutorial/` and `docs/howto/` are
+**Notebook output must be real.** The notebooks under `docs/docs/tutorial/` and `docs/docs/howto/` are
 executed by `make nbval` and their stored output is compared against the run. Never hand-write,
 trim, or tidy notebook output — re-execute the notebook and commit what it actually produced.
 Output that varies run to run is normalised in `docs/nbval_sanitize.cfg`.
@@ -92,7 +96,7 @@ Output that varies run to run is normalised in `docs/nbval_sanitize.cfg`.
 `RunnerPlugin`, `Processor`, and `TransformFunction` contracts. These are `typing.Protocol`
 definitions, so third-party plugins satisfy them structurally — changing a signature breaks every
 conforming plugin at once, with no inheritance error anywhere to catch it. Treat any signature
-change as breaking, ship it in a MAJOR release with a guide under `docs/upgrading/`, and give
+change as breaking, ship it in a MAJOR release with a guide under `docs/docs/upgrading/`, and give
 deprecations at least one MINOR release of warnings first.
 
 **Windows is a real target.** Do not assume POSIX path separators, unlimited path lengths, or
@@ -100,11 +104,12 @@ shell semantics.
 
 ## Gotchas
 
-- `docs/api/nornir/**` is **generated** by `docs/build_api.sh`, which deletes and rewrites the
-  tree — but the result is committed. Adding or removing a module under `nornir/` therefore
-  changes tracked files: run `make docs` and commit what it regenerates. Never hand-edit those
-  `.rst` files.
-- `docs/configuration/generated/` is gitignored; `docs/configuration/parameters.rst` is not.
+- `docs/docs/api/` and every `docs/docs/**/*.ipynb.md` are **generated** by `docs/generate.py`
+  and gitignored. Edit the docstrings or the `.ipynb`, never the generated page. Link to a
+  notebook page as `inventory.ipynb.md`, and to an API symbol with its Python-style anchor,
+  e.g. `../api/nornir-core.mdx#Nornir.run`.
+- Hand-written pages under `docs/docs/` are `.md` (CommonMark) unless they need JSX, in which
+  case `.mdx`. `docs/docs/configuration/index.md` is maintained by hand.
 - The core takes no new runtime dependency to serve a single plugin's use case. Runtime deps live
   in `[project.dependencies]` and are currently just `ruamel.yaml`.
 - `PYTHON:=3.10` in the `Makefile` is the Docker build argument, not the project's target version.
@@ -142,5 +147,4 @@ an adapter. Only genuinely Claude-specific files (settings, hooks, subagents) ar
 2. Tests cover the change; a fix has a test that failed before it.
 3. Docs updated under `docs/` if behaviour changed, with notebooks re-executed if touched.
 4. `CHANGELOG.rst` has an entry for anything user-visible, with its issue or PR number.
-5. Generated API `.rst` files committed if modules were added or removed.
-6. Any deliberate deviation from the constitution is stated in the pull request.
+5. Any deliberate deviation from the constitution is stated in the pull request.

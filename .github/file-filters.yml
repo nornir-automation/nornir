@@ -1,0 +1,25 @@
+---
+# Path filters for .github/workflows/docs.yml (dorny/paths-filter)
+ci_config: &ci_config
+  - ".github/workflows/docs.yml"
+  - ".github/file-filters.yml"
+
+doc_files: &doc_files
+  - "docs/**"
+  - "Makefile"
+
+# The API reference is generated from the docstrings, and the docs build runs in the uv env
+python_source: &python_source
+  - "nornir/**"
+  - "pyproject.toml"
+  - "uv.lock"
+
+markdown:
+  - "docs/docs/**/*.{md,mdx}"
+  - ".markdownlint.yaml"
+  - *ci_config
+
+documentation:
+  - *doc_files
+  - *python_source
+  - *ci_config

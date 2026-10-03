@@ -108,7 +108,7 @@ The Ruff GitHub repo has information about how you can integrate Ruff in your ed
 
 Tests
 -------------
-As part of the automatic CI on every pull request, besides coding style checks and linting with ``ruff``, static type checking with ``mypy``, unit tests with ``pytest``, docs generation with ``sphinx`` and ``nbsphinx`` (for Jupyter notebooks) and verification of outputs in Jupyter notebook tutorials with pytest plugin ``nbval``.
+As part of the automatic CI on every pull request, besides coding style checks and linting with ``ruff``, static type checking with ``mypy``, unit tests with ``pytest``, a `Docusaurus <https://docusaurus.io/>`_ documentation build (which fails on broken links) and verification of outputs in Jupyter notebook tutorials with pytest plugin ``nbval``.
 
 After modifying any code in the core, at first, we recommend running unit tests locally before running the whole test suite (which takes longer time):
 
@@ -127,6 +127,18 @@ To run only verification of Jupyter notebook tutorials outputs with ``nbval`` ex
 .. code-block:: bash
 
    make nbval
+
+To build the documentation site, you also need `Node.js <https://nodejs.org/>`_ 20 or newer. The notebooks and the API reference are rendered to Markdown first, then Docusaurus builds the site into ``docs/build``:
+
+.. code-block:: bash
+
+   make docs
+
+To preview the documentation with live reload while you edit it:
+
+.. code-block:: bash
+
+   make docs-serve
 
 To run a specific unit test:
 

@@ -3,6 +3,13 @@ FROM python:${PYTHON}-slim-bookworm
 
 COPY --from=ghcr.io/astral-sh/uv:0.11 /uv /uvx /usr/local/bin/
 
+# Node.js builds the Docusaurus documentation site (`make docs`). Only the node binary and npm
+# are copied so the Python install under /usr/local is left untouched.
+COPY --from=node:22-bookworm-slim /usr/local/bin/node /usr/local/bin/node
+COPY --from=node:22-bookworm-slim /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/npm
+RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     NORNIR_TESTS=1 \
@@ -11,7 +18,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     UV_LINK_MODE=copy
 
 RUN apt-get update \
-    && apt-get install -yq git pandoc make \
+    && apt-get install -yq git make \
     && rm -rf /var/lib/apt/lists/*
 
 ARG NAME=nornir
