@@ -215,9 +215,10 @@ class Test:
             global_dry_run=False,
             processors=Processors(),
         )
-        with pytest.raises(Exception, match=expected_msg):
+        assert not hasattr(task, "host")
+        with pytest.raises(AttributeError, match=expected_msg):
             task.run(a_task_for_testing)
 
         task.host = None  # type: ignore[assignment]
-        with pytest.raises(Exception, match=expected_msg):
+        with pytest.raises(AttributeError, match=expected_msg):
             task.run(a_task_for_testing)
