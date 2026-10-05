@@ -4,6 +4,8 @@ Changelog
 Unreleased
 ----------
 
+- Deprecated ``nornir.core.helpers.jinja_helper`` rendering functions in favor of
+  ``nornir_jinja2`` (#1077).
 - Fixed ``Task.run()`` raising a garbled tuple (or a bare ``AttributeError``) as the
   exception message when called before ``Task.start()``, e.g. from outside a nested
   task (#1051)

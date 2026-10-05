@@ -3,6 +3,10 @@ Community Plugins
 
 .. _Community Plugins:
 
+For template rendering in tasks, use `nornir_jinja2
+<https://github.com/nornir-automation/nornir_jinja2>`_. The legacy
+``nornir.core.helpers.jinja_helper`` rendering functions are deprecated.
+
 .. list-table:: Community Nornir Plugins
    :header-rows: 1
    :widths: 20 20 40 20
