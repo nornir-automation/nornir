@@ -8,7 +8,8 @@ Unreleased
   ``nornir_jinja2`` (#1077).
 - Fixed ``Task.run()`` raising a garbled tuple (or a bare ``AttributeError``) as the
   exception message when called before ``Task.start()``, e.g. from outside a nested
-  task (#1051)
+  task. ``Task.host`` is now initialised in ``__init__`` and raises an
+  ``AttributeError`` with a readable message until the task is started (#1051)
 
 3.6.0 - August 2 2026
 ---------------------
