@@ -85,10 +85,10 @@ class F(F_BASE):
         """
         return all(F._verify_rules(host, k.split("__"), v) for k, v in self.filters.items())
 
-    def __and__(self, other: F) -> AND:
+    def __and__(self, other: F_BASE) -> AND:
         return AND(self, other)
 
-    def __or__(self, other: F) -> OR:
+    def __or__(self, other: F_BASE) -> OR:
         return OR(self, other)
 
     def __invert__(self) -> F:
