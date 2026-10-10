@@ -31,7 +31,7 @@ SimpleInventory = "nornir.plugins.inventory.simple:SimpleInventory"
 [dependency-groups]
 dev = [
     "decorator",
-    "nbval>=0.10.0,<0.11",
+    "pytest-notebook>=0.11,<0.12",
     "pytest",
     "pytest-cov",
     "requests-mock",
@@ -246,6 +246,16 @@ max-returns = 11
 # addopts = ["--cov=nornir", "--cov-report=term-missing", "-vs"]
 filterwarnings = [
     "ignore::nornir.core.exceptions.ConflictingConfigurationWarning",
+]
+nb_diff_ignore = [
+    "/metadata/language_info/version",
+]
+nb_diff_replace = [
+    '/cells/*/outputs/*/text \n\s*\^+\n \n',
+    '/cells/*/outputs/*/text /[^"]*nornir/core/task.py /nornir/core/task.py',
+    '/cells/*/outputs/*/text /[^"]*ipykernel_[^"]*\.py /tmp/ipykernel_random.py',
+    '/cells/*/outputs/*/text D:[^"]*task.py /nornir/core/task.py',
+    '/cells/*/outputs/*/text D:[^"]*ipykernel_[^"]*\.py /tmp/ipykernel_random.py',
 ]
 
 [build-system]

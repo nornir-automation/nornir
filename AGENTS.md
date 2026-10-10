@@ -55,11 +55,11 @@ docs/upgrading/       major-version upgrade guides
 
 | Command | What it does |
 |---|---|
-| `make tests` | The authoritative gate: `ruff`, `mypy`, `nbval`, `pytest`, `docs`. All five must pass. |
+| `make tests` | The authoritative gate: `ruff`, `mypy`, `pytest-notebook`, `pytest`, `docs`. All five must pass. |
 | `make pytest` | Unit tests with coverage. Fastest useful loop; run this first. |
 | `make mypy` | Type-checks `nornir` and `tests`. |
 | `make ruff` | Lints (`ruff check .`). Format separately with `uv run ruff format .`. |
-| `make nbval` | Re-executes the documentation notebooks and verifies their stored output. |
+| `make nbval` | Re-executes the documentation notebooks and verifies their stored output with `pytest-notebook`. |
 | `make docs` | Regenerates the API reference, then builds Sphinx HTML. |
 | `make docker-tests` | Runs the whole suite in the CI Linux image. |
 
@@ -85,7 +85,7 @@ request instead of skipping quietly.
 **Notebook output must be real.** The notebooks under `docs/tutorial/` and `docs/howto/` are
 executed by `make nbval` and their stored output is compared against the run. Never hand-write,
 trim, or tidy notebook output — re-execute the notebook and commit what it actually produced.
-Output that varies run to run is normalised in `docs/nbval_sanitize.cfg`.
+Output that varies run to run is normalised by `pytest-notebook` settings in `pyproject.toml`.
 
 **Public API changes are breaking changes.** The public surface is everything importable from
 `nornir` without a leading underscore, plus the `ConnectionPlugin`, `InventoryPlugin`,
