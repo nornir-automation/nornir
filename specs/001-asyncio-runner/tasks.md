@@ -175,6 +175,23 @@ completion, and no runner-owned work remaining.
 - [x] T060 Verify the project's CI results for the full supported Python 3.10–3.14 and Linux/macOS/Windows matrix, including capability discovery, AsyncEcho, performance, and cancellation paths defined in `specs/001-asyncio-runner/quickstart.md`; record check URLs/platform results in `specs/001-asyncio-runner/validation.md`, keeping this gate pending if remote matrix evidence is unavailable rather than extrapolating from local results.
 - [ ] T061 Walk through `specs/001-asyncio-runner/quickstart.md` and the coverage table below; record completion/blockers in `specs/001-asyncio-runner/validation.md`, confirm the follow-up issue and in-tree AsyncioRunner approval are ready to cite in the eventual PR, and re-run speckit-analyze if implementation required changes to the spec/plan/contracts.
 
+## Phase 8: Mode binding for dual-capability plugins (revision 2026-10-13)
+
+**Goal**: A connection is bound to the mode that opened it (FR-024). The Host records
+the mode, exposes it, and rejects cross-mode access; plugins keep no mode state.
+Depends on Phases 4, 5 and 7, which are complete.
+
+### Tests
+
+- [ ] T062 [P] Extend `tests/core/test_async_connections.py` with the dual fixture opened synchronously then requested asynchronously, and the reverse on a fresh host: assert ConnectionModeMismatchError naming the bound mode and the matching close method, no second opening operation, intact cache entry; assert `close_connection` on an asyncio-bound connection raises and `aclose_connection` on a sync-bound connection calls close; assert reopening in the other mode after close; assert `Host.connection_mode` for legacy, sync-only, async-only, dual in each mode, and a name that is not open; assert async bulk cleanup of a dual connection opened synchronously calls close (FR-014/024, SC-004/005).
+
+### Implementation
+
+- [ ] T063 [P] Add `ConnectionModeMismatchError(connection_name, opened_in, requested)` under SyncAsyncMismatchError in `nornir/core/exceptions.py` per `specs/001-asyncio-runner/contracts/errors.md`, storing all three arguments and naming the bound mode and the matching close method in the message; cover it in the existing named-error tests.
+- [ ] T064 After T062 and T063, add `mode: ConnectionCapability` to `_CapabilityConnectionState` in `nornir/core/inventory.py`, record it when `open_connection`/`aopen_connection` publish a connection, implement `Host.connection_mode(name) -> ConnectionCapability | None` (legacy entries report sync), enforce the bound mode on `get_connection`/`aget_connection` cache hits after the capability check, raise on `close_connection` of an asyncio-bound connection, and call close from `aclose_connection`/`aclose_connections` for sync-bound connections instead of choosing aclose from capability membership.
+- [ ] T065 After T064, update the DualCapabilityConnectionPlugin docstring in `nornir/core/plugins/connections.py` per `contracts/protocols.py`; rewrite the dual facet bullet and the "Understand host caching and reuse" section of `docs/howto/writing_capability_connection_plugins.rst` to mode binding, `Host.connection_mode`, and the rule that a plugin records no mode itself; adjust `docs/plugins/execution_model.rst` and the `CHANGELOG.rst` entry where they describe cross-mode reuse.
+- [ ] T066 After T065, run `make pytest ARGS="tests/core/test_async_connections.py tests/core/test_capability_plugins.py tests/core/test_async_run.py tests/plugins/connections"`, `make mypy`, `make ruff`, `make docs` and `make nbval` from `Makefile`; re-execute the notebook only if its output changes; record evidence in `specs/001-asyncio-runner/validation.md` and re-run speckit-analyze.
+
 ## Dependencies and execution order
 
 ### Phase graph
@@ -236,23 +253,24 @@ requires completed US1. No test at a phase checkpoint may call an API scheduled 
 | FR-009 | T016, T019, T052 | Inline sync child and limitation |
 | FR-010 | T016, T019 | Async child on sync entry rejection |
 | FR-011 | T025–T027, T030, T035 | Base/facet contracts and legacy typing |
-| FR-012 | T026, T028, T033–T036 | One logical connection and stable public cache types |
-| FR-013 | T026–T028, T033, T035–T037 | Capability checks including cached transport |
-| FR-014 | T026, T028, T037–T038, T041 | Both-store cleanup |
+| FR-012 | T026, T028, T033–T036, T062, T064 | One logical connection, bound to one mode, stable public cache types |
+| FR-013 | T026–T028, T033, T035–T037, T062–T064 | Capability and mode checks including cached transport |
+| FR-014 | T026, T028, T037–T038, T041, T062, T064 | Both-store cleanup by bound mode |
 | FR-015 | T041–T045 | Observable Nornir cleanup and selection |
 | FR-016 | T012, T022, T046–T050 | Single-owner cancellation and draining |
 | FR-017 | T014, T016, T021, T041 | Partial event ordering and arguments |
 | FR-018 | T029, T039–T040, T048, T058, T060 | Portable test-only real transport |
-| FR-019 | T051–T054, T057 | Executed notebook and capability-author guide |
+| FR-019 | T051–T054, T057, T065 | Executed notebook and capability-author guide |
 | FR-020 | T004, T007–T011, T017, T025, T030–T031, T059 | Public compatibility and existing-suite exception |
 | FR-021 | T025, T030–T032 | New registry, all modes, both discovery groups |
 | FR-022 | T025, T027, T030, T033 | Authoritative valid capability reporting |
 | FR-023 | T027–T028, T033, T036 | Duplicate-name rejection, including cached lookup |
+| FR-024 | T062–T066 | Mode binding, public mode query, mismatch in both directions |
 | SC-001 | T011, T017, T059–T060 | Existing-suite compatibility |
 | SC-002 | T013, T022, T060 | At most 50 ms heartbeat gap |
 | SC-003 | T013, T022, T060 | Under two seconds, unchanged live threads |
-| SC-004 | T015–T016, T026–T028, T033, T036, T041 | Operation-specific mismatch boundaries |
-| SC-005 | T025–T026, T030–T039, T053 | One registration for every declared mode |
+| SC-004 | T015–T016, T026–T028, T033, T036, T041, T062–T064 | Operation-specific mismatch boundaries |
+| SC-005 | T025–T026, T030–T039, T053, T062, T064–T065 | One registration for every declared mode, one mode at a time |
 | SC-006 | T052, T057, T059–T060 | Genuine notebook output and nbval |
 | SC-007 | T025, T027, T031–T033 | Registry coexistence, discovery and invalid declarations |
 

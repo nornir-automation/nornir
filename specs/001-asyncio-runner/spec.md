@@ -13,7 +13,10 @@ the capability-aware `CapabilityConnectionPlugin` contract with its own
 asyncio plugins, and plugins supporting both. Preserve `ConnectionPlugin` and
 `ConnectionPluginRegister` as the legacy compatibility path. All four stories ship
 together in 3.7 (MINOR) per Discussion #1091. `AsyncioRunner` is approved in-tree;
-the reference connection plugin remains a test fixture.
+the reference connection plugin remains a test fixture. Updated on 2026-10-13 after the
+first third-party implementation (nornir_scrapli): a plugin declaring both capabilities
+opens in one mode and its connection stays bound to that mode until it is closed,
+because no transport can be used from both a synchronous and an asyncio task.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -101,8 +104,8 @@ feature. The grilling session merged this into the first slice for that reason.
 test fixture plugin talking to a local echo server: an async task obtains the
 connection from a plugin registered in the new registry, sends a payload, receives it
 back, and the connection is closed by `aclose_connections`. Synchronous-only and
-dual-capability test plugins additionally prove all capability combinations, alongside
-an unchanged legacy plugin.
+dual-capability test plugins additionally prove all capability combinations, including
+the mode binding of a plugin declaring both, alongside an unchanged legacy plugin.
 
 **Acceptance Scenarios**:
 
@@ -122,9 +125,14 @@ an unchanged legacy plugin.
    named error is raised and points to `aget_connection()` from an async task.
 4. **Given** a capability-aware plugin declaring both capabilities and a connection already opened on a
    host through the synchronous path, **When** an async task awaits
-   `aget_connection` for the same name, **Then** the already-open connection is
-   returned and `aopen` is not called. The reverse direction also reuses the connection:
-   there is one logical connection per host and name, regardless of execution mode.
+   `aget_connection` for the same name, **Then** a named error is raised whose message
+   says the connection is open in synchronous mode and names the close method to call
+   before reopening it in asyncio mode. `aopen` is not called and the cached connection
+   stays intact. The reverse direction behaves the same way: a connection opened through
+   `aopen` rejects `get_connection`. There is one logical connection per host and name,
+   bound to the mode that opened it, and the plugin is not required to track that mode
+   itself. Once the connection is closed through the matching close method, the same
+   name can be opened in the other mode.
 5. **Given** an existing third-party synchronous connection plugin unchanged since
    before this release and registered in `ConnectionPluginRegister`, **When** it is
    used through the existing synchronous execution path,
@@ -222,9 +230,17 @@ event was emitted.
 - A host holds a mix of synchronous and asynchronous connections at cleanup: both kinds
   are closed.
 - A connection from a capability-aware plugin declaring both capabilities was opened by a synchronous
-  task and is later requested from an async task under the same name: the cached
-  connection is returned, nothing is reopened. Cached connections from plugins lacking
-  the requested capability raise the same named mismatch error as an uncached request.
+  task and is later requested from an async task under the same name, or the reverse:
+  a named error says which mode the connection is open in and which close method
+  releases it; nothing is reopened and the cached connection stays intact. Cached
+  connections from plugins lacking the requested capability raise the same named
+  mismatch error as an uncached request.
+- A connection bound to asyncio mode is closed through the synchronous close method:
+  a named error is raised, because the synchronous path cannot await the close. A
+  connection bound to synchronous mode is closed through the asynchronous close method:
+  its synchronous close is called, as mixed cleanup already requires.
+- A connection is closed and the same name is opened again in the other mode: the
+  reopen succeeds, because closing releases the mode binding.
 - A capability-aware plugin exposes extra methods but does not declare the corresponding
   capability: that execution path remains unavailable. Method presence does not override
   the declaration.
@@ -283,8 +299,8 @@ event was emitted.
   `aclose_connection` and `aclose_connections`, mirroring the existing synchronous
   methods. Both execution paths MUST resolve plugins by name across the legacy and
   capability-aware registries and maintain one logical connection per host and name.
-  A plugin declaring both capabilities MUST reuse its established connection across
-  paths. Storage MUST preserve existing public cache types and synchronous behavior;
+  A plugin declaring both capabilities opens in either mode, one at a time (FR-024).
+  Storage MUST preserve existing public cache types and synchronous behavior;
   the internal representation is a planning decision.
 - **FR-013**: `Host.aget_connection()` on a plugin without asyncio capability MUST raise a
   named error pointing to `get_connection()`; `Host.get_connection()` on a plugin
@@ -292,7 +308,8 @@ event was emitted.
   `aget_connection()`. These checks MUST apply before opening a connection and before
   returning a cached connection; rejection MUST leave an existing cache entry intact.
 - **FR-014**: `Host.aclose_connections()` MUST close every open connection on the host,
-  awaiting `aclose` on async-capable plugins and calling `close` on synchronous ones.
+  awaiting `aclose` on connections bound to asyncio mode and calling `close` on
+  connections bound to synchronous mode, whatever the plugin's declared capabilities.
 - **FR-015**: `Nornir.aclose_connections()` MUST run as a task through `arun()` so that
   processors observe it and `on_good`/`on_failed` apply; `async with nr:` MUST close
   the connections of good and failed hosts on exit.
@@ -333,6 +350,17 @@ event was emitted.
 - **FR-023**: Connection lookup MUST reject a name present in both registries with an
   explicit ambiguity error before opening a connection. Lookup MUST NOT silently select
   one registry based on execution mode or discovery order.
+- **FR-024**: Every open connection MUST be bound to one execution mode: synchronous for
+  legacy plugins, capability-sync plugins, and dual plugins opened through `open`;
+  asyncio for capability-asyncio plugins and dual plugins opened through `aopen`. The
+  binding MUST be recorded by `Host`, not by the plugin, and MUST be readable through a
+  public `Host.connection_mode(name)` query that returns the mode, or nothing when the
+  name is not open. `get_connection` on an asyncio-bound connection and
+  `aget_connection` on a sync-bound connection MUST raise a named error whose message
+  says which mode the connection is open in and which close method releases it;
+  `close_connection` on an asyncio-bound connection MUST raise the same error. The
+  binding MUST end when the connection is closed, so the name can be reopened in the
+  other mode.
 
 ### Key Entities
 
@@ -355,13 +383,18 @@ event was emitted.
   used to validate execution-path requests. Exact method signature and value types belong
   to planning.
 - **Async connection methods on `Host`**: `aget_connection`, `aopen_connection`,
-  `aclose_connection`, `aclose_connections`, maintaining a per-host connection identity
-  keyed by name across execution paths and plugin registries. Existing entity, new members.
-- **Named errors**: One error per wrong sync/async combination, each message naming the
-  entry point to use instead. New.
+  `aclose_connection`, `aclose_connections`, and the `connection_mode` query,
+  maintaining a per-host connection identity keyed by name across plugin registries and
+  bound to one execution mode at a time. Existing entity, new members.
+- **Named errors**: One error per wrong sync/async combination, including a connection
+  requested or closed in the mode other than the one that opened it, each message
+  naming the entry point or close method to use instead. New.
 - **`AsyncEcho` fixture**: A standard-library-only async connection plugin living in the
   test suite, whose source is included in the plugin-author documentation. New,
   test-only.
+- **Connection mode**: The execution mode an open connection is bound to, recorded by
+  `Host` when the connection is opened and released when it is closed. Readable through
+  `Host.connection_mode(name)`. New.
 
 ## Success Criteria *(mandatory)*
 
@@ -386,7 +419,8 @@ event was emitted.
 - **SC-005**: A plugin author can implement the capability-aware contract and register
   once in `CapabilityConnectionPluginRegister` to serve every declared execution path.
   Tests demonstrate sync-only, asyncio-only, and dual-capability plugins, including
-  cross-path connection reuse for the dual-capability case. Existing legacy plugins
+  mode binding in both directions for the dual-capability case, and a dual-capability
+  plugin needs no mode-tracking code of its own. Existing legacy plugins
   remain usable without implementing the new contract or changing registration.
 - **SC-006**: The how-to notebook executes in the documentation build and its stored
   output matches the run on every documentation build.
@@ -410,6 +444,16 @@ event was emitted.
   supporting sync, asyncio, or both, with a method reporting capabilities. Preserve the
   existing protocol and registry as the legacy compatibility path.
 
+### Session 2026-10-13
+
+- Q: Does a plugin declaring both capabilities serve one established connection from
+  both execution modes? → A: No. Synchronous and asyncio transports are different
+  objects in every known library (Scrapli and AsyncScrapli, httpx Client and
+  AsyncClient), so the connection is bound to the mode that opened it until it is
+  closed, and cross-mode access raises a named error. The binding is recorded by
+  `Host`, so plugins do not track it. nornir_scrapli commit 6dd01bf had to add that
+  tracking itself, which is what surfaced the gap.
+
 ## Assumptions
 
 - `num_workers` protects the devices, not the client; the default stays 20 on the
@@ -429,10 +473,14 @@ event was emitted.
 - Default namespace policy: any name present in both registries is ambiguous, even if
   both entries refer to the same class. Authors opting into the new registry remove the
   old registration for that name; dual-capability plugins need only the new registration.
+- A dual-capability plugin's two modes may be backed by different transport objects.
+  Because the core never hands a connection to a task in the other mode, the plugin
+  opens whichever transport its mode-specific method creates and records nothing about
+  the mode itself.
 - The capability method's exact signature and result type, typed operation interfaces,
   discovery entry-point name for the new registry, error class names, and internal
   storage design are settled during planning. They must satisfy FR-011–FR-013 and
-  FR-020–FR-023 without weakening existing public types or signatures.
+  FR-020–FR-024 without weakening existing public types or signatures.
 - Processors are called synchronously on the async path. A processor that performs slow
   I/O blocks the loop while it runs; #1090 addresses that separately.
 - The release is only useful in practice to users with genuinely async I/O until the
@@ -457,6 +505,12 @@ event was emitted.
 - trio or `anyio` support; any new runtime dependency.
 - Migrating the plugin ecosystem, or shipping a usable async transport in the core
   package.
+- Serving one established connection from both execution modes (cross-mode transport
+  reuse). No known transport supports it, and a second dual model would double the
+  test matrix.
+- A per-method mode marker for helpers a plugin defines beyond the contract.
+  `Host.connection_mode` is the hook for such helpers; a marker can be added later
+  without breaking anything.
 - Renaming, removing, or requiring deprecation warnings for the legacy connection
   protocol and registry; existing plugins need not adopt the new contract in this release.
 - A major-version upgrade guide: the release is additive and nothing breaks.

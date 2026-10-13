@@ -71,7 +71,11 @@ class AsyncCapabilityConnectionPlugin(CapabilityConnectionPlugin, Protocol):
 class DualCapabilityConnectionPlugin(
     SyncCapabilityConnectionPlugin, AsyncCapabilityConnectionPlugin, Protocol
 ):
-    """Both paths operate on the same connection, regardless of opening mode."""
+    """Plugin that opens in either mode; the connection is bound to that mode until closed.
+
+    Each mode may create its own transport object. The Host records the opening mode and
+    rejects access from the other mode, so the plugin keeps no mode state of its own.
+    """
 
 
 CAPABILITY_CONNECTIONS_PLUGIN_PATH = "nornir.plugins.capability_connections"
