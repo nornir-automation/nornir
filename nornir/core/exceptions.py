@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from nornir.core.connection import Connection
+    from nornir.core.plugins.connections import ConnectionCapability
     from nornir.core.result import AggregatedResult, MultiResult, Result
     from nornir.core.tasks import Task
 
@@ -81,6 +82,35 @@ class ConnectionPluginNotSyncError(SyncAsyncMismatchError):
             f"Connection plugin {connection_name!r} does not declare synchronous support. "
             "Use 'aget_connection(...)', 'aopen_connection(...)', or "
             "'aclose_connection(...)'."
+        )
+
+
+_MODE_METHODS: dict[str, tuple[str, str, str]] = {
+    "sync": ("a synchronous", "'get_connection(...)'", "'close_connection(...)'"),
+    "asyncio": ("an asyncio", "'aget_connection(...)'", "'aclose_connection(...)'"),
+}
+
+
+class ConnectionModeMismatchError(SyncAsyncMismatchError):
+    """Raised when an open connection is used from the mode that did not open it.
+
+    A connection is bound to the execution mode that opened it until it is closed.
+    """
+
+    def __init__(
+        self,
+        connection_name: str,
+        opened_in: ConnectionCapability,
+        requested: ConnectionCapability,
+    ) -> None:
+        self.connection_name = connection_name
+        self.opened_in = opened_in
+        self.requested = requested
+        task_kind, get_method, close_method = _MODE_METHODS[opened_in]
+        super().__init__(
+            f"Connection {connection_name!r} is open in {opened_in} mode and was requested "
+            f"in {requested} mode. Use {get_method} from {task_kind} task, or close it with "
+            f"{close_method} before reopening it in {requested} mode."
         )
 
 

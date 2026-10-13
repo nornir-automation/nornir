@@ -25,8 +25,9 @@ The operation facets describe the methods required by each execution mode:
   adds native coroutine ``aopen`` and ``aclose`` methods. Async-only plugins do
   not need unsupported ``open`` or ``close`` stubs.
 * :class:`~nornir.core.plugins.connections.DualCapabilityConnectionPlugin`
-  combines both operation facets. Both modes must operate on the same plugin
-  instance and established transport.
+  combines both operation facets. The plugin opens in whichever mode Nornir
+  calls, and the connection stays bound to that mode until it is closed. Each
+  mode may create its own transport object.
 
 Use the facet that represents the complete declaration when type-checking your
 class. The base protocol alone describes capability reporting and connection
@@ -94,14 +95,15 @@ registrations refer to the same class, and connection get/open operations raise
 uses the cached instance's recorded ownership, so it can run after deregistration
 or a later registry conflict.
 
-Understand host caching and reuse
----------------------------------
+Understand host caching and mode binding
+----------------------------------------
 
-Synchronous and asynchronous callers share one logical connection per host and
-name. Use :meth:`~nornir.core.inventory.Host.get_connection` from synchronous
-tasks and await :meth:`~nornir.core.inventory.Host.aget_connection` from asyncio
-tasks. Requesting an undeclared mode raises a named sync/async mismatch error,
-including on a cache hit, without discarding the cached connection.
+There is one logical connection per host and name, bound to the execution mode
+that opened it. Use :meth:`~nornir.core.inventory.Host.get_connection` from
+synchronous tasks and await :meth:`~nornir.core.inventory.Host.aget_connection`
+from asyncio tasks. Requesting an undeclared mode raises a named sync/async
+mismatch error, including on a cache hit, without discarding the cached
+connection.
 
 The public ``Host.connections`` cache retains its existing type,
 ``dict[str, ConnectionPlugin]``. It contains legacy, sync-capable, and
@@ -109,11 +111,22 @@ dual-capability instances. Async-only instances live in private typed host
 storage and intentionally do not appear in ``Host.connections``. Do not inspect
 or mutate Nornir's private connection caches or capability metadata.
 
-A dual-capability plugin is stored once. Whether ``open_connection`` or
-``aopen_connection`` opens it first, a later get through the other mode returns
-the same established transport rather than opening another connection. A plugin
-therefore must not maintain separate sync and asyncio transports for one
-instance.
+A dual-capability plugin is stored once and bound to the mode that opened it.
+After ``open_connection`` or a synchronous ``get_connection``, the connection is
+in sync mode: ``aget_connection`` raises
+:class:`~nornir.core.exceptions.ConnectionModeMismatchError` and nothing is
+reopened. After ``aopen_connection`` or ``aget_connection``, the connection is
+in asyncio mode: ``get_connection`` and the synchronous ``close_connection``
+raise the same error, because the synchronous path cannot await ``aclose``. The
+error names the mode the connection is in and the close method that releases
+it. Once closed, the name can be opened in the other mode.
+
+Nornir records the mode and exposes it through
+:meth:`~nornir.core.inventory.Host.connection_mode`, so a plugin keeps no mode
+state of its own: ``open`` and ``close`` belong to sync mode, ``aopen`` and
+``aclose`` to asyncio mode, and Nornir only ever calls the pair that matches the
+bound mode. A helper that a plugin adds beyond the contract can consult
+``host.connection_mode(name)`` when it needs the current mode.
 
 Implement safe async lifecycle methods
 --------------------------------------
@@ -135,7 +148,9 @@ or cancelled ``aopen`` is not cached, but releasing resources acquired inside
 
 Await :meth:`~nornir.core.inventory.Host.aclose_connection` or
 :meth:`~nornir.core.inventory.Host.aclose_connections` when async-capable
-connections may be present. If an async close fails or is cancelled, Nornir
+connections may be present. Asynchronous cleanup closes a connection bound to
+sync mode through its synchronous ``close`` and a connection bound to asyncio
+mode through ``aclose``, so one call cleans up a mixed host. If an async close fails or is cancelled, Nornir
 retains that cached connection and its metadata so cleanup can be retried. Bulk
 async cleanup attempts the remaining connections after ordinary close errors and
 then raises the first error; cancellation propagates immediately. Retry failed

@@ -13,6 +13,7 @@ from typing import (
 from nornir.core.configuration import Config
 from nornir.core.exceptions import (
     ConnectionAlreadyOpen,
+    ConnectionModeMismatchError,
     ConnectionNotOpen,
     ConnectionPluginAmbiguousError,
     ConnectionPluginContractError,
@@ -41,6 +42,7 @@ HostOrGroup = TypeVar("HostOrGroup", "Host", "Group")
 class _CapabilityConnectionState:
     plugin: CapabilityConnectionPlugin
     capabilities: frozenset[ConnectionCapability]
+    mode: ConnectionCapability
 
 
 def _is_sync_capability_plugin(
@@ -404,7 +406,7 @@ class Defaults(BaseAttributes):
         }
 
 
-class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds four required methods.
+class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds five required methods.
     __slots__ = (
         "_async_connections",
         "_capability_connections",
@@ -713,6 +715,7 @@ class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds f
         Raises:
             AttributeError: if it's unknown how to establish a connection for the given type
             ConnectionPluginNotSyncError: if the cached or registered plugin is async-only
+            ConnectionModeMismatchError: if the cached connection is open in asyncio mode
 
         """
         self._check_connection_lookup(connection)
@@ -721,6 +724,8 @@ class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds f
             state = self._public_capability_state(connection, existing)
             if state is not None and "sync" not in state.capabilities:
                 raise ConnectionPluginNotSyncError(connection)
+            if state is not None and state.mode != "sync":
+                raise ConnectionModeMismatchError(connection, state.mode, "sync")
             return existing.connection
         if connection in self._async_connections:
             raise ConnectionPluginNotSyncError(connection)
@@ -747,6 +752,7 @@ class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds f
 
         Raises:
             ConnectionPluginNotAsyncError: if the plugin does not declare asyncio support
+            ConnectionModeMismatchError: if the cached connection is open in sync mode
 
         """
         self._check_connection_lookup(connection)
@@ -755,6 +761,8 @@ class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds f
             state = self._public_capability_state(connection, existing)
             if state is None or "asyncio" not in state.capabilities:
                 raise ConnectionPluginNotAsyncError(connection)
+            if state.mode != "asyncio":
+                raise ConnectionModeMismatchError(connection, state.mode, "asyncio")
             return existing.connection
 
         async_existing = self._async_connections.get(connection)
@@ -824,7 +832,7 @@ class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds f
                     conn_name, "validated sync operations are no longer available"
                 )
             conn_obj = capability_conn_obj
-            capability_state = _CapabilityConnectionState(capability_conn_obj, capabilities)
+            capability_state = _CapabilityConnectionState(capability_conn_obj, capabilities, "sync")
 
         if default_to_host_attributes:
             conn_params = self.get_connection_parameters(conn_name)
@@ -917,7 +925,7 @@ class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds f
             else:
                 self._async_connections[conn_name] = conn_obj
             self._capability_connections[conn_name] = _CapabilityConnectionState(
-                conn_obj, capabilities
+                conn_obj, capabilities, "asyncio"
             )
             return conn_obj
         finally:
@@ -929,6 +937,8 @@ class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds f
         Raises:
             nornir.core.exceptions.ConnectionNotOpen: no connection of the given type is open
             ConnectionPluginNotSyncError: if the connection is async-only
+            ConnectionModeMismatchError: if the connection is open in asyncio mode, which
+                the synchronous path cannot close
 
         """
         conn_name = connection
@@ -942,13 +952,18 @@ class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds f
         state = self._public_capability_state(conn_name, conn_obj)
         if state is not None and "sync" not in state.capabilities:
             raise ConnectionPluginNotSyncError(conn_name)
+        if state is not None and state.mode != "sync":
+            raise ConnectionModeMismatchError(conn_name, state.mode, "sync")
         self.connections.pop(conn_name)
         self._remove_capability_state(conn_name, conn_obj)
         if conn_obj is not None:
             conn_obj.close()
 
     async def aclose_connection(self, connection: str) -> None:
-        """Close one connection, awaiting native async cleanup when declared.
+        """Close one connection through the mode that opened it.
+
+        A connection bound to asyncio mode is closed by awaiting ``aclose``; a connection
+        bound to sync mode is closed by calling ``close``, so mixed cleanup needs one call.
 
         Raises:
             ConnectionNotOpen: if the connection is not open
@@ -970,7 +985,7 @@ class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds f
         if conn_obj is None:
             raise ConnectionNotOpen(conn_name)
         state = self._public_capability_state(conn_name, conn_obj)
-        if state is not None and "asyncio" in state.capabilities:
+        if state is not None and state.mode == "asyncio":
             plugin = state.plugin
             if not _is_async_capability_plugin(plugin):
                 raise ConnectionPluginContractError(
@@ -1010,6 +1025,28 @@ class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds f
                     first_error = exc
         if first_error is not None:
             raise first_error
+
+    def connection_mode(self, connection: str) -> ConnectionCapability | None:
+        """Return the execution mode an open connection is bound to.
+
+        A connection is bound to the mode that opened it: ``"sync"`` for legacy plugins
+        and for capability-aware plugins opened through :py:meth:`open_connection` or
+        :py:meth:`get_connection`, ``"asyncio"`` for capability-aware plugins opened
+        through :py:meth:`aopen_connection` or :py:meth:`aget_connection`. Closing the
+        connection releases the binding. Plugin helpers that only work in one mode can
+        consult this instead of tracking the mode themselves.
+
+        Returns:
+            ``"sync"``, ``"asyncio"``, or ``None`` when no connection of that name is open.
+
+        """
+        if connection in self._async_connections:
+            return "asyncio"
+        existing = self.connections.get(connection)
+        if existing is None:
+            return None
+        state = self._public_capability_state(connection, existing)
+        return "sync" if state is None else state.mode
 
     def _check_connection_ambiguity(self, connection: str) -> None:
         if (

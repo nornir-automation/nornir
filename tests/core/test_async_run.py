@@ -726,8 +726,10 @@ def test_async_context_closes_mixed_connections_on_good_and_failed_hosts(
         assert all(plugin.closed == 1 for plugin in CleanupLegacyPlugin.instances)
         assert all(plugin.closed == 1 for plugin in CleanupSyncPlugin.instances)
         assert all(plugin.closed == 1 for plugin in CleanupAsyncPlugin.instances)
-        assert all(plugin.async_closed == 1 for plugin in CleanupDualPlugin.instances)
-        assert all(plugin.closed == 0 for plugin in CleanupDualPlugin.instances)
+        # The dual connections were opened synchronously, so they are sync-bound and
+        # asynchronous cleanup closes them through close, not aclose.
+        assert all(plugin.closed == 1 for plugin in CleanupDualPlugin.instances)
+        assert all(plugin.async_closed == 0 for plugin in CleanupDualPlugin.instances)
         for host in nr.inventory.hosts.values():
             assert host.connections == {}
             assert host._async_connections == {}
@@ -770,9 +772,7 @@ def test_aclose_connections_selects_good_and_failed_hosts(
 
         for hostname, host in nr.inventory.hosts.items():
             assert plugins[hostname].closed == (hostname in closed_hosts)
-            assert ("cleanup-async" in host._async_connections) == (
-                hostname not in closed_hosts
-            )
+            assert ("cleanup-async" in host._async_connections) == (hostname not in closed_hosts)
 
     asyncio.run(exercise())
 
