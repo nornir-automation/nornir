@@ -122,4 +122,11 @@
     to the generated API reference.
   - `make nbval`: 123 passed; the asyncio notebook output did not change, so it was not
     re-executed.
-- speckit-analyze re-run is recorded below when it completes.
+- speckit-analyze re-run (2026-10-13): 24 functional requirements and 7 success
+  criteria, 66 tasks, 100% requirement coverage, no placeholders, no duplicates, no
+  constitution conflicts. Findings were all LOW or MEDIUM: completed Phase 4 and Phase 7
+  task texts (T026, T036, T037, T053) still carry the superseded cross-mode reuse
+  wording, Phase 8 is absent from the plan's sequencing list and the tasks phase graph,
+  and `Host.connection_mode` returns the asyncio entry when a name sits in both caches
+  instead of raising the contract error the other lookups raise. T056 and T061 remain the
+  open merge preconditions.
