@@ -20,8 +20,14 @@ plugins register once, manually or through `nornir.plugins.capability_connection
 Preserve Host.connections and Host.open_connection's public types. Sync-capable plugins
 use the existing cache; async-only plugins use a private typed cache. Private identity-
 matched metadata records new-contract origin and validated capabilities. One logical
-connection per host/name is reused across declared modes. No adapters or false casts
+connection per host/name is bound to the mode that opened it. No adapters or false casts
 are needed, and changing registries does not reclassify an open connection.
+
+Revised 2026-10-13: a connection is bound to the mode that opened it. The Host records
+the mode in its capability metadata, rejects a get or a synchronous close from the other
+mode with ConnectionModeMismatchError, and exposes `Host.connection_mode(name)`. Plugins
+keep no mode state. This replaced cross-mode reuse after nornir_scrapli's implementation
+showed that sync and asyncio transports are different objects (research R15).
 
 The runner uses per-call bounded fan-out on the caller's event loop and cancels/drains
 all owned futures on failure/cancellation. Shared private Task/Nornir helpers retain
@@ -84,11 +90,16 @@ supported platform/Python matrix remain required before implementation is comple
 4. Resolve current cross-registry ambiguity before get/open, including cache hits. Cached
    origin survives deregistration/replacement. Cleanup never depends on registry lookup.
 5. Preserve public connections for legacy/sync/dual objects, with a private async-only
-   store. Both retrieval paths check recorded capability before returning transport.
+   store. Both retrieval paths check recorded capability and bound mode before returning
+   transport; a dual plugin open in one mode rejects the other until it is closed.
 6. Async opening reserves names before suspension; publish state only on success. Plugins
    clean partial resources on unsuccessful opening. Async close retains failed entries
    for retry; async bulk cleanup attempts all names on ordinary failures, then raises.
    Sync cleanup retains existing fail-fast, pop-before-close semantics.
+7. Record the bound mode in `_CapabilityConnectionState.mode` when a connection is
+   published; legacy entries are implicitly sync. Expose `Host.connection_mode(name)`.
+   Asynchronous close of a sync-bound connection calls `close`; synchronous close of an
+   asyncio-bound connection raises. Closing releases the binding.
 
 ### Execution
 
@@ -170,7 +181,8 @@ its generated API diff; retain legitimate regeneration output instead of hand-ed
    cancellation and performance. Keep one sequential stream per edited test/source file.
 3. Add capability protocol/facets, isolated registry/discovery, validation, and typed Host
    storage/lifecycle. Test all declarations, legacy compatibility, collisions, invalid
-   plugins, both reuse directions, public cache identity handling, filtered Host sharing,
+   plugins, both mode-mismatch directions, reopening in the other mode after close, the
+   public mode query, public cache identity handling, filtered Host sharing,
    empty-host copy/pickle, failed opening, and cleanup retry.
 4. Validate AsyncEcho using Host-level cleanup. This phase must not depend on the later
    Nornir cleanup API. Add Nornir cleanup/context APIs and their integration tests next.
@@ -194,6 +206,11 @@ Complete: [data-model.md](data-model.md), [contracts/](contracts/), and
 [quickstart.md](quickstart.md). Public protocol signatures type-check under project mypy
 settings. A representative async-only plugin registers without sync stubs; sync/dual
 facets fit the unchanged public cache/return type. Runtime implementation remains future work.
+
+Revision 2026-10-13: the dual-capability model changed from cross-mode reuse to mode
+binding. [research.md](research.md) R15, [data-model.md](data-model.md),
+[contracts/](contracts/), [quickstart.md](quickstart.md) and tasks T062–T066 carry the
+change; the implementation and the plugin-author guide must be updated to match.
 
 ## Complexity Tracking
 

@@ -4,7 +4,7 @@
 
 ## Execution-mode mismatches
 
-The following six exceptions derive from `SyncAsyncMismatchError(Exception)`. Each
+The following seven exceptions derive from `SyncAsyncMismatchError(Exception)`. Each
 stores its constructor argument as an attribute and names the supported alternative.
 
 | Class | Argument | Raised at | Message guidance |
@@ -15,12 +15,19 @@ stores its constructor argument as an attribute and names the supported alternat
 | RunnerNotAsyncError | runner_name: str | Nornir.arun on a runner without coroutine arun | nr.run, nr.close_connections, with nr, or select asyncio |
 | ConnectionPluginNotAsyncError | connection_name: str | Host.aget_connection / aopen_connection on legacy or declared sync-only plugin | Plugin does not declare asyncio support; use get_connection from a sync task |
 | ConnectionPluginNotSyncError | connection_name: str | Host.get_connection / open_connection / close_connection on declared asyncio-only plugin | Use aget_connection / aopen_connection / aclose_connection |
+| ConnectionModeMismatchError | connection_name: str, opened_in: ConnectionCapability, requested: ConnectionCapability | Host.get_connection or close_connection on an asyncio-bound connection; Host.aget_connection on a sync-bound connection | Connection is open in `opened_in` mode; use the matching get, or close it with the matching close method before reopening it in `requested` mode |
 
 Top-level mismatch checks precede host execution; subtask checks precede child execution
 and child events; connection checks precede opening or returning an incompatible
 transport, including cache hits. Parent events may already exist for subtask/connection
 calls. An uncaught mismatch in user task code becomes a failed parent result through
 normal exception handling. A close mismatch must not remove the cached connection.
+
+For a cached connection the capability check precedes the mode check: a plugin lacking
+the requested capability raises ConnectionPluginNotAsyncError or
+ConnectionPluginNotSyncError; a dual plugin open in the other mode raises
+ConnectionModeMismatchError. The bound mode comes from the Host's capability metadata,
+never from plugin attributes.
 
 ```python
 SYNC_TASKS_IN_ASYNC_RUNS_ISSUE = "https://github.com/nornir-automation/nornir/issues/1085"

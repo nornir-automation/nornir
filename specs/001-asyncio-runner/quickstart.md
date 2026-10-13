@@ -39,7 +39,7 @@ The new test suite provides four fixture kinds:
 | Unchanged legacy plugin | ConnectionPluginRegister | Implicit sync | Sync only |
 | Capability sync fixture | CapabilityConnectionPluginRegister | frozenset({"sync"}) | Sync only |
 | AsyncEcho | CapabilityConnectionPluginRegister | frozenset({"asyncio"}) | Asyncio only |
-| Dual fixture | CapabilityConnectionPluginRegister | frozenset({"sync", "asyncio"}) | Both |
+| Dual fixture | CapabilityConnectionPluginRegister | frozenset({"sync", "asyncio"}) | Both, one at a time |
 
 Run the capability registry and lifecycle tests. Verify:
 
@@ -60,7 +60,11 @@ Run the capability registry and lifecycle tests. Verify:
 ## 2. Connection identity and cleanup — US2/US3, FR-012–FR-015
 
 For the dual fixture, open synchronously and retrieve asynchronously, then repeat in the
-reverse direction on a fresh host. Assert object identity and a single opening operation.
+reverse direction on a fresh host. Assert ConnectionModeMismatchError in both directions,
+that the cached entry and its transport are intact, that `Host.connection_mode` reports
+the opening mode, and that after the matching close the name reopens in the other mode.
+Also assert that closing an asyncio-bound connection synchronously raises, and that
+closing a sync-bound connection asynchronously calls close.
 Repeat incompatible retrieval on cached and uncached sync-only/async-only fixtures;
 assert the named mismatch and intact cache entry. No transport is returned on rejection.
 
@@ -73,7 +77,8 @@ reservations/resources, stale metadata is not applied after public-cache replace
 filtered views share the Host's connections, and empty-host copy/pickle succeeds.
 
 Open a legacy, capability-sync, capability-asyncio and dual connection on one host; async
-bulk cleanup calls close for sync-only and aclose for async/dual. Failed async closing
+bulk cleanup calls close for sync-bound connections (legacy, sync-only, dual opened
+synchronously) and aclose for asyncio-bound ones. Failed async closing
 retains that entry for retry and does not prevent ordinary-error cleanup of other names.
 Sync mismatch leaves an async-only entry intact; legacy synchronous failure semantics stay.
 
@@ -145,7 +150,7 @@ for legitimate generated API changes; never hand-edit generated reference files.
 Review the executed asyncio notebook and
 `docs/howto/writing_capability_connection_plugins.rst`: the guide includes AsyncEcho's
 real source, native async method rules, capability/discovery examples, the legacy path,
-cache visibility, dual-mode transport semantics, and blocking limitations. Verify the
+cache visibility, mode binding for dual-capability plugins, and blocking limitations. Verify the
 wheel contains nornir and excludes the test-only fixture.
 
 Before merge:

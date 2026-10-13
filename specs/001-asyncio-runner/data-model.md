@@ -1,6 +1,6 @@
 # Data Model: Asyncio Runner and capability-aware connections
 
-**Feature**: 001-asyncio-runner | **Updated**: 2026-09-13 | [Plan](plan.md)
+**Feature**: 001-asyncio-runner | **Updated**: 2026-10-13 | [Plan](plan.md)
 
 ## Registries and protocols
 
@@ -12,7 +12,7 @@
 | ConnectionCapability | Literal["sync", "asyncio"] | Nonempty frozenset; exactly three valid combinations |
 | SyncCapabilityConnectionPlugin | Base capability protocol + existing ConnectionPlugin | Both synchronous open and close |
 | AsyncCapabilityConnectionPlugin | Base + aopen/aclose | Both native async methods |
-| DualCapabilityConnectionPlugin | Both operation facets | Same transport reusable/closable through either mode |
+| DualCapabilityConnectionPlugin | Both operation facets | Opens in either mode; the connection is bound to that mode until closed |
 
 The capability result is authoritative but does not narrow a static type. Private guards
 validate all declared operations and narrow to the appropriate facet. A declaration with
@@ -33,9 +33,11 @@ Replacing a registration does not replace or reclassify an already cached instan
 | _opening | set[str] | New private slot | Names reserved by in-progress async opens |
 
 `_CapabilityConnectionState` is an immutable private record with
-`plugin: CapabilityConnectionPlugin` and
-`capabilities: frozenset[ConnectionCapability]`. It references the actual plugin rather
-than wrapping its operations. Legacy connections have no such record. Identity comparison
+`plugin: CapabilityConnectionPlugin`,
+`capabilities: frozenset[ConnectionCapability]` and `mode: ConnectionCapability`, the
+mode that opened the connection. It references the actual plugin rather than wrapping
+its operations. Legacy connections have no such record and are implicitly bound to
+sync mode. Identity comparison
 against the active cached object prevents stale metadata from applying after public-cache
 replacement. Untracked public entries are legacy sync-only. A simultaneous public/private
 entry caused by external mutation is a contract error.
@@ -44,6 +46,11 @@ entry caused by external mutation is a contract error.
 
 - A managed name is in at most one instance cache and is not also opening.
 - Dual-capability plugins use connections even when aopen established them.
+- Every open connection has exactly one bound mode. `Host.connection_mode(name)` reports
+  it and returns None for a name that is not open.
+- A get in the other mode, or a synchronous close of an asyncio-bound connection, raises
+  ConnectionModeMismatchError and leaves the entry intact. An asynchronous close of a
+  sync-bound connection calls close. Closing releases the binding.
 - Both opening paths check all stores; only successful opening publishes state.
 - Cached capability checks precede returning the transport and preserve entries on mismatch.
 - Deregistering or replacing the plugin class does not change the cached object's origin.
@@ -65,9 +72,10 @@ entry caused by external mutation is a contract error.
 absent -- validate name, declaration, mode --> reserve -- await aopen --> open
                                                   | failure/cancel       |
                                                   +--> absent            |
-open -- supported get, either declared mode ----------------------------> open
-open -- incompatible get/close -----------------------------------------> open + error
-open -- successful close -----------------------------------------------> absent
+open -- get in the bound mode -------------------------------------------> open
+open -- get or synchronous close in the other mode ---------------------> open + error
+open -- successful close in the bound mode ----------------------------> absent
+open -- asynchronous close of a sync-bound connection (calls close) ---> absent
 open -- failed/cancelled async close -----------------------------------> open + error
 open -- synchronous close (pop first) ----------------------------------> absent, even if close raises
 reserved -- another get/open ------------------------------------------> unchanged + ConnectionAlreadyOpen
@@ -126,5 +134,5 @@ opens, handlers, and sockets on errors/cancellation. Nothing under tests ships i
 
 ## Errors
 
-See [errors.md](contracts/errors.md) for the six mismatch errors, registry ambiguity and
+See [errors.md](contracts/errors.md) for the seven mismatch errors, registry ambiguity and
 contract errors, constructor argument errors, reused exceptions, and validation precedence.

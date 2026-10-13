@@ -142,6 +142,7 @@ async def Host.aopen_connection(
 ) -> AsyncCapabilityConnectionPlugin
 async def Host.aclose_connection(self, connection: str) -> None
 async def Host.aclose_connections(self) -> None
+def Host.connection_mode(self, connection: str) -> ConnectionCapability | None
 ```
 
 Parameter resolution mirrors the synchronous methods. `open_connection` retains its
@@ -154,13 +155,17 @@ its established transport.
 | Legacy | Existing connections | open/get/close | Mismatch | close |
 | Capability sync | Existing connections + private origin metadata | open/get/close | Mismatch | close |
 | Capability asyncio | Private async cache + origin metadata | Mismatch | aopen/aget/aclose | await aclose |
-| Capability both | Existing connections + private origin metadata | open/get/close | aopen/aget/aclose | await aclose |
+| Capability both, opened sync | Existing connections + private origin metadata | open/get/close | Mode mismatch | close |
+| Capability both, opened asyncio | Existing connections + private origin metadata | Mode mismatch on get/close | aopen/aget/aclose | await aclose |
 
 `Host.connections: dict[str, ConnectionPlugin]` remains the synchronous-compatible public
 cache. It does not enumerate async-only connections. One logical connection name spans
 both stores, and dual-mode instances are stored only once, regardless of opening mode.
-Both retrieval methods check recorded capabilities before returning a cached transport;
-mismatch leaves the entry intact. Capability metadata is associated by object identity,
+Both retrieval methods check recorded capabilities and the bound mode before returning
+a cached transport; either mismatch leaves the entry intact. The bound mode is recorded
+in the origin metadata when the connection is published and released when the entry is
+removed; `Host.connection_mode(name)` exposes it and returns None for a name that is not
+open. Legacy entries report sync. Capability metadata is associated by object identity,
 so replacing a public-cache entry cannot transfer the old object's declared capabilities.
 Untracked public-cache entries retain legacy sync semantics. Conflicting public/private
 entries caused by external mutation raise a contract error rather than selecting one.

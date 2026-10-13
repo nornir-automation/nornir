@@ -119,15 +119,19 @@ the earlier async-only protocol and legacy-registry registration design.
 - **Decision:** Resolve parameters through existing Host helpers. Reserve a name before
   the first await; reject another get/open of that name; publish caches and metadata only
   on success; remove the reservation in finally. Async plugins release partial resources
-  on failed/cancelled aopen. Dual plugins must reuse/close one transport across both modes.
-- **Rationale:** FR-012 requires logical identity; FR-013 requires cached-mode validation.
+  on failed/cancelled aopen. A dual plugin's connection is bound to the opening mode; the
+  record stores the mode, and a get or synchronous close from the other mode raises
+  ConnectionModeMismatchError (R15).
+- **Rationale:** FR-012 requires logical identity; FR-013 and FR-024 require cached
+  capability and mode validation.
   A lock would wait instead of producing the specified concurrent-open error.
 - **Cleanup decision:** Sync close keeps pop-before-close and fail-fast bulk semantics,
   with mode rejection before removal and matching metadata removed with the instance.
   Sync bulk cleanup snapshots both stores and rejects async-only entries. Async close removes an entry only on successful
   close, retaining failures for retry. Async bulk cleanup visits a snapshot of both caches,
   attempts remaining entries after ordinary errors, and then raises the first error;
-  cancellation propagates immediately. Prefer aclose for dual plugins, close for sync-only.
+  cancellation propagates immediately. Call aclose for asyncio-bound connections and
+  close for sync-bound ones, whatever the declaration.
 - **Alternatives:** Resolving registration at cleanup can strand connections after
   deregistration. Visiting only the private async cache misses dual-mode connections.
   Popping before async close prevents retry after failed/cancelled cleanup.
@@ -178,7 +182,7 @@ the earlier async-only protocol and legacy-registry registration design.
 
 ## R10. Errors
 
-- **Decision:** Keep the six execution-mode errors under SyncAsyncMismatchError; add
+- **Decision:** Keep the seven execution-mode errors under SyncAsyncMismatchError; add
   ConnectionPluginAmbiguousError and ConnectionPluginContractError independently.
   Constructor arguments, precedence, and message pointers are in [errors.md](contracts/errors.md).
 - **Rationale:** Retrying another mode can fix a mismatch, but not duplicate registry
@@ -216,7 +220,8 @@ the earlier async-only protocol and legacy-registry registration design.
   Nornir semantics then Nornir errors; these file streams can run independently.
 - **Required coverage:** Typed examples against all facets, legacy compatibility, registry
   isolation/discovery, invalid capability declarations/operations, duplicate names before
-  and after caching, both reuse directions, metadata identity, filtered Host sharing,
+  and after caching, both mode-mismatch directions, reopening after close, the public
+  mode query, metadata identity, filtered Host sharing,
   four host-selection combinations, both cache cleanup, resource cancellation, traceback
   user-code visibility, and the full Python/platform matrix.
 
@@ -259,3 +264,24 @@ the earlier async-only protocol and legacy-registry registration design.
 - No unresolved technical choice remains in this design. The regenerated implementation
   task list maps these decisions to story phases and validation checkpoints; cross-artifact
   analysis is the next review before execution.
+
+## R15. Mode binding for dual-capability plugins (2026-10-13)
+
+- **Trigger:** nornir_scrapli commit 6dd01bf implemented the capability contract and had
+  to add its own mode attribute, cache-hit guards, close guards and static get wrappers,
+  because Scrapli and AsyncScrapli are different driver objects and the Host returned
+  opposite-mode cache hits for a dual plugin.
+- **Decision:** Replace cross-mode reuse with mode binding. The Host records the opening
+  mode in `_CapabilityConnectionState.mode`; legacy entries are implicitly sync. A get
+  from the other mode, or a synchronous close of an asyncio-bound connection, raises
+  ConnectionModeMismatchError; an asynchronous close of a sync-bound connection calls
+  close. `Host.connection_mode(name)` is the public query. Closing releases the binding,
+  so the name can be reopened in the other mode.
+- **Rationale:** No known library offers one transport usable from both modes (Scrapli,
+  httpx, asyncssh, paramiko, netmiko). Mode state belongs with the cache entry it
+  describes, so plugins need no tracking code, and the protocol's method names already
+  define the mode of each lifecycle operation.
+- **Alternatives:** Keeping reuse as a second declarable behaviour doubles the test matrix
+  for a capability nothing needs. A per-method decorator pushes the mode back into the
+  plugin, which is the duplication being removed; it can be added later for plugin-defined
+  helpers without breaking anything.

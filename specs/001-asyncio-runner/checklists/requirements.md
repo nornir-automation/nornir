@@ -2,7 +2,7 @@
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-09-06
-**Last validated**: 2026-09-13
+**Last validated**: 2026-10-13
 **Feature**: [spec.md](../spec.md)
 
 ## Content Quality
@@ -60,3 +60,9 @@
   The regenerated tasks.md includes all 23 functional requirements and seven success
   criteria, preserves completed setup work, and maps prior IDs. Runtime gates remain
   pending; run speckit-analyze to review the new cross-artifact mapping before implementation.
+- Validation pass 3 (2026-10-13): the dual-capability model changed from cross-mode
+  transport reuse to mode binding after nornir_scrapli's implementation. FR-012/014 were
+  amended, FR-024 added, US2 scenario 4 and three edge cases rewritten, a clarification
+  recorded, and two out-of-scope items added. All items still pass; no clarification
+  markers remain. The implementation and the plugin-author guide now lag the spec; tasks
+  T062–T066 close that gap.
