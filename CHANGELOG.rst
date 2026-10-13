@@ -10,7 +10,9 @@ Unreleased
 - Added Python 3.15 support (#1118).
 - Added opt-in native asyncio task dispatch through ``AsyncioRunner`` and ``Nornir.arun``,
   a capability-aware connection plugin contract and registry for synchronous, asyncio,
-  and dual-mode plugins, and asynchronous connection cleanup. Existing synchronous
+  and dual-mode plugins, and asynchronous connection cleanup. A connection is bound to
+  the mode that opened it, reported by ``Host.connection_mode``; using it from the other
+  mode raises ``ConnectionModeMismatchError``. Existing synchronous
   runners and legacy connection plugins remain compatible, with ``ThreadedRunner`` still
   the default. The synchronous ``Nornir.run`` and ``Task.run`` entry points now reject
   coroutine tasks with ``AsyncTaskOnSyncRunError`` instead of treating an un-awaited

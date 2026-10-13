@@ -13,6 +13,7 @@ if TYPE_CHECKING:
 from nornir.core.configuration import Config
 from nornir.core.exceptions import (
     ConnectionAlreadyOpen,
+    ConnectionModeMismatchError,
     ConnectionNotOpen,
     ConnectionPluginAmbiguousError,
     ConnectionPluginContractError,
@@ -341,7 +342,7 @@ def test_async_open_uses_parameters_once_and_keeps_async_only_cache_private() ->
 
 
 @pytest.mark.parametrize("async_first", [False, True])
-def test_dual_connection_is_reused_across_modes_and_stays_public(async_first: bool) -> None:
+def test_dual_connection_is_bound_to_its_opening_mode_and_stays_public(async_first: bool) -> None:
     async def scenario() -> None:
         host = Host("host")
         config = Config()
@@ -350,16 +351,92 @@ def test_dual_connection_is_reused_across_modes_and_stays_public(async_first: bo
         opened_plugin: ConnectionPlugin | AsyncCapabilityConnectionPlugin
         if async_first:
             opened_plugin = await host.aopen_connection("dual", config)
-            transport = host.get_connection("dual", config)
+            assert host.connection_mode("dual") == "asyncio"
+            with pytest.raises(ConnectionModeMismatchError) as excinfo:
+                host.get_connection("dual", config)
+            assert (excinfo.value.opened_in, excinfo.value.requested) == ("asyncio", "sync")
+            assert "'aclose_connection(...)'" in str(excinfo.value)
+            with pytest.raises(ConnectionModeMismatchError):
+                host.close_connection("dual")
+            transport = await host.aget_connection("dual", config)
         else:
             opened_plugin = host.open_connection("dual", config)
-            transport = await host.aget_connection("dual", config)
+            assert host.connection_mode("dual") == "sync"
+            with pytest.raises(ConnectionModeMismatchError) as excinfo:
+                await host.aget_connection("dual", config)
+            assert (excinfo.value.opened_in, excinfo.value.requested) == ("sync", "asyncio")
+            assert "'close_connection(...)'" in str(excinfo.value)
+            transport = host.get_connection("dual", config)
 
         assert isinstance(opened_plugin, DualPlugin)
         assert transport is opened_plugin.connection
         assert opened_plugin.opened + opened_plugin.async_opened == 1
         assert host.connections == {"dual": opened_plugin}
         assert host._async_connections == {}
+        assert host._capability_connections["dual"].plugin is opened_plugin
+
+        if async_first:
+            await host.aclose_connection("dual")
+            assert (opened_plugin.async_closed, opened_plugin.closed) == (1, 0)
+            reopened: object = host.open_connection("dual", config)
+            assert host.connection_mode("dual") == "sync"
+        else:
+            host.close_connection("dual")
+            assert (opened_plugin.closed, opened_plugin.async_closed) == (1, 0)
+            reopened = await host.aopen_connection("dual", config)
+            assert host.connection_mode("dual") == "asyncio"
+        assert reopened is not opened_plugin
+        assert len(DualPlugin.instances) == 2
+
+    asyncio.run(scenario())
+
+
+def test_async_close_of_a_sync_bound_connection_calls_the_synchronous_close() -> None:
+    async def scenario() -> None:
+        host = Host("host")
+        CapabilityConnectionPluginRegister.register("dual", DualPlugin)
+        host.get_connection("dual", Config())
+
+        await host.aclose_connection("dual")
+
+        plugin = DualPlugin.instances[0]
+        assert (plugin.closed, plugin.async_closed) == (1, 0)
+        assert host.connections == {}
+        assert host._capability_connections == {}
+        assert host.connection_mode("dual") is None
+
+    asyncio.run(scenario())
+
+
+def test_connection_mode_reports_the_bound_mode_for_every_kind_of_plugin() -> None:
+    async def scenario() -> None:
+        host = Host("host")
+        config = Config()
+        ConnectionPluginRegister.register("legacy", LegacyPlugin)
+        CapabilityConnectionPluginRegister.register("sync", SyncPlugin)
+        CapabilityConnectionPluginRegister.register("async", AsyncPlugin)
+        CapabilityConnectionPluginRegister.register("dual-sync", DualPlugin)
+        CapabilityConnectionPluginRegister.register("dual-async", DualPlugin)
+        names = ("legacy", "sync", "async", "dual-sync", "dual-async")
+        assert [host.connection_mode(name) for name in names] == [None] * len(names)
+
+        host.get_connection("legacy", config)
+        host.get_connection("sync", config)
+        await host.aget_connection("async", config)
+        host.get_connection("dual-sync", config)
+        await host.aget_connection("dual-async", config)
+
+        assert [host.connection_mode(name) for name in names] == [
+            "sync",
+            "sync",
+            "asyncio",
+            "sync",
+            "asyncio",
+        ]
+        assert host.connection_mode("missing") is None
+
+        await host.aclose_connections()
+        assert [host.connection_mode(name) for name in names] == [None] * len(names)
 
     asyncio.run(scenario())
 
@@ -536,11 +613,16 @@ def test_cached_provenance_survives_deregistration_replacement_and_reporting_cha
         plugin.reported = frozenset({"sync"})
         CapabilityConnectionPluginRegister.deregister("mutable")
 
-        assert await host.aget_connection("mutable", config) is transport
+        assert host.get_connection("mutable", config) is transport
+        # The recorded dual declaration survives: the other mode is a mode mismatch of a
+        # dual connection, not a missing capability, and nothing is reopened.
+        with pytest.raises(ConnectionModeMismatchError):
+            await host.aget_connection("mutable", config)
 
         CapabilityConnectionPluginRegister.register("mutable", AsyncPlugin)
         assert host.get_connection("mutable", config) is transport
-        assert await host.aget_connection("mutable", config) is transport
+        with pytest.raises(ConnectionModeMismatchError):
+            await host.aget_connection("mutable", config)
         assert len(MutableCapabilitiesPlugin.instances) == 1
         assert AsyncPlugin.instances == []
 
@@ -568,7 +650,7 @@ def test_ambiguity_is_checked_on_every_cached_and_uncached_lookup() -> None:
                 await operation
 
         await host.aclose_connection("dual")
-        assert DualPlugin.instances[0].async_closed == 1
+        assert (DualPlugin.instances[0].closed, DualPlugin.instances[0].async_closed) == (1, 0)
 
     asyncio.run(scenario())
 
@@ -705,26 +787,29 @@ def test_async_close_failure_and_cancellation_retain_state_for_retry() -> None:
     asyncio.run(scenario())
 
 
-def test_async_bulk_cleanup_closes_both_stores_and_prefers_dual_async_close() -> None:
+def test_async_bulk_cleanup_closes_both_stores_through_each_bound_mode() -> None:
     async def scenario() -> None:
         host = Host("host")
         config = Config()
         ConnectionPluginRegister.register("legacy", LegacyPlugin)
         CapabilityConnectionPluginRegister.register("sync", SyncPlugin)
         CapabilityConnectionPluginRegister.register("async", AsyncPlugin)
-        CapabilityConnectionPluginRegister.register("dual", DualPlugin)
+        CapabilityConnectionPluginRegister.register("dual-sync", DualPlugin)
+        CapabilityConnectionPluginRegister.register("dual-async", DualPlugin)
         host.get_connection("legacy", config)
         host.get_connection("sync", config)
         await host.aget_connection("async", config)
-        host.get_connection("dual", config)
+        host.get_connection("dual-sync", config)
+        await host.aget_connection("dual-async", config)
 
         await host.aclose_connections()
 
         assert LegacyPlugin.instances[0].closed == 1
         assert SyncPlugin.instances[0].closed == 1
         assert AsyncPlugin.instances[0].closed == 1
-        assert DualPlugin.instances[0].async_closed == 1
-        assert DualPlugin.instances[0].closed == 0
+        dual_sync, dual_async = DualPlugin.instances
+        assert (dual_sync.closed, dual_sync.async_closed) == (1, 0)
+        assert (dual_async.async_closed, dual_async.closed) == (1, 0)
         assert host.connections == {}
         assert host._async_connections == {}
         assert host._capability_connections == {}

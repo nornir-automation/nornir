@@ -83,7 +83,11 @@ class AsyncCapabilityConnectionPlugin(CapabilityConnectionPlugin, Protocol):
 class DualCapabilityConnectionPlugin(
     SyncCapabilityConnectionPlugin, AsyncCapabilityConnectionPlugin, Protocol
 ):
-    """Plugin whose sync and async modes reuse the same established transport."""
+    """Plugin that opens in either mode; the connection is bound to that mode until closed.
+
+    Each mode may create its own transport object. The Host records the opening mode and
+    rejects access from the other mode, so the plugin keeps no mode state of its own.
+    """
 
 
 ConnectionPluginRegister: PluginRegister[type[ConnectionPlugin]] = PluginRegister(

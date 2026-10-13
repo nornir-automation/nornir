@@ -93,3 +93,33 @@
 - Push CI for fix commit `777cd55` passed on Python 3.10-3.14 across Ubuntu, macOS,
   and Windows, including linters, Sphinx, and wheel import:
   https://github.com/nornir-automation/nornir/actions/runs/36307946893
+
+## Phase 8: Mode binding for dual-capability plugins (2026-10-13)
+
+- Trigger: nornir_scrapli commit 6dd01bf showed that a dual plugin cannot serve one
+  transport from both modes and that the Host returned opposite-mode cache hits.
+- Spec revision committed as `a132c4c` (FR-012/014 amended, FR-024 added, research R15).
+- T062: `tests/core/test_async_connections.py` now asserts the mode mismatch in both
+  directions, intact cache on rejection, synchronous close of an asyncio-bound connection
+  rejected, asynchronous close of a sync-bound connection calling `close`, reopening in the
+  other mode after close, `Host.connection_mode` for every plugin kind, and bulk cleanup by
+  bound mode. The Nornir-level mixed cleanup test was corrected for sync-bound dual plugins.
+- T063: `ConnectionModeMismatchError(connection_name, opened_in, requested)` added under
+  `SyncAsyncMismatchError`; the message names the bound mode and the matching close method.
+- T064: `_CapabilityConnectionState.mode` recorded on publish; `Host.connection_mode`
+  added; mode enforced on cached get in both directions and on synchronous close;
+  asynchronous close selects `close` or `aclose` by bound mode instead of by capability.
+- T065: dual facet docstring, the plugin-author guide (facet bullet and the host caching
+  section, now "mode binding"), and the changelog entry updated. `docs/plugins/*` had no
+  reuse wording to change.
+- T066 evidence, all run locally on this branch:
+  - Focused pytest (connection, capability, run, AsyncEcho, legacy connection tests):
+    114 passed.
+  - Full `make pytest`: 260 passed (258 before this phase; two tests added).
+  - `make mypy`: no issues in 55 source files.
+  - `make ruff`: all checks passed; edited files formatted with `ruff format`.
+  - `make docs`: build succeeded with 44 warnings, the same count as before; no change
+    to the generated API reference.
+  - `make nbval`: 123 passed; the asyncio notebook output did not change, so it was not
+    re-executed.
+- speckit-analyze re-run is recorded below when it completes.
