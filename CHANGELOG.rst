@@ -4,6 +4,20 @@ Changelog
 3.7.0 - Unreleased
 ------------------
 
+- Added ``AInitNornir``, the asynchronous counterpart of ``InitNornir``, for applications
+  that already run an event loop: ``nr = await AInitNornir(...)`` takes the same
+  arguments and returns the same ``Nornir`` object without blocking the loop. Existing
+  inventory plugins and synchronous transform functions run in a worker thread. Added a
+  capability-aware inventory plugin contract and registry
+  (``nornir.plugins.capability_inventory``) for plugins that load synchronously,
+  asynchronously, or both, and async transform functions
+  (``nornir.plugins.async_transform_function``), which ``AInitNornir`` awaits once per
+  host in inventory order (#1087)
+- ``InitNornir`` now raises ``TransformFunctionNotSyncError`` for a transform function
+  defined with ``async def``, before the inventory is loaded. Previously the transform
+  was never run and the hosts were left unchanged, with only a "coroutine was never
+  awaited" warning (#1087)
+
 - Added opt-in native asyncio task dispatch through ``AsyncioRunner`` and ``Nornir.arun``,
   a capability-aware connection plugin contract and registry for synchronous, asyncio,
   and dual-mode plugins, and asynchronous connection cleanup. A connection is bound to

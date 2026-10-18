@@ -85,6 +85,30 @@ class ConnectionPluginNotSyncError(SyncAsyncMismatchError):
         )
 
 
+class InventoryPluginNotSyncError(SyncAsyncMismatchError):
+    """Raised when InitNornir is given an inventory plugin that only loads asynchronously."""
+
+    def __init__(self, plugin_name: str) -> None:
+        self.plugin_name = plugin_name
+        super().__init__(
+            f"Inventory plugin {plugin_name!r} only declares asyncio support and cannot be "
+            "loaded by InitNornir(). Use 'nr = await AInitNornir(...)' instead, or ask the "
+            "plugin author for synchronous support."
+        )
+
+
+class TransformFunctionNotSyncError(SyncAsyncMismatchError):
+    """Raised when InitNornir is given a transform function defined with ``async def``."""
+
+    def __init__(self, transform_name: str) -> None:
+        self.transform_name = transform_name
+        super().__init__(
+            f"Transform function {transform_name!r} is defined with 'async def' and cannot "
+            "be applied by InitNornir(). Use 'nr = await AInitNornir(...)' instead, or define "
+            "a synchronous transform function."
+        )
+
+
 _MODE_METHODS: dict[str, tuple[str, str, str]] = {
     "sync": ("a synchronous", "'get_connection(...)'", "'close_connection(...)'"),
     "asyncio": ("an asyncio", "'aget_connection(...)'", "'aclose_connection(...)'"),
@@ -132,6 +156,39 @@ class ConnectionPluginContractError(Exception):
         self.connection_name = connection_name
         self.reason = reason
         super().__init__(f"Connection plugin {connection_name!r} violates its contract: {reason}")
+
+
+class InventoryPluginAmbiguousError(Exception):
+    """Raised when an inventory plugin name is registered in both inventory registries."""
+
+    def __init__(self, plugin_name: str) -> None:
+        self.plugin_name = plugin_name
+        super().__init__(
+            f"Inventory plugin {plugin_name!r} is registered in both the legacy and "
+            "capability-aware inventory registries. Remove one registration or rename "
+            "the plugin."
+        )
+
+
+class InventoryPluginContractError(Exception):
+    """Raised when a capability-aware inventory plugin violates its contract."""
+
+    def __init__(self, plugin_name: str, reason: str) -> None:
+        self.plugin_name = plugin_name
+        self.reason = reason
+        super().__init__(f"Inventory plugin {plugin_name!r} violates its contract: {reason}")
+
+
+class TransformFunctionAmbiguousError(Exception):
+    """Raised when a transform function name is registered in both transform registries."""
+
+    def __init__(self, transform_name: str) -> None:
+        self.transform_name = transform_name
+        super().__init__(
+            f"Transform function {transform_name!r} is registered in both the synchronous "
+            "and async transform function registries. Remove one registration or rename "
+            "the transform function."
+        )
 
 
 class ConnectionException(Exception):
