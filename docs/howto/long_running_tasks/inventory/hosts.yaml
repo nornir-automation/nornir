@@ -1,0 +1,17 @@
+---
+edge-1:
+    hostname: 192.0.2.1
+    groups:
+        - routers
+edge-2:
+    hostname: 192.0.2.2
+    groups:
+        - routers
+edge-3:
+    hostname: 192.0.2.3
+    groups:
+        - routers
+edge-4:
+    hostname: 192.0.2.4
+    groups:
+        - routers

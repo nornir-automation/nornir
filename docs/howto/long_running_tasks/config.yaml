@@ -1,0 +1,11 @@
+---
+inventory:
+    plugin: SimpleInventory
+    options:
+        host_file: "long_running_tasks/inventory/hosts.yaml"
+        group_file: "long_running_tasks/inventory/groups.yaml"
+        defaults_file: "long_running_tasks/inventory/defaults.yaml"
+runner:
+    plugin: threaded
+    options:
+        num_workers: 1

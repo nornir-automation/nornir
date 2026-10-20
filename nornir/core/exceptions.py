@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import copy
+from typing import TYPE_CHECKING, Literal
 
 if TYPE_CHECKING:
     from nornir.core.connection import Connection
@@ -249,6 +250,129 @@ class NornirSubTaskError(Exception):
 
     def __str__(self) -> str:
         return f"Subtask: {self.task} (failed)\n"
+
+
+class TaskInterruptedError(BaseException):
+    """Base of the errors that stop a host's task before it finishes.
+
+    It subclasses :class:`BaseException`, like :class:`asyncio.CancelledError`, so that an
+    ``except Exception`` block in a task does not stop a cancellation or a deadline.
+
+    Arguments:
+        host_name: Name of the host whose task was interrupted
+        task_name: Name of the interrupted task
+        started: ``False`` when the host was recorded before its task started
+
+    """
+
+    def __init__(self, host_name: str, task_name: str, started: bool = True) -> None:
+        self.host_name = host_name
+        self.task_name = task_name
+        self.started = started
+        super().__init__(self._message())
+
+    def _message(self) -> str:
+        return f"Task {self.task_name!r} on host {self.host_name!r} was interrupted."
+
+    def _arguments(self) -> tuple[object, ...]:
+        return (self.host_name, self.task_name, self.started)
+
+    def __reduce__(self) -> tuple[type[TaskInterruptedError], tuple[object, ...]]:
+        return (type(self), self._arguments())
+
+    def fresh(self) -> TaskInterruptedError:
+        """Return a new instance with the same fields, to raise again at a later checkpoint.
+
+        Returns:
+            The new instance, without a traceback.
+
+        """
+        return copy.copy(self)
+
+
+class TaskCancelledError(TaskInterruptedError):
+    """Recorded for a host whose run was cancelled before its task finished."""
+
+    def _message(self) -> str:
+        if self.started:
+            return f"Task {self.task_name!r} on host {self.host_name!r} was cancelled."
+        return (
+            f"Task {self.task_name!r} on host {self.host_name!r} was cancelled before it "
+            "started."
+        )
+
+
+class TaskTimeoutError(TaskInterruptedError):
+    """Recorded for a host that passed its per-host deadline or the run deadline.
+
+    Arguments:
+        host_name: Name of the host whose task was interrupted
+        task_name: Name of the interrupted task
+        timeout: The deadline that passed, in seconds
+        scope: ``"host"`` for the per-host deadline, ``"run"`` for the run deadline
+        started: ``False`` when the host never started before the run deadline
+
+    """
+
+    def __init__(
+        self,
+        host_name: str,
+        task_name: str,
+        timeout: float,
+        scope: Literal["host", "run"],
+        started: bool = True,
+    ) -> None:
+        self.timeout = timeout
+        self.scope = scope
+        super().__init__(host_name, task_name, started)
+
+    def _arguments(self) -> tuple[object, ...]:
+        return (self.host_name, self.task_name, self.timeout, self.scope, self.started)
+
+    def _message(self) -> str:
+        subject = f"Task {self.task_name!r} on host {self.host_name!r}"
+        if not self.started:
+            return f"{subject} did not start before the run timeout of {self.timeout:g} seconds."
+        if self.scope == "host":
+            return f"{subject} exceeded its per-host timeout of {self.timeout:g} seconds."
+        return f"{subject} exceeded the run timeout of {self.timeout:g} seconds."
+
+
+class RunnerCapabilityError(Exception):
+    """Raised when the configured runner does not support the requested entry point.
+
+    Arguments:
+        runner_name: Class name of the runner
+        capability: The entry point that was requested: ``submit``, ``run_stream``,
+            ``asubmit`` or ``astream``
+        background: ``True`` when the runner supports streaming but not background runs
+
+    """
+
+    def __init__(self, runner_name: str, capability: str, background: bool = False) -> None:
+        self.runner_name = runner_name
+        self.capability = capability
+        self.background = background
+        if background:
+            message = (
+                f"{runner_name} does not support background runs ({capability!r}) because it "
+                "runs every task on the caller's thread. Use 'run_stream' to consume the run "
+                "live, or use ThreadedRunner."
+            )
+        elif capability in {"asubmit", "astream"}:
+            message = (
+                f"{runner_name} does not support {capability!r}. Implement "
+                "AsyncStreamingRunner, or use arun()."
+            )
+        else:
+            message = (
+                f"{runner_name} does not support {capability!r}. Implement StreamingRunner, "
+                "or use run()."
+            )
+        super().__init__(message)
+
+    def __reduce__(self) -> tuple[type[RunnerCapabilityError], tuple[str, str, bool]]:
+        return (type(self), (self.runner_name, self.capability, self.background))
 
 
 class NornirNoValidInventoryError(Exception):

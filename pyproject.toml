@@ -243,6 +243,10 @@ max-returns = 11
     "UP032",   # Use f-string instead of `format` call
 ]
 
+"tests/core/test_run_progress.py" = [
+    "B901",    # Progress-reporting tasks are generators that `return` their final result, by design (#1086)
+]
+
 [tool.pytest]
 # addopts = ["--cov=nornir", "--cov-report=term-missing", "-vs"]
 filterwarnings = [

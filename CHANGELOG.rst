@@ -4,6 +4,25 @@ Changelog
 3.7.0 - Unreleased
 ------------------
 
+- Added opt-in entry points for long-running work: ``Nornir.submit`` and
+  ``Nornir.asubmit`` start a run in the background and return a handle that yields each
+  host's final result as it finishes, reports progress, cancels the run and returns the
+  usual ``AggregatedResult``; ``Nornir.run_stream`` and ``Nornir.astream`` yield the
+  events of a run as they happen. Runs can be cancelled, and runners accept a per-host
+  deadline (``per_host_timeout``) and a run deadline (``timeout``), also under
+  ``runner.options`` or per run with ``run_options``. Every host ends with one final
+  result; cancelled and timed-out hosts carry ``TaskCancelledError`` or
+  ``TaskTimeoutError``, which subclass ``BaseException``. Cancellation is delivered at
+  ``Task.checkpoint()``, at each ``yield`` and at the start of each subtask on
+  ``SerialRunner`` and ``ThreadedRunner``, and at the awaited call on ``AsyncioRunner``.
+  Tasks report progress by yielding ``PartialResult`` objects, which processors receive
+  through the optional ``task_instance_progress`` hook. New optional protocols
+  ``StreamingRunner``, ``AsyncStreamingRunner`` and ``ProgressProcessor`` sit next to
+  the existing contracts, which are unchanged (#1086)
+- A task that contains ``yield`` now runs as a progress-reporting task. Previously its
+  body never ran: its generator object was stored as the result and the host was
+  reported as successful (#1086)
+
 - Added ``AInitNornir``, the asynchronous counterpart of ``InitNornir``, for applications
   that already run an event loop: ``nr = await AInitNornir(...)`` takes the same
   arguments and returns the same ``Nornir`` object without blocking the loop. Existing
