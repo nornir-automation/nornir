@@ -9,7 +9,7 @@ from nornir.core.task import AggregatedResult, Task
 if TYPE_CHECKING:
     from collections.abc import Iterator
 
-    from nornir.core.run import RunContext
+    from nornir.core.run import RunContext, RunOptions
 
 RUNNERS_PLUGIN_PATH = "nornir.plugins.runners"
 
@@ -66,6 +66,11 @@ class StreamingRunner(Protocol):
         """
         raise NotImplementedError("needs to be implemented by the plugin")
 
+    @property
+    def run_options(self) -> RunOptions:
+        """Default deadlines of this runner; per-run options override them field by field."""
+        raise NotImplementedError("needs to be implemented by the plugin")
+
     def execute(self, task: Task, hosts: list[Host], run: RunContext) -> Iterator[None]:
         """Run ``task`` over ``hosts`` until ``run.finished``.
 
@@ -85,6 +90,11 @@ class AsyncStreamingRunner(Protocol):
     @property
     def cancellation_depth(self) -> CancellationDepth:
         """Where this runner delivers cancellation and deadlines."""
+        raise NotImplementedError("needs to be implemented by the plugin")
+
+    @property
+    def run_options(self) -> RunOptions:
+        """Default deadlines of this runner; per-run options override them field by field."""
         raise NotImplementedError("needs to be implemented by the plugin")
 
     async def aexecute(self, task: Task, hosts: list[Host], run: RunContext) -> None:

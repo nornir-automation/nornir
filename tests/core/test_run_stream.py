@@ -9,7 +9,7 @@ import pytest
 from nornir.core.exceptions import RunnerCapabilityError, TaskCancelledError
 from nornir.core.task import AggregatedResult, Result, Task
 from nornir.plugins.runners import AsyncioRunner, SerialRunner, ThreadedRunner
-from tests.core.run_helpers import asteps_task, make_nornir, steps_task
+from tests.core.run_helpers import EventLog, asteps_task, make_nornir, steps_task
 
 if TYPE_CHECKING:
     from nornir.core.plugins.runners import RunnerPlugin
@@ -167,3 +167,38 @@ def test_astream_full_iteration_and_async_with() -> None:
         assert all(r[0].result == "done" for r in (await stream.result()).values())
 
     asyncio.run(scenario())
+
+
+def fail_all(task: Task) -> Result:
+    msg = f"{task.host.name} failed"
+    raise ValueError(msg)
+
+
+@pytest.mark.parametrize("runner", [SerialRunner(), ThreadedRunner()])
+def test_run_is_finalized_when_a_full_stream_ends(runner: RunnerPlugin) -> None:
+    for _ in range(10):
+        log = EventLog()
+        nr = make_nornir(runner, 3, [log])
+        for _ in nr.run_stream(task=fail_all):
+            pass
+        assert nr.data.failed_hosts == {"h000", "h001", "h002"}
+        assert log.hooks()[-1] == "task_completed"
+
+
+def test_run_is_finalized_when_a_full_astream_ends() -> None:
+    async def scenario() -> None:
+        for _ in range(10):
+            log = EventLog()
+            nr = make_nornir(AsyncioRunner(), 3, [log])
+            async for _ in nr.astream(task=afail_all):
+                pass
+            assert nr.data.failed_hosts == {"h000", "h001", "h002"}
+            assert log.hooks()[-1] == "task_completed"
+
+    asyncio.run(scenario())
+
+
+async def afail_all(task: Task) -> Result:
+    await asyncio.sleep(0)
+    msg = f"{task.host.name} failed"
+    raise ValueError(msg)
