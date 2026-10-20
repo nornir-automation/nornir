@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Protocol
 
 from nornir.core.inventory import Host
-from nornir.core.task import AggregatedResult, MultiResult, Task
+from nornir.core.task import AggregatedResult, MultiResult, PartialResult, Task
 
 
 class Processor(Protocol):
@@ -37,6 +37,19 @@ class Processor(Protocol):
 
     def subtask_instance_completed(self, task: Task, host: Host, result: MultiResult) -> None:
         """Handle the event fired when a host completes executing a subtask."""
+        raise NotImplementedError("needs to be implemented by the processor")
+
+
+class ProgressProcessor(Protocol):
+    """Optional interface for processors that receive partial results.
+
+    It is a sibling of :class:`Processor`: a processor that wants progress implements the
+    six :class:`Processor` hooks and this one. A processor that does not define
+    ``task_instance_progress`` is never called with a partial result.
+    """
+
+    def task_instance_progress(self, task: Task, host: Host, partial: PartialResult) -> None:
+        """Handle a partial result yielded by ``task`` (a task or a subtask) for ``host``."""
         raise NotImplementedError("needs to be implemented by the processor")
 
 
@@ -80,3 +93,10 @@ class Processors(list[Processor]):
         """Call ``subtask_instance_completed`` on every processor, in order."""
         for p in self:
             p.subtask_instance_completed(task, host, result)
+
+    def task_instance_progress(self, task: Task, host: Host, partial: PartialResult) -> None:
+        """Call ``task_instance_progress`` on every processor that defines it, in order."""
+        for p in self:
+            hook = getattr(p, "task_instance_progress", None)
+            if callable(hook):
+                hook(task, host, partial)
