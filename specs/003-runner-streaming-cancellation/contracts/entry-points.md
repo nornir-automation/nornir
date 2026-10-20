@@ -63,6 +63,9 @@ the run (FR-009).
 ## `RunStream` / `AsyncRunStream`
 
 - Iterating yields `PartialResult` and final `Result` events, from the start of the run.
+- The loop ends after the run is finalized: `failed_hosts` is updated, `task_completed`
+  has fired (unless `raise_on_error` raises), and `result()` returns at once. The same
+  holds for `results()` on a handle, after which `done` is true.
 - Finalizing the iterator before the run ends (`break`, an exception in the loop body)
   cancels the run. On `SerialRunner`, every host is recorded before the statement after
   the loop runs.
@@ -92,8 +95,8 @@ AsyncioRunner(num_workers: int = 20, per_host_timeout: float | None = None,
 ```
 
 All keyword-compatible with today's calls and with `runner.options` in the configuration
-file. Each runner stores its deadlines as `run_options: RunOptions`; the core reads that
-attribute (if it holds a `RunOptions`) as the runner-level options of the new entry
+file. Each runner stores its deadlines as `run_options: RunOptions`, a member of both
+streaming protocols; the core uses it as the runner-level options of the new entry
 points.
 
 `Nornir.arun` and `Task.arun` widen their `task` annotation to

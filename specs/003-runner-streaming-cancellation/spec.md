@@ -129,8 +129,10 @@ carry their own results, and the call returns within the time bound.
 
 A task author writes the task as a generator (`def` with `yield`) or, on the asyncio
 runner, as an async generator (`async def` with `yield`). Each yielded `PartialResult`
-reports a stage ("uploading image", "rebooting") and an optional progress fraction; the
-`return` value is the final `Result`, as today. The caller watches events live with
+reports a stage ("uploading image", "rebooting") and an optional progress fraction. A
+`def` generator's `return` value is the final `Result`, as today. An async generator
+cannot `return` a value in Python, so it ends by yielding its final `Result`. The caller
+watches events live with
 `nr.run_stream(task)` / `nr.astream(task)` or `handle.events()`, reads the latest progress
 per host with `handle.progress()`, and processors receive each partial result through a
 new optional hook.
@@ -298,7 +300,9 @@ contains only the final `Result`.
 
 - **FR-030**: A `def` task containing `yield` MUST run as a progress-reporting task on the
   synchronous runners. An `async def` task containing `yield` MUST run as one on
-  `AsyncioRunner`. Wrong combinations MUST raise the named errors of spec 001.
+  `AsyncioRunner`. Wrong combinations MUST raise the named errors of spec 001. A yielded
+  `Result` MUST end the task with that result; it is the only way an async generator can
+  give its final result.
 - **FR-031**: Each yielded `PartialResult` MUST reach the stream, `handle.events()`,
   `handle.progress()`, and every processor that defines `task_instance_progress`.
   Processors that do not define it MUST NOT be called with it.
@@ -364,6 +368,18 @@ contains only the final `Result`.
   checkpoints, and cancellation by leaving the `run_stream` loop. `submit` raises
   `RunnerCapabilityError` and names `run_stream`. A lazy handle that runs hosts while the
   caller reads it was considered and not chosen.
+
+### Session 2026-10-20
+
+- Q: How does an `async def` progress task give its final result, since an async
+  generator cannot `return` a value? → A: It yields its final `Result`, which ends the
+  task. A `def` generator may do the same, or `return` its result. The `async def`
+  example in #1086 (`return Result(...)` inside an async generator) is a `SyntaxError`.
+  Found in code review of the implementation.
+- Q: When does a stream or a `results()` loop end on a background run? → A: After the
+  run is finalized, so that `failed_hosts` is updated, `task_completed` has fired and
+  the handle is done when the loop ends, on every runner (FR-001, FR-012, FR-026). Found
+  in code review: the loop ended when the last host was recorded, before finalization.
 
 ## Assumptions
 

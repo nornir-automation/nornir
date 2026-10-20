@@ -52,6 +52,11 @@ class RunOptions:
     per_host_timeout: float | None = None
     timeout: float | None = None
 
+    @property
+    def has_deadlines(self) -> bool:
+        """Whether a per-host or a run deadline is set."""
+        return self.per_host_timeout is not None or self.timeout is not None
+
 
 class RunContext(Protocol):
     """State of one run, shared by the core and the runner. Module: nornir.core.run.
@@ -59,6 +64,16 @@ class RunContext(Protocol):
     Thread-safe. Constructed as ``RunContext(task, hosts, options=None)``: by the core for
     the new entry points, and by a runner's own ``run()`` / ``arun()``.
     """
+
+    @property
+    def task(self) -> Task:
+        """The task of the run."""
+        ...
+
+    @property
+    def hosts(self) -> list[Host]:
+        """The selected hosts, in selection order."""
+        ...
 
     @property
     def options(self) -> RunOptions:
@@ -122,6 +137,10 @@ class RunContext(Protocol):
         """Return the earliest pending deadline, as a time.monotonic() value."""
         ...
 
+    def seconds_to_next_deadline(self) -> float | None:
+        """Return the seconds until the earliest pending deadline (0 if passed), or None."""
+        ...
+
     def add_cancel_callback(self, callback: Callable[[], object]) -> None:
         """Call ``callback`` once when the run is first cancelled or its deadline passes.
 
@@ -166,6 +185,11 @@ class StreamingRunner(Protocol):
         """Whether the core may drive execute() off the caller's thread."""
         ...
 
+    @property
+    def run_options(self) -> RunOptions:
+        """Default deadlines of this runner; per-run options override them field by field."""
+        ...
+
     def execute(self, task: Task, hosts: list[Host], run: RunContext) -> Iterator[None]:
         """Run ``task`` over ``hosts`` until run.finished.
 
@@ -180,6 +204,11 @@ class AsyncStreamingRunner(Protocol):
     @property
     def cancellation_depth(self) -> CancellationDepth:
         """Where cancellation is delivered: at checkpoints or immediately."""
+        ...
+
+    @property
+    def run_options(self) -> RunOptions:
+        """Default deadlines of this runner; per-run options override them field by field."""
         ...
 
     async def aexecute(self, task: Task, hosts: list[Host], run: RunContext) -> None:
