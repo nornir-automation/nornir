@@ -69,7 +69,9 @@ host is recorded when its task reaches a checkpoint. On `immediate` runners, the
 cancels the asyncio task at once. `expire()` records a running host directly, without
 waiting for a checkpoint, so `ThreadedRunner` returns on time (FR-022).
 
-The run is **finished** when every host is `recorded`. Finalization then builds the
+The run is **finished** when every host is `recorded`, and **closed** once it is
+finalized, or when the driver fails. Closing ends every stream and `results()` loop, so a
+loop never ends before `failed_hosts` and `task_completed` are handled. Finalization then builds the
 `AggregatedResult` in selection order and applies the `raise_on_error`, `failed_hosts`
 and `task_completed` rules of R12.
 
