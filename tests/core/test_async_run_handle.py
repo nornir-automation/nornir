@@ -158,3 +158,15 @@ def test_hundred_hosts_finish_within_two_seconds_of_cancel() -> None:
         assert len(result) == 100
 
     run(scenario())
+
+
+def test_handle_is_done_when_results_end() -> None:
+    async def scenario() -> None:
+        for _ in range(10):
+            nr = make_nornir(AsyncioRunner(), 3)
+            handle = await nr.asubmit(task=afail_first, steps=1)
+            assert len([r async for r in handle.results()]) == 3
+            assert handle.done
+            assert nr.data.failed_hosts == {"h000"}
+
+    run(scenario())

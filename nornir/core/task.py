@@ -199,7 +199,9 @@ class Task:
 
         self.results.insert(0, result)
         if self.parent_task is not None:
-            self.processors.subtask_instance_completed(self, host, self.results)
+            # A host recorded by the runner (deadline) gets no further event from its thread.
+            if self._host_state is None or not self._host_state.is_recorded():
+                self.processors.subtask_instance_completed(self, host, self.results)
         else:
             self.processors.task_instance_completed(self, host, self.results)
             if state is not None:
@@ -255,6 +257,8 @@ class Task:
     def _report(self, value: Any) -> None:
         partial = value if isinstance(value, PartialResult) else PartialResult(self.host, value)
         partial.name = self.name
+        if self._host_state is not None and self._host_state.is_recorded():
+            return
         self.processors.task_instance_progress(self, self.host, partial)
         if self._host_state is not None:
             self._host_state.publish(partial)

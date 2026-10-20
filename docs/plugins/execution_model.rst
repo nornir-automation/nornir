@@ -182,10 +182,12 @@ decides when each host starts:
   host; it returns at once if the host was already recorded;
 * register ``run.add_cancel_callback`` to stop scheduling hosts, and, for an
   ``immediate`` runner, to interrupt the running ones (``run.running_hosts()``);
-* when ``run.options`` sets a deadline, call ``run.expire()`` when ``run.next_deadline()``
-  passes; ``run.add_change_callback`` wakes a coordinator when a host starts or is
-  recorded;
+* when ``run.options.has_deadlines``, call ``run.expire()`` when
+  ``run.seconds_to_next_deadline()`` has elapsed; ``run.add_change_callback`` wakes a
+  coordinator when a host starts or is recorded;
 * return when ``run.finished`` is true.
 
-A runner that declares default deadlines exposes them as a ``run_options`` attribute
-holding a :obj:`nornir.core.run.RunOptions`.
+Both protocols include ``run_options``, a :obj:`nornir.core.run.RunOptions` holding the
+runner's default deadlines (empty if it has none); per-run options override it field by
+field. ``run.options.has_deadlines`` and ``run.seconds_to_next_deadline()`` tell a
+coordinator whether, and how long, to wait before calling ``run.expire()``.

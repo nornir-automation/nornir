@@ -211,3 +211,12 @@ def test_events_yield_final_results() -> None:
     names = [e.host.name for e in events if isinstance(e, Result) and e.host]
     assert sorted(names) == ["h000", "h001", "h002"]
     assert run.progress() == {}
+
+
+def test_handle_is_done_when_results_end() -> None:
+    for _ in range(10):
+        nr = make_nornir(ThreadedRunner(), 3)
+        handle = nr.submit(task=fail_first, steps=1)
+        assert len(list(handle.results())) == 3
+        assert handle.done
+        assert nr.data.failed_hosts == {"h000"}

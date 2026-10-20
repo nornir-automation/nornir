@@ -3,9 +3,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 import logging
-import queue
-import threading
-from typing import TYPE_CHECKING, Any, TypeGuard
+from typing import TYPE_CHECKING, Any, TypeGuard, get_args
 
 from nornir.core.configuration import Config
 from nornir.core.exceptions import (
@@ -21,6 +19,7 @@ from nornir.core.inventory import Inventory
 from nornir.core.plugins.runners import (
     AsyncRunnerPlugin,
     AsyncStreamingRunner,
+    CancellationDepth,
     RunnerPlugin,
     StreamingRunner,
 )
@@ -29,12 +28,10 @@ from nornir.core.run import (
     AsyncRunHandle,
     AsyncRunStream,
     RunContext,
-    RunEvent,
     RunHandle,
     RunOptions,
     RunStream,
     _merge_options,
-    _threadsafe_put,
 )
 from nornir.core.state import GlobalState
 from nornir.core.task import AggregatedResult, Task, _get_task_name, _is_async_task
@@ -42,7 +39,7 @@ from nornir.core.task import AggregatedResult, Task, _get_task_name, _is_async_t
 if TYPE_CHECKING:
     import builtins
     import types
-    from collections.abc import AsyncGenerator, Callable, Coroutine, Generator, Iterator
+    from collections.abc import AsyncGenerator, Callable, Coroutine, Generator
 
     from nornir.core.inventory import Host
 
@@ -59,21 +56,22 @@ def _is_async_runner(runner: RunnerPlugin) -> TypeGuard[AsyncRunnerPlugin]:
     return inspect.iscoroutinefunction(getattr(runner, "arun", None))
 
 
-_DEPTHS = frozenset({"checkpoint", "immediate"})
+_DEPTHS = frozenset(get_args(CancellationDepth))
 
 
 def _is_streaming_runner(runner: RunnerPlugin) -> TypeGuard[StreamingRunner]:
     """Return whether a runner structurally implements :class:`StreamingRunner`.
 
     Returns:
-        Whether the runner has ``execute``, a valid ``cancellation_depth`` and a boolean
-        ``supports_background``.
+        Whether the runner has ``execute``, a valid ``cancellation_depth``, a boolean
+        ``supports_background`` and ``run_options``.
 
     """
     return (
         callable(getattr(runner, "execute", None))
         and getattr(runner, "cancellation_depth", None) in _DEPTHS
         and isinstance(getattr(runner, "supports_background", None), bool)
+        and isinstance(getattr(runner, "run_options", None), RunOptions)
     )
 
 
@@ -81,25 +79,15 @@ def _is_async_streaming_runner(runner: RunnerPlugin) -> TypeGuard[AsyncStreaming
     """Return whether a runner structurally implements :class:`AsyncStreamingRunner`.
 
     Returns:
-        Whether the runner has a native coroutine ``aexecute`` and a valid
-        ``cancellation_depth``.
+        Whether the runner has a native coroutine ``aexecute``, a valid
+        ``cancellation_depth`` and ``run_options``.
 
     """
     return (
         inspect.iscoroutinefunction(getattr(runner, "aexecute", None))
         and getattr(runner, "cancellation_depth", None) in _DEPTHS
+        and isinstance(getattr(runner, "run_options", None), RunOptions)
     )
-
-
-def _runner_options(runner: object) -> RunOptions:
-    """Return the default deadlines a runner declares through its ``run_options`` attribute.
-
-    Returns:
-        The runner's options, or empty options if it declares none.
-
-    """
-    options = getattr(runner, "run_options", None)
-    return options if isinstance(options, RunOptions) else RunOptions()
 
 
 class Nornir:
@@ -371,35 +359,26 @@ class Nornir:
             raise RunnerCapabilityError(type(runner).__name__, capability)
         raise RunnerNotAsyncError(type(runner).__name__)
 
-    def _start_background(
+    def _new_run(
         self,
-        runner: StreamingRunner,
-        run_task: Task,
-        run_on: list[Host],
-        options: RunOptions,
-        raise_on_error: bool | None,
-        events: queue.SimpleQueue[RunEvent | None] | None,
-    ) -> RunHandle:
-        run = RunContext(run_task, run_on, options)
-        handle = RunHandle(run)
-        if events is not None and not run._subscribe(events.put):
-            events.put(None)
+        runner: StreamingRunner | AsyncStreamingRunner,
+        task: Callable[..., Any],
+        name: str | None,
+        kwargs: dict[str, Any],
+        selection: tuple[bool, bool],
+        run_options: RunOptions | None,
+    ) -> RunContext:
+        on_good, on_failed = selection
+        run_task, run_on = self._prepare_run(task, name, kwargs, on_good, on_failed)
+        return RunContext(run_task, run_on, _merge_options(runner.run_options, run_options))
 
-        def drive() -> None:
-            try:
-                for _ in runner.execute(run_task, run_on, run):
-                    pass
-                result = run.aggregated()
-                handle._finish(result, self._complete_run(run_task, result, raise_on_error))
-            except BaseException as e:  # noqa: BLE001 - stored, then raised by handle.result()
-                handle._fail(e)
+    def _finalizer(
+        self, run: RunContext, raise_on_error: bool | None
+    ) -> Callable[[AggregatedResult], BaseException | None]:
+        def finalize(result: AggregatedResult) -> BaseException | None:
+            return self._complete_run(run.task, result, raise_on_error)
 
-        if not run_on:
-            drive()
-        else:
-            handle._thread = threading.Thread(target=drive, name=f"nornir-run-{handle.id}")
-            handle._thread.start()
-        return handle
+        return finalize
 
     def submit(
         self,
@@ -441,9 +420,8 @@ class Nornir:
         runner = self._sync_streaming_runner(task, name, "submit")
         if not runner.supports_background:
             raise RunnerCapabilityError(type(runner).__name__, "submit", background=True)
-        run_task, run_on = self._prepare_run(task, name, kwargs, on_good, on_failed)
-        options = _merge_options(_runner_options(runner), run_options)
-        return self._start_background(runner, run_task, run_on, options, raise_on_error, None)
+        run = self._new_run(runner, task, name, kwargs, (on_good, on_failed), run_options)
+        return RunHandle._start(runner, run, self._finalizer(run, raise_on_error))
 
     def run_stream(
         self,
@@ -484,63 +462,8 @@ class Nornir:
 
         """
         runner = self._sync_streaming_runner(task, name, "run_stream")
-        run_task, run_on = self._prepare_run(task, name, kwargs, on_good, on_failed)
-        options = _merge_options(_runner_options(runner), run_options)
-        events: queue.SimpleQueue[RunEvent | None] = queue.SimpleQueue()
-        if runner.supports_background:
-            handle = self._start_background(
-                runner, run_task, run_on, options, raise_on_error, events
-            )
-            return RunStream(handle._run, events, handle=handle)
-
-        run = RunContext(run_task, run_on, options)
-        run._subscribe(events.put)
-
-        def steps() -> Iterator[None]:
-            return runner.execute(run_task, run_on, run)
-
-        def finalize() -> tuple[AggregatedResult, BaseException | None]:
-            result = run.aggregated()
-            return result, self._complete_run(run_task, result, raise_on_error)
-
-        return RunStream(run, events, steps=steps, finalize=finalize)
-
-    def _start_async(
-        self,
-        runner: AsyncStreamingRunner,
-        task: Callable[..., Any],
-        name: str | None,
-        kwargs: dict[str, Any],
-        on_good: bool,
-        on_failed: bool,
-        raise_on_error: bool | None,
-        run_options: RunOptions | None,
-        *,
-        subscribe: bool,
-    ) -> tuple[AsyncRunHandle, asyncio.Queue[RunEvent | None], Callable[[RunEvent | None], object]]:
-        loop = asyncio.get_running_loop()
-        run_task, run_on = self._prepare_run(task, name, kwargs, on_good, on_failed)
-        run = RunContext(run_task, run_on, _merge_options(_runner_options(runner), run_options))
-        handle = AsyncRunHandle(run)
-        events: asyncio.Queue[RunEvent | None] = asyncio.Queue()
-        put = _threadsafe_put(loop, events)
-        if subscribe and not run._subscribe(put):
-            events.put_nowait(None)
-        if not run_on:
-            result = run.aggregated()
-            handle._finish(result, self._complete_run(run_task, result, raise_on_error))
-            return handle, events, put
-
-        async def drive() -> None:
-            try:
-                await runner.aexecute(run_task, run_on, run)
-                result = run.aggregated()
-                handle._finish(result, self._complete_run(run_task, result, raise_on_error))
-            except BaseException as e:  # noqa: BLE001 - stored, then raised by handle.result()
-                handle._fail(e)
-
-        handle._driver = loop.create_task(drive())
-        return handle, events, put
+        run = self._new_run(runner, task, name, kwargs, (on_good, on_failed), run_options)
+        return RunStream._start(runner, run, self._finalizer(run, raise_on_error))
 
     async def asubmit(
         self,
@@ -580,17 +503,8 @@ class Nornir:
 
         """
         runner = self._async_streaming_runner(task, name, "asubmit")
-        handle, _, _ = self._start_async(
-            runner,
-            task,
-            name,
-            kwargs,
-            on_good,
-            on_failed,
-            raise_on_error,
-            run_options,
-            subscribe=False,
-        )
+        run = self._new_run(runner, task, name, kwargs, (on_good, on_failed), run_options)
+        handle, _ = AsyncRunHandle._start(runner, run, self._finalizer(run, raise_on_error))
         return handle
 
     def astream(
@@ -629,18 +543,9 @@ class Nornir:
 
         """
         runner = self._async_streaming_runner(task, name, "astream")
-        handle, events, put = self._start_async(
-            runner,
-            task,
-            name,
-            kwargs,
-            on_good,
-            on_failed,
-            raise_on_error,
-            run_options,
-            subscribe=True,
-        )
-        return AsyncRunStream(handle, events, put)
+        asyncio.get_running_loop()  # fail before task_started when called outside a loop
+        run = self._new_run(runner, task, name, kwargs, (on_good, on_failed), run_options)
+        return AsyncRunStream._start(runner, run, self._finalizer(run, raise_on_error))
 
     def dict(self) -> dict[str, Any]:
         """Return a dictionary representing the object.

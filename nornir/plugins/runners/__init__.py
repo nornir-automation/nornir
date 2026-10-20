@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import threading
-import time
 from concurrent.futures import Future, ThreadPoolExecutor
 from typing import TYPE_CHECKING
 
@@ -75,8 +74,7 @@ class _ThreadedRun:
         self.condition = threading.Condition()
         self.dirty = False
         self.done = 0
-        options = run.options
-        self.deadlines = options.per_host_timeout is not None or options.timeout is not None
+        self.deadlines = run.options.has_deadlines
 
     def notify(self) -> None:
         with self.condition:
@@ -106,7 +104,7 @@ class _ThreadedRun:
     def wait(self) -> None:
         """Wait until every host is recorded, or every worker is done."""
         while not self.run.finished:
-            timeout = self._timeout()
+            timeout = self.run.seconds_to_next_deadline() if self.deadlines else None
             with self.condition:
                 if self.done == len(self.futures):
                     return
@@ -115,12 +113,6 @@ class _ThreadedRun:
                 self.dirty = False
             if self.deadlines:
                 self.run.expire()
-
-    def _timeout(self) -> float | None:
-        if not self.deadlines:
-            return None
-        deadline = self.run.next_deadline()
-        return None if deadline is None else max(0.0, deadline - time.monotonic())
 
     def raise_worker_error(self) -> None:
         """Raise the first error a worker raised outside its task, in host order."""
@@ -270,8 +262,7 @@ class _AsyncioRun:
         self.waker: asyncio.Future[None] = self.loop.create_future()
         self.remaining = 0
         self.errors: list[BaseException] = []
-        options = run.options
-        self.deadlines = options.per_host_timeout is not None or options.timeout is not None
+        self.deadlines = run.options.has_deadlines
 
     def start(self, task: Task, hosts: list[Host]) -> None:
         for host in hosts:
@@ -310,16 +301,11 @@ class _AsyncioRun:
     def _cancel_running(self) -> None:
         self._cancel(self.run.running_hosts())
 
-    def _timeout(self) -> float | None:
-        if not self.deadlines:
-            return None
-        deadline = self.run.next_deadline()
-        return None if deadline is None else max(0.0, deadline - time.monotonic())
-
     async def wait(self) -> None:
         """Wait until every host is recorded, then cancel and wait for any leftover child."""
         while self.remaining and not self.run.finished and not self.errors:
-            await asyncio.wait((self.waker,), timeout=self._timeout())
+            timeout = self.run.seconds_to_next_deadline() if self.deadlines else None
+            await asyncio.wait((self.waker,), timeout=timeout)
             if self.waker.done():
                 self.waker = self.loop.create_future()
             if self.deadlines:

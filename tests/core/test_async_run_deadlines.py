@@ -3,6 +3,8 @@ from __future__ import annotations
 import asyncio
 import time
 
+import pytest
+
 from nornir.core.exceptions import TaskTimeoutError
 from nornir.core.run import RunOptions
 from nornir.core.task import Result, Task
@@ -66,5 +68,23 @@ def test_hosts_within_their_deadline_keep_their_results() -> None:
         nr = make_nornir(AsyncioRunner(per_host_timeout=2), 3)
         result = await nr.arun(task=asteps_task, steps=2)
         assert all(r[0].result == "done" for r in result.values())
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize(
+    "options",
+    [RunOptions(per_host_timeout=0.2), RunOptions(timeout=0.3)],
+    ids=["per-host", "run"],
+)
+def test_astream_with_deadlines(options: RunOptions) -> None:
+    async def scenario() -> None:
+        nr = make_nornir(AsyncioRunner(num_workers=1), 3)
+        stream = nr.astream(task=ablocked_task, run_options=options)
+        finals = [e async for e in stream if isinstance(e, Result)]
+        result = await stream.result()
+        assert len(finals) == 3
+        assert all(isinstance(r[0].exception, TaskTimeoutError) for r in result.values())
+        assert nr.data.failed_hosts == {"h000", "h001", "h002"}
 
     asyncio.run(scenario())

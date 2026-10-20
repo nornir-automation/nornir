@@ -297,8 +297,7 @@ class TaskCancelledError(TaskInterruptedError):
         if self.started:
             return f"Task {self.task_name!r} on host {self.host_name!r} was cancelled."
         return (
-            f"Task {self.task_name!r} on host {self.host_name!r} was cancelled before it "
-            "started."
+            f"Task {self.task_name!r} on host {self.host_name!r} was cancelled before it started."
         )
 
 

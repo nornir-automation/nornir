@@ -164,3 +164,25 @@ Changes made during implementation, now in the contracts, data model and researc
 - A yielded `Result` ends a progress task; required for async generators.
 - Runners expose their default deadlines as `run_options`.
 - `Nornir.arun` and `Task.arun` widen the `task` annotation to accept async generators.
+
+## Code review fixes (2026-10-20)
+
+`/code-review since 8132783` reported two bugs, two gaps and six code smells. All are
+fixed, each bug with a test that failed first.
+
+| Finding | Fix | Test (failed before the fix) |
+|---|---|---|
+| A stream or `results()` loop ended when the last host was recorded, before `failed_hosts` and `task_completed` were handled (threaded and asyncio; serial was correct). A probe reproduced it in 15 of 20 threaded runs. | The end-of-stream marker is sent when the run is *closed*, after finalization or on failure (`RunContext._close`). `results()` waits for the same state. | `test_run_is_finalized_when_a_full_stream_ends[threaded]`, `test_run_is_finalized_when_a_full_astream_ends`, `test_handle_is_done_when_results_end` (threaded and asyncio). The probe now ends early in 0 of 20 runs. |
+| After a per-host timeout, a blocked thread fired `subtask_instance_completed` after the host's `task_instance_completed`. | A subtask of a host already recorded fires no event; a partial result from it is dropped. | `test_blocked_subtask_fires_no_event_after_its_host_times_out` |
+| Spec said an async task's `return` value is its final result, which is a `SyntaxError`. | `spec.md` US3 and FR-030 corrected; clarification recorded (session 2026-10-20). | — |
+| Missing SC-004 combinations. | Added. | `test_threaded_run_stream_with_deadlines`, `test_astream_with_deadlines` (per-host and run) |
+| Smells: duplicated deadline checks in both coordinators; duplicated `drive()` closures; `_DEPTHS` repeating `CancellationDepth`; `run_options` not in the protocol; eight parameters travelling together; `nornir/core/__init__.py` reaching into private members of the run objects. | `RunOptions.has_deadlines` and `RunContext.seconds_to_next_deadline()`; run start moved into `RunHandle._start`, `AsyncRunHandle._start`, `RunStream._start` and `AsyncRunStream._start`; `_DEPTHS = frozenset(get_args(CancellationDepth))`; `run_options` is a property of both streaming protocols; `Nornir._new_run` and `Nornir._finalizer` replace the long parameter lists. | covered by the existing tests |
+
+`task.py` changed above the call to the user's function, so the stored traceback in the
+two tutorial notebooks moved from line 243 to line 245; both were re-executed again.
+
+| Command | Result |
+|---|---|
+| `make tests` | exit 0: ruff clean, mypy clean (74 files), nbval 135 passed, pytest 455 passed (coverage 93%), docs built (52 warnings, none from this change) |
+| Affected test files, 5 runs in a row | 64 passed each run |
+| `uv run --locked --python 3.10 pytest tests` (scratch environment) | 455 passed |
