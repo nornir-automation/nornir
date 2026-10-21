@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import warnings
 from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
@@ -22,7 +23,15 @@ def render_from_file(
     Returns:
         The rendered template.
 
+    Deprecated: Use ``nornir_jinja2`` for template rendering in tasks.
+
     """
+    warnings.warn(
+        "nornir.core.helpers.jinja_helper.render_from_file is deprecated and will be "
+        "removed in a future release; use nornir_jinja2 instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     # This module has no callers inside nornir and jinja2 is not a dependency of it, so
     # importing it only works when something else in the environment brings jinja2 in.
     # nornir_jinja2 is the supported way to render templates.
@@ -50,7 +59,15 @@ def render_from_string(
     Returns:
         The rendered template.
 
+    Deprecated: Use ``nornir_jinja2`` for template rendering in tasks.
+
     """
+    warnings.warn(
+        "nornir.core.helpers.jinja_helper.render_from_string is deprecated and will be "
+        "removed in a future release; use nornir_jinja2 instead",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     jinja_filters = jinja_filters or {}
     env = Environment(undefined=StrictUndefined, trim_blocks=True)
     env.filters.update(jinja_filters)
