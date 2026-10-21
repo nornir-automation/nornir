@@ -100,8 +100,12 @@ def test_serial_blocked_host_delays_the_caller(release: threading.Event) -> None
 
 
 def test_per_host_clock_starts_when_the_host_starts() -> None:
-    nr = make_nornir(ThreadedRunner(num_workers=1, per_host_timeout=0.5), 3)
-    result = nr.run(task=steps_task, steps=3, interval=0.1)
+    # One worker runs six hosts of about 0.2 seconds each, one after the other. Each host
+    # has four times its run time before its 0.8-second deadline, so slow sleeps on a CI
+    # runner do not expire it. A clock started at submission would expire h004 and h005,
+    # which start 0.8 and 1.0 seconds after the run.
+    nr = make_nornir(ThreadedRunner(num_workers=1, per_host_timeout=0.8), 6)
+    result = nr.run(task=steps_task, steps=2, interval=0.1)
     assert timeouts(result) == {}
 
 
