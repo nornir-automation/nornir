@@ -1,6 +1,11 @@
 Changelog
 ==========
 
+Unreleased
+----------
+
+- Removed unused legacy core helpers and validator methods.
+
 3.6.0 - August 2 2026
 ---------------------
 
