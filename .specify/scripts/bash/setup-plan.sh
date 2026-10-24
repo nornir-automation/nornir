@@ -43,7 +43,15 @@ if [[ -f "$IMPL_PLAN" ]]; then
         echo "Plan already exists at $IMPL_PLAN, skipping template copy"
     fi
 else
-    if resolve_template_content "plan-template" "$REPO_ROOT" > "$IMPL_PLAN"; then
+    template_file=$(mktemp)
+    trap 'rm -f "$template_file"' EXIT
+    if resolve_template_content "plan-template" "$REPO_ROOT" > "$template_file"; then
+        if [[ ! -s "$template_file" ]]; then
+            echo "ERROR: Plan template is empty; no new plan.md was created." >&2
+            echo "Restore a valid plan template and rerun plan setup." >&2
+            exit 1
+        fi
+        cat "$template_file" > "$IMPL_PLAN"
         if $JSON_MODE; then
             echo "Copied plan template to $IMPL_PLAN" >&2
         else
@@ -51,16 +59,12 @@ else
         fi
     else
         resolve_status=$?
-        rm -f "$IMPL_PLAN"
         if [ "$resolve_status" -ne 1 ]; then
             exit "$resolve_status"
         fi
-        if $JSON_MODE; then
-            echo "Warning: Plan template not found" >&2
-        else
-            echo "Warning: Plan template not found"
-        fi
-        touch "$IMPL_PLAN"
+        echo "ERROR: Plan template not found; no new plan.md was created." >&2
+        echo "Restore a valid plan template and rerun plan setup." >&2
+        exit 1
     fi
 fi
 
@@ -70,16 +74,16 @@ if $JSON_MODE; then
         jq -cn \
             --arg feature_spec "$FEATURE_SPEC" \
             --arg impl_plan "$IMPL_PLAN" \
-            --arg specs_dir "$FEATURE_DIR" \
+            --arg feature_dir "$FEATURE_DIR" \
             --arg branch "$CURRENT_BRANCH" \
-            '{FEATURE_SPEC:$feature_spec,IMPL_PLAN:$impl_plan,SPECS_DIR:$specs_dir,BRANCH:$branch}'
+            '{FEATURE_SPEC:$feature_spec,IMPL_PLAN:$impl_plan,FEATURE_DIR:$feature_dir,BRANCH:$branch}'
     else
-        printf '{"FEATURE_SPEC":"%s","IMPL_PLAN":"%s","SPECS_DIR":"%s","BRANCH":"%s"}\n' \
+        printf '{"FEATURE_SPEC":"%s","IMPL_PLAN":"%s","FEATURE_DIR":"%s","BRANCH":"%s"}\n' \
             "$(json_escape "$FEATURE_SPEC")" "$(json_escape "$IMPL_PLAN")" "$(json_escape "$FEATURE_DIR")" "$(json_escape "$CURRENT_BRANCH")"
     fi
 else
     echo "FEATURE_SPEC: $FEATURE_SPEC"
     echo "IMPL_PLAN: $IMPL_PLAN"
-    echo "SPECS_DIR: $FEATURE_DIR"
+    echo "FEATURE_DIR: $FEATURE_DIR"
     echo "BRANCH: $CURRENT_BRANCH"
 fi
