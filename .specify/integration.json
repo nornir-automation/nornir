@@ -1,5 +1,5 @@
 {
-  "version": "1.0.3",
+  "version": "1.2.3",
   "integration_state_schema": 1,
   "installed_integrations": [
     "claude"
