@@ -4,6 +4,25 @@ Changelog
 3.7.0 - Unreleased
 ------------------
 
+- Added Operations: an action defined once with a typed input and a typed output, and
+  implemented by plain tasks for each platform and connection. Define one by subclassing
+  ``Operation[In, Out]`` and setting ``name``; register implementations with
+  ``OperationRegistry.register`` or through the ``nornir.plugins.operations`` and
+  ``nornir.plugins.operation_tasks`` entry-point groups, which are loaded the first time
+  an Operation is run or listed. ``Nornir.run_operation``, ``submit_operation``,
+  ``arun_operation`` and ``asubmit_operation`` run an Operation across the inventory:
+  each host runs the task registered for its platform, its result holds an instance of
+  the output model, and a host with no registered task or an output of the wrong type
+  fails on its own. ``params`` accepts an input, a mapping of its fields, or a function
+  that builds the input of each host. The new ``core.operation_connection`` setting
+  gives the default connection. ``OperationRegistry.operations()`` lists the known
+  Operations, their implementations and where each was registered from (#1089)
+- ``Result``, ``RunStream``, ``RunHandle``, ``AsyncRunStream`` and ``AsyncRunHandle``
+  are now generic in the type of ``result``, for type checkers only. A bare ``Result``
+  still means ``Result[Any]``, so existing annotations keep passing strict type checks.
+  ``RunStream`` and ``AsyncRunStream`` gained ``results()``, which yields only the final
+  result of each host (#1089)
+
 - Added opt-in entry points for long-running work: ``Nornir.submit`` and
   ``Nornir.asubmit`` start a run in the background and return a handle that yields each
   host's final result as it finishes, reports progress, cancels the run and returns the

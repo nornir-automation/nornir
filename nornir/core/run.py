@@ -16,13 +16,13 @@ import threading
 import time
 import uuid
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Literal, cast
+from typing import TYPE_CHECKING, Any, Generic, Literal, cast
 
 from nornir.core.exceptions import TaskCancelledError, TaskInterruptedError, TaskTimeoutError
 from nornir.core.task import AggregatedResult, MultiResult, PartialResult, Result
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator, Callable, Generator, Iterator
+    from collections.abc import AsyncGenerator, AsyncIterator, Callable, Generator, Iterator
     from types import TracebackType
 
     from nornir.core.inventory import Host
@@ -31,6 +31,15 @@ if TYPE_CHECKING:
 
     Finalize = Callable[[AggregatedResult], BaseException | None]
     """Applies the end-of-run bookkeeping and returns the error ``result()`` raises."""
+
+    # Same declaration as in nornir.core.task: a bare RunStream means RunStream[Any].
+    from typing_extensions import TypeVar
+
+    T = TypeVar("T", default=Any)
+else:
+    from typing import TypeVar
+
+    T = TypeVar("T")
 
 logger = logging.getLogger(__name__)
 
@@ -560,11 +569,11 @@ class RunContext:
             self._publish_final(state, results)
 
 
-class RunHandle:
+class RunHandle(Generic[T]):
     """A run started in the background with :meth:`nornir.core.Nornir.submit`.
 
     The handle lives in the process that started the run. Any thread of that process can
-    read it or cancel the run.
+    read it or cancel the run. ``RunHandle[T]`` types the results as ``Result[T]``.
     """
 
     def __init__(self, run: RunContext) -> None:
@@ -582,7 +591,7 @@ class RunHandle:
         run: RunContext,
         finalize: Finalize,
         events: queue.SimpleQueue[RunEvent | None] | None = None,
-    ) -> RunHandle:
+    ) -> RunHandle[Any]:
         """Start ``run`` on a background thread, or finish it at once if no host is selected.
 
         Returns:
@@ -621,7 +630,7 @@ class RunHandle:
         """Whether every host is recorded and the run is finalized."""
         return self._finished.is_set()
 
-    def results(self) -> Iterator[Result]:
+    def results(self) -> Iterator[Result[T]]:
         """Iterate over the final result of each host, in the order the hosts finish.
 
         Each call starts with the hosts that have already finished, then waits for the
@@ -644,7 +653,7 @@ class RunHandle:
                 index += 1
             yield item
 
-    def events(self) -> Iterator[RunEvent]:
+    def events(self) -> Iterator[PartialResult | Result[T]]:
         """Iterate over the events produced from this call on.
 
         Events are :class:`~nornir.core.task.PartialResult` objects and the final
@@ -718,8 +727,11 @@ def _drain_queue(
         run._unsubscribe(events.put)
 
 
-class AsyncRunHandle:
-    """A run started on the caller's event loop with :meth:`nornir.core.Nornir.asubmit`."""
+class AsyncRunHandle(Generic[T]):
+    """A run started on the caller's event loop with :meth:`nornir.core.Nornir.asubmit`.
+
+    ``AsyncRunHandle[T]`` types the results as ``Result[T]``.
+    """
 
     def __init__(self, run: RunContext) -> None:
         self._run = run
@@ -737,7 +749,7 @@ class AsyncRunHandle:
         run: RunContext,
         finalize: Finalize,
         events: asyncio.Queue[RunEvent | None] | None = None,
-    ) -> tuple[AsyncRunHandle, Callable[[RunEvent | None], object] | None]:
+    ) -> tuple[AsyncRunHandle[Any], Callable[[RunEvent | None], object] | None]:
         """Start ``run`` on the running loop, or finish it at once if no host is selected.
 
         Returns:
@@ -776,7 +788,7 @@ class AsyncRunHandle:
         """Whether every host is recorded and the run is finalized."""
         return self._finished.done()
 
-    async def results(self) -> AsyncIterator[Result]:
+    async def results(self) -> AsyncIterator[Result[T]]:
         """Iterate over the final result of each host, in the order the hosts finish.
 
         Each call starts with the hosts that have already finished. Leaving the loop
@@ -809,7 +821,7 @@ class AsyncRunHandle:
         finally:
             run._remove_change_callback(wake)
 
-    def events(self) -> AsyncIterator[RunEvent]:
+    def events(self) -> AsyncIterator[PartialResult | Result[T]]:
         """Iterate over the events produced from this call on.
 
         Returns:
@@ -899,20 +911,22 @@ async def _adrain_queue(
         run._unsubscribe(put)
 
 
-class RunStream:
+class RunStream(Generic[T]):
     """A run consumed live with :meth:`nornir.core.Nornir.run_stream`.
 
     Iterating over it yields the :class:`~nornir.core.task.PartialResult` objects and the
-    final :class:`~nornir.core.task.Result` of each host, from the start of the run.
-    Leaving the loop before the end (``break``, or an exception in the loop body) cancels
-    the run, as does leaving a ``with`` block. A stream can be iterated once.
+    final :class:`~nornir.core.task.Result` of each host, from the start of the run;
+    :meth:`results` yields only the final results. Leaving the loop before the end
+    (``break``, or an exception in the loop body) cancels the run, as does leaving a
+    ``with`` block. A stream can be iterated once. ``RunStream[T]`` types the results as
+    ``Result[T]``.
     """
 
     def __init__(
         self,
         run: RunContext,
         events: queue.SimpleQueue[RunEvent | None],
-        handle: RunHandle | None = None,
+        handle: RunHandle[Any] | None = None,
         steps: Callable[[], Iterator[None]] | None = None,
         finalize: Callable[[], tuple[AggregatedResult, BaseException | None]] | None = None,
     ) -> None:
@@ -928,7 +942,7 @@ class RunStream:
         self._error: BaseException | None = None
 
     @classmethod
-    def _start(cls, runner: StreamingRunner, run: RunContext, finalize: Finalize) -> RunStream:
+    def _start(cls, runner: StreamingRunner, run: RunContext, finalize: Finalize) -> RunStream[Any]:
         """Start ``run`` in the background, or prepare it to run on the caller's thread.
 
         Returns:
@@ -949,7 +963,7 @@ class RunStream:
 
         return cls(run, events, steps=steps, finalize=finish)
 
-    def __iter__(self) -> Iterator[RunEvent]:
+    def __iter__(self) -> Iterator[PartialResult | Result[T]]:
         if self._iterated:
             msg = "a run stream can be iterated only once"
             raise RuntimeError(msg)
@@ -958,7 +972,22 @@ class RunStream:
             return self._iterate_background()
         return self._iterate_foreground()
 
-    def __enter__(self) -> RunStream:
+    def results(self) -> Iterator[Result[T]]:
+        """Iterate over the final result of each host, in the order the hosts finish.
+
+        Partial results are skipped. This iterates the stream, so it can be called once,
+        and leaving the loop before the end cancels the run.
+
+        Returns:
+            An iterator over the final top-level result of each host.
+
+        Raises:
+            RuntimeError: the stream was already iterated
+
+        """
+        return _final_results(iter(self))
+
+    def __enter__(self) -> RunStream[T]:
         return self
 
     def __exit__(
@@ -1001,7 +1030,7 @@ class RunStream:
         return cast("AggregatedResult", self._result)
 
     def _iterate_background(self) -> Generator[RunEvent, None, None]:
-        handle = cast("RunHandle", self._handle)
+        handle = cast("RunHandle[Any]", self._handle)
         try:
             while (event := self._events.get()) is not None:
                 yield event
@@ -1054,16 +1083,17 @@ class RunStream:
         self._run._close()
 
 
-class AsyncRunStream:
+class AsyncRunStream(Generic[T]):
     """A run consumed live on the event loop with :meth:`nornir.core.Nornir.astream`.
 
-    Used with ``async for``. Leaving the loop before the end cancels the run, as does
-    leaving an ``async with`` block. A stream can be iterated once.
+    Used with ``async for``; :meth:`results` yields only the final results. Leaving the
+    loop before the end cancels the run, as does leaving an ``async with`` block. A stream
+    can be iterated once. ``AsyncRunStream[T]`` types the results as ``Result[T]``.
     """
 
     def __init__(
         self,
-        handle: AsyncRunHandle,
+        handle: AsyncRunHandle[Any],
         events: asyncio.Queue[RunEvent | None],
         put: Callable[[RunEvent | None], object],
     ) -> None:
@@ -1075,7 +1105,7 @@ class AsyncRunStream:
     @classmethod
     def _start(
         cls, runner: AsyncStreamingRunner, run: RunContext, finalize: Finalize
-    ) -> AsyncRunStream:
+    ) -> AsyncRunStream[Any]:
         """Start ``run`` on the running loop, subscribed from its first event.
 
         Returns:
@@ -1086,14 +1116,29 @@ class AsyncRunStream:
         handle, put = AsyncRunHandle._start(runner, run, finalize, events)
         return cls(handle, events, cast("Callable[[RunEvent | None], object]", put))
 
-    def __aiter__(self) -> AsyncIterator[RunEvent]:
+    def __aiter__(self) -> AsyncIterator[PartialResult | Result[T]]:
         if self._iterated:
             msg = "a run stream can be iterated only once"
             raise RuntimeError(msg)
         self._iterated = True
         return _AsyncStreamIterator(self._handle, self._events, self._put)
 
-    async def __aenter__(self) -> AsyncRunStream:
+    def results(self) -> AsyncGenerator[Result[T], None]:
+        """Iterate over the final result of each host, in the order the hosts finish.
+
+        Partial results are skipped. This iterates the stream, so it can be called once,
+        and leaving the loop before the end cancels the run.
+
+        Returns:
+            An asynchronous iterator over the final top-level result of each host.
+
+        Raises:
+            RuntimeError: the stream was already iterated
+
+        """
+        return _afinal_results(cast("_AsyncStreamIterator", self.__aiter__()))
+
+    async def __aenter__(self) -> AsyncRunStream[T]:
         return self
 
     async def __aexit__(
@@ -1124,7 +1169,7 @@ class _AsyncStreamIterator:
 
     def __init__(
         self,
-        handle: AsyncRunHandle,
+        handle: AsyncRunHandle[Any],
         events: asyncio.Queue[RunEvent | None],
         put: Callable[[RunEvent | None], object],
     ) -> None:
@@ -1153,3 +1198,23 @@ class _AsyncStreamIterator:
         if not self._ended:
             self._end()
             self._handle.cancel()
+
+
+def _final_results(events: Iterator[RunEvent]) -> Generator[Result, None, None]:
+    try:
+        for event in events:
+            if isinstance(event, Result):
+                yield event
+    finally:
+        cast("Generator[RunEvent, None, None]", events).close()
+
+
+async def _afinal_results(iterator: _AsyncStreamIterator) -> AsyncGenerator[Result, None]:
+    try:
+        async for event in iterator:
+            if isinstance(event, Result):
+                yield event
+    finally:
+        if not iterator._ended:
+            iterator._end()
+            iterator._handle.cancel()

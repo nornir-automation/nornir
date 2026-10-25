@@ -5,7 +5,7 @@ import functools
 import inspect
 import logging
 import traceback
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Generic, cast
 
 from nornir.core.exceptions import (
     AsyncTaskOnSyncRunError,
@@ -18,10 +18,20 @@ from nornir.core.exceptions import (
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Callable, Coroutine, Generator
 
+    # The default lets a bare ``Result`` mean ``Result[Any]`` for the type checker. It is
+    # declared only here, so ``typing_extensions`` is never imported at runtime.
+    from typing_extensions import TypeVar
+
     from nornir.core import Nornir
     from nornir.core.inventory import Host
     from nornir.core.processor import Processors
     from nornir.core.run import _HostState
+
+    T = TypeVar("T", default=Any)
+else:
+    from typing import TypeVar
+
+    T = TypeVar("T")
 
 
 logger = logging.getLogger(__name__)
@@ -174,9 +184,33 @@ class Task:
         logger.info("Host %r: task %r interrupted: %s", self.host.name, self.name, interruption)
         return Result(self.host, exception=interruption, result=str(interruption), failed=True)
 
+    def _resolve_call(self, host: Host, asynchronous: bool) -> None:
+        """Prepare ``self.task`` and ``self.params`` for the call that follows.
+
+        Called just before the task is called, inside the same ``try``, so an exception
+        raised here becomes the host's failed result. A plain task needs nothing.
+
+        Arguments:
+            host: The host the task runs for
+            asynchronous: Whether the task is about to run on the asynchronous path
+
+        """
+
+    def _check_result(self, result: Result) -> Result:
+        """Return the top-level result of the host, checked; a plain task keeps it as is.
+
+        Returns:
+            The result to record.
+
+        """
+        return result
+
+    def _to_result(self, host: Host, value: Any) -> Result:
+        result = value if isinstance(value, Result) else Result(host=host, result=value)
+        return self._check_result(result) if self.parent_task is None else result
+
     def _finish(self, host: Host, result: Any) -> MultiResult:
-        if not isinstance(result, Result):
-            result = Result(host=host, result=result)
+        result = self._to_result(host, result)
         state = self._host_state if self.parent_task is None else None
         if state is not None:
             claimed, interruption = state.claim()
@@ -242,6 +276,7 @@ class Task:
         self._begin(host)
         try:
             logger.debug("Host %r: running task %r", self.host.name, self.name)
+            self._resolve_call(host, asynchronous=False)
             r = self.task(self, **self.params)
             if inspect.isgenerator(r):
                 r = yield from self._drive(cast("Generator[Any, None, Any]", r))
@@ -360,6 +395,7 @@ class Task:
 
     async def _acall(self) -> Any:
         logger.debug("Host %r: running task %r", self.host.name, self.name)
+        self._resolve_call(self.host, asynchronous=True)
         call = self.task(self, **self.params)
         if inspect.isasyncgen(call):
             return await self._adrive(cast("AsyncGenerator[Any, None]", call))
@@ -514,8 +550,11 @@ class PartialResult:
         return f'{self.__class__.__name__}: "{self.name}" {self.result!r}'
 
 
-class Result:
+class Result(Generic[T]):
     """Result of running individual tasks.
+
+    ``Result[T]`` types ``result`` as ``T`` for the type checker; a bare ``Result`` means
+    ``Result[Any]``. The type parameter has no effect at runtime.
 
     Arguments:
         changed (bool): ``True`` if the task is changing the system
@@ -548,7 +587,7 @@ class Result:
         severity_level: int = DEFAULT_SEVERITY_LEVEL,
         **kwargs: Any,
     ) -> None:
-        self.result = result
+        self.result: T = result
         self.host = host
         self.changed = changed
         self.diff = diff

@@ -17,26 +17,49 @@ class SyncAsyncMismatchError(Exception):
     """Raised when an operation is used from an unsupported execution mode."""
 
 
-class SyncTaskOnAsyncRunError(SyncAsyncMismatchError):
-    """Raised when an asynchronous run receives a synchronous task."""
+def _operation_context(operation: str | None, host_name: str | None) -> str:
+    if operation is None:
+        return ""
+    return f" (selected for operation {operation!r} on host {host_name!r})"
 
-    def __init__(self, task_name: str) -> None:
+
+class SyncTaskOnAsyncRunError(SyncAsyncMismatchError):
+    """Raised when an asynchronous run receives a synchronous task.
+
+    For an Operation, ``operation`` and ``host_name`` name the host the task was selected
+    for.
+    """
+
+    def __init__(
+        self, task_name: str, operation: str | None = None, host_name: str | None = None
+    ) -> None:
         self.task_name = task_name
+        self.operation = operation
+        self.host_name = host_name
         super().__init__(
-            f"Task {task_name!r} is synchronous and cannot run asynchronously. "
-            "Define it with 'async def' or use a synchronous runner. "
-            f"See {SYNC_TASKS_IN_ASYNC_RUNS_ISSUE}."
+            f"Task {task_name!r}{_operation_context(operation, host_name)} is synchronous "
+            "and cannot run asynchronously. Define it with 'async def' or use a synchronous "
+            f"runner. See {SYNC_TASKS_IN_ASYNC_RUNS_ISSUE}."
         )
 
 
 class AsyncTaskOnSyncRunError(SyncAsyncMismatchError):
-    """Raised when a synchronous run receives an asynchronous task."""
+    """Raised when a synchronous run receives an asynchronous task.
 
-    def __init__(self, task_name: str) -> None:
+    For an Operation, ``operation`` and ``host_name`` name the host the task was selected
+    for.
+    """
+
+    def __init__(
+        self, task_name: str, operation: str | None = None, host_name: str | None = None
+    ) -> None:
         self.task_name = task_name
+        self.operation = operation
+        self.host_name = host_name
         super().__init__(
-            f"Task {task_name!r} is asynchronous and cannot run synchronously. "
-            "Use 'await nr.arun(...)' or 'await task.arun(...)', or define a synchronous task."
+            f"Task {task_name!r}{_operation_context(operation, host_name)} is asynchronous "
+            "and cannot run synchronously. Use 'await nr.arun(...)' or 'await task.arun(...)', "
+            "or define a synchronous task."
         )
 
 
@@ -358,7 +381,7 @@ class RunnerCapabilityError(Exception):
                 "runs every task on the caller's thread. Use 'run_stream' to consume the run "
                 "live, or use ThreadedRunner."
             )
-        elif capability in {"asubmit", "astream"}:
+        elif capability in {"asubmit", "astream", "arun_operation", "asubmit_operation"}:
             message = (
                 f"{runner_name} does not support {capability!r}. Implement "
                 "AsyncStreamingRunner, or use arun()."
@@ -372,6 +395,195 @@ class RunnerCapabilityError(Exception):
 
     def __reduce__(self) -> tuple[type[RunnerCapabilityError], tuple[str, str, bool]]:
         return (type(self), (self.runner_name, self.capability, self.background))
+
+
+class OperationError(Exception):
+    """Base class of the errors raised by Operations.
+
+    Arguments:
+        operation: Name of the Operation
+
+    """
+
+    def __init__(self, operation: str, message: str) -> None:
+        self.operation = operation
+        super().__init__(message)
+
+
+class OperationInputError(OperationError):
+    """Raised when the input of an Operation cannot be built or validated.
+
+    Raised by ``run_operation`` for a static ``params``, or for one host when ``params``
+    is a callable; the host's result then carries it.
+    """
+
+    def __init__(self, operation: str, reason: str, host_name: str | None = None) -> None:
+        self.reason = reason
+        self.host_name = host_name
+        where = f" on host {host_name!r}" if host_name is not None else ""
+        super().__init__(operation, f"invalid input for operation {operation!r}{where}: {reason}")
+
+    def __reduce__(self) -> tuple[type[OperationInputError], tuple[str, str, str | None]]:
+        return (type(self), (self.operation, self.reason, self.host_name))
+
+
+class OperationOutputError(OperationError):
+    """Raised for one host when its task returns a value of the wrong type."""
+
+    def __init__(
+        self,
+        operation: str,
+        task_name: str,
+        returned_type: str,
+        expected_type: str,
+        host_name: str,
+    ) -> None:
+        self.task_name = task_name
+        self.returned_type = returned_type
+        self.expected_type = expected_type
+        self.host_name = host_name
+        super().__init__(
+            operation,
+            f"task {task_name!r} for operation {operation!r} on host {host_name!r} returned "
+            f"{returned_type!r}, expected {expected_type!r}.",
+        )
+
+    def __reduce__(self) -> tuple[type[OperationOutputError], tuple[str, str, str, str, str]]:
+        return (
+            type(self),
+            (
+                self.operation,
+                self.task_name,
+                self.returned_type,
+                self.expected_type,
+                self.host_name,
+            ),
+        )
+
+
+class OperationNotRegisteredError(OperationError):
+    """Raised when no task is registered for an Operation, a platform and a connection.
+
+    For a host with no platform, ``platform`` is ``None`` and the message says so.
+    """
+
+    def __init__(
+        self,
+        operation: str,
+        platform: str | None,
+        connection: str,
+        registered: tuple[str, ...] = (),
+        host_name: str | None = None,
+    ) -> None:
+        self.platform = platform
+        self.connection = connection
+        self.registered = tuple(registered)
+        self.host_name = host_name
+        if platform is None:
+            subject = f"host {host_name!r}" if host_name is not None else "the host"
+            message = (
+                f"{subject} has no platform, so no task can be selected for operation "
+                f"{operation!r}."
+            )
+        else:
+            known = ", ".join(self.registered) if self.registered else "none"
+            where = f" (host {host_name!r})" if host_name is not None else ""
+            message = (
+                f"no task registered for operation {operation!r} on platform {platform!r} "
+                f"with connection {connection!r}{where}. Registered for {operation!r}: {known}."
+            )
+        super().__init__(operation, message)
+
+    def __reduce__(
+        self,
+    ) -> tuple[
+        type[OperationNotRegisteredError],
+        tuple[str, str | None, str, tuple[str, ...], str | None],
+    ]:
+        return (
+            type(self),
+            (self.operation, self.platform, self.connection, self.registered, self.host_name),
+        )
+
+
+class OperationAlreadyRegisteredError(OperationError):
+    """Raised when a registration conflicts with an existing one.
+
+    Arguments:
+        operation: Name of the Operation
+        key: ``<operation>.<platform>.<connection>`` for a task, ``None`` for a contract
+        existing: Source of the registration already in place
+        new: Source of the rejected registration
+
+    """
+
+    def __init__(self, operation: str, key: str | None, existing: str, new: str) -> None:
+        self.key = key
+        self.existing = existing
+        self.new = new
+        if key is None:
+            message = (
+                f"operation name {operation!r} is already defined by {existing}; "
+                f"cannot define {new}."
+            )
+        else:
+            message = (
+                f"cannot register {new} for {key}: {existing} already registered it. "
+                "Pass replace=True to override."
+            )
+        super().__init__(operation, message)
+
+    def __reduce__(
+        self,
+    ) -> tuple[type[OperationAlreadyRegisteredError], tuple[str, str | None, str, str]]:
+        return (type(self), (self.operation, self.key, self.existing, self.new))
+
+
+class OperationConnectionNotSetError(OperationError):
+    """Raised when an Operation is run with no connection given or configured."""
+
+    def __init__(self, operation: str) -> None:
+        super().__init__(
+            operation,
+            f"no connection for operation {operation!r}: pass connection= or set "
+            "core.operation_connection.",
+        )
+
+    def __reduce__(self) -> tuple[type[OperationConnectionNotSetError], tuple[str]]:
+        return (type(self), (self.operation,))
+
+
+class OperationEntryPointError(OperationError):
+    """Raised when an installed distribution declares an invalid Operation entry point."""
+
+    def __init__(self, operation: str, distribution: str, entry_point: str, reason: str) -> None:
+        self.distribution = distribution
+        self.entry_point = entry_point
+        self.reason = reason
+        super().__init__(
+            operation,
+            f"distribution {distribution!r} declares entry point {entry_point!r}: {reason}",
+        )
+
+    def __reduce__(self) -> tuple[type[OperationEntryPointError], tuple[str, str, str, str]]:
+        return (type(self), (self.operation, self.distribution, self.entry_point, self.reason))
+
+
+class OperationContractNotFoundError(OperationError):
+    """Raised when an Operation is run by a name that no Operation class defines."""
+
+    def __init__(self, operation: str, registered: tuple[str, ...] = ()) -> None:
+        self.registered = tuple(registered)
+        known = ", ".join(self.registered) if self.registered else "none"
+        super().__init__(
+            operation,
+            f"no Operation named {operation!r} is defined. Known Operations: {known}.",
+        )
+
+    def __reduce__(
+        self,
+    ) -> tuple[type[OperationContractNotFoundError], tuple[str, tuple[str, ...]]]:
+        return (type(self), (self.operation, self.registered))
 
 
 class NornirNoValidInventoryError(Exception):
