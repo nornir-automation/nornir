@@ -1,0 +1,9 @@
+---
+inventory:
+    plugin: SimpleInventory
+    options:
+        host_file: "operations/hosts.yaml"
+runner:
+    plugin: serial
+core:
+    operation_connection: napalm
