@@ -284,13 +284,19 @@ class RunnerConfig:
 
 
 class CoreConfig:
-    __slots__ = ("raise_on_error",)
+    __slots__ = ("operation_connection", "raise_on_error")
 
     class Parameters:
         raise_on_error = Parameter[bool](default=False, envvar="NORNIR_CORE_RAISE_ON_ERROR")
+        operation_connection = Parameter[str](typ=str, envvar="NORNIR_CORE_OPERATION_CONNECTION")
 
-    def __init__(self, raise_on_error: bool | None = None) -> None:
+    def __init__(
+        self, raise_on_error: bool | None = None, operation_connection: str | None = None
+    ) -> None:
         self.raise_on_error = self.Parameters.raise_on_error.resolve(raise_on_error)
+        self.operation_connection = self.Parameters.operation_connection.resolve(
+            operation_connection
+        )
 
     def dict(self) -> dict[str, Any]:
         """Return the core configuration as a dictionary.
@@ -300,9 +306,12 @@ class CoreConfig:
             been applied.
 
         """
-        return {
-            "raise_on_error": self.raise_on_error,
-        }
+        data: dict[str, Any] = {"raise_on_error": self.raise_on_error}
+        # Left out while unset, so the output of programs that do not use Operations
+        # stays as it was before the parameter existed.
+        if self.operation_connection:
+            data["operation_connection"] = self.operation_connection
+        return data
 
 
 class Config:
