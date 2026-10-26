@@ -7,6 +7,7 @@ Unreleased
 - Removed unused legacy core helpers and validator methods.
 - Deprecated ``nornir.core.helpers.jinja_helper`` rendering functions in favor of
   ``nornir_jinja2`` (#1077).
+- Added Python 3.15 support (#1118).
 
 3.6.0 - August 2 2026
 ---------------------

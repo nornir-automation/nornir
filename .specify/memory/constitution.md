@@ -78,7 +78,7 @@ part of its public surface, and silent erosion of them degrades every downstream
 Every behavioural change MUST arrive with tests. A bug fix MUST include a test that fails before
 the fix and passes after it.
 
-`make pytest` MUST pass on every supported Python version (3.10 through 3.14) and every supported
+`make pytest` MUST pass on every supported Python version (3.10 through 3.15) and every supported
 platform (Linux, macOS, Windows). Windows is a first-class target, not best-effort: code MUST NOT
 assume POSIX path separators, unlimited path lengths, or shell semantics.
 
