@@ -63,7 +63,7 @@ docs/upgrading/       major-version upgrade guides
 | `make docs` | Regenerates the API reference, then builds Sphinx HTML. |
 | `make docker-tests` | Runs the whole suite in the CI Linux image. |
 
-Supported Python is 3.10 through 3.14, on Linux, macOS, and Windows. All three platforms are
+Supported Python is 3.10 through 3.15, on Linux, macOS, and Windows. All three platforms are
 first-class in CI.
 
 ## Conventions that actually bite

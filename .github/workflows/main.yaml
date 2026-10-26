@@ -7,7 +7,7 @@ jobs:
     name: linters
     strategy:
       matrix:
-        python-version: [ '3.14' ]
+        python-version: [ '3.15' ]
         platform: [ubuntu-latest]
     runs-on: ${{ matrix.platform }}
     steps:
@@ -38,7 +38,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v8.2.0
         with:
-          python-version: "3.14"
+          python-version: "3.15"
           enable-cache: true
 
       - name: Build and import wheel
@@ -57,6 +57,7 @@ jobs:
           - "3.12"
           - "3.13"
           - "3.14"
+          - "3.15"
         platform:
           - ubuntu-latest
           - macos-15
