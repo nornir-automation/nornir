@@ -14,7 +14,7 @@ from nornir.core.task import AggregatedResult, Task
 if TYPE_CHECKING:
     import builtins
     import types
-    from collections.abc import Callable, Generator
+    from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -225,33 +225,3 @@ class Nornir:
             "processors": self.processors,
             "runner": self._runner,
         }
-
-    @classmethod
-    def get_validators(cls) -> Generator[Callable[[Nornir], Nornir], None, None]:
-        """Yield the validators used to accept a :obj:`Nornir` as a field of a model.
-
-        Yields:
-            :py:meth:`validate`.
-
-        """
-        # Left over from the time nornir modelled its objects with pydantic. Nothing in
-        # nornir calls it, and the name does not match the hook any released pydantic
-        # looks for (__get_validators__ in v1, __get_pydantic_core_schema__ in v2), so
-        # it has no effect on its own.
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v: Nornir) -> Nornir:
-        """Return ``v`` unchanged if it is a :obj:`Nornir` object.
-
-        Returns:
-            :obj:`Nornir`: The object that was passed in.
-
-        Raises:
-            ValueError: ``v`` is not an instance of this class.
-
-        """
-        # Counterpart of get_validators, and equally unused.
-        if not isinstance(v, cls):
-            raise ValueError(f"Nornir: Nornir expected not {type(v)}")
-        return v
