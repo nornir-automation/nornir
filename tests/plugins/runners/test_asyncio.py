@@ -44,6 +44,17 @@ class RecordingProcessor:
         self.events.append(("subtask_instance_completed", host.name))
 
 
+class FailingStartProcessor(RecordingProcessor):
+    def __init__(self, host_name: str) -> None:
+        super().__init__()
+        self.host_name = host_name
+
+    def task_instance_started(self, task: Task, host: Host) -> None:
+        super().task_instance_started(task, host)
+        if host.name == self.host_name:
+            raise RuntimeError("processor failure")
+
+
 def make_hosts(count: int) -> list[Host]:
     return [Host(name=f"host-{index:04}") for index in range(count)]
 
@@ -425,6 +436,66 @@ def test_cancellation_retrieves_aggregate_exception_and_leaves_no_owned_tasks() 
         assert processor.events[0] == ("task_started", None)
         assert ("task_completed", None) not in processor.events
         assert asyncio.all_tasks() <= existing_tasks
+
+    run(scenario())
+
+
+def test_caller_cancellation_during_error_drain_is_not_lost() -> None:
+    async def scenario() -> None:
+        hosts = make_hosts(2)
+        nr = make_nornir(hosts, AsyncioRunner(2), FailingStartProcessor(hosts[1].name))
+        cleaning = asyncio.Event()
+        release_cleanup = asyncio.Event()
+
+        async def blocked(task: Task) -> Result:
+            try:
+                await asyncio.Event().wait()
+            finally:
+                cleaning.set()
+                await release_cleanup.wait()
+            raise AssertionError("blocked task unexpectedly resumed")
+
+        # The processor failure on the second host makes the runner cancel the first
+        # host and wait for its cleanup; the caller then cancels during that wait.
+        running = asyncio.create_task(nr.arun(task=blocked))
+        await asyncio.wait_for(cleaning.wait(), timeout=1)
+        running.cancel()
+        cancellation_processed = asyncio.Event()
+        asyncio.get_running_loop().call_soon(cancellation_processed.set)
+        await cancellation_processed.wait()
+        release_cleanup.set()
+
+        with pytest.raises(asyncio.CancelledError):
+            await running
+        assert running.cancelled()
+
+    run(scenario())
+
+
+def test_timeout_during_error_drain_raises_timeout_error() -> None:
+    async def scenario() -> None:
+        hosts = make_hosts(2)
+        nr = make_nornir(hosts, AsyncioRunner(2), FailingStartProcessor(hosts[1].name))
+        cleaning = asyncio.Event()
+        release_cleanup = asyncio.Event()
+
+        async def blocked(task: Task) -> Result:
+            try:
+                await asyncio.Event().wait()
+            finally:
+                cleaning.set()
+                await release_cleanup.wait()
+            raise AssertionError("blocked task unexpectedly resumed")
+
+        async def release_after_timeout() -> None:
+            await cleaning.wait()
+            await asyncio.sleep(0.2)
+            release_cleanup.set()
+
+        releaser = asyncio.create_task(release_after_timeout())
+        with pytest.raises(asyncio.TimeoutError):
+            await asyncio.wait_for(nr.arun(task=blocked), timeout=0.05)
+        await releaser
 
     run(scenario())
 
