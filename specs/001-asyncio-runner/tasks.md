@@ -315,3 +315,8 @@ matrix evidence. All four stories ship together as required by the specification
 Use speckit-analyze before implementation to check this regenerated list against the
 current spec and plan. Mark task completion only after its acceptance work and required
 verification are actually done; unavailable CI evidence remains pending.
+
+## Phase 9: Convergence
+
+- [ ] T067 Make `Host.connection_mode` in `nornir/core/inventory.py` call `_check_connection_cache_conflict` before reporting a mode, so a name present in both the public and the private cache raises `ConnectionPluginContractError` as `get_connection`/`aget_connection` do instead of reporting `"asyncio"`; cover it in `tests/core/test_async_connections.py` beside the existing conflicting-entries test per plan: connection design decision 5 / FR-024 (partial)
+- [ ] T068 Record the current-head CI matrix evidence in `specs/001-asyncio-runner/validation.md`: workflow run 40483242882 on commit 51c322f passed all 20 jobs, including the Python 3.15 jobs on Linux, macOS and Windows that the constitution now requires (3.10 through 3.15), and the Phase 8 mode-binding commits that the recorded run 36307946893 predates per Constitution IV / T060 (partial)
