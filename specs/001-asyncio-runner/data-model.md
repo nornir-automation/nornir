@@ -1,6 +1,6 @@
 # Data Model: Asyncio Runner and capability-aware connections
 
-**Feature**: 001-asyncio-runner | **Updated**: 2026-10-13 | [Plan](plan.md)
+**Feature**: 001-asyncio-runner | **Updated**: 2026-10-28 | [Plan](plan.md)
 
 ## Registries and protocols
 
@@ -30,7 +30,7 @@ Replacing a registration does not replace or reclassify an already cached instan
 | connections | dict[str, ConnectionPlugin] | Existing public | Legacy, capability-sync, and capability-dual instances |
 | _async_connections | dict[str, AsyncCapabilityConnectionPlugin] | New private slot | Capability-asyncio-only instances |
 | _capability_connections | dict[str, _CapabilityConnectionState] | New private slot | Validated origin/declaration associated with each new-contract instance |
-| _opening | set[str] | New private slot | Names reserved by in-progress async opens |
+| _opening | dict[str, asyncio.Future[None]] | New private slot | Names reserved by in-progress async opens; asynchronous getters await the future; empty when nothing is opening |
 
 `_CapabilityConnectionState` is an immutable private record with
 `plugin: CapabilityConnectionPlugin`,
@@ -50,7 +50,10 @@ entry caused by external mutation is a contract error.
   it and returns None for a name that is not open.
 - A get in the other mode, or a synchronous close of an asyncio-bound connection, raises
   ConnectionModeMismatchError and leaves the entry intact. An asynchronous close of a
-  sync-bound connection calls close. Closing releases the binding.
+  sync-bound connection calls close inline, blocking the loop while it runs. Closing
+  releases the binding.
+- An asynchronous get of an opening name waits for the open and shares its outcome;
+  an explicit open or a synchronous get of an opening name raises ConnectionAlreadyOpen.
 - Both opening paths check all stores; only successful opening publishes state.
 - Cached capability checks precede returning the transport and preserve entries on mismatch.
 - Deregistering or replacing the plugin class does not change the cached object's origin.
@@ -59,9 +62,10 @@ entry caused by external mutation is a contract error.
   Matching metadata is removed with the sync instance even if close raises.
 - Async bulk close snapshots both stores; attempts all entries on ordinary errors and raises
   the first error afterward. Cancellation interrupts cleanup and propagates.
-- Sync bulk cleanup snapshots both stores, remains fail-fast, and raises a mismatch for
-  async-only entries. Callers serialize use/cleanup while a name is closing; awaited-close
-  removal checks identity so a replacement cannot be deleted accidentally.
+- Sync bulk cleanup snapshots both stores, attempts every name, and raises the first
+  error afterwards, including the mismatch for asyncio-bound or async-only entries,
+  which stay intact. Callers serialize use/cleanup while a name is closing;
+  awaited-close removal checks identity so a replacement cannot be deleted accidentally.
 - Filtered inventories and Nornir wrappers retaining a Host share all its connection state.
 - Inventory dict/schema output omits all runtime connection state. Empty Host copy/pickle
   includes empty private slots; live transport serialization is not newly guaranteed.
@@ -78,7 +82,8 @@ open -- successful close in the bound mode ----------------------------> absent
 open -- asynchronous close of a sync-bound connection (calls close) ---> absent
 open -- failed/cancelled async close -----------------------------------> open + error
 open -- synchronous close (pop first) ----------------------------------> absent, even if close raises
-reserved -- another get/open ------------------------------------------> unchanged + ConnectionAlreadyOpen
+reserved -- asynchronous get --------------------------------------------> waits, then open or the opener's error
+reserved -- explicit open or synchronous get -----------------------------> unchanged + ConnectionAlreadyOpen
 ```
 
 Sync opening has the same successful publication boundary without an await. A plugin is
@@ -105,7 +110,10 @@ skips finalization entirely. Async context exit cleans good and failed hosts.
 Task keeps its existing callable, host, parent_task, params, and MultiResult fields.
 New astart and arun share result bookkeeping helpers with start and run, calling/awaiting
 the original user callable directly. Ordinary exceptions become failed results containing
-the user's traceback; BaseException propagates without a cancellation result.
+the user's traceback. A CancelledError raised by the task's own code while the asyncio
+task is not being cancelled becomes a failed result too (per host on Python 3.10, see
+plan execution decision 6); a genuine cancellation and any other BaseException
+propagate without a result.
 
 Reject incompatible children before creating child execution events or results. The parent
 already has start events; if it does not catch the mismatch, it records its normal failure.
@@ -116,13 +124,13 @@ host completion when emitted. Events from different hosts may interleave.
 
 Field `num_workers: int`, default 20, validated positive and non-boolean at construction.
 No loop-bound state survives a call. Semaphore limits active host copies; ordered gather
-preserves selected-host result order. The runner owns and drains all scheduled host
-futures, including waiters, on BaseException. Wait for the initial aggregate without
-propagating caller cancellation and give the runner sole ownership of child cancellation:
-cancel unfinished children once, drain
-them under shielding, and retrieve the aggregate exception before re-raising. Additional
-caller cancellations do not repeatedly cancel children performing cleanup. It creates
-no executor threads.
+preserves selected-host result order. Host futures are gathered with exceptions
+returned; the runner waits for every host, then raises the first host error in host
+order, as ThreadedRunner does. Only a caller cancellation makes the runner cancel its
+owned futures, including waiters: wait for the aggregate without propagating the
+cancellation, cancel unfinished children once, drain them under shielding, retrieve the
+aggregate exception, then re-raise. Additional caller cancellations do not repeatedly
+cancel children performing cleanup. It creates no executor threads.
 
 ## AsyncEcho fixture
 
@@ -136,3 +144,4 @@ opens, handlers, and sockets on errors/cancellation. Nothing under tests ships i
 
 See [errors.md](contracts/errors.md) for the seven mismatch errors, registry ambiguity and
 contract errors, constructor argument errors, reused exceptions, and validation precedence.
+The five connection-related errors are also ConnectionException instances.

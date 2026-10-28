@@ -61,16 +61,23 @@ Async context entry returns self; exit cleans good and failed hosts by passing b
 selection flags as true. Sync context exit and sync cleanup on AsyncioRunner raise
 RunnerNotSyncError with the async alternatives.
 
-Cancellation escapes as BaseException. The runner waits for its initial aggregate without
-propagating caller cancellation into it, then explicitly cancels each unfinished owned host
-future once on failure/cancellation
-(including semaphore waiters). It drains all children and retrieves the aggregate's
-exception before re-raising. Shield draining from subsequent caller cancellations and
-continue awaiting it without re-cancelling children, so awaited host cleanup can finish.
-Do not both let gather propagate cancellation and then cancel its children again: that
-can interrupt cleanup after a single caller cancellation. Global completion and failed-host updates do not
-run. Events/results already observed by processors before cancellation cannot be rolled
-back; no aggregate or cancellation result is returned.
+Host errors do not cancel other hosts. The runner gathers host futures with exceptions
+returned, waits for every host, and then raises the first exception in host order, as
+ThreadedRunner does after its pool completes. A `CancelledError` raised by a task's own
+code while the asyncio task is not being cancelled is recorded as that host's failed
+result (per host on Python 3.10, in the runner's host coroutine).
+
+Caller cancellation escapes as BaseException. The runner waits for its aggregate without
+propagating caller cancellation into it, then explicitly cancels each unfinished owned
+host future once (including semaphore waiters). It drains all children and retrieves the
+aggregate's exception before re-raising. Shield draining from subsequent caller
+cancellations and continue awaiting it without re-cancelling children, so awaited host
+cleanup can finish. Do not both let gather propagate cancellation and then cancel its
+children again: that can interrupt cleanup after a single caller cancellation. The
+drain runs only for caller cancellation, so a cancellation cannot be lost behind a host
+error. Global completion and failed-host updates do not run. Events/results already
+observed by processors before cancellation cannot be rolled back; no aggregate or
+cancellation result is returned.
 
 ## Capability-aware registration
 
@@ -170,25 +177,31 @@ so replacing a public-cache entry cannot transfer the old object's declared capa
 Untracked public-cache entries retain legacy sync semantics. Conflicting public/private
 entries caused by external mutation raise a contract error rather than selecting one.
 
-Open checks both stores and a private pending-name set. A repeated get/open of an opening
-name raises ConnectionAlreadyOpen. The reservation is set before the first await and
-cleared in finally. Publish the instance and its metadata only after opening succeeds.
+Open checks both stores and a private per-name reservation future. `aget_connection` on
+an opening name awaits that future and then applies the cache-hit checks, so concurrent
+asynchronous gets share the connection or the opener's failure. `aopen_connection` and
+`get_connection` on an opening name raise ConnectionAlreadyOpen. The reservation is set
+before the first await and resolved or failed in finally, so waiters never hang. Publish
+the instance and its metadata only after opening succeeds.
 Failed/cancelled aopen must release partially acquired resources inside the plugin;
 the host removes its reservation and does not publish the instance.
 
 Sync close validates support before removal, then removes the instance and matching
 metadata before calling close, retaining existing pop-before-close semantics even if
-close raises. Sync bulk cleanup snapshots both stores and is fail-fast; encountering
-an async-only name raises the mismatch rather than silently omitting it.
+close raises. Sync bulk cleanup snapshots both stores and attempts every name; an
+asyncio-bound or async-only name raises its mismatch after the other names were
+attempted, never silently omitted and never blocking the names after it.
 Async close dispatches using recorded capabilities, removes cache/metadata
 after successful closing, and retains them if closing fails or is cancelled for retry.
 Async bulk cleanup snapshots both stores; ordinary close errors do not prevent attempts
 on the remaining names, and the first error is raised afterward. Cancellation propagates
-immediately. Existing synchronous bulk cleanup remains fail-fast. Neither cleanup path
-requires the plugin still be registered. Missing names raise ConnectionNotOpen.
+immediately. Synchronous bulk cleanup follows the same attempt-all rule. Neither cleanup
+path requires the plugin still be registered. Missing names raise ConnectionNotOpen.
+The asynchronous close of a sync-bound connection calls `close` inline and blocks the
+loop while it runs.
 
-Only concurrent opening of the same name is supported as specified. Callers must serialize
-get/open/close operations against a name while it is closing; overlapping cleanup and use
+Concurrent asynchronous gets of an opening name are supported as specified. Callers must
+serialize get/open/close operations against a name while it is closing; overlapping cleanup and use
 are not supported. After an awaited close, remove only the instance/metadata whose identity
 matches the object closed, so an external replacement is not accidentally removed.
 A failed Nornir cleanup can mark the host failed; retry through Nornir with on_failed=True
@@ -204,6 +217,8 @@ AsyncioRunner implements both RunnerPlugin and AsyncRunnerPlugin. Its sync run a
 raises RunnerNotSyncError; async run uses a per-call semaphore and ordered gather.
 num_workers defaults to 20; construction rejects booleans/non-integers with TypeError
 and nonpositive integers with ValueError. Existing runner validation is unchanged.
+A host error is raised after every host finished; only caller cancellation interrupts
+hosts (see Nornir and Task above).
 
 Global task_started precedes host events. Each host's start precedes its completion;
 child events are nested within the parent. Global task_completed, when emitted, follows

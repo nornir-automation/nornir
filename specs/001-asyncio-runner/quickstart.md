@@ -72,15 +72,21 @@ Host.connections contains legacy/sync/dual instances; async-only instances are p
 Therefore an empty public connections dictionary alone is not proof of complete cleanup.
 Tests must assert fixture close counters, resource closure, and both internal stores.
 
-Also verify concurrent gets raise ConnectionAlreadyOpen, failed/cancelled opens release
-reservations/resources, stale metadata is not applied after public-cache replacement,
-filtered views share the Host's connections, and empty-host copy/pickle succeeds.
+Also verify that concurrent asynchronous gets of an opening name wait and share the
+connection or the opener's failure, that an explicit open or a synchronous get of an
+opening name raises ConnectionAlreadyOpen, that failed/cancelled opens release
+reservations/resources and wake waiters, that stale metadata is not applied after
+public-cache replacement, that filtered views share the Host's connections, and that
+empty-host copy/pickle succeeds.
 
 Open a legacy, capability-sync, capability-asyncio and dual connection on one host; async
 bulk cleanup calls close for sync-bound connections (legacy, sync-only, dual opened
 synchronously) and aclose for asyncio-bound ones. Failed async closing
 retains that entry for retry and does not prevent ordinary-error cleanup of other names.
-Sync mismatch leaves an async-only entry intact; legacy synchronous failure semantics stay.
+Synchronous bulk cleanup closes every other entry before raising the mismatch for an
+asyncio-bound or async-only entry, which stays intact; the synchronous `close` called
+during asynchronous cleanup runs inline. Assert that the five connection errors are
+ConnectionException instances carrying the connection name.
 
 After Nornir cleanup is implemented, verify async with closes good and failed hosts,
 explicit cleanup honors all four on_good/on_failed combinations, and processors observe
@@ -117,6 +123,11 @@ events, per-host start before completion, nested child events, and global comple
 after hosts when it is emitted. Preserve failure/cancellation omissions. The documentation
 must explain that synchronous subtasks and processor callbacks can block the event loop.
 
+A processor raising for one host lets the other hosts finish; the error is raised
+afterwards, as with the threaded runner. A CancelledError escaping a task's own code
+fails only that host and `arun` returns normally; a genuine cancellation of the host's
+asyncio task still propagates with no result recorded.
+
 ## 5. Cancellation, worker counts, and performance — US4, SC-002/003
 
 ```bash
@@ -129,6 +140,7 @@ CancelledError, no runner-owned coroutine remains, failed_hosts is unchanged, an
 completion did not fire. Include a promptly cancelling host alongside one with awaited
 finally cleanup, and assert that the latter finishes cleanup after one caller cancellation.
 Also repeat caller cancellation while draining: it must not re-cancel host cleanup.
+A host error must not start the cancellation path at all.
 
 Validate worker count 20 by default, counts larger than inventory, and rejection of zero,
 negative, non-integer and boolean values. On measured runs, retain the exact specification
@@ -151,13 +163,15 @@ Review the executed asyncio notebook and
 `docs/howto/writing_capability_connection_plugins.rst`: the guide includes AsyncEcho's
 real source, native async method rules, capability/discovery examples, the legacy path,
 cache visibility, mode binding for dual-capability plugins, and blocking limitations. Verify the
-wheel contains nornir and excludes the test-only fixture.
+wheel contains nornir and excludes the test-only fixture. Confirm that no stored notebook
+output contains a machine-specific path: re-executed notebooks run in the CI image.
 
 Before merge:
 
 - Record #1085 and the feature in CHANGELOG.rst, including synchronous coroutine-task rejection.
 - Restate in-tree AsyncioRunner approval in the PR.
 - Open the synchronous-task follow-up and replace its temporary URL in the error constant.
+- Confirm the five tests from #1119 pass on the branch.
 - Preserve genuine notebook output and review generated API changes.
 - Confirm the task list's requirement coverage against actual implementation evidence,
   especially registry isolation and typed storage.

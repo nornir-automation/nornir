@@ -17,6 +17,11 @@ the reference connection plugin remains a test fixture. Updated on 2026-10-13 af
 first third-party implementation (nornir_scrapli): a plugin declaring both capabilities
 opens in one mode and its connection stays bound to that mode until it is closed,
 because no transport can be used from both a synchronous and an asyncio task.
+Updated on 2026-10-28 after the review of PR #1111 and the failing tests in #1119: an
+error from one host no longer interrupts the other hosts, a cancellation raised inside
+a task fails only that host, concurrent requests for a connection that is still opening
+wait for it, synchronous bulk cleanup attempts every connection, and the connection
+errors join the existing `ConnectionException` family.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -83,6 +88,10 @@ connection plugin is needed.
 9. **Given** an async task that calls the synchronous `task.run(async_subtask)`,
    **When** the task runs, **Then** a named error is raised whose message points to
    `await task.arun(...)`.
+10. **Given** a processor attached to an async run over several hosts, **When** the
+    processor raises for one host, **Then** the other hosts finish their task before
+    the error reaches the caller, exactly as the threaded runner behaves. No host is
+    interrupted partway through its work because of another host's error.
 
 ---
 
@@ -161,9 +170,9 @@ the mode binding of a plugin declaring both, alongside an unchanged legacy plugi
 ### User Story 3 - Clean up connections in an async context (Priority: P2)
 
 The application developer wraps the run in `async with nr:` — or calls
-`await nr.aclose_connections()` explicitly — and every connection opened during the run,
-synchronous or asynchronous, is closed on exit, for hosts that succeeded and for hosts
-that failed, with processors observing the cleanup the same way they observe any other
+`await nr.aclose_connections()` explicitly — and every connection open on the host,
+whenever it was opened, synchronous or asynchronous, is closed on exit, for hosts that
+succeeded and for hosts that failed, with processors observing the cleanup the same way they observe any other
 task.
 
 **Why this priority**: Without it an async application leaks device sessions, but it
@@ -215,6 +224,10 @@ event was emitted.
 2. **Given** the same cancellation, **When** the caller inspects state afterwards,
    **Then** `nr.data.failed_hosts` is unchanged, no processor received
    `task_completed`, and no host coroutine is still pending.
+3. **Given** an async task that cancels a helper it started itself and lets the
+   resulting `CancelledError` escape, **When** the run executes, **Then** only that
+   host is recorded as failed, the other hosts complete, and `arun` returns normally
+   instead of raising a cancellation the caller never requested.
 
 ---
 
@@ -227,8 +240,18 @@ event was emitted.
   execution for subtask calls, and before opening or returning an incompatible
   connection for connection calls. The message names the entry point to use instead.
 - The caller cancels `arun` mid-run: cancellation propagates, nothing is recorded.
+- A processor or runner-level error escapes one host's execution: the other hosts
+  finish, then the first error is raised to the caller. In-flight hosts are interrupted
+  only when the caller cancels (#1119, problem 3).
+- A `CancelledError` is raised inside a task's own code while nothing cancelled the
+  run: it is recorded as that host's failed result and the other hosts are unaffected
+  (#1119, problem 2).
 - A host holds a mix of synchronous and asynchronous connections at cleanup: both kinds
   are closed.
+- A host holds an asyncio-bound connection and a synchronous one, and the synchronous
+  bulk close runs: the synchronous connection is closed and the mode error for the
+  asyncio-bound one is raised afterwards. No connection stays open because of the
+  order of the cache.
 - A connection from a capability-aware plugin declaring both capabilities was opened by a synchronous
   task and is later requested from an async task under the same name, or the reverse:
   a named error says which mode the connection is open in and which close method
@@ -238,7 +261,8 @@ event was emitted.
 - A connection bound to asyncio mode is closed through the synchronous close method:
   a named error is raised, because the synchronous path cannot await the close. A
   connection bound to synchronous mode is closed through the asynchronous close method:
-  its synchronous close is called, as mixed cleanup already requires.
+  its synchronous close is called, as mixed cleanup already requires. That call runs
+  inline on the event loop and blocks it while it runs, like a synchronous subtask.
 - A connection is closed and the same name is opened again in the other mode: the
   reopen succeeds, because closing releases the mode binding.
 - A capability-aware plugin exposes extra methods but does not declare the corresponding
@@ -249,9 +273,11 @@ event was emitted.
 - A name exists in both registries: lookup reports ambiguity before opening a connection.
 - A capability declaration is invalid or its required operations are missing: fail before
   opening a connection, rather than reporting support that cannot be used.
-- Two concurrent `aget_connection` calls for the same host and name from inside one task
-  (the user fans out inside the task): the second call raises rather than opening a
-  second connection. Taken as-is from the proposal.
+- Two concurrent `aget_connection` calls for the same host and name (the user fans out
+  inside the task): the second call waits for the first open to finish and receives the
+  same connection. If the open fails, every waiter receives the failure. An explicit
+  `aopen_connection` while the name is opening still raises, as it does for an open
+  connection, and a synchronous `get_connection` cannot wait and raises too.
 - A synchronous processor is attached to an async run: it works, but blocks the loop
   while its hook runs. Documented as a known limitation, owned by #1090.
 - A run with zero selected hosts: behaves as `nr.run()` does today (a warning is
@@ -300,7 +326,9 @@ event was emitted.
   methods. Both execution paths MUST resolve plugins by name across the legacy and
   capability-aware registries and maintain one logical connection per host and name.
   A plugin declaring both capabilities opens in either mode, one at a time (FR-024).
-  Storage MUST preserve existing public cache types and synchronous behavior;
+  Concurrent `aget_connection` calls for a name that is still opening MUST wait for
+  that open and share its outcome; `aopen_connection` and `get_connection` on an
+  opening name MUST raise. Storage MUST preserve existing public cache types and synchronous behavior;
   the internal representation is a planning decision.
 - **FR-013**: `Host.aget_connection()` on a plugin without asyncio capability MUST raise a
   named error pointing to `get_connection()`; `Host.get_connection()` on a plugin
@@ -310,6 +338,10 @@ event was emitted.
 - **FR-014**: `Host.aclose_connections()` MUST close every open connection on the host,
   awaiting `aclose` on connections bound to asyncio mode and calling `close` on
   connections bound to synchronous mode, whatever the plugin's declared capabilities.
+  `Host.close_connections()` and `Host.aclose_connections()` MUST both attempt every
+  connection on the host and raise the first error after the last attempt, so a
+  connection that cannot be closed from the calling mode does not leave the
+  connections after it open.
 - **FR-015**: `Nornir.aclose_connections()` MUST run as a task through `arun()` so that
   processors observe it and `on_good`/`on_failed` apply; `async with nr:` MUST close
   the connections of good and failed hosts on exit.
@@ -332,7 +364,9 @@ event was emitted.
   reference fixture and the two rules for async members (`aopen`/`aclose` must not
   block; `aclose` must be safe to call more than once). The plugin-author guide MUST
   explain capability reporting, registration and discovery through the new registry,
-  all three capability combinations, and continued support for legacy plugins.
+  all three capability combinations, and continued support for legacy plugins. Stored
+  notebook output MUST NOT contain machine-specific paths: notebooks whose output
+  changes are executed in the CI image so tracebacks show the repository path.
 - **FR-020**: No existing public signature, protocol member, default value or
   entry-point name MAY change; the pre-existing test suite MUST pass unmodified except
   for updating the runner-registry assertion and its import in
@@ -361,13 +395,30 @@ event was emitted.
   `close_connection` on an asyncio-bound connection MUST raise the same error. The
   binding MUST end when the connection is closed, so the name can be reopened in the
   other mode.
+- **FR-025**: When an error escapes one host's execution without being recorded as that
+  host's result (a processor hook raising, for example), the `asyncio` runner MUST let
+  every other host finish and then raise the first such error, as the threaded runner
+  does. In-flight hosts MUST be interrupted only by a cancellation of `arun` by the
+  caller.
+- **FR-026**: A `CancelledError` raised inside a task's own code, while nothing
+  cancelled the run or the host's execution, MUST be recorded as that host's failed
+  result, MUST NOT interrupt other hosts, and MUST NOT reach the caller as a
+  cancellation. A genuine cancellation of the host's execution MUST still propagate
+  without recording a result (FR-016).
+- **FR-027**: Every connection-related named error introduced by this feature
+  (`ConnectionPluginNotAsyncError`, `ConnectionPluginNotSyncError`,
+  `ConnectionModeMismatchError`, `ConnectionPluginAmbiguousError`,
+  `ConnectionPluginContractError`) MUST also be a `ConnectionException`, so handlers
+  written against the existing base catch them. The three mode errors keep their
+  `SyncAsyncMismatchError` base.
 
 ### Key Entities
 
 - **Asyncio runner**: A runner plugin, registered as `asyncio`, that executes a task
   over the selected hosts concurrently on the caller's event loop, bounded by
   `num_workers`. New; joins `serial` and `threaded` as an in-tree runner (approved
-  under Constitution principle II).
+  under Constitution principle II). On a host error it lets the other hosts finish
+  before raising, as the threaded runner does.
 - **Async entry points on `Nornir`**: `arun`, `aclose_connections`, and async context
   manager support. Existing entity, new members; the synchronous members are unchanged.
 - **Coroutine-aware `Task`**: `astart` and `arun` as async twins of `start` and `run`,
@@ -388,7 +439,8 @@ event was emitted.
   bound to one execution mode at a time. Existing entity, new members.
 - **Named errors**: One error per wrong sync/async combination, including a connection
   requested or closed in the mode other than the one that opened it, each message
-  naming the entry point or close method to use instead. New.
+  naming the entry point or close method to use instead. The connection-related ones
+  also belong to the existing `ConnectionException` family. New.
 - **`AsyncEcho` fixture**: A standard-library-only async connection plugin living in the
   test suite, whose source is included in the plugin-author documentation. New,
   test-only.
@@ -454,6 +506,36 @@ event was emitted.
   `Host`, so plugins do not track it. nornir_scrapli commit 6dd01bf had to add that
   tracking itself, which is what surfaced the gap.
 
+### Session 2026-10-28
+
+Review of PR #1111 and the failing tests in #1119.
+
+- Q: Does an error from one host, such as a processor raising, interrupt the other
+  hosts? → A: No. The asyncio runner matches the threaded runner: every host finishes,
+  then the first error is raised. Switching runners must not change whether a device
+  can be interrupted partway through a change. This also removes the path in which a
+  caller cancellation arriving during the error drain was lost (#1119, problems 1
+  and 3).
+- Q: Does a `CancelledError` escaping a task's own code cancel the whole run? → A: No.
+  It fails that host only; a genuine cancellation still propagates. On Python 3.10 the
+  distinction is made per host rather than per subtask (see Assumptions) (#1119,
+  problem 2).
+- Q: Should a second `aget_connection` for a name that is still opening raise? → A:
+  No. It waits for the open and reuses the connection, so a task that fans out with
+  `asyncio.gather` needs no coordination of its own. Explicit `aopen_connection`
+  keeps raising.
+- Q: Should synchronous bulk cleanup stop at the first connection it cannot close? →
+  A: No. Both bulk closers attempt every connection and raise the first error
+  afterwards. With mode binding, an asyncio-bound entry would otherwise leave every
+  later synchronous connection open on each call.
+- Q: Is closing a sync-bound connection from `aclose_connections` meant to call
+  `close` inline? → A: Yes. A synchronous close cannot await, but an asynchronous
+  close can call a synchronous function, and mixed cleanup needs it. The inline call
+  blocks the loop while it runs, which the documentation states. Moving it to a
+  thread belongs with the synchronous-tasks follow-up.
+- Q: Should the new connection errors derive from `ConnectionException`? → A: Yes, in
+  addition to their current bases.
+
 ## Assumptions
 
 - `num_workers` protects the devices, not the client; the default stays 20 on the
@@ -491,8 +573,20 @@ event was emitted.
 - Debuggability with stock Python tooling is preserved: a breakpoint inside an
   `async def` task pauses the run like any debugger would, and a failed host's
   traceback contains the user's own task code.
-- Every supported Python version (3.10 to 3.14) and platform (Linux, macOS, Windows)
+- Every supported Python version (3.10 to 3.15) and platform (Linux, macOS, Windows)
   runs the full async test path, including the `AsyncEcho` fixture.
+- Distinguishing a cancellation raised by a task's own code from a cancellation of the
+  task needs `asyncio.Task.cancelling()`, available from Python 3.11. On Python 3.10
+  the runner makes the distinction per host instead: a host whose execution ends
+  cancelled without the runner having cancelled it is recorded as failed, but a
+  cancelled subtask's own result tree is not recorded. Hosts behave the same on every
+  supported version.
+- Both bulk cleanup methods report one error when several connections fail to close.
+  Reporting all of them needs an exception group, which Python 3.10 lacks; that is a
+  follow-up.
+- The tutorial notebooks whose output changed with this feature are re-executed in
+  the CI image so stored tracebacks show the repository path, as the existing stored
+  output does.
 
 ### Out of Scope
 
@@ -514,3 +608,10 @@ event was emitted.
 - Renaming, removing, or requiring deprecation warnings for the legacy connection
   protocol and registry; existing plugins need not adopt the new contract in this release.
 - A major-version upgrade guide: the release is additive and nothing breaks.
+- Reporting every failed close of a bulk cleanup at once, through an `ExceptionGroup`
+  on Python 3.11 and later or a carrier exception on 3.10; follow-up.
+- Running the synchronous `close` of a sync-bound connection in a thread during
+  asynchronous cleanup; covered by the synchronous-tasks follow-up.
+- Dropping Python 3.10, which would let the runner use `asyncio.TaskGroup` and
+  `Task.cancelling()` unconditionally; a project-level decision for its own pull
+  request (#1119, last section).

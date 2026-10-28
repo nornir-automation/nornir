@@ -96,7 +96,11 @@ class AsyncRunnerPlugin(Protocol):
         ...
 
     async def arun(self, task: Task, hosts: list[Host]) -> AggregatedResult:
-        """Run on the caller's loop; cancel and await owned work before propagating cancellation."""
+        """Run on the caller's loop.
+
+        Let every host finish before raising a host error; cancel and await owned work
+        only when the caller cancels, before propagating that cancellation.
+        """
         ...
 
 

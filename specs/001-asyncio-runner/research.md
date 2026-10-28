@@ -125,9 +125,10 @@ the earlier async-only protocol and legacy-registry registration design.
 - **Rationale:** FR-012 requires logical identity; FR-013 and FR-024 require cached
   capability and mode validation.
   A lock would wait instead of producing the specified concurrent-open error.
-- **Cleanup decision:** Sync close keeps pop-before-close and fail-fast bulk semantics,
-  with mode rejection before removal and matching metadata removed with the instance.
-  Sync bulk cleanup snapshots both stores and rejects async-only entries. Async close removes an entry only on successful
+- **Cleanup decision:** Sync close keeps pop-before-close semantics, with mode rejection
+  before removal and matching metadata removed with the instance. Sync bulk cleanup
+  snapshots both stores; it was fail-fast until R18 made it attempt every entry, with
+  async-only entries raising their mismatch afterwards. Async close removes an entry only on successful
   close, retaining failures for retry. Async bulk cleanup visits a snapshot of both caches,
   attempts remaining entries after ordinary errors, and then raises the first error;
   cancellation propagates immediately. Call aclose for asyncio-bound connections and
@@ -285,3 +286,71 @@ the earlier async-only protocol and legacy-registry registration design.
   for a capability nothing needs. A per-method decorator pushes the mode back into the
   plugin, which is the duplication being removed; it can be added later for plugin-defined
   helpers without breaking anything.
+
+## R16. Host errors and in-task cancellation (2026-10-28)
+
+- **Trigger:** #1119 added five failing tests while reviewing PR #1111. A processor
+  raising for one host made the runner cancel every other host before raising, where
+  ThreadedRunner lets them finish; a caller cancellation arriving during that error
+  drain was swallowed by the drain loop; and a `CancelledError` escaping a task's own
+  code cancelled the whole run and reached the caller as a cancellation.
+- **Decision:** Match ThreadedRunner. Gather with `return_exceptions=True`, wait for
+  every host, then raise the first exception in host order. Cancel children only on a
+  caller cancellation, keeping the single-owner drain of R9 for that case. In
+  `Task.astart`, record a `CancelledError` as a failed result when the asyncio task is
+  not being cancelled (`Task.cancelling() > 0` on 3.11 and later) and re-raise it
+  otherwise. On 3.10, where `cancelling()` does not exist, the runner's per-host
+  coroutine converts a `CancelledError` from a host it did not cancel into that host's
+  failed result, so hosts behave alike on every version; only a cancelled subtask's
+  own result tree is lost there.
+- **Rationale:** Switching runners must not change whether a device can be interrupted
+  partway through a configuration change. FR-016 covers caller cancellation only and
+  never required cancelling siblings on an error. With the drain reserved for caller
+  cancellation, the lost-cancellation path cannot occur, so no cancellation bookkeeping
+  is added to the error path. `asyncio.TaskGroup` ignores a child that ends cancelled
+  when the group was not cancelled, which is the behaviour adopted for in-task
+  cancellation.
+- **Alternatives:** Recording a processor error as the host's failed result hides
+  processor bugs in results and diverges from ThreadedRunner. Keeping the error drain
+  and remembering the caller's cancellation (the #1119 fix for problem 1) works but
+  keeps the sibling-cancelling behaviour. Dropping Python 3.10 would allow TaskGroup
+  and an unconditional `cancelling()` check; that is a project decision for its own
+  pull request.
+
+## R17. Waiting on a pending open (2026-10-28)
+
+- **Trigger:** Review of PR #1111: two subtasks started with `asyncio.gather` that
+  request the same connection on the same host made the second one fail with
+  ConnectionAlreadyOpen while the first open was still in progress.
+- **Decision:** Replace the pending-name set with a per-name `asyncio.Future[None]`
+  in `_opening`. `aget_connection` on an opening name awaits the future and then
+  follows the cache-hit path, so it shares the connection or the opener's failure.
+  `aopen_connection` and `get_connection` on an opening name keep raising
+  ConnectionAlreadyOpen: an explicit open of an existing name is an error today, and
+  a synchronous call cannot wait. The opener resolves or fails the future in its
+  finally block, so waiters never hang after a failed or cancelled open. The dict is
+  empty whenever nothing is opening, so empty-Host copy/pickle is unchanged; a Host
+  with an open in progress was never serializable.
+- **Rationale:** A user fanning out inside a task should not need a lock of their own
+  to share one transport. Futures created inside a running loop need no loop argument
+  on every supported version.
+- **Alternatives:** An `asyncio.Lock` per name serializes the open but makes the
+  second caller re-run the lookup; a future carries the outcome directly.
+
+## R18. Bulk cleanup order and error bases (2026-10-28)
+
+- **Trigger:** Review of PR #1111: synchronous `Host.close_connections` stops at the
+  first failure, and with mode binding an asyncio-bound entry that sorts before a
+  synchronous one leaves the synchronous connections open on every call. The reviewer
+  also asked why the new connection errors are not `ConnectionException` instances.
+- **Decision:** Synchronous bulk cleanup attempts every name and raises the first
+  error afterwards, like asynchronous bulk cleanup. Mode and capability mismatches are
+  collected like ordinary close errors. A single `close_connection` keeps its
+  pop-before-close semantics. The five connection-related errors add
+  ConnectionException as a base through multiple inheritance and set `connection` to
+  the name; the three mode errors keep SyncAsyncMismatchError first.
+- **Rationale:** Fail-fast was kept for legacy compatibility, but no pre-existing test
+  asserts it and nobody relies on later connections staying open. `except
+  ConnectionException` is the handler users already write.
+- **Limits:** Both bulk cleanups still report one error when several fail. Reporting
+  all needs an ExceptionGroup (3.11+) or a carrier exception on 3.10; follow-up.

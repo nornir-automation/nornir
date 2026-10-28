@@ -4,10 +4,10 @@ description: "Implementation tasks for the asyncio runner and capability-aware c
 
 # Tasks: Asyncio Runner
 
-**Updated**: 2026-09-13
+**Updated**: 2026-10-28
 **Input**: `specs/001-asyncio-runner/`
 **Prerequisites**: [spec.md](spec.md), [plan.md](plan.md), [research.md](research.md)
-(R1–R14), [data-model.md](data-model.md), [contracts/](contracts/), [quickstart.md](quickstart.md).
+(R1–R18), [data-model.md](data-model.md), [contracts/](contracts/), [quickstart.md](quickstart.md).
 
 **Tests**: Required by the specification and constitution. Write new behavior tests before
 implementation and observe the missing behavior where applicable. Broader regression tests
@@ -192,6 +192,31 @@ Depends on Phases 4, 5 and 7, which are complete.
 - [X] T065 After T064, update the DualCapabilityConnectionPlugin docstring in `nornir/core/plugins/connections.py` per `contracts/protocols.py`; rewrite the dual facet bullet and the "Understand host caching and reuse" section of `docs/howto/writing_capability_connection_plugins.rst` to mode binding, `Host.connection_mode`, and the rule that a plugin records no mode itself; adjust `docs/plugins/execution_model.rst` and the `CHANGELOG.rst` entry where they describe cross-mode reuse.
 - [X] T066 After T065, run `make pytest ARGS="tests/core/test_async_connections.py tests/core/test_capability_plugins.py tests/core/test_async_run.py tests/plugins/connections"`, `make mypy`, `make ruff`, `make docs` and `make nbval` from `Makefile`; re-execute the notebook only if its output changes; record evidence in `specs/001-asyncio-runner/validation.md` and re-run speckit-analyze.
 
+## Phase 10: Review revision (2026-10-28)
+
+**Goal**: Fold the review of PR #1111 and the failing tests in #1119 into the
+implementation: host errors let other hosts finish (FR-025), an in-task cancellation
+fails only that host (FR-026), asynchronous gets wait for a pending open (FR-012),
+synchronous bulk cleanup attempts every connection (FR-014), the connection errors
+are ConnectionException instances (FR-027), and stored notebook output carries no
+machine-specific path (FR-019). Depends on Phases 8 and 9. T056 stays open as before.
+
+### Tests
+
+- [ ] T069 [P] Take over the five tests from #1119 into `tests/plugins/runners/test_asyncio.py` and `tests/core/test_async_tasks.py`, crediting the PR: processor failure lets other hosts finish, in-task CancelledError fails only that host, astart records an in-task CancelledError, astart propagates a genuine cancellation, and the two error-drain cancellation tests; replace `test_astart_does_not_convert_base_exception_to_result`; rewrite the two drain tests to cancel from the caller while a host is in awaited-finally cleanup, since a host error no longer starts the drain; keep the Python 3.10 skips only where `Task.cancelling()` is exercised directly and add a host-level in-task cancellation test that runs on every version (FR-016/025/026).
+- [ ] T070 [P] Extend `tests/core/test_async_connections.py` with pending-open waiting: two concurrent `aget_connection` calls share one `aopen` call and the same transport; a failing open raises in every waiter and leaves no reservation; a cancelled opener releases the waiters; `aopen_connection` and `get_connection` on an opening name raise ConnectionAlreadyOpen; empty-Host copy/pickle still works with the dict reservation (FR-012).
+- [ ] T071 [P] Extend `tests/core/test_async_connections.py` with synchronous bulk cleanup: an asyncio-bound dual connection cached before a legacy and a capability-sync one, both synchronous connections closed and ConnectionModeMismatchError raised afterwards with the asyncio entry intact; an ordinary close failure on one legacy plugin does not skip later names and is raised afterwards; an async-only entry raises ConnectionPluginNotSyncError afterwards (FR-014).
+- [ ] T072 [P] Add isinstance assertions for ConnectionException and the `connection` attribute for the five connection errors to the existing named-error tests in `tests/core/test_async_connections.py` and `tests/core/test_capability_plugins.py` (FR-027).
+
+### Implementation
+
+- [ ] T073 After T069, implement in `nornir/plugins/runners/__init__.py` and `nornir/core/task.py`: gather with `return_exceptions=True`, wait for every host, raise the first host error in host order; cancel children only on caller cancellation and keep the shielded drain and aggregate exception retrieval for that case; `Task.astart` records an in-task CancelledError when the asyncio task is not being cancelled (`cancelling()` on 3.11 and later) and `_result_from_exception` accepts BaseException; the runner's per-host coroutine converts a CancelledError from a host it did not cancel into that host's failed result on every version (plan execution decisions 5–6).
+- [ ] T074 After T070, implement the per-name opening future in `nornir/core/inventory.py` (`_opening: dict[str, asyncio.Future[None]]`): `aget_connection` awaits it and then applies the cache-hit checks, the opener resolves or fails it in finally, and `aopen_connection`/`get_connection` keep raising ConnectionAlreadyOpen (plan connection decision 8).
+- [ ] T075 After T071 and T072, make `Host.close_connections` attempt every name and raise the first error afterwards in `nornir/core/inventory.py`, and add ConnectionException as a base of the five connection errors in `nornir/core/exceptions.py`, setting `connection` to the name (plan connection decisions 6 and 9).
+- [ ] T076 After T073–T075, update `docs/plugins/execution_model.rst` (host errors let other hosts finish, in-task CancelledError, cancellation only from the caller), `docs/howto/writing_capability_connection_plugins.rst` (inline `close` during asynchronous cleanup blocks the loop, waiting on an opening name, bulk cleanup attempts every connection) and `CHANGELOG.rst` (synchronous bulk cleanup behaviour change, error base classes, runner error semantics) (FR-019).
+- [ ] T077 [P] Re-execute `docs/tutorial/failed_tasks.ipynb` and `docs/tutorial/task_results.ipynb` inside the CI Docker image so stored tracebacks show `/nornir/core/task.py`, add a `docs/nbval_sanitize.cfg` entry for home-directory paths, and verify no `/home/` path remains in any notebook output; re-execute `docs/howto/asyncio_runner.ipynb` only if its output changes (FR-019, SC-006).
+- [ ] T078 After all Phase 10 tasks, run `make tests` from `Makefile`, verify CI on the full Python 3.10–3.15 and Linux/macOS/Windows matrix, record evidence in `specs/001-asyncio-runner/validation.md`, re-run speckit-analyze, and reply on each review thread of PR #1111 with what changed.
+
 ## Dependencies and execution order
 
 ### Phase graph
@@ -204,6 +229,9 @@ Setup T001–T004
               → US3 T041–T045
               → US4 T046–T050
                   → Final documentation/gates T051–T061
+                      → Mode binding T062–T066
+                          → Convergence T067–T068
+                              → Review revision T069–T078
 ```
 
 Both US3 and US4 are required before final gates. They can be developed in parallel only
@@ -253,25 +281,28 @@ requires completed US1. No test at a phase checkpoint may call an API scheduled 
 | FR-009 | T016, T019, T052 | Inline sync child and limitation |
 | FR-010 | T016, T019 | Async child on sync entry rejection |
 | FR-011 | T025–T027, T030, T035 | Base/facet contracts and legacy typing |
-| FR-012 | T026, T028, T033–T036, T062, T064 | One logical connection, bound to one mode, stable public cache types |
+| FR-012 | T026, T028, T033–T036, T062, T064, T070, T074 | One logical connection, bound to one mode, waiting on a pending open, stable public cache types |
 | FR-013 | T026–T028, T033, T035–T037, T062–T064 | Capability and mode checks including cached transport |
-| FR-014 | T026, T028, T037–T038, T041, T062, T064 | Both-store cleanup by bound mode |
+| FR-014 | T026, T028, T037–T038, T041, T062, T064, T071, T075 | Both-store cleanup by bound mode; both bulk closers attempt every entry |
 | FR-015 | T041–T045 | Observable Nornir cleanup and selection |
-| FR-016 | T012, T022, T046–T050 | Single-owner cancellation and draining |
+| FR-016 | T012, T022, T046–T050, T069, T073 | Single-owner cancellation and draining, only from the caller |
 | FR-017 | T014, T016, T021, T041 | Partial event ordering and arguments |
 | FR-018 | T029, T039–T040, T048, T058, T060 | Portable test-only real transport |
-| FR-019 | T051–T054, T057, T065 | Executed notebook and capability-author guide |
+| FR-019 | T051–T054, T057, T065, T076, T077 | Executed notebook, capability-author guide, no machine-specific paths |
 | FR-020 | T004, T007–T011, T017, T025, T030–T031, T059 | Public compatibility and existing-suite exception |
 | FR-021 | T025, T030–T032 | New registry, all modes, both discovery groups |
 | FR-022 | T025, T027, T030, T033 | Authoritative valid capability reporting |
 | FR-023 | T027–T028, T033, T036 | Duplicate-name rejection, including cached lookup |
 | FR-024 | T062–T066 | Mode binding, public mode query, mismatch in both directions |
+| FR-025 | T069, T073 | Host errors let other hosts finish, then raise |
+| FR-026 | T069, T073 | In-task CancelledError fails only that host |
+| FR-027 | T072, T075 | Connection errors are ConnectionException instances |
 | SC-001 | T011, T017, T059–T060 | Existing-suite compatibility |
 | SC-002 | T013, T022, T060 | At most 50 ms heartbeat gap |
 | SC-003 | T013, T022, T060 | Under two seconds, unchanged live threads |
 | SC-004 | T015–T016, T026–T028, T033, T036, T041, T062–T064 | Operation-specific mismatch boundaries |
 | SC-005 | T025–T026, T030–T039, T053, T062, T064–T065 | One registration for every declared mode, one mode at a time |
-| SC-006 | T052, T057, T059–T060 | Genuine notebook output and nbval |
+| SC-006 | T052, T057, T059–T060, T077 | Genuine notebook output, nbval, no machine-specific paths |
 | SC-007 | T025, T027, T031–T033 | Registry coexistence, discovery and invalid declarations |
 
 ## Previous task ID mapping

@@ -6,6 +6,10 @@
 
 The following seven exceptions derive from `SyncAsyncMismatchError(Exception)`. Each
 stores its constructor argument as an attribute and names the supported alternative.
+The three connection-related ones (ConnectionPluginNotAsyncError,
+ConnectionPluginNotSyncError, ConnectionModeMismatchError) also derive from the
+existing `ConnectionException`, with SyncAsyncMismatchError first in their bases and
+`connection` set to the connection name.
 
 | Class | Argument | Raised at | Message guidance |
 |---|---|---|---|
@@ -42,8 +46,8 @@ does not repair an ambiguous registry or malformed plugin.
 
 | Class / base | Constructor | Conditions | Message guidance |
 |---|---|---|---|
-| ConnectionPluginAmbiguousError(Exception) | connection_name: str | Name exists in both registries, even for the same class | Name both registries; remove one registration or rename the plugin |
-| ConnectionPluginContractError(Exception) | connection_name: str, reason: str | Invalid reporting method/declaration, missing declared operation, or conflicting internal cache ownership | Name the plugin and failed contract requirement |
+| ConnectionPluginAmbiguousError(ConnectionException) | connection_name: str | Name exists in both registries, even for the same class | Name both registries; remove one registration or rename the plugin |
+| ConnectionPluginContractError(ConnectionException) | connection_name: str, reason: str | Invalid reporting method/declaration, missing declared operation, or conflicting internal cache ownership | Name the plugin and failed contract requirement |
 
 Both are raised before opening. Get/open checks current cross-registry ambiguity even
 for a cached name. Cleanup uses recorded ownership and can close connections despite
@@ -59,7 +63,21 @@ validation uses TypeError for non-integers/booleans and ValueError for nonpositi
 ## Precedence
 
 Task entry points check task kind before runner support. Get/open checks cross-registry
-ambiguity first, then pending/existing state; explicit open of an existing name raises
-ConnectionAlreadyOpen. For a new capability instance, validate its entire declaration
+ambiguity first, then pending/existing state; explicit open of an existing or opening
+name raises ConnectionAlreadyOpen, a synchronous get of an opening name raises it too,
+and an asynchronous get of an opening name waits for the open and then applies the
+cache-hit checks. For a new capability instance, validate its entire declaration
 and all declared operations before checking the requested mode. A valid plugin lacking
 the requested mode raises the appropriate mismatch rather than a contract error.
+
+## Host errors and cancellation in AsyncioRunner
+
+An exception that escapes one host's execution without becoming that host's result
+(for example a processor hook raising) does not interrupt the other hosts: the runner
+waits for every host and then raises the first such exception in host order, as
+ThreadedRunner does. A `CancelledError` raised by a task's own code while the asyncio
+task is not being cancelled becomes that host's failed result and never reaches the
+caller. Only a caller cancellation of `arun` cancels in-flight hosts; it propagates as
+CancelledError after the owned futures are drained, with no aggregate returned.
+Bulk cleanup, synchronous or asynchronous, attempts every connection and raises the
+first error afterwards; the others are discarded (follow-up: exception groups).

@@ -2,7 +2,7 @@
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
 **Created**: 2026-09-06
-**Last validated**: 2026-10-13
+**Last validated**: 2026-10-28
 **Feature**: [spec.md](../spec.md)
 
 ## Content Quality
@@ -66,3 +66,9 @@
   recorded, and two out-of-scope items added. All items still pass; no clarification
   markers remain. The implementation and the plugin-author guide now lag the spec; tasks
   T062–T066 close that gap.
+- Validation pass 4 (2026-10-28): the review of PR #1111 and #1119 added FR-025 to
+  FR-027, amended FR-012, FR-014 and FR-019, added US1 scenario 10 and US4 scenario 3,
+  rewrote the concurrent-get edge case and added three edge cases, recorded a
+  clarification session, and added assumptions and out-of-scope items for the Python
+  3.10 fallback, aggregated close failures, threaded close and dropping 3.10. All items
+  still pass; no clarification markers remain. Tasks T069–T078 close the gap.
