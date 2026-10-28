@@ -530,6 +530,44 @@ def test_cancelled_error_raised_by_a_task_fails_only_that_host() -> None:
     run(scenario())
 
 
+def test_processor_failure_lets_other_hosts_finish_before_raising() -> None:
+    async def scenario() -> None:
+        hosts = make_hosts(3)
+        nr = make_nornir(hosts, AsyncioRunner(3), FailingStartProcessor(hosts[1].name))
+        all_waiting = asyncio.Event()
+        release = asyncio.Event()
+        waiting = 0
+        completed: set[str] = set()
+        interrupted: set[str] = set()
+
+        async def wait_for_release(task: Task) -> Result:
+            nonlocal waiting
+            waiting += 1
+            if waiting == 2:
+                all_waiting.set()
+            try:
+                await release.wait()
+            except asyncio.CancelledError:
+                interrupted.add(task.host.name)
+                raise
+            completed.add(task.host.name)
+            return Result(host=task.host, result="ok")
+
+        # ThreadedRunner lets the other hosts finish and then raises the processor error.
+        running = asyncio.create_task(nr.arun(task=wait_for_release))
+        await asyncio.wait_for(all_waiting.wait(), timeout=1)
+        # Give the runner time to react to the processor failure before releasing.
+        await asyncio.sleep(0.05)
+        release.set()
+
+        with pytest.raises(RuntimeError, match="processor failure"):
+            await running
+        assert interrupted == set()
+        assert completed == {hosts[0].name, hosts[2].name}
+
+    run(scenario())
+
+
 def test_async_io_keeps_the_event_loop_responsive() -> None:
     async def scenario() -> None:
         hosts = make_hosts(100)
