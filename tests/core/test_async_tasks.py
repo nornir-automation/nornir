@@ -1,5 +1,6 @@
 import asyncio
 import functools
+import sys
 from collections.abc import Callable, Coroutine
 from typing import Any, cast
 
@@ -268,15 +269,38 @@ async def cancelled_task(task: Task) -> None:
     raise asyncio.CancelledError
 
 
-def test_astart_does_not_convert_base_exception_to_result(nornir: Nornir) -> None:
+@pytest.mark.skipif(
+    sys.version_info < (3, 11),
+    reason="Python 3.10 cannot tell a task's own CancelledError from a cancellation",
+)
+def test_astart_records_cancelled_error_raised_by_the_task(nornir: Nornir) -> None:
     async def exercise() -> None:
         processor = RecordingProcessor()
         task = make_task(nornir, processor, cancelled_task)
 
+        results = await task.astart(first_host(nornir))
+
+        assert results.failed
+        assert isinstance(results[0].exception, asyncio.CancelledError)
+
+    asyncio.run(exercise())
+
+
+def test_astart_propagates_cancellation_of_its_asyncio_task(nornir: Nornir) -> None:
+    async def blocked_task(task: Task) -> None:
+        await asyncio.Event().wait()
+
+    async def exercise() -> None:
+        processor = RecordingProcessor()
+        task = make_task(nornir, processor, blocked_task)
+
+        running = asyncio.create_task(task.astart(first_host(nornir)))
+        await asyncio.sleep(0)
+        running.cancel()
         with pytest.raises(asyncio.CancelledError):
-            await task.astart(first_host(nornir))
+            await running
 
         assert task.results == []
-        assert processor.events == [("task_instance_started", "cancelled_task")]
+        assert processor.events == [("task_instance_started", "blocked_task")]
 
     asyncio.run(exercise())

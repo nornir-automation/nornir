@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import gc
+import sys
 import threading
 import time
 from collections.abc import Awaitable, Callable, Coroutine
@@ -496,6 +497,35 @@ def test_timeout_during_error_drain_raises_timeout_error() -> None:
         with pytest.raises(asyncio.TimeoutError):
             await asyncio.wait_for(nr.arun(task=blocked), timeout=0.05)
         await releaser
+
+    run(scenario())
+
+
+@pytest.mark.skipif(
+    sys.version_info < (3, 11),
+    reason="Python 3.10 cannot tell a task's own CancelledError from a cancellation",
+)
+def test_cancelled_error_raised_by_a_task_fails_only_that_host() -> None:
+    async def scenario() -> None:
+        hosts = make_hosts(3)
+        nr = make_nornir(hosts, AsyncioRunner(3), RecordingProcessor())
+
+        async def cancel_own_helper(task: Task) -> Result:
+            if task.host is hosts[1]:
+                helper = asyncio.create_task(asyncio.Event().wait())
+                await asyncio.sleep(0)
+                helper.cancel()
+                await helper
+            await asyncio.sleep(0)
+            return Result(host=task.host, result="ok")
+
+        result = await nr.arun(task=cancel_own_helper)
+
+        assert result[hosts[1].name].failed
+        assert isinstance(result[hosts[1].name].exception, asyncio.CancelledError)
+        assert not result[hosts[0].name].failed
+        assert not result[hosts[2].name].failed
+        assert nr.data.failed_hosts == {hosts[1].name}
 
     run(scenario())
 
