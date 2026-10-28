@@ -130,3 +130,29 @@
   and `Host.connection_mode` returns the asyncio entry when a name sits in both caches
   instead of raising the contract error the other lookups raise. T056 and T061 remain the
   open merge preconditions.
+
+## Phase 9: Convergence (2026-10-28)
+
+- speckit-converge run against the rebased branch found two remaining items and
+  appended them as T067 and T068; T056 and T061 stay open as merge preconditions.
+- T067: `Host.connection_mode` now runs the same cache-conflict check as the other
+  lookups, so a name present in both the public and the private cache raises
+  `ConnectionPluginContractError` instead of reporting `"asyncio"`. The existing
+  conflicting-entries test in `tests/core/test_async_connections.py` asserts it; the
+  assertion failed before the change (`DID NOT RAISE`) and passes after it.
+- T068, CI matrix evidence for the current head. The constitution now lists Python 3.10
+  through 3.15; the runs below postdate the Phase 8 mode-binding commits and the two
+  rebases onto `main` (2026-10-24 and 2026-10-27):
+  - Run 38511079705 on commit `01bac1d` (mode binding, before the rebases): success,
+    17 jobs, Python 3.10-3.14 on Ubuntu, macOS and Windows.
+  - Run 40114897109 on commit `9586c5e` (first rebase): success, 17 jobs.
+  - Run 40483242882 on commit `51c322f` (second rebase, main with Python 3.15 support):
+    success, 20 jobs: linters, build and import wheel, and Python 3.10, 3.11, 3.12,
+    3.13, 3.14 and 3.15 on ubuntu-latest, macos-15 and windows-2022.
+    https://github.com/nornir-automation/nornir/actions/runs/40483242882
+- Local gates after T067 on this branch: `make ruff` clean and both edited files already
+  formatted; `make mypy` no issues in 56 source files; `make pytest` 262 passed;
+  `make docs` build succeeded with 45 warnings, all of them the pre-existing notebook
+  cross-reference and duplicate-object warnings; none names the edited docstring, and
+  the generated API reference under `docs/api/nornir/` did not change. The Phase 8
+  count of 44 was measured before the two rebases onto `main`.

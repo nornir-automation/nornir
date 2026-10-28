@@ -694,6 +694,8 @@ def test_conflicting_public_and_private_entries_raise_contract_error() -> None:
             host.close_connection("async")
         with pytest.raises(ConnectionPluginContractError):
             await host.aclose_connection("async")
+        with pytest.raises(ConnectionPluginContractError):
+            host.connection_mode("async")
 
     asyncio.run(scenario())
 

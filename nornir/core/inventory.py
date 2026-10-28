@@ -1039,7 +1039,12 @@ class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds f
         Returns:
             ``"sync"``, ``"asyncio"``, or ``None`` when no connection of that name is open.
 
+        Raises:
+            nornir.core.exceptions.ConnectionPluginContractError: the name is present in
+                both connection caches, the same state the other lookups reject.
+
         """
+        self._check_connection_cache_conflict(connection)
         if connection in self._async_connections:
             return "asyncio"
         existing = self.connections.get(connection)
