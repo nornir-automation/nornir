@@ -44,6 +44,24 @@ class RecordingProcessor:
         self.events.append(("subtask_instance_completed", host.name))
 
 
+class FailingStartProcessor(RecordingProcessor):
+    """Raise from the start hook of one host, outside the task's own error handling.
+
+    Taken over from nornir-automation/nornir#1119.
+    """
+
+    def __init__(self, host_name: str) -> None:
+        super().__init__()
+        self.host_name = host_name
+        self.failed = asyncio.Event()
+
+    def task_instance_started(self, task: Task, host: Host) -> None:
+        super().task_instance_started(task, host)
+        if host.name == self.host_name:
+            self.failed.set()
+            raise RuntimeError("processor failure")
+
+
 def make_hosts(count: int) -> list[Host]:
     return [Host(name=f"host-{index:04}") for index in range(count)]
 
@@ -425,6 +443,152 @@ def test_cancellation_retrieves_aggregate_exception_and_leaves_no_owned_tasks() 
         assert processor.events[0] == ("task_started", None)
         assert ("task_completed", None) not in processor.events
         assert asyncio.all_tasks() <= existing_tasks
+
+    run(scenario())
+
+
+def test_processor_failure_lets_other_hosts_finish_before_raising() -> None:
+    # Taken over from nornir-automation/nornir#1119 (problem 3).
+    async def scenario() -> None:
+        hosts = make_hosts(3)
+        processor = FailingStartProcessor(hosts[1].name)
+        nr = make_nornir(hosts, AsyncioRunner(3), processor)
+        all_waiting = asyncio.Event()
+        release = asyncio.Event()
+        waiting = 0
+        completed: set[str] = set()
+        interrupted: set[str] = set()
+
+        async def wait_for_release(task: Task) -> Result:
+            nonlocal waiting
+            waiting += 1
+            if waiting == 2:
+                all_waiting.set()
+            try:
+                await release.wait()
+            except asyncio.CancelledError:
+                interrupted.add(task.host.name)
+                raise
+            completed.add(task.host.name)
+            return Result(host=task.host, result="ok")
+
+        # ThreadedRunner lets the other hosts finish and then raises the processor error.
+        running = asyncio.create_task(nr.arun(task=wait_for_release))
+        await asyncio.wait_for(all_waiting.wait(), timeout=1)
+        await asyncio.wait_for(processor.failed.wait(), timeout=1)
+        # Give the runner time to react to the processor failure before releasing.
+        await asyncio.sleep(0.05)
+        assert not running.done()
+        release.set()
+
+        with pytest.raises(RuntimeError, match="processor failure"):
+            await running
+        assert interrupted == set()
+        assert completed == {hosts[0].name, hosts[2].name}
+        assert nr.data.failed_hosts == set()
+        assert "task_completed" not in {event for event, _ in processor.events}
+
+    run(scenario())
+
+
+def test_cancelled_error_raised_by_a_task_fails_only_that_host() -> None:
+    # Taken over from nornir-automation/nornir#1119 (problem 2). Runs on every supported
+    # version: on Python 3.10 the runner makes the distinction per host.
+    async def scenario() -> None:
+        hosts = make_hosts(3)
+        nr = make_nornir(hosts, AsyncioRunner(3), RecordingProcessor())
+
+        async def cancel_own_helper(task: Task) -> Result:
+            if task.host is hosts[1]:
+                helper = asyncio.create_task(asyncio.Event().wait())
+                await asyncio.sleep(0)
+                helper.cancel()
+                await helper
+            await asyncio.sleep(0)
+            return Result(host=task.host, result="ok")
+
+        result = await nr.arun(task=cancel_own_helper)
+
+        assert result[hosts[1].name].failed
+        assert isinstance(result[hosts[1].name].exception, asyncio.CancelledError)
+        assert not result[hosts[0].name].failed
+        assert not result[hosts[2].name].failed
+        assert nr.data.failed_hosts == {hosts[1].name}
+
+    run(scenario())
+
+
+def test_caller_cancellation_after_a_host_error_is_not_lost() -> None:
+    # Rewritten from nornir-automation/nornir#1119 (problem 1): a host error no longer
+    # starts the drain, so the caller cancels while the runner waits for the other host.
+    async def scenario() -> None:
+        hosts = make_hosts(2)
+        processor = FailingStartProcessor(hosts[1].name)
+        nr = make_nornir(hosts, AsyncioRunner(2), processor)
+        cleaning = asyncio.Event()
+        release_cleanup = asyncio.Event()
+        cleaned = asyncio.Event()
+
+        async def blocked(task: Task) -> Result:
+            try:
+                await asyncio.Event().wait()
+            finally:
+                cleaning.set()
+                await release_cleanup.wait()
+                cleaned.set()
+            raise AssertionError("blocked task unexpectedly resumed")
+
+        running = asyncio.create_task(nr.arun(task=blocked))
+        await asyncio.wait_for(processor.failed.wait(), timeout=1)
+        await asyncio.sleep(0.05)
+        assert not running.done()
+        assert not cleaning.is_set()
+
+        running.cancel()
+        await asyncio.wait_for(cleaning.wait(), timeout=1)
+        running.cancel()
+        cancellation_processed = asyncio.Event()
+        asyncio.get_running_loop().call_soon(cancellation_processed.set)
+        await cancellation_processed.wait()
+        release_cleanup.set()
+
+        with pytest.raises(asyncio.CancelledError):
+            await running
+        assert running.cancelled()
+        assert cleaned.is_set()
+        assert nr.data.failed_hosts == set()
+
+    run(scenario())
+
+
+def test_timeout_after_a_host_error_raises_timeout_error() -> None:
+    # Rewritten from nornir-automation/nornir#1119 (problem 1).
+    async def scenario() -> None:
+        hosts = make_hosts(2)
+        processor = FailingStartProcessor(hosts[1].name)
+        nr = make_nornir(hosts, AsyncioRunner(2), processor)
+        cleaning = asyncio.Event()
+        release_cleanup = asyncio.Event()
+
+        async def blocked(task: Task) -> Result:
+            try:
+                await asyncio.Event().wait()
+            finally:
+                cleaning.set()
+                await release_cleanup.wait()
+            raise AssertionError("blocked task unexpectedly resumed")
+
+        async def release_after_timeout() -> None:
+            await cleaning.wait()
+            await asyncio.sleep(0.2)
+            release_cleanup.set()
+
+        releaser = asyncio.create_task(release_after_timeout())
+        # asyncio.wait_for rather than asyncio.timeout(): the latter needs Python 3.11.
+        with pytest.raises(asyncio.TimeoutError):
+            await asyncio.wait_for(nr.arun(task=blocked), timeout=0.05)
+        await releaser
+        assert processor.failed.is_set()
 
     run(scenario())
 

@@ -16,7 +16,14 @@ Unreleased
   runners and legacy connection plugins remain compatible, with ``ThreadedRunner`` still
   the default. The synchronous ``Nornir.run`` and ``Task.run`` entry points now reject
   coroutine tasks with ``AsyncTaskOnSyncRunError`` instead of treating an un-awaited
-  coroutine as a successful result (#1085)
+  coroutine as a successful result. An error escaping one host, such as a processor
+  raising, lets the other hosts finish before it is raised, as with ``ThreadedRunner``,
+  and a ``CancelledError`` raised inside a task fails only that host. Concurrent
+  ``aget_connection`` calls for a name that is still opening share that open. The
+  connection errors also derive from ``ConnectionException`` (#1085, #1111, #1119)
+- ``Host.close_connections`` now attempts every connection and raises the first error
+  after the last attempt, instead of stopping at the first connection it cannot close
+  (#1111)
 
 3.6.0 - August 2 2026
 ---------------------

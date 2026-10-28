@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 from nornir import InitNornir
 from nornir.core.configuration import Config
 from nornir.core.exceptions import (
+    ConnectionException,
     ConnectionPluginAmbiguousError,
     ConnectionPluginContractError,
     ConnectionPluginNotSyncError,
@@ -205,9 +206,11 @@ def test_cross_registry_duplicates_are_ambiguous_regardless_of_registration_orde
         CapabilityConnectionPluginRegister.register("duplicate", capability_plugin)
         ConnectionPluginRegister.register("duplicate", SyncPlugin)
 
-    with pytest.raises(ConnectionPluginAmbiguousError):
+    with pytest.raises(ConnectionPluginAmbiguousError) as excinfo:
         Host("host").get_connection("duplicate", Config())
     assert SyncPlugin.opened == 0
+    assert isinstance(excinfo.value, ConnectionException)
+    assert excinfo.value.connection == "duplicate"
 
 
 def test_duplicate_introduced_after_caching_blocks_get_but_not_cleanup() -> None:
@@ -350,9 +353,11 @@ def test_invalid_declarations_fail_before_io_or_connection_property_access(
 ) -> None:
     CapabilityConnectionPluginRegister.register("invalid", plugin)
 
-    with pytest.raises(ConnectionPluginContractError):
+    with pytest.raises(ConnectionPluginContractError) as excinfo:
         Host("host").open_connection("invalid", Config())
     assert SyncPlugin.opened == 0
+    assert isinstance(excinfo.value, ConnectionException)
+    assert excinfo.value.connection == "invalid"
 
 
 class AsyncDeclarationWithExtraSyncMethods(SyncPlugin, AsyncPlugin):

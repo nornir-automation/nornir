@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import inspect
 from dataclasses import dataclass
 from typing import (
@@ -434,7 +435,8 @@ class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds f
         self.connections: dict[str, ConnectionPlugin] = {}
         self._async_connections: dict[str, AsyncCapabilityConnectionPlugin] = {}
         self._capability_connections: dict[str, _CapabilityConnectionState] = {}
-        self._opening: set[str] = set()
+        # Names being opened asynchronously; asynchronous getters await the future.
+        self._opening: dict[str, asyncio.Future[None]] = {}
         super().__init__(
             hostname=hostname,
             port=port,
@@ -755,6 +757,11 @@ class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds f
             ConnectionModeMismatchError: if the cached connection is open in sync mode
 
         """
+        self._check_connection_ambiguity(connection)
+        # Share an open already in progress: wait for it, then take the cache-hit path.
+        # A failed open raises here too; a cancelled one lets this call open itself.
+        while (pending := self._opening.get(connection)) is not None:
+            await pending
         self._check_connection_lookup(connection)
         existing = self.connections.get(connection)
         if existing is not None:
@@ -905,7 +912,8 @@ class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds f
             platform = platform if platform is not None else conn_params.platform
             extras = extras if extras is not None else conn_params.extras
 
-        self._opening.add(conn_name)
+        pending: asyncio.Future[None] = asyncio.get_running_loop().create_future()
+        self._opening[conn_name] = pending
         try:
             await conn_obj.aopen(
                 hostname=hostname,
@@ -916,20 +924,38 @@ class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds f
                 extras=extras,
                 configuration=configuration,
             )
-            if "sync" in capabilities:
-                if not _is_dual_capability_plugin(conn_obj):
-                    raise ConnectionPluginContractError(
-                        conn_name, "validated dual operations are no longer available"
-                    )
-                self.connections[conn_name] = conn_obj
-            else:
-                self._async_connections[conn_name] = conn_obj
-            self._capability_connections[conn_name] = _CapabilityConnectionState(
-                conn_obj, capabilities, "asyncio"
-            )
-            return conn_obj
+            self._publish_async_opened(conn_name, conn_obj, capabilities)
+        except Exception as error:
+            # Waiters receive the same failure; mark it retrieved so asyncio does not
+            # log an unretrieved exception when nobody was waiting.
+            pending.set_exception(error)
+            pending.exception()
+            raise
         finally:
-            self._opening.remove(conn_name)
+            del self._opening[conn_name]
+            if not pending.done():
+                # Success, or a cancelled open: release the waiters. After a cancelled
+                # open they find nothing cached and open the connection themselves.
+                pending.set_result(None)
+        return conn_obj
+
+    def _publish_async_opened(
+        self,
+        conn_name: str,
+        conn_obj: AsyncCapabilityConnectionPlugin,
+        capabilities: frozenset[ConnectionCapability],
+    ) -> None:
+        if "sync" in capabilities:
+            if not _is_dual_capability_plugin(conn_obj):
+                raise ConnectionPluginContractError(
+                    conn_name, "validated dual operations are no longer available"
+                )
+            self.connections[conn_name] = conn_obj
+        else:
+            self._async_connections[conn_name] = conn_obj
+        self._capability_connections[conn_name] = _CapabilityConnectionState(
+            conn_obj, capabilities, "asyncio"
+        )
 
     def close_connection(self, connection: str) -> None:
         """Close the connection.
@@ -1000,15 +1026,32 @@ class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds f
         self._remove_capability_state(conn_name, conn_obj)
 
     def close_connections(self) -> None:
-        """Close every connection open on this host.
+        """Close every connection open on this host, attempting all of them.
 
         Closing a connection that was never opened is not an error here, unlike
-        :py:meth:`close_connection`: a host with nothing open is left alone.
+        :py:meth:`close_connection`: a host with nothing open is left alone. Every
+        connection is attempted; the first error is raised after the last attempt, so
+        a connection bound to asyncio mode, which this method cannot close, does not
+        leave the connections after it open.
+
+        Raises:
+            ConnectionModeMismatchError: a connection is bound to asyncio mode; close it
+                with :py:meth:`aclose_connection` or :py:meth:`aclose_connections`
+            ConnectionPluginNotSyncError: a connection's plugin has no synchronous close
+
         """
-        # Snapshot both stores so synchronous cleanup remains deterministic and fail-fast.
+        # Snapshot both stores and attempt every name, as aclose_connections does: an
+        # asyncio-bound entry must not leave the synchronous connections after it open.
         existing_conns = list(self.connections) + list(self._async_connections)
+        first_error: Exception | None = None
         for connection in existing_conns:
-            self.close_connection(connection)
+            try:
+                self.close_connection(connection)
+            except Exception as exc:  # noqa: BLE001 - plugin errors must not skip later cleanup.
+                if first_error is None:
+                    first_error = exc
+        if first_error is not None:
+            raise first_error
 
     async def aclose_connections(self) -> None:
         """Close every connection, attempting all entries after ordinary errors.

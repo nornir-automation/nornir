@@ -156,3 +156,68 @@
   cross-reference and duplicate-object warnings; none names the edited docstring, and
   the generated API reference under `docs/api/nornir/` did not change. The Phase 8
   count of 44 was measured before the two rebases onto `main`.
+
+## Phase 10: Review revision (2026-10-28)
+
+- Trigger: review of PR #1111 and the five failing tests in #1119.
+- T069: the five #1119 tests were taken over with credit. The processor-failure test
+  and the in-task `CancelledError` test are unchanged apart from a `failed` event on
+  the processor fixture; the in-task test runs on every version (no 3.10 skip) because
+  the runner makes the distinction per host there. The two error-drain tests were
+  rewritten as `test_caller_cancellation_after_a_host_error_is_not_lost` and
+  `test_timeout_after_a_host_error_raises_timeout_error`: the caller cancels or times
+  out while the runner waits for the other host after a host error, since a host error
+  no longer starts the drain. `test_astart_does_not_convert_base_exception_to_result`
+  was replaced by `test_astart_records_cancelled_error_raised_by_the_task` (3.11+),
+  `test_astart_re_raises_cancelled_error_on_python_310` (3.10 only) and
+  `test_astart_propagates_cancellation_of_its_asyncio_task`.
+- T070: pending-open tests rewritten and added: an asynchronous get waits and shares
+  the transport while explicit open and synchronous get raise; three concurrent gets
+  share one `aopen`; a failed open raises in the waiter; a cancelled opener releases
+  the waiter, which opens the connection itself. Before the implementation the four
+  new tests failed with ConnectionAlreadyOpen or a hang in the waiter.
+- T071: the synchronous bulk cleanup test now asserts attempt-all, and a new test
+  opens a dual connection in asyncio mode before a legacy and a sync one and asserts
+  both synchronous closes happen before ConnectionModeMismatchError is raised.
+- T072: a parametrized test asserts the five connection errors are ConnectionException
+  instances carrying `connection`, and the capability-registry tests assert it for the
+  ambiguity and contract errors.
+- T073: `AsyncioRunner.arun` gathers with exceptions returned, waits for every host,
+  then raises the first host error in host order through `_collect`; only a caller
+  cancellation runs `_cancel_and_drain`. `Task.astart` records a `CancelledError`
+  when `asyncio.Task.cancelling()` reports no pending cancellation (3.11+) and
+  re-raises otherwise; `Task._record_unrequested_cancellation` lets the runner record
+  a `CancelledError` from a host it did not cancel on every version.
+- T074: `_opening` is now `dict[str, asyncio.Future[None]]`; `aget_connection` awaits
+  a pending future before the cache-hit checks; `aopen_connection` sets the failure on
+  the future (and marks it retrieved) or resolves it in `finally`, so a cancelled open
+  releases the waiters without a cancellation of their own. Publication moved to
+  `_publish_async_opened` to keep the try clause short.
+- T075: `Host.close_connections` attempts every name and raises the first error after
+  the last attempt; the five connection errors add ConnectionException as a base with
+  `connection` set to the name, keeping SyncAsyncMismatchError first for the three
+  mode errors. `ConnectionException` moved above them in `exceptions.py`.
+- T076: `docs/plugins/execution_model.rst` gained a paragraph on errors and
+  cancellation; the plugin-author guide covers waiting on an opening name, the inline
+  `close` blocking the loop during asynchronous cleanup, and attempt-all bulk cleanup;
+  `CHANGELOG.rst` records the runner error semantics, shared opens, error bases, and
+  the `Host.close_connections` behaviour change.
+- T077: `docs/tutorial/failed_tasks.ipynb` and `task_results.ipynb` were re-executed
+  inside the CI Docker image (Python 3.13 build of the repository `Dockerfile`, with
+  the current `nornir` package mounted so line numbers match the final code). Stored
+  tracebacks now show `/nornir/nornir/core/task.py`; no `/home/` path remains in any
+  notebook. `docs/nbval_sanitize.cfg` gained `regex5` for home-directory paths.
+  `docs/howto/asyncio_runner.ipynb` output did not change, so it was not re-executed.
+- Gates, all run locally on this branch after the changes:
+  - `make ruff`: all checks passed. `ruff format --check` reports only the
+    pre-existing `make_nornir` signature in `tests/plugins/runners/test_asyncio.py`.
+  - `make mypy`: no issues in 56 source files.
+  - `make pytest`: 276 passed, 1 skipped (the 3.10-only astart test).
+  - Python 3.10 (`uv run --python 3.10`): 74 passed, 1 skipped across the runner,
+    task and connection tests; the in-task cancellation test passes through the
+    runner's per-host fallback.
+  - `make nbval`: 123 passed.
+  - `make docs`: build succeeded with the same 45 pre-existing warnings; no change to
+    the generated API reference.
+- T078 remaining: push, CI matrix evidence for the new head, speckit-analyze, and the
+  replies on the PR #1111 review threads.

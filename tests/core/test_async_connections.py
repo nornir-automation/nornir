@@ -13,12 +13,14 @@ if TYPE_CHECKING:
 from nornir.core.configuration import Config
 from nornir.core.exceptions import (
     ConnectionAlreadyOpen,
+    ConnectionException,
     ConnectionModeMismatchError,
     ConnectionNotOpen,
     ConnectionPluginAmbiguousError,
     ConnectionPluginContractError,
     ConnectionPluginNotAsyncError,
     ConnectionPluginNotSyncError,
+    SyncAsyncMismatchError,
 )
 from nornir.core.inventory import (
     ConnectionOptions,
@@ -481,7 +483,7 @@ def test_legacy_async_extensions_do_not_enable_async_mode() -> None:
     asyncio.run(scenario())
 
 
-def test_pending_open_rejects_get_and_both_opening_paths() -> None:
+def test_pending_open_is_awaited_by_async_get_and_rejected_by_explicit_and_sync_paths() -> None:
     async def scenario() -> None:
         host = Host("host")
         config = Config()
@@ -493,18 +495,92 @@ def test_pending_open_rejects_get_and_both_opening_paths() -> None:
         opening = asyncio.create_task(host.aopen_connection("async", config))
         await started.wait()
 
-        with pytest.raises(ConnectionAlreadyOpen):
-            await host.aget_connection("async", config)
+        waiter = asyncio.create_task(host.aget_connection("async", config))
+        await asyncio.sleep(0)
+        assert not waiter.done()
         with pytest.raises(ConnectionAlreadyOpen):
             await host.aopen_connection("async", config)
         with pytest.raises(ConnectionAlreadyOpen):
             host.open_connection("async", config)
         with pytest.raises(ConnectionAlreadyOpen):
             host.get_connection("async", config)
+        assert not waiter.done()
 
         gate.set()
-        await opening
-        assert "async" not in host._opening
+        plugin = await opening
+        transport = await waiter
+        assert isinstance(plugin, AsyncPlugin)
+        assert transport is plugin.connection
+        assert plugin.opened == 1
+        assert len(AsyncPlugin.instances) == 1
+        assert host._opening == {}
+
+    asyncio.run(scenario())
+
+
+def test_concurrent_async_gets_share_one_open() -> None:
+    async def scenario() -> None:
+        host = Host("host")
+        config = Config()
+        gate = asyncio.Event()
+        AsyncPlugin.open_gate = gate
+        CapabilityConnectionPluginRegister.register("async", AsyncPlugin)
+
+        gets = asyncio.gather(
+            host.aget_connection("async", config),
+            host.aget_connection("async", config),
+            host.aget_connection("async", config),
+        )
+        await asyncio.sleep(0)
+        assert len(AsyncPlugin.instances) == 1
+        gate.set()
+        first, second, third = await gets
+
+        plugin = AsyncPlugin.instances[0]
+        assert first is second is third is plugin.connection
+        assert plugin.opened == 1
+        assert host._async_connections == {"async": plugin}
+        assert host._opening == {}
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("cancel", [False, True])
+def test_waiters_receive_a_failed_open_and_reopen_after_a_cancelled_one(cancel: bool) -> None:
+    async def scenario() -> None:
+        host = Host("host")
+        config = Config()
+        gate = asyncio.Event()
+        started = asyncio.Event()
+        AsyncPlugin.open_gate = gate
+        AsyncPlugin.open_started = started
+        AsyncPlugin.fail_open = not cancel
+        CapabilityConnectionPluginRegister.register("async", AsyncPlugin)
+        opening = asyncio.create_task(host.aopen_connection("async", config))
+        await started.wait()
+        waiter = asyncio.create_task(host.aget_connection("async", config))
+        await asyncio.sleep(0)
+        assert not waiter.done()
+
+        if cancel:
+            # The waiter was not cancelled: it opens the connection itself, ungated.
+            AsyncPlugin.open_gate = None
+            opening.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await opening
+            transport = await waiter
+            assert len(AsyncPlugin.instances) == 2
+            assert transport is AsyncPlugin.instances[1].connection
+            assert host._async_connections == {"async": AsyncPlugin.instances[1]}
+        else:
+            gate.set()
+            with pytest.raises(RuntimeError, match="open failed"):
+                await opening
+            with pytest.raises(RuntimeError, match="open failed"):
+                await waiter
+            assert len(AsyncPlugin.instances) == 1
+            assert host._async_connections == {}
+        assert host._opening == {}
 
     asyncio.run(scenario())
 
@@ -537,7 +613,7 @@ def test_failed_or_cancelled_async_open_clears_reservation_without_publishing(
         assert host.connections == {}
         assert host._async_connections == {}
         assert host._capability_connections == {}
-        assert host._opening == set()
+        assert host._opening == {}
 
     asyncio.run(scenario())
 
@@ -595,7 +671,7 @@ def test_cancelled_async_open_releases_plugin_partial_resource() -> None:
 
         assert plugin.partial_resource is None
         assert plugin.released == 1
-        assert host._opening == set()
+        assert host._opening == {}
         assert host.connections == {}
         assert host._async_connections == {}
         assert host._capability_connections == {}
@@ -725,7 +801,7 @@ def test_empty_host_copy_pickle_and_inventory_serialization_are_unchanged() -> N
         assert candidate.connections == {}
         assert candidate._async_connections == {}
         assert candidate._capability_connections == {}
-        assert candidate._opening == set()
+        assert candidate._opening == {}
     assert host.dict() == expected_dict
     assert Host.schema() == expected_schema
 
@@ -870,7 +946,7 @@ def test_cancelled_async_close_retry_preserves_replacement_and_clears_old_metada
     asyncio.run(scenario())
 
 
-def test_sync_bulk_cleanup_is_fail_fast_and_rejects_async_only_entries() -> None:
+def test_sync_bulk_cleanup_attempts_every_entry_and_raises_the_first_error() -> None:
     async def prepare() -> Host:
         host = Host("host")
         CapabilityConnectionPluginRegister.register("failing", FailingSyncClosePlugin)
@@ -886,13 +962,39 @@ def test_sync_bulk_cleanup_is_fail_fast_and_rejects_async_only_entries() -> None
         host.close_connections()
 
     assert "failing" not in host.connections
-    assert "later" in host.connections
+    assert "later" not in host.connections
+    assert SyncPlugin.instances[0].closed == 1
     assert "async" in host._async_connections
 
-    host.close_connection("later")
     with pytest.raises(ConnectionPluginNotSyncError):
         host.close_connections()
     assert "async" in host._async_connections
+
+
+def test_sync_bulk_cleanup_closes_sync_entries_before_raising_the_asyncio_bound_mismatch() -> None:
+    async def prepare() -> Host:
+        host = Host("host")
+        CapabilityConnectionPluginRegister.register("dual", DualPlugin)
+        ConnectionPluginRegister.register("legacy", LegacyPlugin)
+        CapabilityConnectionPluginRegister.register("sync", SyncPlugin)
+        await host.aget_connection("dual", Config())
+        host.get_connection("legacy", Config())
+        host.get_connection("sync", Config())
+        return host
+
+    host = asyncio.run(prepare())
+    assert list(host.connections) == ["dual", "legacy", "sync"]
+
+    with pytest.raises(ConnectionModeMismatchError) as excinfo:
+        host.close_connections()
+
+    assert (excinfo.value.opened_in, excinfo.value.requested) == ("asyncio", "sync")
+    assert LegacyPlugin.instances[0].closed == 1
+    assert SyncPlugin.instances[0].closed == 1
+    assert list(host.connections) == ["dual"]
+    assert host.connection_mode("dual") == "asyncio"
+    dual = DualPlugin.instances[0]
+    assert (dual.closed, dual.async_closed) == (0, 0)
 
 
 def test_async_bulk_cleanup_attempts_all_and_raises_first_ordinary_error() -> None:
@@ -947,3 +1049,24 @@ def test_async_bulk_cleanup_propagates_cancellation_without_later_attempts() -> 
         assert AsyncPlugin.instances[0].closed == 0
 
     asyncio.run(scenario())
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        ConnectionPluginNotAsyncError("name"),
+        ConnectionPluginNotSyncError("name"),
+        ConnectionModeMismatchError("name", "sync", "asyncio"),
+        ConnectionPluginAmbiguousError("name"),
+        ConnectionPluginContractError("name", "reason"),
+    ],
+    ids=lambda error: type(error).__name__,
+)
+def test_connection_errors_are_connection_exceptions(error: ConnectionException) -> None:
+    assert isinstance(error, ConnectionException)
+    assert error.connection == "name"
+    assert "'name'" in str(error)
+    if isinstance(error, SyncAsyncMismatchError):
+        assert type(error).__mro__.index(SyncAsyncMismatchError) < type(error).__mro__.index(
+            ConnectionException
+        )

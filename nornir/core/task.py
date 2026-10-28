@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import asyncio
 import functools
 import inspect
 import logging
+import sys
 import traceback
 from typing import TYPE_CHECKING, Any, cast
 
@@ -23,6 +25,24 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 DEFAULT_SEVERITY_LEVEL = logging.INFO
+
+
+def _cancellation_requested() -> bool:
+    """Return whether the running asyncio task is being cancelled.
+
+    A ``CancelledError`` can also be raised by a task's own code, for example when it
+    cancels a helper it started and awaits it. From Python 3.11 ``Task.cancelling()``
+    tells the two apart. Python 3.10 cannot, so every ``CancelledError`` counts as a
+    cancellation there and the runner makes the distinction per host instead.
+
+    Returns:
+        ``True`` when the current asyncio task has a pending cancellation request.
+
+    """
+    if sys.version_info < (3, 11):
+        return True
+    current = asyncio.current_task()
+    return current is None or current.cancelling() > 0
 
 
 def _is_coroutine_task(task: Callable[..., Any]) -> bool:
@@ -132,7 +152,7 @@ class Task:
         else:
             self.processors.task_instance_started(self, host)
 
-    def _result_from_exception(self, exception: Exception, traceback_text: str) -> Result:
+    def _result_from_exception(self, exception: BaseException, traceback_text: str) -> Result:
         logger.error("Host %r: task %r failed", self.host.name, self.name, exc_info=exception)
         result = str(exception) if isinstance(exception, NornirSubTaskError) else traceback_text
         return Result(self.host, exception=exception, result=result, failed=True)
@@ -184,6 +204,10 @@ class Task:
         Returns:
             :obj:`nornir.core.task.MultiResult`: Results of the task and its subtasks
 
+        Raises:
+            asyncio.CancelledError: the asyncio task running this call was cancelled;
+                nothing is recorded for the host
+
         """
         self._begin(host)
         try:
@@ -191,7 +215,28 @@ class Task:
             r = await self.task(self, **self.params)
         except Exception as e:
             r = self._result_from_exception(e, traceback.format_exc())
+        except asyncio.CancelledError as e:
+            # A genuine cancellation propagates without a result. A CancelledError the
+            # task raised itself, while nothing cancelled it, fails only this host.
+            if _cancellation_requested():
+                raise
+            r = self._result_from_exception(e, traceback.format_exc())
         return self._finish(host, r)
+
+    def _record_unrequested_cancellation(
+        self, host: Host, error: asyncio.CancelledError
+    ) -> MultiResult:
+        """Record a ``CancelledError`` nobody requested as this host's failed result.
+
+        Used by the asyncio runner for a host it did not cancel, which on Python 3.10
+        is the only way to tell a task's own ``CancelledError`` from a cancellation.
+        The start event was already emitted by :py:meth:`astart`.
+
+        Returns:
+            :obj:`nornir.core.task.MultiResult`: The failed results for the host.
+
+        """
+        return self._finish(host, self._result_from_exception(error, traceback.format_exc()))
 
     def _create_subtask(self, task: Callable[..., Any], kwargs: dict[str, Any]) -> Task:
         if "severity_level" not in kwargs:

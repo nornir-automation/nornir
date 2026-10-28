@@ -48,6 +48,17 @@ loop and block all other tasks until the hook returns. Native asynchronous proce
 hooks are outside the current execution contract and are tracked in `issue #1090
 <https://github.com/nornir-automation/nornir/issues/1090>`_.
 
+Errors and cancellation behave the same way in both runners. An exception raised by
+the task itself is recorded as that host's failed result. An exception that escapes a
+host outside the task, for example from a processor hook, lets every other host finish
+and is then raised to the caller; neither runner interrupts a host partway through its
+work because of another host's error. Only a cancellation of ``arun()`` by the caller
+interrupts the hosts still running: the asyncio runner cancels them, waits for their
+cleanup, and then propagates the cancellation without recording any result. A
+``CancelledError`` that a task raises itself, for instance after cancelling a helper it
+started, fails only that host; on Python 3.10 this distinction is made per host rather
+than per subtask.
+
 Connection execution capabilities are independent of runner selection. Legacy plugins
 registered in ``ConnectionPluginRegister`` are synchronous only. Plugins registered in
 ``CapabilityConnectionPluginRegister`` declare ``sync``, ``asyncio``, or both and use

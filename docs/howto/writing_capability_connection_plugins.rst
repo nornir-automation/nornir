@@ -121,6 +121,12 @@ raise the same error, because the synchronous path cannot await ``aclose``. The
 error names the mode the connection is in and the close method that releases
 it. Once closed, the name can be opened in the other mode.
 
+Concurrent ``aget_connection`` calls for a name that is still opening, for
+example from subtasks started with ``asyncio.gather``, wait for that open and
+share the connection it establishes; if the open fails, every waiter receives
+the failure. An explicit ``aopen_connection`` or a synchronous ``get_connection``
+for a name that is opening raises ``ConnectionAlreadyOpen`` instead.
+
 Nornir records the mode and exposes it through
 :meth:`~nornir.core.inventory.Host.connection_mode`, so a plugin keeps no mode
 state of its own: ``open`` and ``close`` belong to sync mode, ``aopen`` and
@@ -150,10 +156,15 @@ Await :meth:`~nornir.core.inventory.Host.aclose_connection` or
 :meth:`~nornir.core.inventory.Host.aclose_connections` when async-capable
 connections may be present. Asynchronous cleanup closes a connection bound to
 sync mode through its synchronous ``close`` and a connection bound to asyncio
-mode through ``aclose``, so one call cleans up a mixed host. If an async close fails or is cancelled, Nornir
+mode through ``aclose``, so one call cleans up a mixed host. That synchronous
+``close`` runs inline on the event loop and blocks it until it returns, like a
+synchronous subtask. If an async close fails or is cancelled, Nornir
 retains that cached connection and its metadata so cleanup can be retried. Bulk
-async cleanup attempts the remaining connections after ordinary close errors and
-then raises the first error; cancellation propagates immediately. Retry failed
+cleanup, synchronous or asynchronous, attempts the remaining connections after
+an error and then raises the first one; the synchronous
+:meth:`~nornir.core.inventory.Host.close_connections` therefore closes every
+sync-bound connection before raising the mode error for an asyncio-bound one.
+Cancellation of asynchronous cleanup propagates immediately. Retry failed
 Nornir-level cleanup with ``on_failed=True``, or invoke host cleanup directly,
 because the default Nornir selection excludes failed hosts.
 
