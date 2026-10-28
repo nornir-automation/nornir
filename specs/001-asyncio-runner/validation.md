@@ -219,5 +219,14 @@
   - `make nbval`: 123 passed.
   - `make docs`: build succeeded with the same 45 pre-existing warnings; no change to
     the generated API reference.
-- T078 remaining: push, CI matrix evidence for the new head, speckit-analyze, and the
-  replies on the PR #1111 review threads.
+- CI on head 2394bd0 (commits b917350 and 2394bd0 pushed on 2026-10-28): the two
+  `test nornir` runs, 40762125612 (push) and 40762133502 (pull request), succeeded with
+  all 20 jobs each: the linters job, the wheel build and import job, and the test
+  matrix of Python 3.10 through 3.15 on ubuntu-latest, macos-15 and windows-2022.
+- speckit-analyze on the revised artifacts: no CRITICAL, HIGH or MEDIUM finding; five
+  LOW items (a stale "six mismatches" comment in the plan targets, R6 still naming the
+  set-based reservation, superseded wording in completed historical tasks, the spec
+  status still "Draft", and FR-026 not pointing at the Python 3.10 assumption). All 27
+  functional requirements and 7 success criteria have a task; no task is unmapped.
+- T078 remaining: the replies on the PR #1111 review threads, which wait for the
+  author's approval of the drafted text.
