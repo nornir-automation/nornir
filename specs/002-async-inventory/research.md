@@ -108,7 +108,8 @@ Python 3.14 shield warning fixed in commit 777cd55 does not apply.
 ## R5. Classifying transform functions
 
 **Decision**: Both entry points classify the resolved transform with
-`inspect.iscoroutinefunction`, regardless of which registry it was found in.
+`inspect.iscoroutinefunction`, applied to the transform and to its class's `__call__`,
+regardless of which registry it was found in.
 `InitNornir` raises `TransformFunctionNotSyncError` for a coroutine function; `AInitNornir`
 awaits a coroutine function and runs any other callable in the worker thread. The two
 registries exist for discovery and typing, not for dispatch.
@@ -118,10 +119,10 @@ registries exist for discovery and typing, not for dispatch.
 the old group", which is what users write today when they try this, into working code under
 `AInitNornir` and a named error under `InitNornir`, instead of a third error class.
 
-**Limitation**: A callable object with `async def __call__`, or a `functools.partial` of an
-async function on Python 3.10 and 3.11, is not detected as a coroutine function. The
-contract states that async transforms are `async def` functions; this matches the task
-contract from spec 001.
+**Callable objects**: `inspect.iscoroutinefunction` is False for an instance whose class
+defines `async def __call__`, although such an instance satisfies `AsyncTransformFunction`.
+The class's `__call__` is therefore checked as well, so these objects are awaited by
+`AInitNornir` and refused by `InitNornir` like `async def` functions.
 
 **Alternatives considered**: Dispatch by registry, with a `TransformFunctionContractError`
 for a mismatch between registry and definition. Rejected: more errors for no user benefit.

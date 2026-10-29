@@ -29,7 +29,8 @@ coroutine function). Any failure raises `InventoryPluginContractError(name, reas
 
 `async def __call__(self, host: Host, **kwargs: Any) -> None`. Same arguments as
 `TransformFunction`; receives `inventory.transform_function_options`. MUST be an
-`async def` function (detected with `inspect.iscoroutinefunction`, R5).
+`async def` function or an object whose class defines `async def __call__` (detected with
+`inspect.iscoroutinefunction` on the object and on its class's `__call__`, R5).
 
 ### Registries
 
