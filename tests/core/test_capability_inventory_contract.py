@@ -76,6 +76,20 @@ class NoReporter:
         return sync_load()
 
 
+class NonCallableReporter:
+    get_capabilities = frozenset({"sync"})
+
+    def load(self) -> Inventory:
+        return sync_load()
+
+
+class BrokenReporterProperty:
+    @property
+    def get_capabilities(self) -> Any:
+        msg = "reporter unavailable"
+        raise RuntimeError(msg)
+
+
 class AsyncReporter:
     async def get_capabilities(self) -> frozenset[InventoryCapability]:
         return frozenset({"sync"})
@@ -93,7 +107,7 @@ class FailingReporter:
 @pytest.mark.parametrize(
     ("plugin", "reason"),
     [
-        (NoReporter(), "get_capabilities must be a synchronous callable"),
+        (NonCallableReporter(), "get_capabilities must be a synchronous callable"),
         (AsyncReporter(), "get_capabilities must be a synchronous callable"),
         (Declares({"sync"}, load=sync_load), "nonempty frozenset"),
         (Declares(frozenset(), load=sync_load), "nonempty frozenset"),
@@ -112,6 +126,20 @@ def test_invalid_declarations(plugin: Any, reason: str) -> None:
 
     assert exc_info.value.plugin_name == "bad_plugin"
     assert reason in exc_info.value.reason
+
+
+@pytest.mark.parametrize(
+    ("plugin", "cause"),
+    [(NoReporter(), AttributeError), (BrokenReporterProperty(), RuntimeError)],
+)
+def test_inaccessible_reporter_chains_original_exception(
+    plugin: Any, cause: type[Exception]
+) -> None:
+    with pytest.raises(InventoryPluginContractError) as exc_info:
+        _validate_capability_inventory_plugin("bad_plugin", plugin)
+
+    assert exc_info.value.reason == "get_capabilities could not be accessed"
+    assert isinstance(exc_info.value.__cause__, cause)
 
 
 def test_failing_reporter_chains_original_exception() -> None:
