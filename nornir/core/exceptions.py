@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from nornir.core.tasks import Task
 
 
-SYNC_TASKS_IN_ASYNC_RUNS_ISSUE = "https://github.com/nornir-automation/nornir/issues/1085"
+SYNC_TASKS_IN_ASYNC_RUNS_ISSUE = "https://github.com/nornir-automation/nornir/issues/1120"
 
 
 class SyncAsyncMismatchError(Exception):

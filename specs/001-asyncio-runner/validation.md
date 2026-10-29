@@ -78,8 +78,9 @@
 
 ## Pending Release Gates
 
-- T056 is blocked because the user declined creation of the synchronous-tasks-in-async-runs follow-up issue.
-- T061 remains pending on T056.
+- T056 is done (2026-10-29): the follow-up issue is
+  https://github.com/nornir-automation/nornir/issues/1120.
+- T061 remains pending.
 
 ## Python 3.14 CI Follow-up
 
@@ -230,3 +231,12 @@
   functional requirements and 7 success criteria have a task; no task is unmapped.
 - T078 remaining: the replies on the PR #1111 review threads, which wait for the
   author's approval of the drafted text.
+
+## T056: follow-up issue (2026-10-29)
+
+- Opened https://github.com/nornir-automation/nornir/issues/1120 for synchronous tasks
+  in async runs, threads during asynchronous cleanup, and the opt-in surface.
+- `SYNC_TASKS_IN_ASYNC_RUNS_ISSUE` now points to #1120. `tests/core/test_async_run.py`
+  reads the constant, so no test expectation changed.
+- `docs/howto/asyncio_runner.ipynb` was re-executed; the only output change is the
+  issue URL in the `SyncTaskOnAsyncRunError` message.

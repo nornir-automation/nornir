@@ -546,9 +546,8 @@ Review of PR #1111 and the failing tests in #1119.
   that it cannot be withdrawn later. The follow-up on synchronous tasks in async runs
   therefore covers thread-backed execution and its opt-in surface, not inline
   execution.
-- Until the follow-up issue on synchronous tasks in async runs is opened, the error
-  messages of FR-005 reference #1085; the number is replaced once the follow-up issue
-  exists, and opening it is a precondition of merging this feature.
+- The error messages of FR-005 reference the follow-up issue on synchronous tasks in
+  async runs, #1120. They referenced #1085 until #1120 was opened.
 - New plugins satisfy the capability-aware contract structurally, consistent with the
   existing plugin model, but supported execution modes come from the capability method,
   not from method-presence heuristics. Legacy registrations are synchronous-only.

@@ -34,10 +34,10 @@ ConnectionModeMismatchError. The bound mode comes from the Host's capability met
 never from plugin attributes.
 
 ```python
-SYNC_TASKS_IN_ASYNC_RUNS_ISSUE = "https://github.com/nornir-automation/nornir/issues/1085"
+SYNC_TASKS_IN_ASYNC_RUNS_ISSUE = "https://github.com/nornir-automation/nornir/issues/1120"
 ```
 
-Replace this constant's value with the dedicated follow-up issue URL before merge.
+The constant points to the follow-up issue on synchronous tasks in async runs.
 
 ## Registry and contract validation
 
