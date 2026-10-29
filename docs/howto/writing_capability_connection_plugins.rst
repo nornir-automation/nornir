@@ -161,7 +161,7 @@ mode through ``aclose``, so one call cleans up a mixed host. That synchronous
 synchronous subtask. If an async close fails or is cancelled, Nornir
 retains that cached connection and its metadata so cleanup can be retried. Bulk
 cleanup, synchronous or asynchronous, attempts the remaining connections after
-an error and then raises the first one; the synchronous
+an error, logs each later error, and then raises the first one; the synchronous
 :meth:`~nornir.core.inventory.Host.close_connections` therefore closes every
 sync-bound connection before raising the mode error for an asyncio-bound one.
 Cancellation of asynchronous cleanup propagates immediately. Retry failed

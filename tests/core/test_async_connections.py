@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import copy
+import logging
 import pickle  # noqa: S403 - this test verifies trusted local Host serialization.
 from typing import TYPE_CHECKING, Any, ClassVar
 
@@ -585,6 +586,44 @@ def test_waiters_receive_a_failed_open_and_reopen_after_a_cancelled_one(cancel: 
     asyncio.run(scenario())
 
 
+@pytest.mark.parametrize("fail", [False, True])
+def test_cancelled_waiter_does_not_cancel_the_open_for_the_others(fail: bool) -> None:
+    async def scenario() -> None:
+        host = Host("host")
+        config = Config()
+        gate = asyncio.Event()
+        started = asyncio.Event()
+        AsyncPlugin.open_gate = gate
+        AsyncPlugin.open_started = started
+        AsyncPlugin.fail_open = fail
+        CapabilityConnectionPluginRegister.register("async", AsyncPlugin)
+        opening = asyncio.create_task(host.aopen_connection("async", config))
+        await started.wait()
+        cancelled = asyncio.create_task(host.aget_connection("async", config))
+        waiter = asyncio.create_task(host.aget_connection("async", config))
+        await asyncio.sleep(0)
+
+        cancelled.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await cancelled
+        gate.set()
+
+        if fail:
+            with pytest.raises(RuntimeError, match="open failed"):
+                await opening
+            with pytest.raises(RuntimeError, match="open failed"):
+                await waiter
+            assert host._async_connections == {}
+        else:
+            plugin = await opening
+            assert await waiter is plugin.connection
+            assert host._async_connections == {"async": plugin}
+        assert len(AsyncPlugin.instances) == 1
+        assert host._opening == {}
+
+    asyncio.run(scenario())
+
+
 @pytest.mark.parametrize("cancel", [False, True])
 def test_failed_or_cancelled_async_open_clears_reservation_without_publishing(
     cancel: bool,
@@ -946,7 +985,21 @@ def test_cancelled_async_close_retry_preserves_replacement_and_clears_old_metada
     asyncio.run(scenario())
 
 
-def test_sync_bulk_cleanup_attempts_every_entry_and_raises_the_first_error() -> None:
+@pytest.fixture
+def inventory_log(caplog: pytest.LogCaptureFixture) -> Iterator[pytest.LogCaptureFixture]:
+    # Nornir's logging configuration stops "nornir" from propagating to the root logger,
+    # where caplog listens, so attach its handler to the inventory logger directly.
+    logger = logging.getLogger("nornir.core.inventory")
+    logger.addHandler(caplog.handler)
+    try:
+        yield caplog
+    finally:
+        logger.removeHandler(caplog.handler)
+
+
+def test_sync_bulk_cleanup_attempts_every_entry_and_raises_the_first_error(
+    inventory_log: pytest.LogCaptureFixture,
+) -> None:
     async def prepare() -> Host:
         host = Host("host")
         CapabilityConnectionPluginRegister.register("failing", FailingSyncClosePlugin)
@@ -965,6 +1018,11 @@ def test_sync_bulk_cleanup_attempts_every_entry_and_raises_the_first_error() -> 
     assert "later" not in host.connections
     assert SyncPlugin.instances[0].closed == 1
     assert "async" in host._async_connections
+    # The error that is not raised, for the asyncio-only entry, is logged instead.
+    [record] = inventory_log.records
+    assert record.getMessage() == "Host 'host': closing connection 'async' also failed"
+    assert record.exc_info is not None
+    assert isinstance(record.exc_info[1], ConnectionPluginNotSyncError)
 
     with pytest.raises(ConnectionPluginNotSyncError):
         host.close_connections()
@@ -997,7 +1055,9 @@ def test_sync_bulk_cleanup_closes_sync_entries_before_raising_the_asyncio_bound_
     assert (dual.closed, dual.async_closed) == (0, 0)
 
 
-def test_async_bulk_cleanup_attempts_all_and_raises_first_ordinary_error() -> None:
+def test_async_bulk_cleanup_attempts_all_and_raises_first_ordinary_error(
+    inventory_log: pytest.LogCaptureFixture,
+) -> None:
     class FirstFailure(AsyncPlugin):
         instances: ClassVar[list[Any]] = []
         fail_close: ClassVar[bool] = True
@@ -1023,6 +1083,11 @@ def test_async_bulk_cleanup_attempts_all_and_raises_first_ordinary_error() -> No
         assert SyncPlugin.instances[0].closed == 1
         assert set(host._async_connections) == {"first", "second"}
         assert host.connections == {}
+        [record] = inventory_log.records
+        assert record.getMessage() == "Host 'host': closing connection 'second' also failed"
+        assert record.exc_info is not None
+        assert record.exc_info[1] is not None
+        assert str(record.exc_info[1]) == "close failed"
 
     asyncio.run(scenario())
 

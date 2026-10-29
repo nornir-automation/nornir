@@ -52,7 +52,8 @@ entry caused by external mutation is a contract error.
   ConnectionModeMismatchError and leaves the entry intact. An asynchronous close of a
   sync-bound connection calls close inline, blocking the loop while it runs. Closing
   releases the binding.
-- An asynchronous get of an opening name waits for the open and shares its outcome;
+- An asynchronous get of an opening name waits for the open, shielded so that cancelling
+  one waiter does not cancel the others, and shares its outcome;
   an explicit open or a synchronous get of an opening name raises ConnectionAlreadyOpen.
 - Both opening paths check all stores; only successful opening publishes state.
 - Cached capability checks precede returning the transport and preserve entries on mismatch.
@@ -61,7 +62,7 @@ entry caused by external mutation is a contract error.
   retains both for retry. Sync close preserves legacy pop-before-close behavior.
   Matching metadata is removed with the sync instance even if close raises.
 - Async bulk close snapshots both stores; attempts all entries on ordinary errors and raises
-  the first error afterward. Cancellation interrupts cleanup and propagates.
+  the first error afterward. Both bulk closes log each error after the first. Cancellation interrupts cleanup and propagates.
 - Sync bulk cleanup snapshots both stores, attempts every name, and raises the first
   error afterwards, including the mismatch for asyncio-bound or async-only entries,
   which stay intact. Callers serialize use/cleanup while a name is closing;

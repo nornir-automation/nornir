@@ -22,8 +22,9 @@ Unreleased
   ``aget_connection`` calls for a name that is still opening share that open. The
   connection errors also derive from ``ConnectionException`` (#1085, #1111, #1119)
 - ``Host.close_connections`` now attempts every connection and raises the first error
-  after the last attempt, instead of stopping at the first connection it cannot close
-  (#1111)
+  after the last attempt, instead of stopping at the first connection it cannot close.
+  ``Host.close_connections`` and ``Host.aclose_connections`` log every later error at
+  ``ERROR`` level, so no failure is lost (#1111)
 
 3.6.0 - August 2 2026
 ---------------------

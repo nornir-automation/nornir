@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import inspect
+import logging
 from dataclasses import dataclass
 from typing import (
     TYPE_CHECKING,
@@ -37,6 +38,8 @@ if TYPE_CHECKING:
     from collections.abc import Callable, ItemsView, Iterator, KeysView, ValuesView
 
 HostOrGroup = TypeVar("HostOrGroup", "Host", "Group")
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -760,8 +763,10 @@ class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds f
         self._check_connection_ambiguity(connection)
         # Share an open already in progress: wait for it, then take the cache-hit path.
         # A failed open raises here too; a cancelled one lets this call open itself.
+        # Shield the shared future: cancelling one waiter must not cancel the open's
+        # outcome for the opener and the other waiters.
         while (pending := self._opening.get(connection)) is not None:
-            await pending
+            await asyncio.shield(pending)
         self._check_connection_lookup(connection)
         existing = self.connections.get(connection)
         if existing is not None:
@@ -1048,8 +1053,7 @@ class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds f
             try:
                 self.close_connection(connection)
             except Exception as exc:  # noqa: BLE001 - plugin errors must not skip later cleanup.
-                if first_error is None:
-                    first_error = exc
+                first_error = self._keep_first_close_error(first_error, connection, exc)
         if first_error is not None:
             raise first_error
 
@@ -1064,10 +1068,27 @@ class Host(InventoryElement):  # noqa: PLR0904 - the public lifecycle API adds f
             try:
                 await self.aclose_connection(connection)
             except Exception as exc:  # noqa: BLE001 - plugin errors must not skip later cleanup.
-                if first_error is None:
-                    first_error = exc
+                first_error = self._keep_first_close_error(first_error, connection, exc)
         if first_error is not None:
             raise first_error
+
+    def _keep_first_close_error(
+        self, first_error: Exception | None, connection: str, error: Exception
+    ) -> Exception:
+        """Return the error bulk cleanup raises, logging every error after the first.
+
+        Only the first error is raised; later ones would otherwise be lost.
+
+        Returns:
+            ``first_error`` when one was already kept, otherwise ``error``.
+
+        """
+        if first_error is None:
+            return error
+        logger.error(
+            "Host %r: closing connection %r also failed", self.name, connection, exc_info=error
+        )
+        return first_error
 
     def connection_mode(self, connection: str) -> ConnectionCapability | None:
         """Return the execution mode an open connection is bound to.
