@@ -211,7 +211,15 @@ def _resolve_transform_function(config: Config) -> _ResolvedTransformFunction | 
     elif name in TransformFunctionRegister.available:
         raise TransformFunctionAmbiguousError(name)
     # Dispatch follows how the function is defined, not where it was registered.
-    return _ResolvedTransformFunction(name, function, inspect.iscoroutinefunction(function))
+    return _ResolvedTransformFunction(name, function, _is_coroutine_callable(function))
+
+
+def _is_coroutine_callable(function: Callable[..., Any]) -> bool:
+    # inspect.iscoroutinefunction is False for an instance whose __call__ is async, which
+    # still satisfies AsyncTransformFunction, so the class's __call__ is checked as well.
+    return inspect.iscoroutinefunction(function) or inspect.iscoroutinefunction(
+        type(function).__call__
+    )
 
 
 def _transform_hosts(

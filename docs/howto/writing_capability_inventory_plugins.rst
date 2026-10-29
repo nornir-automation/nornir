@@ -182,8 +182,8 @@ thread. ``InitNornir`` raises
 function defined with ``async def`` before the inventory is loaded.
 
 Nornir decides how to call a transform function from how it is defined, not from
-the registry it was found in, so define async transforms as ``async def``
-functions. A callable object with an ``async def __call__`` is not detected as
-asynchronous. As for inventory plugins, registering one name in both transform
+the registry it was found in. A function defined with ``async def`` and an object
+whose class defines ``async def __call__`` are both treated as asynchronous. As for
+inventory plugins, registering one name in both transform
 function registries raises
 :class:`~nornir.core.exceptions.TransformFunctionAmbiguousError`.

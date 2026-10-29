@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import threading
+from importlib import metadata
 from typing import TYPE_CHECKING, Any, cast
 
 import pytest
@@ -14,6 +15,7 @@ from nornir.core.exceptions import (
     TransformFunctionNotSyncError,
 )
 from nornir.core.plugins.inventory import (
+    ASYNC_TRANSFORM_FUNCTION_PLUGIN_PATH,
     AsyncTransformFunction,
     AsyncTransformFunctionRegister,
     CapabilityInventoryPluginRegister,
@@ -184,3 +186,138 @@ def test_ambiguous_plugin_wins_over_async_transform() -> None:
 
     with pytest.raises(InventoryPluginAmbiguousError):
         InitNornir(inventory={"plugin": "both", "transform_function": "enrich"})
+
+
+class AsyncTransformObject:
+    """Transform written as a class whose ``__call__`` is a coroutine method."""
+
+    async def __call__(self, host: Host, **kwargs: Any) -> None:
+        RECORDER.record("start", host.name)
+        await asyncio.sleep(0)
+        RECORDER.record("end", host.name)
+
+
+class SyncTransformObject:
+    def __call__(self, host: Host, **kwargs: Any) -> None:
+        RECORDER.record("transform", host.name)
+
+
+def blocking_transform(host: Host, **kwargs: Any) -> None:
+    release: threading.Event = kwargs["release"]
+    if not release.wait(5):
+        msg = "transform was never released"
+        raise TimeoutError(msg)
+
+
+async def waiting_transform(host: Host, **kwargs: Any) -> None:
+    release: asyncio.Event = kwargs["release"]
+    await release.wait()
+
+
+class FakeEntryPoint:
+    def __init__(self, name: str, plugin: Any) -> None:
+        self.name = name
+        self.plugin = plugin
+
+    def load(self) -> Any:
+        return self.plugin
+
+
+@pytest.mark.usefixtures("legacy_plugin")
+def test_class_based_async_transform_is_awaited() -> None:
+    AsyncTransformFunctionRegister.register("enrich", AsyncTransformObject())
+
+    ainit(inventory={"plugin": "legacy", "transform_function": "enrich"})
+
+    assert transform_events() == SEQUENTIAL_EVENTS
+
+
+@pytest.mark.usefixtures("legacy_plugin")
+def test_init_nornir_refuses_class_based_async_transform() -> None:
+    AsyncTransformFunctionRegister.register("enrich", AsyncTransformObject())
+
+    with pytest.raises(TransformFunctionNotSyncError):
+        InitNornir(inventory={"plugin": "legacy", "transform_function": "enrich"})
+
+    assert RECORDER.names() == []
+
+
+@pytest.mark.usefixtures("legacy_plugin")
+@pytest.mark.parametrize("init", ENTRY_POINTS)
+def test_class_based_sync_transform_runs_synchronously(init: Callable[..., Nornir]) -> None:
+    TransformFunctionRegister.register("tag", SyncTransformObject())
+
+    init(inventory={"plugin": "legacy", "transform_function": "tag"})
+
+    assert RECORDER.names().count("transform") == len(HOST_NAMES)
+
+
+@pytest.mark.parametrize(
+    ("plugin_name", "plugin"),
+    [
+        pytest.param("legacy", LegacyPlugin, id="sync-plugin"),
+        pytest.param("api", AsyncCapabilityPlugin, id="asyncio-plugin"),
+    ],
+)
+@pytest.mark.parametrize(
+    "transform_is_async", [False, True], ids=["sync-transform", "async-transform"]
+)
+def test_transform_does_not_block_the_loop(
+    plugin_name: str, plugin: type[Any], transform_is_async: bool
+) -> None:
+    if plugin is LegacyPlugin:
+        InventoryPluginRegister.register(plugin_name, plugin)
+    else:
+        CapabilityInventoryPluginRegister.register(plugin_name, plugin)
+    if transform_is_async:
+        AsyncTransformFunctionRegister.register("wait", waiting_transform)
+    else:
+        TransformFunctionRegister.register("wait", blocking_transform)
+
+    async def scenario() -> Nornir:
+        release: threading.Event | asyncio.Event = (
+            asyncio.Event() if transform_is_async else threading.Event()
+        )
+
+        async def release_soon() -> None:
+            # Only runs while the transform waits if the loop is free.
+            await asyncio.sleep(0)
+            release.set()
+
+        releaser = asyncio.create_task(release_soon())
+        nr = await asyncio.wait_for(
+            AInitNornir(
+                inventory={
+                    "plugin": plugin_name,
+                    "transform_function": "wait",
+                    "transform_function_options": {"release": release},
+                }
+            ),
+            timeout=10,
+        )
+        await releaser
+        return nr
+
+    assert list(asyncio.run(scenario()).inventory.hosts) == list(HOST_NAMES)
+
+
+@pytest.mark.usefixtures("legacy_plugin")
+def test_async_transform_discovered_through_its_entry_point_group(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    original = metadata.entry_points
+
+    def entry_points(*, group: str) -> Any:
+        if group == ASYNC_TRANSFORM_FUNCTION_PLUGIN_PATH:
+            return [FakeEntryPoint("from-entry-point", async_transform)]
+        return original(group=group)
+
+    monkeypatch.setattr(metadata, "entry_points", entry_points)
+
+    ainit(inventory={"plugin": "legacy", "transform_function": "from-entry-point"})
+    assert transform_events() == SEQUENTIAL_EVENTS
+    assert AsyncTransformFunctionRegister.available["from-entry-point"] is async_transform
+
+    RECORDER.reset()
+    with pytest.raises(TransformFunctionNotSyncError):
+        InitNornir(inventory={"plugin": "legacy", "transform_function": "from-entry-point"})

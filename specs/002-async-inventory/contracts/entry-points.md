@@ -37,7 +37,8 @@ Both `InitNornir` and `AInitNornir` call `auto_register()` on both inventory reg
 
 Only when it is set. Both entry points call `auto_register()` on both transform registers,
 then apply the same table with `TransformFunctionAmbiguousError`. The resolved callable is
-then classified by `inspect.iscoroutinefunction`, not by registry (research R5).
+then classified with `inspect.iscoroutinefunction` on the callable and on its class's
+`__call__`, not by registry (research R5).
 
 ## Configuration
 
