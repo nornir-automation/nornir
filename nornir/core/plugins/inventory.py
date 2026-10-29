@@ -135,7 +135,7 @@ def _validate_capability_inventory_plugin(
 
     """
     try:
-        reporter = getattr(plugin, "get_capabilities", None)
+        reporter = plugin.get_capabilities
     except Exception as exc:
         raise InventoryPluginContractError(
             plugin_name, "get_capabilities could not be accessed"
