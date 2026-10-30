@@ -1,13 +1,22 @@
 from __future__ import annotations
 
+import asyncio
+import functools
+import inspect
 import logging
+import sys
 import traceback
 from typing import TYPE_CHECKING, Any, cast
 
-from nornir.core.exceptions import NornirExecutionError, NornirSubTaskError
+from nornir.core.exceptions import (
+    AsyncTaskOnSyncRunError,
+    NornirExecutionError,
+    NornirSubTaskError,
+    SyncTaskOnAsyncRunError,
+)
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Coroutine
 
     from nornir.core import Nornir
     from nornir.core.inventory import Host
@@ -16,6 +25,52 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 DEFAULT_SEVERITY_LEVEL = logging.INFO
+
+
+def _cancellation_requested() -> bool:
+    """Return whether the running asyncio task is being cancelled.
+
+    A ``CancelledError`` can also be raised by a task's own code, for example when it
+    cancels a helper it started and awaits it. From Python 3.11 ``Task.cancelling()``
+    tells the two apart. Python 3.10 cannot, so every ``CancelledError`` counts as a
+    cancellation there and the runner makes the distinction per host instead.
+
+    Returns:
+        ``True`` when the current asyncio task has a pending cancellation request.
+
+    """
+    if sys.version_info < (3, 11):
+        return True
+    current = asyncio.current_task()
+    return current is None or current.cancelling() > 0
+
+
+def _is_coroutine_task(task: Callable[..., Any]) -> bool:
+    """Return whether a task callable must be awaited.
+
+    Returns:
+        Whether the callable is implemented asynchronously.
+
+    """
+    while isinstance(task, functools.partial):
+        task = task.func
+    return inspect.iscoroutinefunction(task) or inspect.iscoroutinefunction(type(task).__call__)
+
+
+def _get_task_name(task: Callable[..., Any], name: str | None = None) -> str:
+    """Return a safe name for task mismatch diagnostics.
+
+    Returns:
+        The explicit name, callable name, or callable type name.
+
+    """
+    if name is not None:
+        return name
+    try:
+        task_name = getattr(task, "__name__", None)
+    except Exception:
+        task_name = None
+    return task_name if isinstance(task_name, str) else type(task).__name__
 
 
 class Task:
@@ -90,6 +145,36 @@ class Task:
     def __repr__(self) -> str:
         return self.name
 
+    def _begin(self, host: Host) -> None:
+        self.host = host
+        if self.parent_task is not None:
+            self.processors.subtask_instance_started(self, host)
+        else:
+            self.processors.task_instance_started(self, host)
+
+    def _result_from_exception(self, exception: BaseException, traceback_text: str) -> Result:
+        logger.error("Host %r: task %r failed", self.host.name, self.name, exc_info=exception)
+        result = str(exception) if isinstance(exception, NornirSubTaskError) else traceback_text
+        return Result(self.host, exception=exception, result=result, failed=True)
+
+    def _finish(self, host: Host, result: Any) -> MultiResult:
+        if not isinstance(result, Result):
+            result = Result(host=host, result=result)
+        result.name = self.name
+
+        if result.severity_level == DEFAULT_SEVERITY_LEVEL:
+            if result.failed:
+                result.severity_level = logging.ERROR
+            else:
+                result.severity_level = self.severity_level
+
+        self.results.insert(0, result)
+        if self.parent_task is not None:
+            self.processors.subtask_instance_completed(self, host, self.results)
+        else:
+            self.processors.task_instance_completed(self, host, self.results)
+        return self.results
+
     def start(self, host: Host) -> MultiResult:
         """Run the task for the given host.
 
@@ -101,42 +186,76 @@ class Task:
             :obj:`nornir.core.task.MultiResult`: Results of the task and its subtasks
 
         """
-        self.host = host
-
-        if self.parent_task is not None:
-            self.processors.subtask_instance_started(self, host)
-        else:
-            self.processors.task_instance_started(self, host)
+        self._begin(host)
         try:
             logger.debug("Host %r: running task %r", self.host.name, self.name)
             r = self.task(self, **self.params)
-            if not isinstance(r, Result):
-                r = Result(host=host, result=r)
-
-        except NornirSubTaskError as e:
-            logger.exception("Host %r: task %r failed", self.host.name, self.name)
-            r = Result(host, exception=e, result=str(e), failed=True)
-
         except Exception as e:
-            tb = traceback.format_exc()
-            logger.exception("Host %r: task %r failed", self.host.name, self.name)
-            r = Result(host, exception=e, result=tb, failed=True)
+            r = self._result_from_exception(e, traceback.format_exc())
+        return self._finish(host, r)
 
-        r.name = self.name
+    async def astart(self, host: Host) -> MultiResult:
+        """Run the asynchronous task for the given host.
 
-        if r.severity_level == DEFAULT_SEVERITY_LEVEL:
-            if r.failed:
-                r.severity_level = logging.ERROR
-            else:
-                r.severity_level = self.severity_level
+        Arguments:
+            host (:obj:`nornir.core.inventory.Host`): Host we are operating with. Populated right
+              before calling the ``task``
 
-        self.results.insert(0, r)
+        Returns:
+            :obj:`nornir.core.task.MultiResult`: Results of the task and its subtasks
 
-        if self.parent_task is not None:
-            self.processors.subtask_instance_completed(self, host, self.results)
-        else:
-            self.processors.task_instance_completed(self, host, self.results)
-        return self.results
+        Raises:
+            asyncio.CancelledError: the asyncio task running this call was cancelled;
+                nothing is recorded for the host
+
+        """
+        self._begin(host)
+        try:
+            logger.debug("Host %r: running task %r", self.host.name, self.name)
+            r = await self.task(self, **self.params)
+        except Exception as e:
+            r = self._result_from_exception(e, traceback.format_exc())
+        except asyncio.CancelledError as e:
+            # A genuine cancellation propagates without a result. A CancelledError the
+            # task raised itself, while nothing cancelled it, fails only this host.
+            if _cancellation_requested():
+                raise
+            r = self._result_from_exception(e, traceback.format_exc())
+        return self._finish(host, r)
+
+    def _record_unrequested_cancellation(
+        self, host: Host, error: asyncio.CancelledError
+    ) -> MultiResult:
+        """Record a ``CancelledError`` nobody requested as this host's failed result.
+
+        Used by the asyncio runner for a host it did not cancel, which on Python 3.10
+        is the only way to tell a task's own ``CancelledError`` from a cancellation.
+        The start event was already emitted by :py:meth:`astart`.
+
+        Returns:
+            :obj:`nornir.core.task.MultiResult`: The failed results for the host.
+
+        """
+        return self._finish(host, self._result_from_exception(error, traceback.format_exc()))
+
+    def _create_subtask(self, task: Callable[..., Any], kwargs: dict[str, Any]) -> Task:
+        if "severity_level" not in kwargs:
+            kwargs["severity_level"] = self.severity_level
+        return Task(
+            task,
+            self.nornir,
+            global_dry_run=self.global_dry_run,
+            processors=self.processors,
+            parent_task=self,
+            **kwargs,
+        )
+
+    def _record_subtask_result(self, task: Task, result: MultiResult) -> MultiResult:
+        self.results.append(result[0] if len(result) == 1 else cast("Result", result))
+        if result.failed:
+            # Without this we will keep running the grouped task
+            raise NornirSubTaskError(task=task, result=result)
+        return result
 
     def run(self, task: Callable[..., Any], **kwargs: Any) -> MultiResult:
         """Call a task from within a task.
@@ -157,6 +276,7 @@ class Task:
         Raises:
             Exception: the ``host`` attribute has not been set, which happens when calling
                 this from outside a nested task
+            nornir.core.exceptions.AsyncTaskOnSyncRunError: the subtask is asynchronous
             nornir.core.exceptions.NornirSubTaskError: the subtask failed
 
         """
@@ -167,25 +287,43 @@ class Task:
             )
             raise Exception(msg)
 
-        if "severity_level" not in kwargs:
-            kwargs["severity_level"] = self.severity_level
+        if _is_coroutine_task(task):
+            raise AsyncTaskOnSyncRunError(_get_task_name(task, kwargs.get("name")))
 
-        run_task = Task(
-            task,
-            self.nornir,
-            global_dry_run=self.global_dry_run,
-            processors=self.processors,
-            parent_task=self,
-            **kwargs,
-        )
+        run_task = self._create_subtask(task, kwargs)
         r = run_task.start(self.host)
-        self.results.append(r[0] if len(r) == 1 else cast("Result", r))
+        return self._record_subtask_result(run_task, r)
 
-        if r.failed:
-            # Without this we will keep running the grouped task
-            raise NornirSubTaskError(task=run_task, result=r)
+    async def arun(
+        self,
+        task: Callable[..., Coroutine[Any, Any, Any]],
+        **kwargs: Any,
+    ) -> MultiResult:
+        """Call an asynchronous task from within an asynchronous task.
 
-        return r
+        Returns:
+            :obj:`nornir.core.task.MultiResult`: Results of the subtask and its own subtasks
+
+        Raises:
+            Exception: the ``host`` attribute has not been set, which happens when calling
+                this from outside a nested task
+            nornir.core.exceptions.SyncTaskOnAsyncRunError: the subtask is synchronous
+            nornir.core.exceptions.NornirSubTaskError: the subtask failed
+
+        """
+        if not self.host:
+            msg = (
+                "You have to call this after setting host and nornir attributes. ",
+                "You probably called this from outside a nested task",
+            )
+            raise Exception(msg)
+
+        if not _is_coroutine_task(task):
+            raise SyncTaskOnAsyncRunError(_get_task_name(task, kwargs.get("name")))
+
+        run_task = self._create_subtask(task, kwargs)
+        r = await run_task.astart(self.host)
+        return self._record_subtask_result(run_task, r)
 
     def is_dry_run(self, override: bool | None = None) -> bool:
         """Return whether the current task is a dry run or not.

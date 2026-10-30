@@ -19,4 +19,16 @@ class RunnerPlugin(Protocol):
         raise NotImplementedError("needs to be implemented by the plugin")
 
 
+class AsyncRunnerPlugin(Protocol):
+    """Interface for runners that execute tasks on the caller's event loop."""
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Configure the plugin."""
+        raise NotImplementedError("needs to be implemented by the plugin")
+
+    async def arun(self, task: Task, hosts: list[Host]) -> AggregatedResult:
+        """Run the given task over all hosts asynchronously."""
+        raise NotImplementedError("needs to be implemented by the plugin")
+
+
 RunnersPluginRegister: PluginRegister[type[RunnerPlugin]] = PluginRegister(RUNNERS_PLUGIN_PATH)

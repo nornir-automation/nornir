@@ -8,6 +8,23 @@ Unreleased
 - Deprecated ``nornir.core.helpers.jinja_helper`` rendering functions in favor of
   ``nornir_jinja2`` (#1077).
 - Added Python 3.15 support (#1118).
+- Added opt-in native asyncio task dispatch through ``AsyncioRunner`` and ``Nornir.arun``,
+  a capability-aware connection plugin contract and registry for synchronous, asyncio,
+  and dual-mode plugins, and asynchronous connection cleanup. A connection is bound to
+  the mode that opened it, reported by ``Host.connection_mode``; using it from the other
+  mode raises ``ConnectionModeMismatchError``. Existing synchronous
+  runners and legacy connection plugins remain compatible, with ``ThreadedRunner`` still
+  the default. The synchronous ``Nornir.run`` and ``Task.run`` entry points now reject
+  coroutine tasks with ``AsyncTaskOnSyncRunError`` instead of treating an un-awaited
+  coroutine as a successful result. An error escaping one host, such as a processor
+  raising, lets the other hosts finish before it is raised, as with ``ThreadedRunner``,
+  and a ``CancelledError`` raised inside a task fails only that host. Concurrent
+  ``aget_connection`` calls for a name that is still opening share that open. The
+  connection errors also derive from ``ConnectionException`` (#1085, #1111, #1119)
+- ``Host.close_connections`` now attempts every connection and raises the first error
+  after the last attempt, instead of stopping at the first connection it cannot close.
+  ``Host.close_connections`` and ``Host.aclose_connections`` log every later error at
+  ``ERROR`` level, so no failure is lost (#1111)
 
 3.6.0 - August 2 2026
 ---------------------

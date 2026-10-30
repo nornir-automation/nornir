@@ -4,8 +4,62 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from nornir.core.connection import Connection
+    from nornir.core.plugins.connections import ConnectionCapability
     from nornir.core.result import AggregatedResult, MultiResult, Result
     from nornir.core.tasks import Task
+
+
+SYNC_TASKS_IN_ASYNC_RUNS_ISSUE = "https://github.com/nornir-automation/nornir/issues/1120"
+
+
+class SyncAsyncMismatchError(Exception):
+    """Raised when an operation is used from an unsupported execution mode."""
+
+
+class SyncTaskOnAsyncRunError(SyncAsyncMismatchError):
+    """Raised when an asynchronous run receives a synchronous task."""
+
+    def __init__(self, task_name: str) -> None:
+        self.task_name = task_name
+        super().__init__(
+            f"Task {task_name!r} is synchronous and cannot run asynchronously. "
+            "Define it with 'async def' or use a synchronous runner. "
+            f"See {SYNC_TASKS_IN_ASYNC_RUNS_ISSUE}."
+        )
+
+
+class AsyncTaskOnSyncRunError(SyncAsyncMismatchError):
+    """Raised when a synchronous run receives an asynchronous task."""
+
+    def __init__(self, task_name: str) -> None:
+        self.task_name = task_name
+        super().__init__(
+            f"Task {task_name!r} is asynchronous and cannot run synchronously. "
+            "Use 'await nr.arun(...)' or 'await task.arun(...)', or define a synchronous task."
+        )
+
+
+class RunnerNotSyncError(SyncAsyncMismatchError):
+    """Raised when a runner does not support synchronous operations."""
+
+    def __init__(self, runner_name: str) -> None:
+        self.runner_name = runner_name
+        super().__init__(
+            f"Runner {runner_name!r} does not support synchronous operations. "
+            "Use 'await nr.arun(...)', 'await nr.aclose_connections()', or 'async with nr'."
+        )
+
+
+class RunnerNotAsyncError(SyncAsyncMismatchError):
+    """Raised when a runner does not support asynchronous operations."""
+
+    def __init__(self, runner_name: str) -> None:
+        self.runner_name = runner_name
+        super().__init__(
+            f"Runner {runner_name!r} does not support asynchronous operations. "
+            "Use 'nr.run(...)', 'nr.close_connections()', or 'with nr', or select an "
+            "asyncio runner."
+        )
 
 
 class ConnectionException(Exception):
@@ -13,6 +67,89 @@ class ConnectionException(Exception):
 
     def __init__(self, connection: Connection) -> None:
         self.connection = connection
+
+
+class ConnectionPluginNotAsyncError(SyncAsyncMismatchError, ConnectionException):
+    """Raised when a connection plugin does not support asyncio."""
+
+    def __init__(self, connection_name: str) -> None:
+        self.connection_name = connection_name
+        self.connection = connection_name
+        Exception.__init__(
+            self,
+            f"Connection plugin {connection_name!r} does not declare asyncio support. "
+            "Use 'get_connection(...)' from a synchronous task.",
+        )
+
+
+class ConnectionPluginNotSyncError(SyncAsyncMismatchError, ConnectionException):
+    """Raised when a connection plugin does not support synchronous operations."""
+
+    def __init__(self, connection_name: str) -> None:
+        self.connection_name = connection_name
+        self.connection = connection_name
+        Exception.__init__(
+            self,
+            f"Connection plugin {connection_name!r} does not declare synchronous support. "
+            "Use 'aget_connection(...)', 'aopen_connection(...)', or "
+            "'aclose_connection(...)'.",
+        )
+
+
+_MODE_METHODS: dict[str, tuple[str, str, str]] = {
+    "sync": ("a synchronous", "'get_connection(...)'", "'close_connection(...)'"),
+    "asyncio": ("an asyncio", "'aget_connection(...)'", "'aclose_connection(...)'"),
+}
+
+
+class ConnectionModeMismatchError(SyncAsyncMismatchError, ConnectionException):
+    """Raised when an open connection is used from the mode that did not open it.
+
+    A connection is bound to the execution mode that opened it until it is closed.
+    """
+
+    def __init__(
+        self,
+        connection_name: str,
+        opened_in: ConnectionCapability,
+        requested: ConnectionCapability,
+    ) -> None:
+        self.connection_name = connection_name
+        self.connection = connection_name
+        self.opened_in = opened_in
+        self.requested = requested
+        task_kind, get_method, close_method = _MODE_METHODS[opened_in]
+        Exception.__init__(
+            self,
+            f"Connection {connection_name!r} is open in {opened_in} mode and was requested "
+            f"in {requested} mode. Use {get_method} from {task_kind} task, or close it with "
+            f"{close_method} before reopening it in {requested} mode.",
+        )
+
+
+class ConnectionPluginAmbiguousError(ConnectionException):
+    """Raised when a connection name is registered in both plugin registries."""
+
+    def __init__(self, connection_name: str) -> None:
+        super().__init__(connection_name)
+        self.connection_name = connection_name
+        Exception.__init__(
+            self,
+            f"Connection plugin {connection_name!r} is registered in both the legacy and "
+            "capability-aware registries. Remove one registration or rename the plugin.",
+        )
+
+
+class ConnectionPluginContractError(ConnectionException):
+    """Raised when a capability-aware connection plugin violates its contract."""
+
+    def __init__(self, connection_name: str, reason: str) -> None:
+        super().__init__(connection_name)
+        self.connection_name = connection_name
+        self.reason = reason
+        Exception.__init__(
+            self, f"Connection plugin {connection_name!r} violates its contract: {reason}"
+        )
 
 
 class ConnectionAlreadyOpen(ConnectionException):

@@ -1,0 +1,14 @@
+---
+edge-1:
+    hostname: 192.0.2.1
+    groups:
+        - routers
+    data:
+        site: lab-a
+
+edge-2:
+    hostname: 192.0.2.2
+    groups:
+        - routers
+    data:
+        site: lab-b
