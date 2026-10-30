@@ -1,7 +1,7 @@
 Changelog
 ==========
 
-3.6.1 - October 29, 2026
+3.6.1 - October 30, 2026
 ------------------------
 
 - Removed unused legacy core helpers and validator methods (#1104).
