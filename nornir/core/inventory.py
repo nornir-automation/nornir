@@ -13,7 +13,15 @@ from nornir.core.plugins.connections import ConnectionPlugin, ConnectionPluginRe
 
 if TYPE_CHECKING:
     import builtins
-    from collections.abc import ItemsView, Iterator, KeysView, ValuesView
+    from collections.abc import Callable, ItemsView, Iterator, KeysView, ValuesView
+    from typing import Concatenate, TypeAlias
+
+    # What Inventory.filter actually accepts: any callable whose first positional
+    # parameter is a Host. The keyword arguments are supplied by the caller, so they
+    # cannot be pinned down here, which is why the FilterObj protocol below - the shape
+    # that accepts any of them - is documentation rather than the annotation.
+    # Guarded because Concatenate[..., ...] is only subscriptable at runtime on 3.11+.
+    FilterCallable: TypeAlias = Callable[Concatenate["Host", ...], bool]
 
 HostOrGroup = TypeVar("HostOrGroup", "Host", "Group")
 
@@ -757,8 +765,8 @@ class Inventory:
 
     def filter(
         self,
-        filter_obj: FilterObj | None = None,
-        filter_func: FilterObj | None = None,
+        filter_obj: FilterCallable | None = None,
+        filter_func: FilterCallable | None = None,
         **kwargs: Any,
     ) -> Inventory:
         """Return a new inventory with only the hosts that match.
