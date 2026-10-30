@@ -63,6 +63,28 @@ class Task:
         self.results = MultiResult(self.name)
         self.severity_level = severity_level
         self.processors = processors
+        self._host: Host | None = None
+
+    @property
+    def host(self) -> Host:
+        """Host the task is running against, set by :meth:`start`.
+
+        Raises:
+            AttributeError: the task has not been started yet, which happens when calling
+                :meth:`run` from outside a nested task
+
+        """
+        if self._host is None:
+            msg = (
+                "You have to call this after setting host and nornir attributes. "
+                "You probably called this from outside a nested task"
+            )
+            raise AttributeError(msg)
+        return self._host
+
+    @host.setter
+    def host(self, host: Host) -> None:
+        self._host = host
 
     def copy(self) -> Task:
         """Return a copy of this task with no host and no results yet.
@@ -155,17 +177,12 @@ class Task:
             :obj:`nornir.core.task.MultiResult`: Results of the subtask and its own subtasks
 
         Raises:
-            Exception: the ``host`` attribute has not been set, which happens when calling
+            AttributeError: the ``host`` attribute has not been set, which happens when calling
                 this from outside a nested task
             nornir.core.exceptions.NornirSubTaskError: the subtask failed
 
         """
-        if not self.host:
-            msg = (
-                "You have to call this after setting host and nornir attributes. ",
-                "You probably called this from outside a nested task",
-            )
-            raise Exception(msg)
+        host = self.host
 
         if "severity_level" not in kwargs:
             kwargs["severity_level"] = self.severity_level
@@ -178,7 +195,7 @@ class Task:
             parent_task=self,
             **kwargs,
         )
-        r = run_task.start(self.host)
+        r = run_task.start(host)
         self.results.append(r[0] if len(r) == 1 else cast("Result", r))
 
         if r.failed:
