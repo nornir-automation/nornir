@@ -1,14 +1,9 @@
 Changelog
 ==========
 
-3.6.1 - October 30, 2026
-------------------------
+Unreleased
+----------
 
-- Removed unused legacy core helpers and validator methods (#1104).
-- Deprecated ``nornir.core.helpers.jinja_helper`` rendering functions in favor of
-  ``nornir_jinja2`` (#1077).
-- Added Python 3.15 support (#1118).
-<<<<<<< HEAD
 - Added opt-in native asyncio task dispatch through ``AsyncioRunner`` and ``Nornir.arun``,
   a capability-aware connection plugin contract and registry for synchronous, asyncio,
   and dual-mode plugins, and asynchronous connection cleanup. A connection is bound to
@@ -26,10 +21,16 @@ Changelog
   after the last attempt, instead of stopping at the first connection it cannot close.
   ``Host.close_connections`` and ``Host.aclose_connections`` log every later error at
   ``ERROR`` level, so no failure is lost (#1111)
-=======
+
+3.6.1 - October 30, 2026
+------------------------
+
+- Removed unused legacy core helpers and validator methods (#1104).
+- Deprecated ``nornir.core.helpers.jinja_helper`` rendering functions in favor of
+  ``nornir_jinja2`` (#1077).
+- Added Python 3.15 support (#1118).
 - ``InitNornir`` now declares its configuration sections as explicit keyword
   arguments instead of ``**kwargs`` (#1083).
->>>>>>> origin/main
 
 3.6.0 - August 2, 2026
 ----------------------
