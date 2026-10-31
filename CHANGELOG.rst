@@ -4,10 +4,6 @@ Changelog
 Unreleased
 ----------
 
-- Removed unused legacy core helpers and validator methods.
-- Deprecated ``nornir.core.helpers.jinja_helper`` rendering functions in favor of
-  ``nornir_jinja2`` (#1077).
-- Added Python 3.15 support (#1118).
 - Added opt-in native asyncio task dispatch through ``AsyncioRunner`` and ``Nornir.arun``,
   a capability-aware connection plugin contract and registry for synchronous, asyncio,
   and dual-mode plugins, and asynchronous connection cleanup. A connection is bound to
@@ -26,8 +22,18 @@ Unreleased
   ``Host.close_connections`` and ``Host.aclose_connections`` log every later error at
   ``ERROR`` level, so no failure is lost (#1111)
 
-3.6.0 - August 2 2026
----------------------
+3.6.1 - October 30, 2026
+------------------------
+
+- Removed unused legacy core helpers and validator methods (#1104).
+- Deprecated ``nornir.core.helpers.jinja_helper`` rendering functions in favor of
+  ``nornir_jinja2`` (#1077).
+- Added Python 3.15 support (#1118).
+- ``InitNornir`` now declares its configuration sections as explicit keyword
+  arguments instead of ``**kwargs`` (#1083).
+
+3.6.0 - August 2, 2026
+----------------------
 
 - Added Python 3.14 support and removed Python 3.9 support (#1010, #1012)
 - Fixed pickling of ``Result`` objects (#995)
@@ -39,8 +45,8 @@ Unreleased
   to Markdown headings, ``CONTRIBUTING.rst`` aligned with the uv-based workflow
 - Upgraded various dependencies
 
-3.5.0 - January 8 2025
-----------------------
+3.5.0 - January 8, 2025
+-----------------------
 
 - Added Python 3.13 support and removed Python 3.8 support
 - Enhanced type hints throughout the codebase
@@ -55,8 +61,8 @@ Unreleased
 
 - Fix missing typing_extensions and mypy_extensions dependencies (#867) @ktbyers and @nemith
 
-3.4.0 - October 31 2023
------------------------
+3.4.0 - October 31, 2023
+------------------------
 
 - Added plugins architecture image to plugins docs (#802) @dmulyalin
 - Bump mistune from 0.8.4 to 2.0.3 (#813) @dependabot
@@ -78,7 +84,7 @@ Unreleased
 - Bump version to 3.4.0 (#858) @ogenstad
 
 3.3.0 - April 9, 2022
-----------------------
+---------------------
 
 - Create codeql-analysis.yml (#742) @dbarrosop
 - fixed a typo (#767) @giorgiga
@@ -88,8 +94,8 @@ Unreleased
 - Bump notebook from 6.4.8 to 6.4.10 (#794) @dependabot
 - bump version to 3.3.0 (#796) @dbarrosop
 
-3.2.0 - November 16 2021
-------------------------
+3.2.0 - November 16, 2021
+-------------------------
 
 - update gha snok/install-poetry (#736) @dbarrosop
 - Update pygments because of vulnerabilities (#732) @ubaumann
@@ -102,16 +108,16 @@ Unreleased
 - update ruamel dependency (#694) @itdependsnetworks
 - fixed stubs for mypy 0.900 (#696) @dbarrosop
 
-3.1.1 - April 26 2021
----------------------
+3.1.1 - April 26, 2021
+----------------------
 
 - address UTF-8 error on windows (#654) @dbarrosop
 - remove state property from Nornir class (#669) @brandomando
 - Evaluate a host's group outside groups evaluation (#677) @bytinbit
 - Nornir Filtering Deep Dive How To (#674) @writememe
 
-3.1.0 - February 27 2021
-------------------------
+3.1.0 - February 27, 2021
+-------------------------
 
 - F filter now supports `any` for non-list values #608 @dbarrosop
 - Corrected spelling in processors.ipynb (#635) @jmcguir
@@ -129,7 +135,7 @@ Unreleased
 - Fix linking problems in tutorial Inventory.ipynb (#589) @kimdoanh89
 - added information about plugins to the README (#587) @dbarrosop
 
-3.0.0 - September 4 2020
-------------------------
+3.0.0 - September 4, 2020
+-------------------------
 
 First nornir 3 release, see `upgrading notes <https://nornir.readthedocs.io/en/3.0.0/upgrading/2_to_3.html>`_ for details
