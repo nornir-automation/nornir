@@ -1,6 +1,12 @@
 Changelog
 ==========
 
+Unreleased
+----------
+
+- Preserve null values in default inventory data when looking up host variables,
+  using ``Host.get()``, or converting a host to a dictionary (#1125).
+
 3.6.1 - October 30, 2026
 ------------------------
 
