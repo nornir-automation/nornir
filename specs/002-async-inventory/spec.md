@@ -138,6 +138,13 @@ and check that the named error is raised and the inventory plugin is never calle
   before any plugin or transform code runs. Neither registry is chosen silently. When both
   registrations refer to the same class or function, the capability or async registration
   is used: a plugin that adds `aload` keeps its legacy entry point for older Nornir releases.
+- **A legacy inventory plugin must run in the main thread**, for example because it installs
+  a signal handler: it fails under `AInitNornir`, which loads it in a worker thread, and the
+  plugin's own error reaches the caller. The documentation says so. Supporting such plugins
+  would mean loading them on the event loop's thread, which blocks the loop (SC-003).
+  Checked on 2026-11-09 with `nornir-netbox` 0.3.0, `nornir-nautobot` 5.0.0,
+  `nornir-infrahub` 1.2.0 and `nornir-ansible` 2023.12.28: none of them needs the main
+  thread.
 - **An inventory plugin registers its transform function while it loads**: the transform
   function is looked up again after the plugin has loaded, as `InitNornir` does today. The
   checks of FR-013 and FR-014 then run after `load()` instead of before it.
@@ -281,7 +288,8 @@ and check that the named error is raised and the inventory plugin is never calle
 
 - **SC-001**: An application that uses any existing inventory plugin, `SimpleInventory`
   included, moves from `InitNornir` to `AInitNornir` by changing only the init call: zero
-  changes to the configuration file, the arguments or the plugin.
+  changes to the configuration file, the arguments or the plugin. The exception is a plugin
+  that must run in the main thread (see edge cases).
 - **SC-002**: For the same configuration, `AInitNornir` and `InitNornir` produce equal
   inventories (same hosts, groups, defaults and transform results) in 100% of the
   configurations covered by the existing inventory tests.
@@ -325,6 +333,9 @@ load on `develop` and fail with this feature.
 - Q: A plugin that adds `aload` and keeps its legacy entry point under the same name is
   reported as ambiguous. → A: The same class or function in both registries is not
   ambiguous; the capability or async registration is used (FR-014).
+- Q: A legacy plugin that must run in the main thread fails under `AInitNornir`, while the
+  how-to says every existing plugin works. → A: Correct the documentation; the code does not
+  change (edge cases, SC-001).
 
 ## Assumptions
 

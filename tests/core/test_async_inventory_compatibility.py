@@ -162,10 +162,17 @@ def test_same_class_in_both_inventory_registries_is_not_ambiguous(
     assert RECORDER.names() == ["init", "get_capabilities", load_method]
 
 
-@pytest.mark.parametrize("init", ENTRY_POINTS)
-def test_legacy_plugin_that_needs_the_main_thread(init: Callable[..., Nornir]) -> None:
+def test_legacy_plugin_that_needs_the_main_thread_loads_with_initnornir() -> None:
     InventoryPluginRegister.register("signal-handling", SignalHandlingPlugin)
 
-    nr = init(inventory={"plugin": "signal-handling"})
+    nr = InitNornir(inventory={"plugin": "signal-handling"})
 
     assert list(nr.inventory.hosts) == ["h1", "h2", "h3"]
+
+
+def test_legacy_plugin_that_needs_the_main_thread_fails_with_ainitnornir() -> None:
+    # AInitNornir loads legacy plugins in a worker thread; the documentation says so.
+    InventoryPluginRegister.register("signal-handling", SignalHandlingPlugin)
+
+    with pytest.raises(ValueError, match="main thread"):
+        ainit(inventory={"plugin": "signal-handling"})

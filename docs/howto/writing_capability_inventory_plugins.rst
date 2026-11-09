@@ -12,7 +12,10 @@ class.
 Existing inventory plugins that implement
 :class:`~nornir.core.plugins.inventory.InventoryPlugin` need no change. They keep
 working with ``InitNornir`` and also work with ``AInitNornir``, which constructs
-and loads them in a worker thread.
+and loads them in a worker thread. A plugin that calls an API that only the main
+thread can use, such as :func:`signal.signal`, fails with ``AInitNornir``. Move
+that call out of the plugin, or add an asynchronous ``aload``, which
+``AInitNornir`` awaits on the event loop's thread.
 
 Choose a protocol facet
 -----------------------
