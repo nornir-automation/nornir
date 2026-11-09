@@ -131,13 +131,15 @@ for a mismatch between registry and definition. Rejected: more errors for no use
 
 **Decision**:
 - Inventory: if the name is in both `InventoryPluginRegister.available` and
-  `CapabilityInventoryPluginRegister.available`, raise `InventoryPluginAmbiguousError`;
-  otherwise use the capability registry if it has the name, the legacy registry if it has
+  `CapabilityInventoryPluginRegister.available` for two different classes, raise
+  `InventoryPluginAmbiguousError`; otherwise use the capability registry if it has the name, the legacy registry if it has
   the name, and raise `PluginNotRegistered` if neither does.
 - Transform: the same rule with `TransformFunctionRegister`,
   `AsyncTransformFunctionRegister` and `TransformFunctionAmbiguousError`.
-- Both entry points call `auto_register()` on both registries of each kind before lookup.
-- Both lookups happen before the plugin is constructed (FR-013, FR-014).
+- Both entry points call `auto_register()` on the legacy registries, and load only the
+  entry points with the configured name from the new groups (FR-020).
+- Both lookups happen before the plugin is constructed (FR-013, FR-014). A transform
+  function that is not registered yet is looked up again after `load()`.
 
 **Finding: the legacy registries share one dictionary.** `PluginRegister.available` is a
 class attribute, and `register()` mutates it in place, so `InventoryPluginRegister`,

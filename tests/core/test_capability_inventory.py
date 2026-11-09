@@ -162,6 +162,30 @@ def test_name_in_both_registries_is_ambiguous(init: Callable[..., Nornir]) -> No
     assert RECORDER.names() == []
 
 
+def test_only_the_configured_name_is_loaded_from_the_capability_group(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class ExplodingEntryPoint:
+        name = "other"
+
+        def load(self) -> Any:
+            msg = "only the configured name is loaded"
+            raise AssertionError(msg)
+
+    original = metadata.entry_points
+
+    def entry_points(*, group: str) -> Any:
+        if group == CAPABILITY_INVENTORY_PLUGIN_PATH:
+            return [ExplodingEntryPoint(), FakeEntryPoint("wanted", SyncCapabilityPlugin)]
+        return original(group=group)
+
+    monkeypatch.setattr(metadata, "entry_points", entry_points)
+
+    InitNornir(inventory={"plugin": "wanted"})
+
+    assert "other" not in CapabilityInventoryPluginRegister.available
+
+
 @pytest.mark.parametrize("init", ENTRY_POINTS)
 def test_name_used_by_a_legacy_runner_is_ambiguous(init: Callable[..., Nornir]) -> None:
     # The legacy registers share one dictionary, so a registered runner name collides.

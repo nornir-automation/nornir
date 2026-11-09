@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
     from nornir.core import Nornir
-    from nornir.core.inventory import Host, TransformFunction
+    from nornir.core.inventory import Host, Inventory, TransformFunction
 
 pytestmark = pytest.mark.usefixtures("isolated_inventory_registries")
 
@@ -176,7 +176,55 @@ def test_unregistered_transform(init: Callable[..., Nornir]) -> None:
     with pytest.raises(PluginNotRegistered):
         init(inventory={"plugin": "legacy", "transform_function": "nowhere"})
 
-    assert RECORDER.names() == []
+    # The plugin may register the transform while loading, so the plugin loads first.
+    assert RECORDER.names() == ["init", "load"]
+
+
+@pytest.mark.usefixtures("legacy_plugin")
+@pytest.mark.parametrize(
+    "transform",
+    [pytest.param(sync_transform, id="sync"), pytest.param(async_transform, id="async")],
+)
+def test_same_function_in_both_transform_registries_is_not_ambiguous(
+    transform: Callable[..., Any],
+) -> None:
+    TransformFunctionRegister.register("both", cast("TransformFunction", transform))
+    AsyncTransformFunctionRegister.register("both", cast("AsyncTransformFunction", transform))
+
+    nr = ainit(
+        inventory={
+            "plugin": "legacy",
+            "transform_function": "both",
+            "transform_function_options": {"site": "lab"},
+        }
+    )
+
+    assert {host.data["site"] for host in nr.inventory.hosts.values()} == {"lab"}
+
+
+class AsyncTransformRegisteringPlugin(LegacyPlugin):
+    def load(self) -> Inventory:
+        AsyncTransformFunctionRegister.register("registered-by-plugin", async_transform)
+        return super().load()
+
+
+def test_async_transform_registered_while_loading_is_awaited() -> None:
+    InventoryPluginRegister.register("registering", AsyncTransformRegisteringPlugin)
+
+    ainit(inventory={"plugin": "registering", "transform_function": "registered-by-plugin"})
+
+    assert transform_events() == SEQUENTIAL_EVENTS
+
+
+def test_async_transform_registered_while_loading_is_rejected_by_initnornir() -> None:
+    InventoryPluginRegister.register("registering", AsyncTransformRegisteringPlugin)
+
+    with pytest.raises(TransformFunctionNotSyncError):
+        InitNornir(
+            inventory={"plugin": "registering", "transform_function": "registered-by-plugin"}
+        )
+
+    assert RECORDER.names() == ["init", "load"]
 
 
 def test_ambiguous_plugin_wins_over_async_transform() -> None:

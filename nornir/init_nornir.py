@@ -3,7 +3,8 @@ from __future__ import annotations
 import asyncio
 import inspect
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from importlib import metadata
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from nornir.core import Nornir
 from nornir.core.configuration import Config
@@ -11,6 +12,7 @@ from nornir.core.exceptions import (
     InventoryPluginAmbiguousError,
     InventoryPluginContractError,
     InventoryPluginNotSyncError,
+    PluginNotRegistered,
     TransformFunctionAmbiguousError,
     TransformFunctionNotSyncError,
 )
@@ -20,6 +22,8 @@ from nornir.core.plugins.connections import (
     ConnectionPluginRegister,
 )
 from nornir.core.plugins.inventory import (
+    ASYNC_TRANSFORM_FUNCTION_PLUGIN_PATH,
+    CAPABILITY_INVENTORY_PLUGIN_PATH,
     AsyncTransformFunction,
     AsyncTransformFunctionRegister,
     CapabilityInventoryPlugin,
@@ -31,11 +35,14 @@ from nornir.core.plugins.inventory import (
     _is_sync_capability_inventory_plugin,
     _validate_capability_inventory_plugin,
 )
+from nornir.core.plugins.register import PluginRegister
 from nornir.core.plugins.runners import RunnerPlugin, RunnersPluginRegister
 from nornir.core.state import GlobalState
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+T = TypeVar("T")
 
 
 def load_inventory(
@@ -48,7 +55,9 @@ def load_inventory(
     configured it is then applied to every host in turn.
 
     The name is looked up in both the legacy and the capability-aware inventory
-    registries. A capability-aware plugin must declare synchronous support.
+    registries. A capability-aware plugin must declare synchronous support. A transform
+    function that is not registered before the plugin loads is looked up again after
+    ``load()``, because a plugin may register it while loading.
 
     Arguments:
         config: Configuration to read the inventory settings from
@@ -60,20 +69,22 @@ def load_inventory(
         nornir.core.exceptions.PluginNotRegistered: no plugin is registered under the
             configured name
         nornir.core.exceptions.InventoryPluginAmbiguousError: the name is registered in
-            both inventory registries
+            both inventory registries for different plugins
         nornir.core.exceptions.InventoryPluginContractError: a capability-aware plugin
             violates its contract
         nornir.core.exceptions.InventoryPluginNotSyncError: the plugin only declares
             asyncio support; use :func:`AInitNornir`
         nornir.core.exceptions.TransformFunctionAmbiguousError: the transform function
-            name is registered in both transform function registries
+            name is registered in both transform function registries for different
+            functions
         nornir.core.exceptions.TransformFunctionNotSyncError: the transform function is
             defined with ``async def``; use :func:`AInitNornir`
 
     """
     plugin_name = config.inventory.plugin
     source = _resolve_inventory_plugin(plugin_name)
-    transform = _resolve_transform_function(config)
+    transform_name = config.inventory.transform_function
+    transform = _find_transform_function(transform_name) if transform_name else None
     if transform is not None and transform.is_async:
         raise TransformFunctionNotSyncError(transform.name)
 
@@ -89,6 +100,11 @@ def load_inventory(
                 plugin_name, "validated synchronous load is no longer available"
             )
         inv = plugin.load()
+
+    if transform_name and transform is None:
+        transform = _get_transform_function(transform_name)
+        if transform.is_async:
+            raise TransformFunctionNotSyncError(transform.name)
 
     if transform is not None:
         _transform_hosts(inv, transform.function, config)
@@ -106,7 +122,9 @@ async def aload_inventory(
     legacy plugin, is loaded in a worker thread. A synchronous transform function also
     runs in a worker thread; a transform function defined with ``async def`` is awaited
     once per host, in inventory order, one host at a time. The running event loop keeps
-    serving other work, and no event loop is created.
+    serving other work, and no event loop is created. As with :func:`load_inventory`, a
+    transform function that is not registered before the plugin loads is looked up again
+    after loading.
 
     Arguments:
         config: Configuration to read the inventory settings from
@@ -118,16 +136,18 @@ async def aload_inventory(
         nornir.core.exceptions.PluginNotRegistered: no plugin is registered under the
             configured name
         nornir.core.exceptions.InventoryPluginAmbiguousError: the name is registered in
-            both inventory registries
+            both inventory registries for different plugins
         nornir.core.exceptions.InventoryPluginContractError: a capability-aware plugin
             violates its contract
         nornir.core.exceptions.TransformFunctionAmbiguousError: the transform function
-            name is registered in both transform function registries
+            name is registered in both transform function registries for different
+            functions
 
     """
     plugin_name = config.inventory.plugin
     source = _resolve_inventory_plugin(plugin_name)
-    transform = _resolve_transform_function(config)
+    transform_name = config.inventory.transform_function
+    transform = _find_transform_function(transform_name) if transform_name else None
     sync_transform = transform.function if transform and not transform.is_async else None
 
     if isinstance(source, _LegacyInventorySource):
@@ -158,6 +178,11 @@ async def aload_inventory(
                 )
             inv = await asyncio.to_thread(_load_and_transform, plugin.load, sync_transform, config)
 
+    if transform_name and transform is None:
+        transform = _get_transform_function(transform_name)
+        if not transform.is_async:
+            await asyncio.to_thread(_transform_hosts, inv, transform.function, config)
+
     if transform is not None and transform.is_async:
         for h in inv.hosts.values():
             await transform.function(h, **(config.inventory.transform_function_options or {}))
@@ -179,14 +204,27 @@ def _resolve_inventory_plugin(
     plugin_name: str,
 ) -> _LegacyInventorySource | _CapabilityInventorySource:
     InventoryPluginRegister.auto_register()
-    CapabilityInventoryPluginRegister.auto_register()
+    _auto_register_name(
+        CapabilityInventoryPluginRegister, CAPABILITY_INVENTORY_PLUGIN_PATH, plugin_name
+    )
 
     capability_class = CapabilityInventoryPluginRegister.available.get(plugin_name)
     if capability_class is None:
         return _LegacyInventorySource(InventoryPluginRegister.get_plugin(plugin_name))
-    if plugin_name in InventoryPluginRegister.available:
+    # A plugin that adds aload keeps its legacy entry point for older Nornir releases,
+    # so the same class in both registries is the capability-aware plugin.
+    legacy_class = InventoryPluginRegister.available.get(plugin_name)
+    if legacy_class is not None and legacy_class is not capability_class:
         raise InventoryPluginAmbiguousError(plugin_name)
     return _CapabilityInventorySource(capability_class)
+
+
+def _auto_register_name(register: PluginRegister[T], group: str, name: str) -> None:
+    # Only the entry points for the configured name are loaded, so a broken or duplicated
+    # entry point that another package publishes under another name has no effect.
+    for entry_point in metadata.entry_points(group=group):
+        if entry_point.name == name:
+            register.register(name, entry_point.load())
 
 
 @dataclass(frozen=True)
@@ -196,22 +234,33 @@ class _ResolvedTransformFunction:
     is_async: bool
 
 
-def _resolve_transform_function(config: Config) -> _ResolvedTransformFunction | None:
-    name = config.inventory.transform_function
-    if not name:
-        return None
+def _find_transform_function(name: str) -> _ResolvedTransformFunction | None:
     TransformFunctionRegister.auto_register()
-    AsyncTransformFunctionRegister.auto_register()
+    _auto_register_name(AsyncTransformFunctionRegister, ASYNC_TRANSFORM_FUNCTION_PLUGIN_PATH, name)
 
+    async_function = AsyncTransformFunctionRegister.available.get(name)
+    sync_function = TransformFunctionRegister.available.get(name)
+    if (
+        async_function is not None
+        and sync_function is not None
+        and async_function is not sync_function
+    ):
+        raise TransformFunctionAmbiguousError(name)
     function: TransformFunction | AsyncTransformFunction | None = (
-        AsyncTransformFunctionRegister.available.get(name)
+        async_function if async_function is not None else sync_function
     )
     if function is None:
-        function = TransformFunctionRegister.get_plugin(name)
-    elif name in TransformFunctionRegister.available:
-        raise TransformFunctionAmbiguousError(name)
+        return None
     # Dispatch follows how the function is defined, not where it was registered.
     return _ResolvedTransformFunction(name, function, _is_coroutine_callable(function))
+
+
+def _get_transform_function(name: str) -> _ResolvedTransformFunction:
+    transform = _find_transform_function(name)
+    if transform is None:
+        msg = f"plugin {name!r} is not registered"
+        raise PluginNotRegistered(msg)
+    return transform
 
 
 def _is_coroutine_callable(function: Callable[..., Any]) -> bool:

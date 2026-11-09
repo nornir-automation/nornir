@@ -12,7 +12,9 @@ Unreleased
   (``nornir.plugins.capability_inventory``) for plugins that load synchronously,
   asynchronously, or both, and async transform functions
   (``nornir.plugins.async_transform_function``), which ``AInitNornir`` awaits once per
-  host in inventory order (#1087)
+  host in inventory order. A plugin can keep its ``nornir.plugins.inventory`` entry
+  point under the same name and class for older Nornir releases. Only the entry points
+  named in the configuration are loaded from the two new groups (#1087, #1123)
 - ``InitNornir`` now raises ``TransformFunctionNotSyncError`` for a transform function
   defined with ``async def``, before the inventory is loaded. Previously the transform
   was never run and the hosts were left unchanged, with only a "coroutine was never

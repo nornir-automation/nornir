@@ -137,12 +137,21 @@ Users select it by name, exactly as before:
            url: "https://inventory.example.com/api/devices"
            token: "..."
 
-Do not register one name in both the ``nornir.plugins.inventory`` and
-``nornir.plugins.capability_inventory`` groups. Both entry points raise
-:class:`~nornir.core.exceptions.InventoryPluginAmbiguousError` for such a name,
-even when both registrations refer to the same class. A package that must still
-support Nornir releases without the capability registry keeps its legacy
-registration under a different name.
+A package that must still support Nornir releases without the capability
+registry can keep its ``nornir.plugins.inventory`` entry point under the same
+name, pointing to the same class. Nornir releases with the capability registry
+then use the capability registration:
+
+.. code-block:: toml
+
+   [project.entry-points."nornir.plugins.inventory"]
+   my_api_inventory = "my_package.inventory:MyApiInventory"
+
+   [project.entry-points."nornir.plugins.capability_inventory"]
+   my_api_inventory = "my_package.inventory:MyApiInventory"
+
+When the two groups publish one name for two different classes, both entry
+points raise :class:`~nornir.core.exceptions.InventoryPluginAmbiguousError`.
 
 The legacy inventory, transform function, runner and connection registries
 currently share one set of names. A capability-aware inventory plugin whose name
@@ -179,11 +188,13 @@ it in the ``nornir.plugins.async_transform_function`` entry-point group:
 order, one host at a time. A synchronous transform function runs in a worker
 thread. ``InitNornir`` raises
 :class:`~nornir.core.exceptions.TransformFunctionNotSyncError` for a transform
-function defined with ``async def`` before the inventory is loaded.
+function defined with ``async def`` before the inventory is loaded. When the
+inventory plugin registers the transform function while it loads, Nornir looks
+the name up after loading, and the error is raised then.
 
 Nornir decides how to call a transform function from how it is defined, not from
 the registry it was found in. A function defined with ``async def`` and an object
 whose class defines ``async def __call__`` are both treated as asynchronous. As for
-inventory plugins, registering one name in both transform
-function registries raises
+inventory plugins, registering one name in both transform function registries for
+two different functions raises
 :class:`~nornir.core.exceptions.TransformFunctionAmbiguousError`.

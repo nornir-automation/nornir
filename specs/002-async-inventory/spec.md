@@ -133,9 +133,14 @@ and check that the named error is raised and the inventory plugin is never calle
 - **The configured name is not registered in any inventory registry**: `PluginNotRegistered`,
   unchanged from today.
 - **The same name is registered in the legacy inventory registry and the capability
-  inventory registry**, or in the synchronous and async transform function registries: both
-  entry points raise an explicit ambiguity error before any plugin or transform code runs.
-  Neither registry is chosen silently.
+  inventory registry**, or in the synchronous and async transform function registries, for
+  two different plugins or functions: both entry points raise an explicit ambiguity error
+  before any plugin or transform code runs. Neither registry is chosen silently. When both
+  registrations refer to the same class or function, the capability or async registration
+  is used: a plugin that adds `aload` keeps its legacy entry point for older Nornir releases.
+- **An inventory plugin registers its transform function while it loads**: the transform
+  function is looked up again after the plugin has loaded, as `InitNornir` does today. The
+  checks of FR-013 and FR-014 then run after `load()` instead of before it.
 - **A capability inventory plugin or async transform uses a name already taken by a legacy
   plugin of another kind** (for example `threaded`, the threaded runner): this is also
   reported as ambiguous. The existing inventory, transform, runner and connection
@@ -207,17 +212,26 @@ and check that the named error is raised and the inventory plugin is never calle
   not on the event loop.
 - **FR-013**: `InitNornir` MUST raise `TransformFunctionNotSyncError` before calling the
   inventory plugin when the configured transform function is defined with `async def`,
-  whichever transform registry it was found in.
+  whichever transform registry it was found in. When the transform function is not
+  registered until the plugin loads, the error is raised after `load()` and before any host
+  is transformed.
   The message MUST name the transform and say that `await AInitNornir(...)` is the entry
   point to use. Today `InitNornir` skips such a transform with only a "coroutine was never
   awaited" warning and leaves the hosts unchanged; raising instead is a bug fix, shipped in
   the MINOR release without a deprecation period, recorded as a fix in `CHANGELOG.rst` and
   called out in the pull request.
 - **FR-014**: A name present in both the legacy and the capability inventory registries, or
-  in both the synchronous and async transform function registries, MUST be rejected by both
-  entry points with an explicit ambiguity error before any plugin or transform code runs.
-  Because the legacy registries currently share one set of names, this includes a name used
-  by a legacy runner, connection, inventory or transform plugin.
+  in both the synchronous and async transform function registries, for two different
+  plugins or functions, MUST be rejected by both entry points with an explicit ambiguity
+  error before any plugin or transform code runs. Because the legacy registries currently
+  share one set of names, this includes a name used by a legacy runner, connection,
+  inventory or transform plugin. When both registrations refer to the same class or
+  function, the capability or async registration MUST be used.
+- **FR-020**: A configuration MUST NOT import entry points that it does not use from the
+  `nornir.plugins.capability_inventory` and `nornir.plugins.async_transform_function`
+  groups. Only the entry points published under the configured plugin name and transform
+  function name are loaded, so a broken or duplicated entry point under another name does
+  not stop `InitNornir` or `AInitNornir`.
 - **FR-015**: An invalid capability declaration, or a missing method for a declared
   capability, MUST raise an explicit contract error before the plugin loads.
 - **FR-016**: `InventoryPluginNotSyncError` and `TransformFunctionNotSyncError` MUST be
@@ -295,6 +309,22 @@ and check that the named error is raised and the inventory plugin is never calle
   fix, without a deprecation period. The transform never ran, so no working configuration
   depends on the current behaviour. The change is recorded as a fix in `CHANGELOG.rst` and
   called out in the pull request (FR-013).
+
+### Session 2026-11-09
+
+Review of the implementation in
+[#1123](https://github.com/nornir-automation/nornir/pull/1123) found configurations that
+load on `develop` and fail with this feature.
+
+- Q: A plugin that registers its transform function in `__init__` or `load()` fails with
+  `PluginNotRegistered`, because the transform function is now looked up first. → A: Look
+  the name up again after `load()` when it is not registered before (FR-013, edge cases).
+- Q: Every call reads the new entry-point groups, so an unrelated broken or duplicated
+  entry point stops configurations that use only legacy plugins. → A: Load only the entry
+  points published under the configured names (FR-020).
+- Q: A plugin that adds `aload` and keeps its legacy entry point under the same name is
+  reported as ambiguous. → A: The same class or function in both registries is not
+  ambiguous; the capability or async registration is used (FR-014).
 
 ## Assumptions
 

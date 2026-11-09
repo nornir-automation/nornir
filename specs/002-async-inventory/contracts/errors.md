@@ -20,8 +20,8 @@ Changing the entry point does not repair these, so they are not mismatch errors.
 
 | Class | Constructor | Conditions | Message guidance |
 |---|---|---|---|
-| `InventoryPluginAmbiguousError` | `plugin_name: str` | Name in both `InventoryPluginRegister` and `CapabilityInventoryPluginRegister`, even for the same class | Name both registries; remove one registration or rename the plugin |
-| `TransformFunctionAmbiguousError` | `transform_name: str` | Name in both `TransformFunctionRegister` and `AsyncTransformFunctionRegister` | Name both registries; remove one registration or rename the transform |
+| `InventoryPluginAmbiguousError` | `plugin_name: str` | Name in both `InventoryPluginRegister` and `CapabilityInventoryPluginRegister` for two different classes | Name both registries; remove one registration or rename the plugin |
+| `TransformFunctionAmbiguousError` | `transform_name: str` | Name in both `TransformFunctionRegister` and `AsyncTransformFunctionRegister` for two different functions | Name both registries; remove one registration or rename the transform |
 | `InventoryPluginContractError` | `plugin_name: str, reason: str` | `get_capabilities` inaccessible, async, failing, or returning an invalid value; declared `load` missing or a coroutine function; declared `aload` missing or not a coroutine function | Name the plugin and the failed requirement; chain the original exception when `get_capabilities` raised |
 
 The legacy registries share one dictionary (research R6), so an ambiguity error can also
@@ -43,3 +43,6 @@ For one call, the first applicable error wins, in this order:
 3. `TransformFunctionNotSyncError` (`InitNornir` only)
 4. `InventoryPluginContractError`
 5. `InventoryPluginNotSyncError` (`InitNornir` only)
+
+When the transform function is registered only while the plugin loads, steps 2 and 3 run
+after `load()` instead.
