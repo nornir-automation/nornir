@@ -445,11 +445,7 @@ class Host(InventoryElement):
                 except KeyError:
                     continue
 
-            r = self.defaults.data.get(item)
-            if r is not None:
-                return r
-
-            raise
+            return self.defaults.data[item]
 
     def __getattribute__(self, name: str) -> Any:
         if name not in ("hostname", "port", "username", "password", "platform"):

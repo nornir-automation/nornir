@@ -18,6 +18,33 @@ inv_dict = {"hosts": hosts, "groups": groups, "defaults": defaults}
 
 
 class Test:
+    def test_host_can_lookup_null_default_data(self) -> None:
+        host = inventory.Host("router", defaults=inventory.Defaults(data={"optional": None}))
+
+        assert host["optional"] is None
+
+    def test_host_get_keeps_null_default_instead_of_fallback(self) -> None:
+        host = inventory.Host("router", defaults=inventory.Defaults(data={"optional": None}))
+
+        assert host.get("optional", "fallback") is None
+
+    def test_host_with_null_default_can_be_converted_to_dict(self) -> None:
+        host = inventory.Host("router", defaults=inventory.Defaults(data={"optional": None}))
+
+        assert dict(host) == {"optional": None}
+
+    def test_null_default_does_not_change_precedence_or_missing_keys(self) -> None:
+        host = inventory.Host(
+            "router",
+            data={"optional": "host value"},
+            defaults=inventory.Defaults(data={"optional": None}),
+        )
+
+        assert host["optional"] == "host value"
+        assert host.get("missing", "fallback") == "fallback"
+        with pytest.raises(KeyError, match="missing"):
+            _ = host["missing"]
+
     def test_host(self) -> None:
         h = inventory.Host(name="host1", hostname="host1")
         assert h.hostname == "host1"
