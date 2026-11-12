@@ -12,6 +12,7 @@ from nornir.plugins.runners import AsyncioRunner, SerialRunner, ThreadedRunner
 from tests.core.run_helpers import EventLog, asteps_task, make_nornir, steps_task
 
 if TYPE_CHECKING:
+    from nornir.core.inventory import Host
     from nornir.core.plugins.runners import RunnerPlugin
 
 THREADS: list[str] = []
@@ -202,3 +203,21 @@ async def afail_all(task: Task) -> Result:
     await asyncio.sleep(0)
     msg = f"{task.host.name} failed"
     raise ValueError(msg)
+
+
+class FailOnSecondHost(EventLog):
+    def task_instance_started(self, task: Task, host: Host) -> None:
+        super().task_instance_started(task, host)
+        if host.name == "h001":
+            msg = "processor failed"
+            raise RuntimeError(msg)
+
+
+def test_processor_error_in_a_serial_stream_is_raised_unchanged() -> None:
+    nr = make_nornir(SerialRunner(), 3, [FailOnSecondHost()])
+    with (
+        pytest.raises(RuntimeError, match="processor failed"),
+        nr.run_stream(task=steps_task, steps=1) as stream,
+    ):
+        for _ in stream:
+            pass

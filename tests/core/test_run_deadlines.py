@@ -175,3 +175,49 @@ def test_threaded_run_stream_with_deadlines(options: RunOptions) -> None:
     assert len(finals) == 3
     assert set(timeouts(result)) == {"h000", "h001", "h002"}
     assert nr.data.failed_hosts == {"h000", "h001", "h002"}
+
+
+def test_cleanup_subtask_in_finally_runs_after_a_timeout() -> None:
+    ran: list[str] = []
+
+    def unlock(task: Task) -> Result:
+        ran.append(task.host.name)
+        return Result(host=task.host, result="unlocked")
+
+    def deploy(task: Task) -> Result:
+        try:
+            task.run(steps_task, steps=50)
+        finally:
+            task.run(unlock)
+        return Result(host=task.host)
+
+    nr = make_nornir(SerialRunner(per_host_timeout=0.1), 1)
+    result = nr.run(task=deploy)
+    assert set(timeouts(result)) == {"h000"}
+    assert ran == ["h000"]
+
+
+def test_results_do_not_change_after_the_run_returns(release: threading.Event) -> None:
+    finished = threading.Event()
+
+    def leaf(task: Task) -> Result:
+        return Result(host=task.host)
+
+    def middle(task: Task, release: threading.Event) -> Result:
+        release.wait()
+        task.run(leaf)
+        return Result(host=task.host)
+
+    def top(task: Task, release: threading.Event) -> Result:
+        try:
+            task.run(middle, release=release)
+        finally:
+            finished.set()
+        return Result(host=task.host)
+
+    nr = make_nornir(ThreadedRunner(per_host_timeout=0.1), 1)
+    result = nr.run(task=top, release=release)
+    names = [r.name for r in result["h000"]]
+    release.set()
+    assert finished.wait(5)
+    assert [r.name for r in result["h000"]] == names
