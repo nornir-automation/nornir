@@ -220,3 +220,27 @@ def test_handle_is_done_when_results_end() -> None:
         assert len(list(handle.results())) == 3
         assert handle.done
         assert nr.data.failed_hosts == {"h000"}
+
+
+def test_subtask_that_finishes_during_a_cancellation_keeps_its_result(
+    release: threading.Event,
+) -> None:
+    entered = threading.Event()
+
+    def push(task: Task, release: threading.Event) -> Result:
+        entered.set()
+        release.wait()
+        return Result(host=task.host, result="applied")
+
+    def parent(task: Task, release: threading.Event) -> Result:
+        task.run(push, release=release)
+        return Result(host=task.host)
+
+    nr = make_nornir(ThreadedRunner(), 1)
+    run = nr.submit(task=parent, release=release)
+    assert entered.wait(5)
+    run.cancel()
+    release.set()
+    results = run.result(timeout=5)["h000"]
+    assert isinstance(results[0].exception, TaskCancelledError)
+    assert [(r.name, r.result) for r in results[1:]] == [("push", "applied")]

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from nornir.core.exceptions import TaskCancelledError
+from nornir.core.exceptions import TaskCancelledError, TaskTimeoutError
 from nornir.core.run import RunContext, RunOptions
 from nornir.core.task import Result, Task
 from nornir.plugins.runners import SerialRunner
@@ -184,3 +184,15 @@ def test_cancel_from_another_thread_reaches_a_running_host() -> None:
     results = run.start_host(run_task.copy(), nr.inventory.hosts["h000"])
     canceller.join()
     assert isinstance(results[0].exception, TaskCancelledError)
+
+
+def test_run_deadline_between_start_and_begin_records_the_host() -> None:
+    nr, log, run_task, _ = build(ok, num_hosts=1)
+    host = nr.inventory.hosts["h000"]
+    run = RunContext(run_task, [host], RunOptions(timeout=0.01))
+    # A worker thread has marked the host as running, but has not called the task yet.
+    assert run._try_start(run._states["h000"], run_task.copy())
+    threading.Event().wait(0.05)
+    assert run.expire() == [host]
+    assert isinstance(run.aggregated()["h000"][0].exception, TaskTimeoutError)
+    assert log.hooks("h000") == ["task_instance_started", "task_instance_completed"]
