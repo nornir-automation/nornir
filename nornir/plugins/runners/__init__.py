@@ -30,6 +30,8 @@ class SerialRunner:
 
     cancellation_depth: CancellationDepth = "checkpoint"
     supports_background = False
+    # Class defaults, so that a subclass that does not call ``super().__init__()`` works.
+    run_options = RunOptions()
 
     def __init__(self, per_host_timeout: float | None = None, timeout: float | None = None) -> None:
         self.run_options = RunOptions(per_host_timeout, timeout)
@@ -139,6 +141,9 @@ class ThreadedRunner:
 
     cancellation_depth: CancellationDepth = "checkpoint"
     supports_background = True
+    # Class defaults, so that a subclass that does not call ``super().__init__()`` works.
+    num_workers = 20
+    run_options = RunOptions()
 
     def __init__(
         self,
@@ -200,6 +205,9 @@ class AsyncioRunner:
     """
 
     cancellation_depth: CancellationDepth = "immediate"
+    # Class defaults, so that a subclass that does not call ``super().__init__()`` works.
+    num_workers = 20
+    run_options = RunOptions()
 
     def __init__(
         self,

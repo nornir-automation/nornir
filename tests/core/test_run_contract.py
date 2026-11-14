@@ -153,3 +153,33 @@ def test_legacy_runner_error_message_names_the_protocol() -> None:
     nr = make_nornir(LegacyRunner(), 1)
     with pytest.raises(RunnerCapabilityError, match="Implement StreamingRunner"):
         nr.run_stream(task=steps_task)
+
+
+class SerialWithoutSuper(SerialRunner):
+    def __init__(self) -> None:
+        self.label = "custom"
+
+
+class ThreadedWithoutSuper(ThreadedRunner):
+    def __init__(self) -> None:
+        self.label = "custom"
+
+
+class AsyncioWithoutSuper(AsyncioRunner):
+    def __init__(self) -> None:
+        self.label = "custom"
+
+
+@pytest.mark.parametrize("runner", [SerialWithoutSuper(), ThreadedWithoutSuper()])
+def test_subclass_that_skips_super_init_still_runs(
+    runner: SerialRunner | ThreadedRunner,
+) -> None:
+    nr = make_nornir(runner, 2)
+    assert not nr.run(task=steps_task, steps=1).failed
+    with nr.run_stream(task=steps_task, steps=1) as stream:
+        assert not stream.result().failed
+
+
+def test_asyncio_subclass_that_skips_super_init_still_runs() -> None:
+    nr = make_nornir(AsyncioWithoutSuper(), 2)
+    assert not asyncio.run(nr.arun(task=asteps_task, steps=1)).failed
