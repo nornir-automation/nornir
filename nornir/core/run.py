@@ -1063,13 +1063,32 @@ class RunStream:
             self._run.cancel()
             self._run_to_end()
             raise
+        except BaseException as error:
+            self._fail(error)
+            raise
 
     def _run_to_end(self) -> None:
         if self._ended:
             return
-        for _ in self._get_steps():
-            pass
+        try:
+            for _ in self._get_steps():
+                pass
+        except BaseException as error:
+            self._fail(error)
+            raise
         self._end()
+
+    def _fail(self, error: BaseException) -> None:
+        """End the stream after the runner raised, without computing a result.
+
+        A host may be left unrecorded, so the run is cancelled and closed instead, and
+        :meth:`result` raises ``error`` again.
+        """
+        self._ended = True
+        self._error = error
+        self._run._unsubscribe(self._events.put)
+        self._run.cancel()
+        self._run._close()
 
     def _end(self) -> None:
         if self._ended:

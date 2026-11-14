@@ -221,3 +221,11 @@ def test_processor_error_in_a_serial_stream_is_raised_unchanged() -> None:
     ):
         for _ in stream:
             pass
+
+
+def test_processor_error_in_a_serial_stream_is_raised_by_result() -> None:
+    nr = make_nornir(SerialRunner(), 3, [FailOnSecondHost()])
+    with nr.run_stream(task=steps_task, steps=1) as stream:
+        for _ in range(2):
+            with pytest.raises(RuntimeError, match="processor failed"):
+                stream.result()
