@@ -102,6 +102,7 @@ class _HostState:
     """Per-host state of a run. The task copy running for the host holds a reference."""
 
     __slots__ = (
+        "began",
         "deadline",
         "delivered",
         "host",
@@ -122,7 +123,11 @@ class _HostState:
         self.scope: Literal["host", "run"] = "run"
         self.interruption: TaskInterruptedError | None = None
         self.delivered = False
+        self.began = False
         self.results: MultiResult | None = None
+
+    def begin(self) -> bool:
+        return self.run._begin(self)
 
     def is_recorded(self) -> bool:
         with self.run._lock:
@@ -326,6 +331,8 @@ class RunContext:
         That is every running host past its own deadline, and every pending host once the
         run deadline has passed.
 
+        A running host whose task has not begun yet is recorded as if it never started.
+
         Returns:
             The running hosts recorded by this call, so that an ``immediate`` runner can
             interrupt them.
@@ -334,23 +341,31 @@ class RunContext:
         now = time.monotonic()
         callbacks: list[Callable[[], object]] = []
         with self._lock:
-            expired = [
+            past_deadline = [
                 state
                 for state in self._states.values()
                 if state.status == "running"
                 and state.deadline is not None
                 and now >= state.deadline
             ]
+            expired = [state for state in past_deadline if state.began]
+            unstarted = [
+                self._record_unstarted_locked(state, self._timeout_error(state, started=False))
+                for state in past_deadline
+                if not state.began
+            ]
             for state in expired:
                 if state.interruption is None:
                     state.interruption = self._timeout_error(state, started=True)
                 task = cast("Task", state.task)
-                task.results.insert(0, self._interruption_result(task, state.interruption))
+                # A copy: the thread still running the task must not change this record.
+                results = MultiResult(task.name)
+                results.append(self._interruption_result(state.host, task, state.interruption))
+                results.extend(task.results)
                 state.status = "recorded"
-                state.results = task.results
-            unstarted: list[_HostState] = []
+                state.results = results
             if self._run_deadline is not None and now >= self._run_deadline:
-                unstarted = [
+                unstarted += [
                     self._record_unstarted_locked(state, self._run_timeout_error(state))
                     for state in self._states.values()
                     if state.status == "pending"
@@ -368,7 +383,7 @@ class RunContext:
         self._announce_unstarted(unstarted)
         for callback in callbacks:
             callback()
-        return [state.host for state in expired]
+        return [state.host for state in past_deadline]
 
     def next_deadline(self) -> float | None:
         """Return the earliest deadline still pending.
@@ -480,6 +495,19 @@ class RunContext:
         self._announce_unstarted(unstarted)
         return False
 
+    def _begin(self, state: _HostState) -> bool:
+        """Mark the host's task as begun, unless the host is already recorded.
+
+        Returns:
+            ``False`` if the host is recorded, in which case the task must not run.
+
+        """
+        with self._lock:
+            if state.status == "recorded":
+                return False
+            state.began = True
+            return True
+
     def _pending_interruption(self, state: _HostState) -> TaskInterruptedError | None:
         with self._lock:
             if (
@@ -532,8 +560,8 @@ class RunContext:
         )
 
     @staticmethod
-    def _interruption_result(task: Task, interruption: TaskInterruptedError) -> Result:
-        result = Result(task.host, result=str(interruption), failed=True, exception=interruption)
+    def _interruption_result(host: Host, task: Task, interruption: TaskInterruptedError) -> Result:
+        result = Result(host, result=str(interruption), failed=True, exception=interruption)
         result.name = task.name
         result.severity_level = logging.ERROR
         return result
@@ -544,7 +572,7 @@ class RunContext:
         task = self._task.copy()
         task.host = state.host
         task._host_state = state
-        task.results.insert(0, self._interruption_result(task, interruption))
+        task.results.insert(0, self._interruption_result(state.host, task, interruption))
         state.task = task
         state.status = "recorded"
         state.interruption = interruption

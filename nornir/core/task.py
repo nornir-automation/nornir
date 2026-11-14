@@ -176,6 +176,21 @@ class Task:
         if self._host_state is not None:
             self._host_state.check()
 
+    def _recorded_before_begin(self) -> MultiResult | None:
+        """Return the host's results if the runner recorded it before this task began.
+
+        A deadline can pass after the runner starts a host and before its task begins.
+        The host is then recorded as not started, and its task must not run.
+
+        Returns:
+            The recorded results, or ``None`` if the task may run.
+
+        """
+        state = self._host_state
+        if self.parent_task is None and state is not None and not state.begin():
+            return state.results
+        return None
+
     def _begin(self, host: Host) -> None:
         self.host = host
         if self.parent_task is not None:
@@ -258,6 +273,8 @@ class Task:
             TaskInterruptedError: a subtask was interrupted; the parent receives it
 
         """
+        if (recorded := self._recorded_before_begin()) is not None:
+            return recorded
         self._begin(host)
         try:
             logger.debug("Host %r: running task %r", self.host.name, self.name)
@@ -355,6 +372,8 @@ class Task:
             TaskInterruptedError: a subtask was interrupted; the parent receives it
 
         """
+        if (recorded := self._recorded_before_begin()) is not None:
+            return recorded
         self._begin(host)
         try:
             r = await self._acall()
