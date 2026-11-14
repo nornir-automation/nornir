@@ -1,8 +1,8 @@
 Changelog
 ==========
 
-Unreleased
-----------
+3.7.0a1 - November 14, 2026
+---------------------------
 
 - Added opt-in entry points for long-running work: ``Nornir.submit`` and
   ``Nornir.asubmit`` start a run in the background and return a handle that yields each
@@ -22,7 +22,6 @@ Unreleased
 - A task that contains ``yield`` now runs as a progress-reporting task. Previously its
   body never ran: its generator object was stored as the result and the host was
   reported as successful (#1086)
-
 - Added ``AInitNornir``, the asynchronous counterpart of ``InitNornir``, for applications
   that already run an event loop: ``nr = await AInitNornir(...)`` takes the same
   arguments and returns the same ``Nornir`` object without blocking the loop. Existing
