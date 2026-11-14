@@ -172,7 +172,10 @@ contains only the final `Result`.
 
 - A task catches the cancellation with `except Exception`: not caught, because the error
   base subclasses `BaseException`. With `except BaseException` or a bare `except:`, the
-  next checkpoint raises again.
+  task continues, and the host is still recorded as cancelled.
+- A task runs a cleanup subtask in a `finally` block, for example to release a
+  configuration lock, after its host is cancelled or timed out: the subtask runs, because
+  the error is raised only once per host.
 - A thread on a threaded runner is blocked in I/O when its deadline passes: the run returns
   on time, the host is recorded as timed out, and the thread keeps its worker slot until
   the call returns.
@@ -262,8 +265,9 @@ contains only the final `Result`.
   checkpoint.
 - **FR-017**: The common base of `TaskCancelledError` and `TaskTimeoutError` MUST subclass
   `BaseException`, so that `except Exception` does not catch it.
-- **FR-018**: Once a host is cancelled or timed out, every later checkpoint for that host
-  MUST raise again.
+- **FR-018**: Once a host is cancelled or timed out, only the first checkpoint for that host
+  MUST raise. Later checkpoints MUST NOT raise, and the host's final `Result` MUST still
+  carry the interruption error.
 - **FR-019**: On `AsyncioRunner`, cancellation and deadlines MUST interrupt a host at the
   await it is waiting on, and the host's final `Result` MUST carry the same error types as
   on the threaded runners.
@@ -380,6 +384,15 @@ contains only the final `Result`.
   run is finalized, so that `failed_hosts` is updated, `task_completed` has fired and
   the handle is done when the loop ends, on every runner (FR-001, FR-012, FR-026). Found
   in code review: the loop ended when the last host was recorded, before finalization.
+
+### Session 2026-11-14
+
+- Q: Should every checkpoint after an interruption raise again? → A: No, the error is
+  raised once per host (FR-018). When every checkpoint raised, a cleanup subtask called
+  with `task.run()` in a `finally` block never ran, so a task could not release a
+  configuration lock after a timeout. A task that catches the error on purpose is no
+  longer stopped at its next checkpoint, but its host is still recorded as interrupted.
+  Raised in the review of #1113, with tests in #1127.
 
 ## Assumptions
 

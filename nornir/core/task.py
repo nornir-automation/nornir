@@ -166,9 +166,11 @@ class Task:
 
         Raises :class:`~nornir.core.exceptions.TaskCancelledError` or
         :class:`~nornir.core.exceptions.TaskTimeoutError`, which subclass
-        :class:`BaseException` so that ``except Exception`` does not catch them. Once a
-        host is interrupted, every later checkpoint raises again. Outside a run started
-        with a streaming runner, it does nothing.
+        :class:`BaseException` so that ``except Exception`` does not catch them. The
+        error is raised once per host: later checkpoints, such as the subtasks of a
+        cleanup in a ``finally`` block, run normally, and the host's result still
+        records the interruption. Outside a run started with a streaming runner, it does
+        nothing.
 
         Every ``yield`` of a progress-reporting task and the start of every subtask are
         checkpoints too.

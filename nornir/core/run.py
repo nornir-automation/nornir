@@ -509,6 +509,16 @@ class RunContext:
             return True
 
     def _pending_interruption(self, state: _HostState) -> TaskInterruptedError | None:
+        """Return the host's interruption the first time it is due.
+
+        Raising it only once lets cleanup code in ``finally`` blocks run subtasks. The
+        host's final result still records the interruption.
+
+        Returns:
+            A new instance of the interruption, or ``None`` if there is none or it was
+            already delivered.
+
+        """
         with self._lock:
             if (
                 state.interruption is None
@@ -517,7 +527,7 @@ class RunContext:
                 and time.monotonic() >= state.deadline
             ):
                 state.interruption = self._timeout_error(state, started=True)
-            if state.interruption is None:
+            if state.interruption is None or state.delivered:
                 return None
             state.delivered = True
             return state.interruption.fresh()

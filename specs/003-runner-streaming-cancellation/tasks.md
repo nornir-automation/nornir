@@ -88,7 +88,8 @@ phase. At the end, the existing suite still passes unchanged.
     cancellation is called at once;
   - a running task that calls `task.checkpoint()` after `cancel()` is recorded with
     `TaskCancelledError(started=True)`; a task that catches it and calls
-    `checkpoint()` again gets a new exception (FR-018);
+    `checkpoint()` again is not interrupted again, and is still recorded as cancelled
+    (FR-018);
   - a task with `try: task.run(sub) except Exception: pass` around a cancelled subtask
     is still recorded as cancelled (FR-017, FR-020); the subtask's own `MultiResult`
     holds a failed `Result` and `subtask_instance_completed` fired;

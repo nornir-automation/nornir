@@ -64,7 +64,8 @@ FR-016).
 
 A task wraps subtask calls in `try/except Exception: continue`. Expected: after
 `cancel()`, the host is recorded as cancelled at its next subtask start; a task that
-catches `TaskCancelledError` explicitly is interrupted again at its next checkpoint.
+catches `TaskCancelledError` explicitly continues, and its host is still recorded as
+cancelled. A cleanup subtask in a `finally` block runs.
 
 ### 6. Progress (US3)
 

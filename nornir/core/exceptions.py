@@ -292,7 +292,7 @@ class TaskInterruptedError(BaseException):
         return (type(self), self._arguments())
 
     def fresh(self) -> TaskInterruptedError:
-        """Return a new instance with the same fields, to raise again at a later checkpoint.
+        """Return a new instance with the same fields, to raise without changing this one.
 
         Returns:
             The new instance, without a traceback.

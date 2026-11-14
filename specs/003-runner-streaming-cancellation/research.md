@@ -88,8 +88,8 @@ the reason, and the alternatives that were rejected.
 - **Rationale:** FR-016 and FR-018. Making the subtask start a checkpoint gives tasks
   built from subtasks responsive cancellation without explicit calls, and it stops a
   host that was already recorded from producing more processor events.
-- **FR-018:** the state stays interrupted, and each check raises a new exception
-  instance.
+- **FR-018:** the state stays interrupted, and only the first check raises, with a new
+  exception instance. Later checks return normally, so that cleanup subtasks run.
 
 ## R5. Interruption errors and how they travel
 

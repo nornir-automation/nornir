@@ -147,7 +147,7 @@ def test_a_yielded_result_ends_the_task() -> None:
     assert after == ["finally"]
 
 
-def test_yield_is_a_checkpoint_and_raises_again() -> None:
+def test_yield_is_a_checkpoint_and_raises_once() -> None:
     log: list[str] = []
     stream_holder: list[Any] = []
 
@@ -156,11 +156,8 @@ def test_yield_is_a_checkpoint_and_raises_again() -> None:
             yield "first"
         except TaskCancelledError:
             log.append("caught once")
-        try:
-            yield "second"
-        finally:
-            log.append("finally")
-        log.append("unreachable")
+        yield "second"
+        log.append("after second")
         return Result(host=task.host)
 
     nr = make_nornir(SerialRunner(), 1)
@@ -170,7 +167,7 @@ def test_yield_is_a_checkpoint_and_raises_again() -> None:
         if isinstance(event, PartialResult):
             stream.cancel()
     result = stream.result()
-    assert log == ["caught once", "finally"]
+    assert log == ["caught once", "after second"]
     assert isinstance(result["h000"][0].exception, TaskCancelledError)
 
 

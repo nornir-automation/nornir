@@ -69,7 +69,7 @@ def test_cancel_is_idempotent_and_calls_callbacks_once() -> None:
     assert calls == ["early", "late"]
 
 
-def test_checkpoint_after_cancel_interrupts_and_raises_again() -> None:
+def test_checkpoint_after_cancel_raises_once_and_records_the_cancellation() -> None:
     caught: list[TaskCancelledError] = []
 
     def task(task: Task) -> Result:
@@ -83,8 +83,7 @@ def test_checkpoint_after_cancel_interrupts_and_raises_again() -> None:
 
     nr, _, run_task, run = build(task, num_hosts=1)
     results = run.start_host(run_task.copy(), nr.inventory.hosts["h000"])
-    assert len(caught) == 2
-    assert caught[0] is not caught[1]
+    assert len(caught) == 1
     error = results[0].exception
     assert isinstance(error, TaskCancelledError)
     assert error.started is True
