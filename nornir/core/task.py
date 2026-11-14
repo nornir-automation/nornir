@@ -424,8 +424,10 @@ class Task:
             self.results.append(result[0] if len(result) == 1 else cast("Result", result))
 
     def _record_subtask_result(self, task: Task, result: MultiResult) -> MultiResult:
-        self.checkpoint()
+        # Record first: a subtask that finished made its change, even if the host was
+        # interrupted meanwhile.
         self._append_subtask_results(result)
+        self.checkpoint()
         if result.failed:
             # Without this we will keep running the grouped task
             raise NornirSubTaskError(task=task, result=result)
