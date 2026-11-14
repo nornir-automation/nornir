@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import threading
 from typing import TYPE_CHECKING, Any
 
 import pytest
@@ -36,3 +37,18 @@ def isolated_inventory_registries() -> Iterator[None]:
         available.clear()
         available.update(snapshot)
     RECORDER.reset()
+
+
+@pytest.fixture
+def release() -> Iterator[threading.Event]:
+    """Provide the event that blocked test tasks wait on.
+
+    It is set at teardown, so no blocked worker thread outlives the test.
+
+    Yields:
+        The event.
+
+    """
+    event = threading.Event()
+    yield event
+    event.set()
