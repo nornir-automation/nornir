@@ -20,7 +20,7 @@ class SerialRunner:
     """Runner that executes the task over each host sequentially without parallelization.
 
     Every task runs on the caller's thread, so a debugger breakpoint inside a task works.
-    It supports :meth:`nornir.core.Nornir.run_stream` but not background runs.
+    It supports :meth:`nornir.core.Nornir.stream` but not background runs.
 
     Arguments:
         per_host_timeout: Seconds each host may run, checked at the task's checkpoints

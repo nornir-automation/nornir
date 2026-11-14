@@ -1,6 +1,6 @@
 """Runs that are started in the background, consumed live, cancelled, or given deadlines.
 
-:meth:`nornir.core.Nornir.submit` and :meth:`nornir.core.Nornir.run_stream` (and their
+:meth:`nornir.core.Nornir.submit` and :meth:`nornir.core.Nornir.stream` (and their
 asynchronous counterparts) return the objects defined here. Runners that implement
 :class:`nornir.core.plugins.runners.StreamingRunner` receive a :class:`RunContext`.
 """
@@ -938,7 +938,7 @@ async def _adrain_queue(
 
 
 class RunStream:
-    """A run consumed live with :meth:`nornir.core.Nornir.run_stream`.
+    """A run consumed live with :meth:`nornir.core.Nornir.stream`.
 
     Iterating over it yields the :class:`~nornir.core.task.PartialResult` objects and the
     final :class:`~nornir.core.task.Result` of each host, from the start of the run.

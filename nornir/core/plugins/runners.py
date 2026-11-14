@@ -62,7 +62,7 @@ class StreamingRunner(Protocol):
     def supports_background(self) -> bool:
         """Whether the core may drive :meth:`execute` on a thread other than the caller's.
 
-        A runner that returns ``False`` supports ``run_stream`` but not ``submit``.
+        A runner that returns ``False`` supports ``stream`` but not ``submit``.
         """
         raise NotImplementedError("needs to be implemented by the plugin")
 

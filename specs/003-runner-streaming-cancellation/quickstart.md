@@ -42,10 +42,10 @@ Expected, on `ThreadedRunner` and on `AsyncioRunner` (with `asubmit`):
 
 ### 2. Same code on `SerialRunner` and `ThreadedRunner` (FR-001, US1 scenario 8)
 
-Run the same `run_stream` loop, which breaks on the first failed result, with each runner.
+Run the same `stream` loop, which breaks on the first failed result, with each runner.
 Expected: identical sets of recorded hosts and error types. On `SerialRunner`, every task
 runs on the main thread (`threading.current_thread()` is the main thread), and
-`nr.submit()` raises `RunnerCapabilityError` naming `run_stream`.
+`nr.submit()` raises `RunnerCapabilityError` naming `stream`.
 
 ### 3. Run deadline with a blocked host (US2, SC-003, FR-022)
 
@@ -71,7 +71,7 @@ cancelled. A cleanup subtask in a `finally` block runs.
 
 A generator task yields "uploading" and "rebooting", then returns a `Result`. Expected:
 
-- `run_stream` delivers two `PartialResult` events and one final `Result` per host;
+- `stream` delivers two `PartialResult` events and one final `Result` per host;
 - a processor defining `task_instance_progress` receives both partial results under
   plain `nr.run()`;
 - a processor without the method is never called with them;
@@ -81,7 +81,7 @@ A generator task yields "uploading" and "rebooting", then returns a `Result`. Ex
 
 ### 7. Early exit cancels (FR-009, research R10)
 
-Leave a `run_stream` loop with `break`, and in another test by raising inside the loop
+Leave a `stream` loop with `break`, and in another test by raising inside the loop
 body while keeping the exception object alive. Expected: the run is cancelled before the
 statement after the loop. Leaving a loop over `handle.results()` does not cancel.
 

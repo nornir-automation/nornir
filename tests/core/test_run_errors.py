@@ -86,7 +86,7 @@ def test_interruption_fields() -> None:
         TaskCancelledError("rtr-1", "upgrade", started=False),
         TaskTimeoutError("rtr-1", "upgrade", 600, "host"),
         TaskTimeoutError("rtr-1", "upgrade", 60, "run", started=False),
-        RunnerCapabilityError("MyRunner", "run_stream"),
+        RunnerCapabilityError("MyRunner", "stream"),
         RunnerCapabilityError("SerialRunner", "submit", background=True),
     ],
 )
@@ -101,10 +101,10 @@ def test_runner_capability_error() -> None:
     assert issubclass(RunnerCapabilityError, Exception)
     assert not issubclass(RunnerCapabilityError, SyncAsyncMismatchError)
 
-    missing = RunnerCapabilityError("MyRunner", "run_stream")
-    assert (missing.runner_name, missing.capability) == ("MyRunner", "run_stream")
+    missing = RunnerCapabilityError("MyRunner", "stream")
+    assert (missing.runner_name, missing.capability) == ("MyRunner", "stream")
     assert str(missing) == (
-        "MyRunner does not support 'run_stream'. Implement StreamingRunner, or use run()."
+        "MyRunner does not support 'stream'. Implement StreamingRunner, or use run()."
     )
     assert str(RunnerCapabilityError("MyRunner", "astream")) == (
         "MyRunner does not support 'astream'. Implement AsyncStreamingRunner, or use arun()."
@@ -113,6 +113,6 @@ def test_runner_capability_error() -> None:
     serial = RunnerCapabilityError("SerialRunner", "submit", background=True)
     assert str(serial) == (
         "SerialRunner does not support background runs ('submit') because it runs every "
-        "task on the caller's thread. Use 'run_stream' to consume the run live, or use "
+        "task on the caller's thread. Use 'stream' to consume the run live, or use "
         "ThreadedRunner."
     )

@@ -181,7 +181,7 @@ before.
 
 **Goal**: start a run in the background, read each host's final result as it finishes,
 cancel on the first failure, and get every host accounted for, on `ThreadedRunner` and
-`AsyncioRunner`; the same `run_stream` code also works on `SerialRunner`.
+`AsyncioRunner`; the same `stream` code also works on `SerialRunner`.
 
 **Independent test**: [quickstart.md](quickstart.md) scenarios 1, 2, 5 and 7.
 
@@ -216,12 +216,12 @@ cancel on the first failure, and get every host accounted for, on `ThreadedRunne
   - a host awaiting `asyncio.sleep(3600)` without a checkpoint is recorded as
     cancelled within 0.1 s of `cancel()` (FR-019).
 - [X] T017 [P] [US1] Create `tests/core/test_run_stream.py`:
-  - US1 scenario 8: the same `run_stream` loop, which breaks on the first failed
+  - US1 scenario 8: the same `stream` loop, which breaks on the first failed
     result, run on `SerialRunner` and on `ThreadedRunner`, giving the same recorded
     hosts and error types; on `SerialRunner`, every task runs on the main thread
     (FR-001, FR-002);
   - scenario 9: `nr.submit` on `SerialRunner` raises `RunnerCapabilityError` naming
-    `run_stream` (FR-003);
+    `stream` (FR-003);
   - an exception raised inside the loop body, with the exception object kept alive,
     cancels the run before the next statement (R10);
   - a `with` block cancels on exit;
@@ -231,11 +231,11 @@ cancel on the first failure, and get every host accounted for, on `ThreadedRunne
   - `astream` with `break` cancels the run.
 - [X] T018 [P] [US1] Extend `tests/core/test_run_contract.py` with the check rows of
   `contracts/entry-points.md`:
-  - `submit` / `run_stream` with an async task → `AsyncTaskOnSyncRunError`;
+  - `submit` / `stream` with an async task → `AsyncTaskOnSyncRunError`;
   - `asubmit` with a `def` task → `SyncTaskOnAsyncRunError`;
   - `submit` on `AsyncioRunner` → `RunnerNotSyncError`;
   - `asubmit` on `ThreadedRunner` → `RunnerNotAsyncError`;
-  - `submit` / `run_stream` on `LegacyRunner` → `RunnerCapabilityError` (FR-035).
+  - `submit` / `stream` on `LegacyRunner` → `RunnerCapabilityError` (FR-035).
 
   In every rejected case, `EventLog` must be empty.
 
@@ -261,13 +261,13 @@ cancel on the first failure, and get every host accounted for, on `ThreadedRunne
   - `result()`.
 
   On a background runner, subscribe before the first host starts.
-- [X] T021 [US1] Add `Nornir.submit` and `Nornir.run_stream` to `nornir/core/__init__.py`
+- [X] T021 [US1] Add `Nornir.submit` and `Nornir.stream` to `nornir/core/__init__.py`
   with the signatures of `contracts/entry-points.md`, including the `run_options`
   parameter:
   - run the checks of the entry-point table before `_prepare_run`;
   - for `submit`, start a non-daemon thread `nornir-run-<id>` that drives `execute`,
     then finalizes with the T013 steps without raising;
-  - for `run_stream` on a non-background runner, drive `execute` on the caller's
+  - for `stream` on a non-background runner, drive `execute` on the caller's
     thread (R3).
 
   Put the shared check helpers in private functions next to `_is_async_runner`.
@@ -333,7 +333,7 @@ longer blocks the run.
   three runner constructors in `nornir/plugins/runners/__init__.py`, validated as in
   R7, and use them as the runner-level `RunOptions` in `run()` / `arun()`. Add the
   private merge function (per-run field over runner field) in `nornir/core/run.py`, and
-  apply it in `Nornir.submit`, `run_stream`, `asubmit`, and `astream` in
+  apply it in `Nornir.submit`, `stream`, `asubmit`, and `astream` in
   `nornir/core/__init__.py`.
 - [X] T028 [US2] Implement the deadlines in `RunContext` in `nornir/core/run.py` (R7,
   data model):
@@ -368,7 +368,7 @@ processors, without changing `MultiResult`.
 ### Tests (write first, expect failures)
 
 - [X] T031 [P] [US3] Create `tests/core/test_run_progress.py`:
-  - US3 scenario 1: `run_stream` delivers two `PartialResult` events and one final
+  - US3 scenario 1: `stream` delivers two `PartialResult` events and one final
     `Result` per host, on `SerialRunner` and on `ThreadedRunner`;
   - scenario 2: `EventLog` receives both partial results under plain `nr.run()`, and
     every `MultiResult` holds only `Result` objects (FR-013, FR-032);
@@ -477,7 +477,7 @@ Phase 1 (T001–T002)
 
 - Within Phase 2: T003–T005 first. Then T006, T007, T008 and T009 in parallel. Then
   T010, T011, T012 and T013 in order, then T014.
-- US2 depends on US1 for `submit`, `run_stream` and the handle, which it extends with
+- US2 depends on US1 for `submit`, `stream` and the handle, which it extends with
   `run_options`.
 - US3 depends on Phase 2 for the driver and on US1 for streams and handles. Its
   generator work (T033–T034) can start right after Phase 2.

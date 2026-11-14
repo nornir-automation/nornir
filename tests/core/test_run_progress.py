@@ -27,7 +27,7 @@ def upgrade(task: Task) -> Generator[PartialResult, None, Result]:
 @pytest.mark.parametrize("runner", [SerialRunner(), ThreadedRunner()])
 def test_stream_delivers_partials_then_the_final_result(runner: RunnerPlugin) -> None:
     nr = make_nornir(runner, 2)
-    events = list(nr.run_stream(task=upgrade))
+    events = list(nr.stream(task=upgrade))
     for host in ("h000", "h001"):
         mine = [e for e in events if e.host and e.host.name == host]
         assert [type(e).__name__ for e in mine] == ["PartialResult", "PartialResult", "Result"]
@@ -88,7 +88,7 @@ def test_subtask_partials_are_tagged_and_run_returns_the_multiresult() -> None:
         return Result(host=task.host, result="parent done")
 
     nr = make_nornir(SerialRunner(), 1)
-    events = list(nr.run_stream(task=parent))
+    events = list(nr.stream(task=parent))
     partial = events[0]
     assert isinstance(partial, PartialResult)
     assert (partial.name, partial.result) == ("step", "copying")
@@ -161,7 +161,7 @@ def test_yield_is_a_checkpoint_and_raises_once() -> None:
         return Result(host=task.host)
 
     nr = make_nornir(SerialRunner(), 1)
-    stream = nr.run_stream(task=task)
+    stream = nr.stream(task=task)
     stream_holder.append(stream)
     for event in stream:
         if isinstance(event, PartialResult):
@@ -180,7 +180,7 @@ def test_serial_stream_receives_progress_before_the_host_finishes() -> None:
         return Result(host=task.host)
 
     nr = make_nornir(SerialRunner(), 1)
-    order.extend(type(event).__name__ for event in nr.run_stream(task=task))
+    order.extend(type(event).__name__ for event in nr.stream(task=task))
     assert order == ["PartialResult", "task resumed", "Result"]
 
 

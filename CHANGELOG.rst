@@ -7,7 +7,7 @@ Unreleased
 - Added opt-in entry points for long-running work: ``Nornir.submit`` and
   ``Nornir.asubmit`` start a run in the background and return a handle that yields each
   host's final result as it finishes, reports progress, cancels the run and returns the
-  usual ``AggregatedResult``; ``Nornir.run_stream`` and ``Nornir.astream`` yield the
+  usual ``AggregatedResult``; ``Nornir.stream`` and ``Nornir.astream`` yield the
   events of a run as they happen. Runs can be cancelled, and runners accept a per-host
   deadline (``per_host_timeout``) and a run deadline (``timeout``), also under
   ``runner.options`` or per run with ``run_options``. Every host ends with one final

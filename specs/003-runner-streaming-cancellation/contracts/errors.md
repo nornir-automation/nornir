@@ -31,17 +31,17 @@ BaseException
 | Field | Meaning |
 |---|---|
 | `runner_name: str` | Class name of the runner |
-| `capability: str` | One of `submit`, `run_stream`, `asubmit`, `astream` |
+| `capability: str` | One of `submit`, `stream`, `asubmit`, `astream` |
 | `background: bool` | `True` when the runner streams but does not support background runs (default `False`) |
 
 Messages:
 
 - Third-party runner without the protocol:
-  `MyRunner does not support 'run_stream'. Implement StreamingRunner, or use run().`
+  `MyRunner does not support 'stream'. Implement StreamingRunner, or use run().`
   For `asubmit` and `astream`: `... Implement AsyncStreamingRunner, or use arun().`
 - `SerialRunner` with `submit`:
   `SerialRunner does not support background runs ('submit') because it runs every task on
-  the caller's thread. Use 'run_stream' to consume the run live, or use ThreadedRunner.`
+  the caller's thread. Use 'stream' to consume the run live, or use ThreadedRunner.`
 
 Not a subclass of `SyncAsyncMismatchError`: it is about a missing capability, not about
 mixing modes.
@@ -51,4 +51,4 @@ mixing modes.
 `AsyncTaskOnSyncRunError`, `SyncTaskOnAsyncRunError`, `RunnerNotSyncError`,
 `RunnerNotAsyncError` (spec 001) and `NornirExecutionError` keep their classes and
 messages. `AsyncTaskOnSyncRunError` now also covers async generator functions passed to
-`run()`, `submit()` or `run_stream()`.
+`run()`, `submit()` or `stream()`.

@@ -77,12 +77,12 @@ never ran the task body, and that cancelled hosts carry `TaskCancelledError`.
 7. **Given** the caller cancels the coroutine awaiting `nr.arun()` (asyncio cancellation),
    **When** the cancellation propagates, **Then** the behaviour of spec 001 FR-016 holds
    unchanged: nothing is recorded.
-8. **Given** a `run_stream` loop that leaves on the first failed result, **When** the same
+8. **Given** a `stream` loop that leaves on the first failed result, **When** the same
    code runs on `SerialRunner` and on `ThreadedRunner`, **Then** on both runners no host
    starts after the loop is left, and the run records every selected host with the same
    rules. On `SerialRunner`, every task runs on the caller's thread.
 9. **Given** `SerialRunner`, **When** the caller calls `nr.submit(task)`, **Then**
-   `RunnerCapabilityError` is raised, and its message names `run_stream`.
+   `RunnerCapabilityError` is raised, and its message names `stream`.
 
 ---
 
@@ -90,7 +90,7 @@ never ran the task body, and that cancelled hosts carry `TaskCancelledError`.
 
 A developer sets `per_host_timeout` and `timeout` (whole run), in seconds, either on the
 runner (constructor or `runner.options`) or per run through a run-options object passed to
-`submit` or `run_stream`. A host that exceeds its deadline is stopped and recorded as
+`submit` or `stream`. A host that exceeds its deadline is stopped and recorded as
 failed with `TaskTimeoutError`, and the other hosts are not affected. A stuck or
 unreachable device no longer blocks the whole run.
 
@@ -133,7 +133,7 @@ reports a stage ("uploading image", "rebooting") and an optional progress fracti
 `def` generator's `return` value is the final `Result`, as today. An async generator
 cannot `return` a value in Python, so it ends by yielding its final `Result`. The caller
 watches events live with
-`nr.run_stream(task)` / `nr.astream(task)` or `handle.events()`, reads the latest progress
+`nr.stream(task)` / `nr.astream(task)` or `handle.events()`, reads the latest progress
 per host with `handle.progress()`, and processors receive each partial result through a
 new optional hook.
 
@@ -148,7 +148,7 @@ contains only the final `Result`.
 **Acceptance Scenarios**:
 
 1. **Given** a generator task that yields "uploading" then "rebooting" before returning a
-   `Result`, **When** it runs with `run_stream`, **Then** the caller receives two
+   `Result`, **When** it runs with `stream`, **Then** the caller receives two
    `PartialResult` events and one final `Result` per host.
 2. **Given** the same task and a processor that defines `task_instance_progress`, **When**
    it runs with plain `nr.run()`, **Then** the processor receives both partial results,
@@ -156,7 +156,7 @@ contains only the final `Result`.
 3. **Given** a processor that does not define `task_instance_progress`, **When** a
    generator task runs, **Then** that processor is never called with a partial result and
    behaves exactly as today.
-4. **Given** a `run_stream` loop, **When** the caller leaves it with `break` or an
+4. **Given** a `stream` loop, **When** the caller leaves it with `break` or an
    exception, **Then** the run is cancelled.
 5. **Given** a running handle, **When** a second consumer calls `handle.events()` after
    some hosts reported progress, **Then** it receives only events produced after the call,
@@ -209,14 +209,14 @@ contains only the final `Result`.
 **Same behaviour on all runners**
 
 - **FR-001**: The same task and the same calling code MUST run unchanged on `SerialRunner`
-  and `ThreadedRunner` through `run()` and `run_stream()`, including runner deadlines and
-  cancellation by leaving a `run_stream` loop. The final `AggregatedResult` has the same
+  and `ThreadedRunner` through `run()` and `stream()`, including runner deadlines and
+  cancellation by leaving a `stream` loop. The final `AggregatedResult` has the same
   shape on both, and cancelled and timed-out hosts are recorded the same way.
 - **FR-002**: `SerialRunner` MUST run every task on the caller's thread, through every
   entry point it supports, so that a debugger breakpoint inside a task works. It delivers
   cancellation and deadlines at `checkpoint` depth.
 - **FR-003**: `nr.submit()` on `SerialRunner` MUST raise `RunnerCapabilityError`, with a
-  message that names `run_stream` as the entry point to use instead. The documentation
+  message that names `stream` as the entry point to use instead. The documentation
   MUST list every part of the new API that behaves differently on `SerialRunner`.
 
 **Starting and reading a run**
@@ -233,7 +233,7 @@ contains only the final `Result`.
 - **FR-007**: `handle.events()` MUST deliver only the events produced after it is called.
 - **FR-008**: `handle.progress()` MUST return the latest `PartialResult` of each host, and
   the handle MUST keep no other partial result.
-- **FR-009**: Users MUST be able to consume a run live with `nr.run_stream(...)` or
+- **FR-009**: Users MUST be able to consume a run live with `nr.stream(...)` or
   `nr.astream(...)`. Leaving such a loop early (by `break` or by an exception) MUST cancel
   the run. Leaving a loop over a handle's iterators MUST NOT cancel it.
 
@@ -285,12 +285,12 @@ contains only the final `Result`.
   keyword argument may take a name away from task arguments.
 - **FR-024**: Runners MUST accept `per_host_timeout` and `timeout` as runner options
   (constructor or `runner.options`), applying to every entry point, including `run()`.
-- **FR-025**: `submit`, `asubmit`, `run_stream`, and `astream` MUST accept a run-options
+- **FR-025**: `submit`, `asubmit`, `stream`, and `astream` MUST accept a run-options
   object, separate from task arguments, whose deadlines override the runner's.
 
 **Lifecycle of a background run**
 
-- **FR-026**: A run started with `submit`, `asubmit`, `run_stream`, or `astream` MUST call
+- **FR-026**: A run started with `submit`, `asubmit`, `stream`, or `astream` MUST call
   the same processor hooks as `run()`, in the same order and with the same arguments.
   `task_started` MUST fire before `submit` returns.
 - **FR-027**: The hosts of a background run MUST be selected when it is started, from
@@ -356,8 +356,8 @@ contains only the final `Result`.
   caller within T + 1 seconds, even if a host is blocked in a call that never returns.
 - **SC-004**: The final result of every cancelled or timed-out run contains exactly one
   entry per selected host, for every combination of runner (threaded, asyncio), entry
-  point (`run`, `submit`, `run_stream`), and trigger (cancel, per-host deadline, run
-  deadline), and for `SerialRunner` with `run` and `run_stream`.
+  point (`run`, `submit`, `stream`), and trigger (cancel, per-host deadline, run
+  deadline), and for `SerialRunner` with `run` and `stream`.
 - **SC-005**: The existing test suite, the existing documentation notebooks, and a
   third-party runner and processor written against today's protocols pass without changes.
 - **SC-006**: The timing criteria SC-001 to SC-003 hold on every supported platform
@@ -368,9 +368,9 @@ contains only the final `Result`.
 ### Session 2026-10-19
 
 - Q: How does `SerialRunner` support the new API while every task stays on the caller's
-  thread? → A: `SerialRunner` supports `run_stream` and runner deadlines, delivered at
-  checkpoints, and cancellation by leaving the `run_stream` loop. `submit` raises
-  `RunnerCapabilityError` and names `run_stream`. A lazy handle that runs hosts while the
+  thread? → A: `SerialRunner` supports `stream` and runner deadlines, delivered at
+  checkpoints, and cancellation by leaving the `stream` loop. `submit` raises
+  `RunnerCapabilityError` and names `stream`. A lazy handle that runs hosts while the
   caller reads it was considered and not chosen.
 
 ### Session 2026-10-20

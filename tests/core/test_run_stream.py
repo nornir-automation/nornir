@@ -34,7 +34,7 @@ def abort_on_first_failure(runner: RunnerPlugin) -> AggregatedResult:
 
     """
     nr = make_nornir(runner, 6)
-    stream = nr.run_stream(task=fail_second)
+    stream = nr.stream(task=fail_second)
     for event in stream:
         if isinstance(event, Result) and event.failed:
             break
@@ -69,16 +69,16 @@ def test_same_code_on_serial_and_threaded_runners() -> None:
             assert error.started is False
 
 
-def test_submit_on_serial_runner_names_run_stream() -> None:
+def test_submit_on_serial_runner_names_stream() -> None:
     nr = make_nornir(SerialRunner(), 2)
-    with pytest.raises(RunnerCapabilityError, match="run_stream"):
+    with pytest.raises(RunnerCapabilityError, match="stream"):
         nr.submit(task=steps_task)
 
 
 @pytest.mark.parametrize("runner", [SerialRunner(), ThreadedRunner(num_workers=1)])
 def test_an_exception_in_the_loop_body_cancels_the_run(runner: RunnerPlugin) -> None:
     nr = make_nornir(runner, 4)
-    stream = nr.run_stream(task=steps_task, steps=20)
+    stream = nr.stream(task=steps_task, steps=20)
 
     def consume() -> None:
         for _ in stream:
@@ -99,7 +99,7 @@ def test_an_exception_in_the_loop_body_cancels_the_run(runner: RunnerPlugin) -> 
 @pytest.mark.parametrize("runner", [SerialRunner(), ThreadedRunner(num_workers=1)])
 def test_leaving_a_with_block_cancels(runner: RunnerPlugin) -> None:
     nr = make_nornir(runner, 4)
-    with nr.run_stream(task=steps_task, steps=20) as stream:
+    with nr.stream(task=steps_task, steps=20) as stream:
         for _ in stream:
             break
     result = stream.result()
@@ -108,7 +108,7 @@ def test_leaving_a_with_block_cancels(runner: RunnerPlugin) -> None:
 
 def test_with_block_without_iteration_on_serial_records_every_host() -> None:
     nr = make_nornir(SerialRunner(), 3)
-    with nr.run_stream(task=steps_task) as stream:
+    with nr.stream(task=steps_task) as stream:
         pass
     result = stream.result()
     assert all(isinstance(r[0].exception, TaskCancelledError) for r in result.values())
@@ -126,7 +126,7 @@ def test_leaving_a_handle_loop_does_not_cancel() -> None:
 
 def test_a_stream_is_iterated_once() -> None:
     nr = make_nornir(SerialRunner(), 1)
-    stream = nr.run_stream(task=steps_task, steps=1)
+    stream = nr.stream(task=steps_task, steps=1)
     list(stream)
     with pytest.raises(RuntimeError, match="once"):
         iter(stream)
@@ -135,7 +135,7 @@ def test_a_stream_is_iterated_once() -> None:
 @pytest.mark.parametrize("runner", [SerialRunner(), ThreadedRunner()])
 def test_full_stream_then_result(runner: RunnerPlugin) -> None:
     nr = make_nornir(runner, 3)
-    stream = nr.run_stream(task=steps_task, steps=1)
+    stream = nr.stream(task=steps_task, steps=1)
     finals = [e for e in stream if isinstance(e, Result)]
     assert len(finals) == 3
     assert all(r[0].result == "done" for r in stream.result().values())
@@ -143,7 +143,7 @@ def test_full_stream_then_result(runner: RunnerPlugin) -> None:
 
 def test_result_without_iterating_runs_the_serial_hosts() -> None:
     nr = make_nornir(SerialRunner(), 2)
-    stream = nr.run_stream(task=steps_task, steps=1)
+    stream = nr.stream(task=steps_task, steps=1)
     assert all(r[0].result == "done" for r in stream.result().values())
 
 
@@ -180,7 +180,7 @@ def test_run_is_finalized_when_a_full_stream_ends(runner: RunnerPlugin) -> None:
     for _ in range(10):
         log = EventLog()
         nr = make_nornir(runner, 3, [log])
-        for _ in nr.run_stream(task=fail_all):
+        for _ in nr.stream(task=fail_all):
             pass
         assert nr.data.failed_hosts == {"h000", "h001", "h002"}
         assert log.hooks()[-1] == "task_completed"
@@ -217,7 +217,7 @@ def test_processor_error_in_a_serial_stream_is_raised_unchanged() -> None:
     nr = make_nornir(SerialRunner(), 3, [FailOnSecondHost()])
     with (
         pytest.raises(RuntimeError, match="processor failed"),
-        nr.run_stream(task=steps_task, steps=1) as stream,
+        nr.stream(task=steps_task, steps=1) as stream,
     ):
         for _ in stream:
             pass
@@ -225,7 +225,7 @@ def test_processor_error_in_a_serial_stream_is_raised_unchanged() -> None:
 
 def test_processor_error_in_a_serial_stream_is_raised_by_result() -> None:
     nr = make_nornir(SerialRunner(), 3, [FailOnSecondHost()])
-    with nr.run_stream(task=steps_task, steps=1) as stream:
+    with nr.stream(task=steps_task, steps=1) as stream:
         for _ in range(2):
             with pytest.raises(RuntimeError, match="processor failed"):
                 stream.result()

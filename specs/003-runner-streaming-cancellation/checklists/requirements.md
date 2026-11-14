@@ -36,12 +36,12 @@
   `SerialRunner` supports `submit` and deadlines while every task stays on the caller's
   thread. It was left open in the grilling session. FR-001 to FR-003 depend on it.
 - Validation pass 2 (2026-10-19): the marker was resolved with option B. `SerialRunner`
-  supports `run_stream` and checkpoint deadlines, and `submit` raises
+  supports `stream` and checkpoint deadlines, and `submit` raises
   `RunnerCapabilityError`. FR-001 to FR-003, US1 scenarios 8 and 9, US2 scenario 6, SC-004
   and Out of Scope were updated, and a Clarifications section records the decision. All
   items pass.
 - "No implementation details" is read as in spec 001: no mechanism (thread pools, queues,
-  event-loop internals). The spec names the public entry points (`submit`, `run_stream`,
+  event-loop internals). The spec names the public entry points (`submit`, `stream`,
   `checkpoint`, `PartialResult`, the error types) because for a library those names are
   the user-facing product. The plan owns the mechanisms and final names.
 - The timing criteria SC-001 to SC-003 name runners because cancellation depth is a

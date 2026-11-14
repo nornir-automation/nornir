@@ -103,12 +103,12 @@ def gen_task(task: Task) -> Any:
     ("runner", "entry_point", "task", "error"),
     [
         (ThreadedRunner(), "submit", asteps_task, AsyncTaskOnSyncRunError),
-        (ThreadedRunner(), "run_stream", asteps_task, AsyncTaskOnSyncRunError),
+        (ThreadedRunner(), "stream", asteps_task, AsyncTaskOnSyncRunError),
         (ThreadedRunner(), "submit", agen_task, AsyncTaskOnSyncRunError),
         (AsyncioRunner(), "submit", steps_task, RunnerNotSyncError),
-        (AsyncioRunner(), "run_stream", steps_task, RunnerNotSyncError),
+        (AsyncioRunner(), "stream", steps_task, RunnerNotSyncError),
         (LegacyRunner(), "submit", steps_task, RunnerCapabilityError),
-        (LegacyRunner(), "run_stream", steps_task, RunnerCapabilityError),
+        (LegacyRunner(), "stream", steps_task, RunnerCapabilityError),
     ],
 )
 def test_sync_entry_points_reject_before_any_event(
@@ -152,7 +152,7 @@ def test_async_entry_points_reject_before_any_event(
 def test_legacy_runner_error_message_names_the_protocol() -> None:
     nr = make_nornir(LegacyRunner(), 1)
     with pytest.raises(RunnerCapabilityError, match="Implement StreamingRunner"):
-        nr.run_stream(task=steps_task)
+        nr.stream(task=steps_task)
 
 
 class SerialWithoutSuper(SerialRunner):
@@ -176,7 +176,7 @@ def test_subclass_that_skips_super_init_still_runs(
 ) -> None:
     nr = make_nornir(runner, 2)
     assert not nr.run(task=steps_task, steps=1).failed
-    with nr.run_stream(task=steps_task, steps=1) as stream:
+    with nr.stream(task=steps_task, steps=1) as stream:
         assert not stream.result().failed
 
 

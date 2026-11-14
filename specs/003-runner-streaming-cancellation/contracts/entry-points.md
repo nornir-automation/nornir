@@ -10,7 +10,7 @@ reserved by these new methods only. `run()` and `arun()` keep their signatures (
 ```python
 def submit(self, task, raise_on_error=None, on_good=True, on_failed=False,
            name=None, run_options: RunOptions | None = None, **kwargs) -> RunHandle
-def run_stream(self, task, raise_on_error=None, on_good=True, on_failed=False,
+def stream(self, task, raise_on_error=None, on_good=True, on_failed=False,
                name=None, run_options: RunOptions | None = None, **kwargs) -> RunStream
 async def asubmit(self, task, raise_on_error=None, on_good=True, on_failed=False,
                   name=None, run_options: RunOptions | None = None, **kwargs) -> AsyncRunHandle
@@ -23,12 +23,12 @@ def astream(self, task, raise_on_error=None, on_good=True, on_failed=False,
 
 ### Checks, in order, before any processor event
 
-| Check | `submit` / `run_stream` | `asubmit` / `astream` |
+| Check | `submit` / `stream` | `asubmit` / `astream` |
 |---|---|---|
 | Task mode | async function or async generator → `AsyncTaskOnSyncRunError` | `def` function or generator → `SyncTaskOnAsyncRunError` |
 | Runner mode | `AsyncioRunner` → `RunnerNotSyncError` | runner without `aexecute` → `RunnerNotAsyncError` if it also has no `arun`, otherwise `RunnerCapabilityError` |
 | Capability | no `execute` → `RunnerCapabilityError` | — |
-| Background | `submit` with `supports_background` false → `RunnerCapabilityError` naming `run_stream` | — |
+| Background | `submit` with `supports_background` false → `RunnerCapabilityError` naming `stream` | — |
 | Options | invalid `RunOptions` values → `ValueError` (raised when the options object is built) | same |
 
 The runner-mode check follows spec 001: a runner that is synchronous only is a mode
@@ -39,7 +39,7 @@ error.
 
 1. `_prepare_run` fires `task_started` and selects the hosts (FR-015, FR-027).
 2. A `RunContext` is created with the effective options, and the run deadline starts.
-3. `submit`: the background thread starts and the handle is returned. `run_stream`: the
+3. `submit`: the background thread starts and the handle is returned. `stream`: the
    stream is returned, and the run starts on the first `next()` (`SerialRunner`), or at
    once with the subscription already in place (`ThreadedRunner`). `asubmit`: an asyncio
    task is created on the running loop and the handle is returned. `astream`: same as
@@ -103,7 +103,7 @@ points.
 `Callable[..., Coroutine[Any, Any, Any] | AsyncGenerator[Any, None]]` so that async
 progress tasks type-check. The runtime signature is unchanged.
 
-| Runner | `cancellation_depth` | `supports_background` | `submit` | `run_stream` | `asubmit` / `astream` |
+| Runner | `cancellation_depth` | `supports_background` | `submit` | `stream` | `asubmit` / `astream` |
 |---|---|---|---|---|---|
 | `SerialRunner` | `checkpoint` | false | `RunnerCapabilityError` | caller's thread | `RunnerNotAsyncError` |
 | `ThreadedRunner` | `checkpoint` | true | background thread | background thread | `RunnerNotAsyncError` |

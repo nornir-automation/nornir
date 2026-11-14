@@ -78,7 +78,7 @@ live, cancelled, and given deadlines. See the executed
   completion order (``results()``), every event as it happens (``events()``), the
   latest progress of each host (``progress()``), cancels the run (``cancel()``), and
   returns the usual ``AggregatedResult`` (``result()``).
-* :obj:`nornir.core.Nornir.run_stream` (``astream``) yields the events of the run as they
+* :obj:`nornir.core.Nornir.stream` (``astream``) yields the events of the run as they
   happen. Leaving the loop early cancels the run; a ``with`` (``async with``) block makes
   that guarantee on every Python implementation.
 * A task reports progress by yielding :obj:`nornir.core.task.PartialResult` objects. Its
@@ -86,7 +86,7 @@ live, cancelled, and given deadlines. See the executed
   ``async def`` progress task ends by yielding its final ``Result``.
 * Deadlines are set on the runner, with ``per_host_timeout`` and ``timeout`` (also under
   ``runner.options`` in the configuration file), or for one run with the ``run_options``
-  argument of ``submit``, ``run_stream``, ``asubmit`` and ``astream``. ``run()`` and
+  argument of ``submit``, ``stream``, ``asubmit`` and ``astream``. ``run()`` and
   ``arun()`` keep their signatures, so these names never collide with task arguments.
 
 Every selected host ends with exactly one final result. A host that was cancelled or
@@ -104,7 +104,7 @@ What each runner supports:
    * - Runner
      - Cancellation depth
      - ``submit``
-     - ``run_stream``
+     - ``stream``
      - ``asubmit`` / ``astream``
    * - ``SerialRunner``
      - ``checkpoint``
@@ -136,7 +136,7 @@ returns and the task reaches a checkpoint. Tasks built on blocking libraries sho
 task works. It differs from ``ThreadedRunner`` in four ways:
 
 * ``submit`` raises ``RunnerCapabilityError``: there is no background thread. Use
-  ``run_stream`` instead; the same loop works on both runners.
+  ``stream`` instead; the same loop works on both runners.
 * A host blocked in a call delays the caller until the call returns, even past its
   deadline. The host is still recorded as timed out.
 * The next host starts only when the loop asks for the next event, so a ``break`` stops
@@ -144,7 +144,7 @@ task works. It differs from ``ThreadedRunner`` in four ways:
 * Progress reported by a subtask reaches the stream at the task's next ``yield`` or when
   the host finishes. Processors receive it at once.
 
-Processor hooks run on these threads in a run started with ``submit`` or ``run_stream``:
+Processor hooks run on these threads in a run started with ``submit`` or ``stream``:
 
 .. list-table::
    :header-rows: 1
@@ -177,7 +177,7 @@ A run's events reach the stream only after the processors have handled them. Wit
 Writing a runner that supports these entry points
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A runner supports ``submit`` and ``run_stream`` by also implementing
+A runner supports ``submit`` and ``stream`` by also implementing
 :obj:`nornir.core.plugins.runners.StreamingRunner`, and ``asubmit`` and ``astream`` by
 implementing :obj:`nornir.core.plugins.runners.AsyncStreamingRunner`. Both are optional
 protocols next to ``RunnerPlugin`` and ``AsyncRunnerPlugin``, which do not change; a

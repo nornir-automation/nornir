@@ -31,7 +31,7 @@ Notes:
 - The rename of `_is_coroutine_task` to `_is_async_task` (T033) and the generator
   drivers (T034) were written in this phase, because `Task._start_steps` and
   `Task.astart` were restructured here. Their tests are still the US3 tests.
-- `Nornir.submit`, `run_stream`, `asubmit`, `astream` and the handle and stream classes
+- `Nornir.submit`, `stream`, `asubmit`, `astream` and the handle and stream classes
   (T019–T022) were written in this phase too, so that `nornir/core/run.py` and
   `nornir/core/__init__.py` were each edited once. They are tested in Phase 3.
 - `ruff format --check .` reports two files outside this change
@@ -102,7 +102,7 @@ Notes:
 ## T037–T040: Documentation (2026-10-19)
 
 - `docs/howto/long_running_tasks.ipynb` (with `docs/howto/long_running_tasks/`: config and
-  a four-host inventory) covers progress with `run_stream` and a progress processor,
+  a four-host inventory) covers progress with `stream` and a progress processor,
   abort on first failure with `submit`, `results()` and `cancel()`, and deadlines on the
   runner and per run. Executed with `jupyter nbconvert --execute --inplace`; nothing was
   edited by hand. `nbval` passed three runs in a row on the new notebook. The examples
@@ -127,7 +127,7 @@ Notes:
 | Scenario | Covered by | Result |
 |---|---|---|
 | 1. Abort on first failure (SC-001, SC-004) | `test_run_handle.py`, `test_async_run_handle.py` | pass; 100 hosts done within 2 s of `cancel()` on both runners |
-| 2. Same code on serial and threaded (FR-001) | `test_run_stream.py::test_same_code_on_serial_and_threaded_runners`, `::test_submit_on_serial_runner_names_run_stream` | pass |
+| 2. Same code on serial and threaded (FR-001) | `test_run_stream.py::test_same_code_on_serial_and_threaded_runners`, `::test_submit_on_serial_runner_names_stream` | pass |
 | 3. Run deadline, blocked host (SC-003) | `test_run_deadlines.py::test_run_deadline_returns_on_time_with_a_blocked_host` | pass; returned within 3 s with `timeout=2` |
 | 4. Immediate cancellation on asyncio (SC-002) | `test_async_run_deadlines.py`, `test_async_run_handle.py::test_cancel_interrupts_an_await_without_checkpoint`, `::test_cancelling_the_arun_coroutine_still_records_nothing` | pass |
 | 5. `except Exception` (FR-017, FR-018) | `test_run_context.py`, `test_run_errors.py` | pass |
@@ -175,7 +175,7 @@ fixed, each bug with a test that failed first.
 | A stream or `results()` loop ended when the last host was recorded, before `failed_hosts` and `task_completed` were handled (threaded and asyncio; serial was correct). A probe reproduced it in 15 of 20 threaded runs. | The end-of-stream marker is sent when the run is *closed*, after finalization or on failure (`RunContext._close`). `results()` waits for the same state. | `test_run_is_finalized_when_a_full_stream_ends[threaded]`, `test_run_is_finalized_when_a_full_astream_ends`, `test_handle_is_done_when_results_end` (threaded and asyncio). The probe now ends early in 0 of 20 runs. |
 | After a per-host timeout, a blocked thread fired `subtask_instance_completed` after the host's `task_instance_completed`. | A subtask of a host already recorded fires no event; a partial result from it is dropped. | `test_blocked_subtask_fires_no_event_after_its_host_times_out` |
 | Spec said an async task's `return` value is its final result, which is a `SyntaxError`. | `spec.md` US3 and FR-030 corrected; clarification recorded (session 2026-10-20). | — |
-| Missing SC-004 combinations. | Added. | `test_threaded_run_stream_with_deadlines`, `test_astream_with_deadlines` (per-host and run) |
+| Missing SC-004 combinations. | Added. | `test_threaded_stream_with_deadlines`, `test_astream_with_deadlines` (per-host and run) |
 | Smells: duplicated deadline checks in both coordinators; duplicated `drive()` closures; `_DEPTHS` repeating `CancellationDepth`; `run_options` not in the protocol; eight parameters travelling together; `nornir/core/__init__.py` reaching into private members of the run objects. | `RunOptions.has_deadlines` and `RunContext.seconds_to_next_deadline()`; run start moved into `RunHandle._start`, `AsyncRunHandle._start`, `RunStream._start` and `AsyncRunStream._start`; `_DEPTHS = frozenset(get_args(CancellationDepth))`; `run_options` is a property of both streaming protocols; `Nornir._new_run` and `Nornir._finalizer` replace the long parameter lists. | covered by the existing tests |
 
 `task.py` changed above the call to the user's function, so the stored traceback in the

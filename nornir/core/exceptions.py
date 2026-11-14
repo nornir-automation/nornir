@@ -353,7 +353,7 @@ class RunnerCapabilityError(Exception):
 
     Arguments:
         runner_name: Class name of the runner
-        capability: The entry point that was requested: ``submit``, ``run_stream``,
+        capability: The entry point that was requested: ``submit``, ``stream``,
             ``asubmit`` or ``astream``
         background: ``True`` when the runner supports streaming but not background runs
 
@@ -366,7 +366,7 @@ class RunnerCapabilityError(Exception):
         if background:
             message = (
                 f"{runner_name} does not support background runs ({capability!r}) because it "
-                "runs every task on the caller's thread. Use 'run_stream' to consume the run "
+                "runs every task on the caller's thread. Use 'stream' to consume the run "
                 "live, or use ThreadedRunner."
             )
         elif capability in {"asubmit", "astream"}:

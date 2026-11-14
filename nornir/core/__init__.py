@@ -423,7 +423,7 @@ class Nornir:
         run = self._new_run(runner, task, name, kwargs, (on_good, on_failed), run_options)
         return RunHandle._start(runner, run, self._finalizer(run, raise_on_error))
 
-    def run_stream(
+    def stream(
         self,
         task: Callable[..., Any],
         raise_on_error: bool | None = None,
@@ -461,7 +461,7 @@ class Nornir:
                 streaming
 
         """
-        runner = self._sync_streaming_runner(task, name, "run_stream")
+        runner = self._sync_streaming_runner(task, name, "stream")
         run = self._new_run(runner, task, name, kwargs, (on_good, on_failed), run_options)
         return RunStream._start(runner, run, self._finalizer(run, raise_on_error))
 

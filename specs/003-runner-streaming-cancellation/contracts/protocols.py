@@ -301,7 +301,7 @@ class AsyncRunHandle(Protocol):
 
 
 class RunStream(Protocol):
-    """Returned by Nornir.run_stream(). Single-use. Module: nornir.core.run."""
+    """Returned by Nornir.stream(). Single-use. Module: nornir.core.run."""
 
     def __iter__(self) -> Iterator[RunEvent]:
         """Return a new iterator; finalizing it before the end cancels the run."""

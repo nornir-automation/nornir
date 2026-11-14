@@ -42,7 +42,7 @@ the reason, and the alternatives that were rejected.
 
   Full signatures are in [contracts/protocols.py](contracts/protocols.py).
 - **Rationale:** `SerialRunner` must run tasks on the caller's thread (FR-002) and still
-  deliver progress live to a `run_stream` loop on that same thread. A generator is the
+  deliver progress live to a `stream` loop on that same thread. A generator is the
   only way to interleave the runner and the consumer's loop body on one thread without a
   second thread. Runners that execute hosts on worker threads (`ThreadedRunner`) never
   need to yield, and the core drives them on a background thread.
@@ -57,8 +57,8 @@ the reason, and the alternatives that were rejected.
   | Entry point | `supports_background` true (`ThreadedRunner`) | false (`SerialRunner`) |
   |---|---|---|
   | `run()` | caller's thread | caller's thread |
-  | `run_stream()` | background thread; the consumer reads a queue | caller's thread, interleaved with the loop body |
-  | `submit()` | background thread | `RunnerCapabilityError` naming `run_stream` |
+  | `stream()` | background thread; the consumer reads a queue | caller's thread, interleaved with the loop body |
+  | `submit()` | background thread | `RunnerCapabilityError` naming `stream` |
 
   `run()` keeps the `RunnerPlugin.run` path: `ThreadedRunner.run` and `SerialRunner.run`
   drive their own `execute` with a `RunContext` built from the runner's options, then
@@ -136,7 +136,7 @@ the reason, and the alternatives that were rejected.
 - **Decision:**
   - The per-host deadline starts when the host starts (just before
     `task_instance_started`). The run deadline starts when the run starts (inside
-    `submit`, `run_stream` or `run`, after host selection).
+    `submit`, `stream` or `run`, after host selection).
   - `RunOptions(per_host_timeout, timeout)` is a frozen dataclass. Values are positive
     finite numbers of seconds, or `None`. Invalid values raise `ValueError` when the
     options object or the runner is created.
@@ -210,7 +210,7 @@ the reason, and the alternatives that were rejected.
 
 ## R10. Streams and early exit
 
-- **Decision:** `run_stream()` returns a `RunStream`, and `astream()` returns an
+- **Decision:** `stream()` returns a `RunStream`, and `astream()` returns an
   `AsyncRunStream`. Each is single-use, provides `cancel()` and `result()`, and works as
   a context manager (`with`, `async with`). `__iter__` and `__aiter__` return a **new**
   internal iterator, never `self`. When that iterator is finalized before the stream
@@ -228,7 +228,7 @@ the reason, and the alternatives that were rejected.
 - **Guarantee:** `with`, `async with` and explicit `cancel()` cancel the run on every
   interpreter. Plain-loop cancellation relies on CPython reference counting, which is
   the only interpreter in the support matrix. The guide states both.
-- **Subscription race:** `run_stream` subscribes before the first host starts, so no
+- **Subscription race:** `stream` subscribes before the first host starts, so no
   event is lost. `handle.events()` subscribes when called (FR-007).
 - **Alternatives:** An async generator for `astream`: it is closed by the event loop's
   finalizer hook at an unspecified later time, which is not immediate. A mandatory
@@ -268,7 +268,7 @@ the reason, and the alternatives that were rejected.
 - **Thread:** finalization runs on the thread that drives `execute`: the background
   coordinator for `submit`, and the caller for `run()` and a `SerialRunner` stream.
   `nr.data.failed_hosts` is a set updated in one call, as today.
-- **Validation before events:** `submit`, `run_stream`, `asubmit` and `astream` check
+- **Validation before events:** `submit`, `stream`, `asubmit` and `astream` check
   task mode, runner mode and runner capability before `_prepare_run`, so a rejected call
   fires no processor event.
 
@@ -281,7 +281,7 @@ the reason, and the alternatives that were rejected.
   Queued hosts still run in the worker threads, as they do today.
 - **Rationale:** the non-goals of #1086 exclude any change to the existing synchronous
   path. A caller who wants queued hosts to stop on Ctrl-C uses `submit` or
-  `run_stream` and calls `cancel()`, or leaves the loop.
+  `stream` and calls `cancel()`, or leaves the loop.
 - **Alternative rejected (2026-10-19):** calling `run.cancel()` on the way out, so that
   queued hosts never start. It is a better experience, but it is a change to `run()`
   that the spec does not approve.

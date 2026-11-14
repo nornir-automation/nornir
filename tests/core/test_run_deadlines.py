@@ -167,9 +167,9 @@ def test_blocked_subtask_fires_no_event_after_its_host_times_out(
     [RunOptions(per_host_timeout=0.2), RunOptions(timeout=0.3)],
     ids=["per-host", "run"],
 )
-def test_threaded_run_stream_with_deadlines(options: RunOptions) -> None:
+def test_threaded_stream_with_deadlines(options: RunOptions) -> None:
     nr = make_nornir(ThreadedRunner(num_workers=1), 3)
-    stream = nr.run_stream(task=steps_task, steps=50, run_options=options)
+    stream = nr.stream(task=steps_task, steps=50, run_options=options)
     finals = [e for e in stream if isinstance(e, Result)]
     result = stream.result()
     assert len(finals) == 3

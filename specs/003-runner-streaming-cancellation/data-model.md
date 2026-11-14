@@ -100,4 +100,4 @@ See [contracts/errors.md](contracts/errors.md).
 | `Processors` | Gains `task_instance_progress` |
 | `RunnerPlugin`, `AsyncRunnerPlugin` | Unchanged |
 | `SerialRunner`, `ThreadedRunner`, `AsyncioRunner` | Gain `per_host_timeout`, `timeout`, `cancellation_depth`, `execute`/`aexecute`; `ThreadedRunner` and `SerialRunner` gain `supports_background` |
-| `Nornir` | Gains `submit`, `run_stream`, `asubmit`, `astream`; private `_finalize_run` split in two |
+| `Nornir` | Gains `submit`, `stream`, `asubmit`, `astream`; private `_finalize_run` split in two |

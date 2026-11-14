@@ -10,7 +10,7 @@ Add an opt-in API for long-running work, as specified from
 [#1086](https://github.com/nornir-automation/nornir/issues/1086):
 
 - background runs with a handle (`submit`, `asubmit`);
-- live streams (`run_stream`, `astream`);
+- live streams (`stream`, `astream`);
 - cooperative cancellation through `task.checkpoint()`, every `yield`, and every subtask
   start;
 - per-host and per-run deadlines, set on the runner or per run;
@@ -143,7 +143,7 @@ specs/003-runner-streaming-cancellation/
 ```text
 nornir/core/run.py                    # new: RunOptions, RunContext, handles, streams
 nornir/core/task.py                   # PartialResult, checkpoint, stepping driver, interruption handling
-nornir/core/__init__.py               # submit, run_stream, asubmit, astream; _finalize_run split
+nornir/core/__init__.py               # submit, stream, asubmit, astream; _finalize_run split
 nornir/core/processor.py              # ProgressProcessor, Processors.task_instance_progress
 nornir/core/exceptions.py             # TaskInterruptedError family, RunnerCapabilityError
 nornir/core/plugins/runners.py        # StreamingRunner, AsyncStreamingRunner, CancellationDepth
