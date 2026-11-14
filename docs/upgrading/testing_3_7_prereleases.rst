@@ -3,9 +3,11 @@ Testing the 3.7 pre-releases
 
 Nornir 3.7 adds three opt-in features:
 
-* running ``async def`` tasks on your application's event loop with ``AsyncioRunner``,
-* loading the inventory from an async application with ``AInitNornir``,
-* following, cancelling and time-limiting long-running runs.
+* Follow, cancel and time-limit long-running runs. This works with synchronous tasks on
+  ``ThreadedRunner``, the default runner, and on ``SerialRunner``, as well as with
+  ``AsyncioRunner``. It does not require any ``async`` code.
+* Run ``async def`` tasks on your application's event loop with ``AsyncioRunner``.
+* Load the inventory from an async application with ``AInitNornir``.
 
 Pre-releases of 3.7, starting with 3.7.0a1, are published so that you can test these
 features and your existing scripts before 3.7.0 is final. The new APIs can still change
@@ -59,16 +61,30 @@ Four existing behaviours changed. Check whether your code relies on one of them:
 Each how-to guide linked below is a notebook whose output is checked in CI. The snippets
 on this page use your own ``config.yaml`` and inventory.
 
-Follow, stop and time-limit long-running runs
----------------------------------------------
+Follow, stop and time-limit runs with your current runner
+---------------------------------------------------------
+
+These features work with the synchronous tasks and runners you already use. You do not
+need to change your tasks to ``async def`` or to select another runner.
 
 A task reports progress by yielding ``PartialResult`` objects, and its ``return`` value is
 still its final result. ``nr.stream()`` yields each event as it happens. ``nr.submit()``
 starts the run in the background and returns a handle that yields each host's final
 result as the host finishes, and that can cancel the run. Runners also accept a deadline
-per host (``per_host_timeout``) and for the whole run (``timeout``).
+per host (``per_host_timeout``) and for the whole run (``timeout``), in Python or under
+``runner.options`` in the configuration file.
 
-This snippet runs on ``ThreadedRunner``, the default runner:
+What each runner supports:
+
+* ``ThreadedRunner``, the default runner: ``stream``, ``submit``, cancellation and
+  deadlines. Cancellation and deadlines reach a task at its next checkpoint.
+* ``SerialRunner``: ``stream``, cancellation and deadlines, at the next checkpoint. It does
+  not support ``submit``, because it has no background thread.
+* ``AsyncioRunner``: the same features through ``astream`` and ``asubmit``. Cancellation
+  and deadlines interrupt the call the task is awaiting.
+
+This snippet runs synchronous tasks. Its second part uses ``submit``, so it needs
+``ThreadedRunner``, the default runner:
 
 .. code-block:: python
 
