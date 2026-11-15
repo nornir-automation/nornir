@@ -31,6 +31,32 @@ use. The 3.7 pre-releases support Python 3.10 to 3.15.
 With uv, run ``uv pip install "nornir==3.7.0a1"``. The latest pre-release is listed on
 `PyPI <https://pypi.org/project/nornir/#history>`_.
 
+Plugins that use the new APIs
+=============================
+
+Most plugins do not use the new async APIs yet. Two plugins have a pre-release version
+that does. Use them to test the async features against real systems. If you write
+plugins, you can also read them as examples.
+
+* **nornir-scrapli**, to run async tasks on network devices. It adds async versions of
+  the Scrapli CLI and Scrapli-Cfg tasks, and one connection plugin that supports both
+  sync and asyncio. NETCONF is not covered. See
+  `nornir_scrapli pull request #179 <https://github.com/scrapli/nornir_scrapli/pull/179>`_.
+* **nornir-infrahub**, to load the inventory with ``AInitNornir``. It adds the
+  ``InfrahubAsyncInventory`` plugin and async versions of its tasks. The existing
+  ``InfrahubInventory`` plugin does not change. See
+  `nornir-infrahub pull request #106 <https://github.com/opsmill/nornir-infrahub/pull/106>`_.
+
+Like Nornir, these pre-releases are installed only when you give the version:
+
+.. code-block:: bash
+
+    pip install "nornir-scrapli[asyncio]==1.6.0a1"
+    pip install "nornir-infrahub==1.3.0a1"
+
+The ``asyncio`` extra of nornir-scrapli installs ``asyncssh``, which the async
+connections use by default.
+
 1. Run your existing scripts
 ============================
 
@@ -203,6 +229,9 @@ an asynchronous client, you can also add async support with the new plugin contr
 
 * Connection plugins: :doc:`../howto/writing_capability_connection_plugins`
 * Inventory plugins: :doc:`../howto/writing_capability_inventory_plugins`
+
+The nornir-scrapli and nornir-infrahub pre-releases listed in
+`Plugins that use the new APIs`_ show what these changes look like in a real plugin.
 
 Send feedback
 =============
