@@ -1,7 +1,7 @@
 Changelog
 ==========
 
-3.7.0a1 - November 14, 2026
+3.7.0a1 - November 15, 2026
 ---------------------------
 
 - Added opt-in entry points for long-running work: ``Nornir.submit`` and
