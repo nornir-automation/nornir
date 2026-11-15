@@ -18,6 +18,26 @@ __________________
    * - **Environment Variable**
      - ``NORNIR_CORE_RAISE_ON_ERROR``
 
+``operation_connection``
+________________________
+
+.. list-table::
+   :widths: 15 85
+
+   * - **Description**
+     - Connection used to select each host's task when an Operation is run without
+       ``connection=`` (:obj:`nornir.core.Nornir.run_operation`). The ``connection``
+       argument of a call overrides it. When neither is set, running an Operation raises
+       :obj:`nornir.core.exceptions.OperationConnectionNotSetError`
+   * - **Type**
+     - ``string``
+   * - **Default**
+     - unset
+   * - **Required**
+     - ``False``
+   * - **Environment Variable**
+     - ``NORNIR_CORE_OPERATION_CONNECTION``
+
 runner
 ---------
 
