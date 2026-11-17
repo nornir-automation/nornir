@@ -721,7 +721,7 @@ class RunHandle(Generic[T]):
         """Cancel the run. Safe from any thread, any number of times."""
         self._run.cancel()
 
-    def result(self, timeout: float | None = None) -> AggregatedResult:
+    def result(self, timeout: float | None = None) -> AggregatedResult[T]:
         """Wait for the run to finish and return its results, in selection order.
 
         Arguments:
@@ -741,7 +741,7 @@ class RunHandle(Generic[T]):
             raise TimeoutError(msg)
         if self._error is not None:
             raise self._error
-        return cast("AggregatedResult", self._result)
+        return cast("AggregatedResult[T]", self._result)
 
     def _finish(self, result: AggregatedResult, error: BaseException | None) -> None:
         self._result = result
@@ -885,7 +885,7 @@ class AsyncRunHandle(Generic[T]):
         """Cancel the run. Safe from any thread, any number of times."""
         self._run.cancel()
 
-    async def result(self) -> AggregatedResult:
+    async def result(self) -> AggregatedResult[T]:
         """Wait for the run to finish and return its results, in selection order.
 
         Cancelling the coroutine that awaits this method stops the waiting only; the run
@@ -902,7 +902,7 @@ class AsyncRunHandle(Generic[T]):
         await asyncio.shield(self._finished)
         if self._error is not None:
             raise self._error
-        return cast("AggregatedResult", self._result)
+        return cast("AggregatedResult[T]", self._result)
 
     def _finish(self, result: AggregatedResult, error: BaseException | None) -> None:
         self._result = result
@@ -1046,7 +1046,7 @@ class RunStream(Generic[T]):
         """Cancel the run."""
         self._run.cancel()
 
-    def result(self) -> AggregatedResult:
+    def result(self) -> AggregatedResult[T]:
         """Return the results of every host once the run has ended.
 
         On a runner that runs tasks on the caller's thread, this runs any remaining host
@@ -1065,7 +1065,7 @@ class RunStream(Generic[T]):
         self._run_to_end()
         if self._error is not None:
             raise self._error
-        return cast("AggregatedResult", self._result)
+        return cast("AggregatedResult[T]", self._result)
 
     def _iterate_background(self) -> Generator[RunEvent, None, None]:
         handle = cast("RunHandle[Any]", self._handle)
@@ -1211,7 +1211,7 @@ class AsyncRunStream(Generic[T]):
         """Cancel the run."""
         self._handle.cancel()
 
-    async def result(self) -> AggregatedResult:
+    async def result(self) -> AggregatedResult[T]:
         """Wait for the run to end and return the results of every host.
 
         Returns:
