@@ -28,6 +28,14 @@ Unreleased
   in strict mode report a bare ``Result`` as missing its type parameter.
   ``RunStream`` and ``AsyncRunStream`` gained ``results()``, which yields only the final
   result of each host (#1089)
+- The result of a plain task is now typed from the task's return annotation, for type
+  checkers only. ``Nornir.run``, ``arun``, ``stream``, ``submit``, ``astream``,
+  ``asubmit``, ``Task.run`` and ``Task.arun`` return ``AggregatedResult[T]``,
+  ``MultiResult[T]`` or a run object typed with ``T``, where ``T`` is the type in
+  ``Result[T]`` or the plain type the task returns. ``AggregatedResult`` and
+  ``MultiResult`` are now generic, and ``MultiResult.result`` is typed. Tasks without a
+  return annotation, tasks annotated with a bare ``Result`` and generator tasks keep
+  ``Any``. Nothing changes at runtime (#1129)
 
 3.7.0a1 - November 15, 2026
 ---------------------------
