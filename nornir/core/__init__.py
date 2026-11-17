@@ -48,14 +48,16 @@ from nornir.core.task import AggregatedResult, Task, _get_task_name, _is_async_t
 if TYPE_CHECKING:
     import builtins
     import types
-    from collections.abc import AsyncGenerator, Awaitable, Callable, Coroutine, Mapping
+    from collections.abc import AsyncGenerator, Awaitable, Callable, Coroutine, Generator, Mapping
 
     from nornir.core.inventory import Host
+    from nornir.core.task import Result
 
 logger = logging.getLogger(__name__)
 
 InT = TypeVar("InT")
 OutT = TypeVar("OutT")
+ResultT = TypeVar("ResultT")
 
 
 def _is_async_runner(runner: RunnerPlugin) -> TypeGuard[AsyncRunnerPlugin]:
@@ -192,6 +194,36 @@ class Nornir:
         b.inventory = self.inventory.filter(*args, **kwargs)
         return b
 
+    @overload
+    def run(
+        self,
+        task: Callable[..., Generator[Any, Any, Any]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        **kwargs: Any,
+    ) -> AggregatedResult[Any]: ...
+    @overload
+    def run(
+        self,
+        task: Callable[..., Result[ResultT]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        **kwargs: Any,
+    ) -> AggregatedResult[ResultT]: ...
+    @overload
+    def run(
+        self,
+        task: Callable[..., ResultT],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        **kwargs: Any,
+    ) -> AggregatedResult[ResultT]: ...
     def run(
         self,
         task: Callable[..., Any],
@@ -227,6 +259,36 @@ class Nornir:
         result = self.runner.run(run_task, run_on)
         return self._finalize_run(run_task, result, raise_on_error)
 
+    @overload
+    async def arun(
+        self,
+        task: Callable[..., AsyncGenerator[Any, None]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        **kwargs: Any,
+    ) -> AggregatedResult[Any]: ...
+    @overload
+    async def arun(
+        self,
+        task: Callable[..., Coroutine[Any, Any, Result[ResultT]]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        **kwargs: Any,
+    ) -> AggregatedResult[ResultT]: ...
+    @overload
+    async def arun(
+        self,
+        task: Callable[..., Coroutine[Any, Any, ResultT]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        **kwargs: Any,
+    ) -> AggregatedResult[ResultT]: ...
     async def arun(
         self,
         task: Callable[..., Coroutine[Any, Any, Any] | AsyncGenerator[Any, None]],
@@ -395,6 +457,39 @@ class Nornir:
 
         return finalize
 
+    @overload
+    def submit(
+        self,
+        task: Callable[..., Generator[Any, Any, Any]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> RunHandle[Any]: ...
+    @overload
+    def submit(
+        self,
+        task: Callable[..., Result[ResultT]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> RunHandle[ResultT]: ...
+    @overload
+    def submit(
+        self,
+        task: Callable[..., ResultT],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> RunHandle[ResultT]: ...
     def submit(
         self,
         task: Callable[..., Any],
@@ -438,6 +533,39 @@ class Nornir:
         run = self._new_run(runner, task, name, kwargs, (on_good, on_failed), run_options)
         return RunHandle._start(runner, run, self._finalizer(run, raise_on_error))
 
+    @overload
+    def stream(
+        self,
+        task: Callable[..., Generator[Any, Any, Any]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> RunStream[Any]: ...
+    @overload
+    def stream(
+        self,
+        task: Callable[..., Result[ResultT]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> RunStream[ResultT]: ...
+    @overload
+    def stream(
+        self,
+        task: Callable[..., ResultT],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> RunStream[ResultT]: ...
     def stream(
         self,
         task: Callable[..., Any],
@@ -480,6 +608,39 @@ class Nornir:
         run = self._new_run(runner, task, name, kwargs, (on_good, on_failed), run_options)
         return RunStream._start(runner, run, self._finalizer(run, raise_on_error))
 
+    @overload
+    async def asubmit(
+        self,
+        task: Callable[..., AsyncGenerator[Any, None]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> AsyncRunHandle[Any]: ...
+    @overload
+    async def asubmit(
+        self,
+        task: Callable[..., Coroutine[Any, Any, Result[ResultT]]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> AsyncRunHandle[ResultT]: ...
+    @overload
+    async def asubmit(
+        self,
+        task: Callable[..., Coroutine[Any, Any, ResultT]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> AsyncRunHandle[ResultT]: ...
     async def asubmit(
         self,
         task: Callable[..., Coroutine[Any, Any, Any] | AsyncGenerator[Any, None]],
@@ -522,6 +683,39 @@ class Nornir:
         handle, _ = AsyncRunHandle._start(runner, run, self._finalizer(run, raise_on_error))
         return handle
 
+    @overload
+    def astream(
+        self,
+        task: Callable[..., AsyncGenerator[Any, None]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> AsyncRunStream[Any]: ...
+    @overload
+    def astream(
+        self,
+        task: Callable[..., Coroutine[Any, Any, Result[ResultT]]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> AsyncRunStream[ResultT]: ...
+    @overload
+    def astream(
+        self,
+        task: Callable[..., Coroutine[Any, Any, ResultT]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> AsyncRunStream[ResultT]: ...
     def astream(
         self,
         task: Callable[..., Coroutine[Any, Any, Any] | AsyncGenerator[Any, None]],
