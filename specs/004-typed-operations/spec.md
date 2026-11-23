@@ -41,8 +41,8 @@ dispatch of Story 1, but are independent of each other.
 A caller defines, or imports, an Operation such as `GetConfig`, with an input model
 `GetConfigInput` and an output model `GetConfigOutput`. They call
 `nr.run_operation(GetConfig, connection="napalm", params=GetConfigInput())` and iterate over
-`.results()`. For each host, Nornir selects the task registered for the host's platform and
-the given connection, runs it, checks that the returned value is a `GetConfigOutput`, and
+`.results()`. For each host, Nornir selects the task registered for the platform of the
+connection (or the host's platform) and the given connection, runs it, checks that the returned value is a `GetConfigOutput`, and
 delivers one `Result[GetConfigOutput]`. The caller's code contains no condition on
 `platform`, and their type checker knows that `res.result.config` is a `str`. This works on
 every runner that supports streaming, including `SerialRunner`, which operators choose on
@@ -187,8 +187,22 @@ error.
 - **An implementation registered for an Operation name with no known contract**: accepted
   when registered. The missing contract is reported when `run_operation` is called with that
   name, so the order in which packages load does not matter.
-- **Two different Operation classes with the same name**: defining the second raises
-  `OperationAlreadyRegisteredError`.
+- **Two different Operation classes with the same name**: both classes can be defined, so a
+  program that imports both packages but never runs that Operation is not affected.
+  Looking up the name, for example running the Operation, raises
+  `OperationAlreadyRegisteredError`, which names both classes.
+- **An entry point that cannot be loaded** (for example, its module imports a dependency
+  that is not installed): the error is recorded for the Operation name in the entry point.
+  Only that Operation raises `OperationEntryPointError`, which names the distribution.
+  The Operations of other packages still run.
+- **A model that `isinstance()` cannot check**, such as a `TypedDict`: defining the
+  Operation raises `TypeError`, because the output of each host could not be checked.
+- **A base class without `name`** that keeps type variables
+  (`class NapalmOperation(Operation[InT, OutT])`): accepted and not registered. Its
+  subclasses give the models.
+- **A registration changed before the first run**: `register(..., replace=True)` and
+  `deregister()` load the entry points first, so they also apply to a task that an installed
+  distribution registers for the key.
 - **An implementation entry point with a malformed name** (for example `get_config.ios`, or
   a platform name that contains a dot): loading the package's registrations raises an error
   that names the distribution.
@@ -217,8 +231,11 @@ error.
 - **FR-003**: System MUST provide asynchronous counterparts of FR-001 and FR-002 for the
   asyncio runner (`arun_operation` and `asubmit_operation`), following the rules of
   `astream` and `asubmit`.
-- **FR-004**: System MUST select the task for each host from the Operation name,
-  `host.platform` and the connection of the call.
+- **FR-004**: System MUST select the task for each host from the Operation name, the
+  platform of the connection and the connection of the call. The platform of the connection
+  is `connection_options.<connection>.platform` in the inventory, or `host.platform` when
+  the connection sets none, as for connection plugins. System MUST select the task before
+  `task_instance_started`, so processors receive the selected task and its input.
 - **FR-005**: `connection=` MUST be optional. When it is not given, System MUST use a single
   connection default set in the Nornir configuration, applied to every host. When neither is
   set, `run_operation` MUST raise an error before any device is contacted.
@@ -234,7 +251,10 @@ error.
 - **FR-008**: Users MUST be able to pass `params` as a callable that receives a `Host` and
   returns the input for that host. System MUST call it when that host's task starts. When
   the callable raises, or returns an invalid input, only that host MUST fail, with
-  `OperationInputError`.
+  `OperationInputError`. On `arun_operation` and `asubmit_operation`, the callable MAY be
+  an `async def`, and System MUST await it. On the synchronous entry points, an `async def`
+  callable MUST fail the host with an `OperationInputError` that names the asynchronous
+  entry points.
 - **FR-009**: System MUST accept as an input or output model any class that can be built
   from keyword arguments, and MUST use the class's `model_validate` method when it provides
   one. System MUST NOT depend on any model library.
@@ -280,7 +300,8 @@ error.
   point, or the module and function of the task) and let callers read it. The conflict
   error of FR-016 MUST name both sources.
 - **FR-018**: Each Operation class MUST be registered under its unique name when it is
-  defined. Defining a second, different class with the same name MUST raise
+  defined. Defining a second, different class with the same name MUST NOT raise; looking
+  up the name, including running the Operation by its class or its name, MUST raise
   `OperationAlreadyRegisteredError`.
 - **FR-019**: System MUST list the known Operations with their input model, output model,
   implementations, the kind of each implementation (synchronous or asynchronous) and the
@@ -322,7 +343,8 @@ error.
 - **Run stream / run handle / result** (existing, from spec 003): made generic over the
   output model, or, under FR-021's fallback, a new typed result class used only by
   Operations.
-- **Host platform** (existing): part of the dispatch key, used as written in the inventory.
+- **Platform** (existing): part of the dispatch key. It is the platform of the connection in
+  the inventory, or the host's platform when the connection sets none.
 
 ## Success Criteria *(mandatory)*
 

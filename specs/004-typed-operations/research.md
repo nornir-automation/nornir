@@ -9,7 +9,7 @@ Research covers the task execution path (`nornir/core/task.py`: `Task._start_ste
 `_sync_streaming_runner`, `_async_streaming_runner`, `_new_run`), the runners
 (`nornir/plugins/runners/__init__.py`, which give each host `task.copy()`), the plugin
 registry (`nornir/core/plugins/register.py`) and the configuration
-(`nornir/core/configuration.py`). Two typing questions were checked with mypy 2.3.1 under
+(`nornir/core/configuration.py`). Two typing questions were checked with mypy under
 `--strict --python-version 3.10` and at runtime on CPython 3.10, 3.12 and 3.14. Each entry
 records the decision, the reason, and the alternatives that were rejected.
 
@@ -48,7 +48,7 @@ records the decision, the reason, and the alternatives that were rejected.
 ## R2. Typing `run_operation` from the Operation class (FR-001, FR-006, FR-008)
 
 - **Decision:** `Operation` is `Generic[InT, OutT]`. `run_operation` has two overloads:
-  - `(operation: type[Operation[InT, OutT]], params: InT | Mapping[str, Any] | Callable[[Host], InT] | None = None, ...) -> RunStream[OutT]`
+  - `(operation: type[Operation[InT, OutT]], params: InT | Mapping[str, Any] | Callable[[Host], InT] | None = None, ...) -> RunStream[OutT]`; the asynchronous entry points also accept `Callable[[Host], Awaitable[InT]]`
   - `(operation: str, params: Any = None, ...) -> RunStream[Any]`
 
   `submit_operation`, `arun_operation` and `asubmit_operation` follow the same pattern.
@@ -64,9 +64,12 @@ records the decision, the reason, and the alternatives that were rejected.
 - **Decision:** `Operation.__init_subclass__` reads the two type arguments from
   `__orig_bases__` with `typing.get_args` and stores them as `input_model` and
   `output_model` class attributes. A subclass that defines `name` is registered as a
-  contract. A subclass without `name` is an intermediate base and is not registered. A
-  subclass whose type arguments are not classes (a `TypeVar`, or a string forward
-  reference) raises `TypeError` when it is defined.
+  contract. A subclass without `name` is an intermediate base and is not registered; it may
+  keep type variables, which its subclasses replace (`NapalmOperation[In, Out]`). A
+  subclass with `name` whose models are not classes, a type argument that is neither a class
+  nor a type variable (such as a string forward reference), and a model that
+  `isinstance()` rejects (such as a `TypedDict`) raise `TypeError` when the class is
+  defined. The last check exists because R7 checks each output with `isinstance()`.
 - **Rationale:** The probe read `GetConfigInput` and `GetConfigOutput` back on 3.10 and 3.14,
   including with `from __future__ import annotations`, because base-class expressions are
   always evaluated.
@@ -77,17 +80,21 @@ records the decision, the reason, and the alternatives that were rejected.
 
 - **Decision:** Add a private `_OperationTask(Task)` in `nornir/core/operations.py`.
   `Task` gains two private hooks:
-  - `_resolve_call(host, asynchronous) -> None`, called inside the existing `try` of
-    `_start_steps` and `_acall`, just before the existing `self.task(self, **self.params)`
-    line, which stays unchanged. The base does nothing. (As implemented: the hook sets
-    `self.task` and `self.params` rather than returning them, so the call line is not
-    touched; `asynchronous` tells which path is running.)
+  - `_resolve_call(host, asynchronous) -> None`, with `_aresolve_call(host)` on the
+    asynchronous path so that an `async def` params callable can be awaited. They are
+    called before `task_instance_started`, so processors receive the selected task and its
+    input. An exception they raise is kept and raised inside the existing `try` of
+    `_start_steps` and `astart`, so it fails only that host, and the existing
+    `self.task(self, **self.params)` line stays unchanged. The base does nothing. The hook
+    sets `self.task` and `self.params` rather than returning them; `asynchronous` tells
+    which path is running.
   - `_check_result(result: Result) -> Result`, called in `_finish` for the top-level task
     only, before the result is recorded. The base returns `result` unchanged.
 
   `_OperationTask` overrides `copy()` to return an `_OperationTask`, and overrides the two
   hooks:
-  - `_resolve_call` selects the registration for `(name, host.platform, connection)`,
+  - `_resolve_call` selects the registration for `(name, platform, connection)`, where the
+    platform is the one of the connection (`host.get_connection_parameters(connection)`),
     checks the task kind against the path (synchronous or asynchronous), builds the
     per-host input when `params` is a callable, and sets `self.task` and `self.params` so
     that processors see the implementation;
@@ -172,16 +179,23 @@ records the decision, the reason, and the alternatives that were rejected.
 
 ## R9. When entry points are loaded (FR-015, FR-016, SC-004)
 
-- **Decision:** `OperationRegistry.load()` reads both entry-point groups once per process,
-  on the first call to any method that reads the registry (`get`, `operations`, and through
-  them `run_operation`). It is not called from `InitNornir`. `load()` is idempotent and
-  thread-safe; a conflict or a malformed name raises from that first call, and the next
-  call tries again.
+- **Decision:** The registry reads both entry-point groups once per process, on the first
+  call to any method that reads or changes the registry (`get`, `contract`, `operations`,
+  `register`, `deregister`, and through them `run_operation`). It is not called from
+  `InitNornir`. An entry point that cannot be loaded (a malformed name, an import error,
+  a conflict) does not stop the others: its error is recorded for the Operation name in
+  the entry point, wrapped in `OperationEntryPointError` with the distribution when it is
+  not already an Operation error. Looking up that name raises the error; the Operations of
+  other packages still run. `load()` raises the first recorded error each time it is
+  called. Modules are imported without holding the registry lock, because defining an
+  Operation class takes that lock while the import lock of its module is held.
 - **Rationale:** Loading imports every installed implementation module. Doing that in
   `InitNornir` would make a broken or conflicting Operations package break programs that
   never use Operations, contrary to SC-004 and to the reason plugins were unbundled
-  (Principle II). Loading on first use still raises the conflict before any device is
-  contacted.
+  (Principle II). Recording each error for its Operation name extends the same reasoning
+  to programs that use other Operations. Looking up the name still raises the conflict
+  before any device is contacted. `register` and `deregister` load first so that a change
+  made before the first run is not undone when the entry points are loaded.
 - **Alternatives rejected:** loading in `InitNornir`, as connection plugins are: see above.
 
 ## R10. Entry-point groups and names (FR-015, FR-015a)
@@ -206,13 +220,16 @@ records the decision, the reason, and the alternatives that were rejected.
 ## R11. Conflicts and re-definitions (FR-016, FR-018)
 
 - **Decision:**
-  - Registering the same task object again under the same key is accepted.
+  - Registering the same task again under the same key is accepted. Tasks are compared with
+    `==`, so a bound method registered twice is the same task.
   - A different task under a taken key raises `OperationAlreadyRegisteredError` with both
     sources, unless `register(..., replace=True)`. Entry points always register with
     `replace=False`.
-  - A second contract class with the same `name` raises `OperationAlreadyRegisteredError`,
+  - A second contract class with the same `name` is recorded as a conflict for that name,
     **unless** it has the same `__module__` and `__qualname__` as the registered one, in
-    which case it replaces it.
+    which case it replaces it. Defining the class does not raise, so two packages that
+    define the same name can both be imported. Looking up the name, including running
+    the Operation by its class, raises `OperationAlreadyRegisteredError`.
 - **Rationale:** The exception for the same module and qualified name covers a notebook
   cell or a module that is executed again: the class object is new, but it is the same
   definition. Without it, re-running a notebook cell that defines an Operation would fail.

@@ -22,12 +22,15 @@ get_config = "nornir_ops_core.config:GetConfig"
 
 ## Loading
 
-- Both groups are read by `OperationRegistry.load()` on the first call to
-  `OperationRegistry.get` or `OperationRegistry.operations`, and therefore on the first
+- Both groups are read on the first call to `OperationRegistry.get`, `contract`,
+  `operations`, `register`, `deregister` or `load`, and therefore on the first
   `run_operation`, `submit_operation`, `arun_operation` or `asubmit_operation` of the
   process. `InitNornir` does not load them (research R9).
-- Loading is idempotent. If it raises, nothing is marked as loaded and the next call tries
-  again.
+- Each group is read once per process. An entry point that cannot be loaded (a malformed
+  name, a module that cannot be imported, a conflict) does not stop the others: its error
+  is recorded for the Operation name in the entry point. Looking up that name raises the
+  error, which names the distribution. `OperationRegistry.load()` raises the first recorded
+  error each time it is called.
 - The source recorded for an entry point is `entry_point.dist.name`, the entry point's name,
   and the module and qualified name of the task.
 

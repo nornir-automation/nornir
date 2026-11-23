@@ -26,7 +26,7 @@ result.
 
 ## Technical Context
 
-- **Language/version:** Python 3.10–3.14. Standard library only: `typing` (`Generic`,
+- **Language/version:** Python 3.10–3.15. Standard library only: `typing` (`Generic`,
   `get_args`, `overload`, `TYPE_CHECKING`), `importlib.metadata.entry_points` and
   `EntryPoint.dist` (3.10+), `inspect.signature`, `difflib.get_close_matches`, `threading`,
   `dataclasses`. `typing_extensions` is imported only under `TYPE_CHECKING` (research R1).

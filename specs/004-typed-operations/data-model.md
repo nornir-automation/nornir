@@ -18,10 +18,12 @@ Lifecycle:
 
 1. **Defined**: `__init_subclass__` reads the models and registers the class under `name`.
 2. **Re-defined** (same `__module__` and `__qualname__`): replaces the registered class (R11).
-3. **Conflicting** (same `name`, different module or qualified name): raises
-   `OperationAlreadyRegisteredError`.
+3. **Conflicting** (same `name`, different module or qualified name): the conflict is
+   recorded for the name, and looking up the name raises `OperationAlreadyRegisteredError`
+   (R11). Defining the class does not raise.
 
-A subclass without `name` is an intermediate base: it is not registered.
+A subclass without `name` is an intermediate base: it is not registered, and it may keep
+type variables that its subclasses replace with the models.
 
 ## Registration (implementation)
 
@@ -74,8 +76,10 @@ Returned by `OperationRegistry.operations()`, one per known Operation name, sort
 |---|---|---|
 | contracts | `dict[str, type[Operation[Any, Any]]]` | Filled when classes are defined and when contract entry points load. |
 | registrations | `dict[tuple[str, str, str], Registration]` | Filled by `register()` and implementation entry points. |
-| loaded | `bool` | Set once both entry-point groups loaded without error (R9). |
-| lock | `threading.RLock` | Guards all three. Reentrant, because loading an entry point imports a module that defines an Operation class, which registers it. |
+| failures | `dict[str, list[OperationError]]` | The errors recorded for each Operation name: an entry point that cannot be loaded, or a conflicting class. Raised when the name is looked up (R9, R11). |
+| loaded | `bool` | Set once both entry-point groups were read (R9). |
+| lock | `threading.RLock` | Guards the state above. Never held while a module is imported. |
+| load lock | `threading.RLock` | Held while the entry points are imported, so that they are imported once. |
 
 ## Per-run objects
 
@@ -88,20 +92,23 @@ Created once by `run_operation`; each runner gives each host a copy.
 | `name` | `str` | The Operation name, so processors and `AggregatedResult` use it. |
 | `operation` | `type[Operation]` | Its `name` is dispatch key part 1; its `input_model` builds per-host inputs; its `output_model` is checked by `_check_result`. |
 | `connection` | `str` | Dispatch key, part 3. Resolved before the run (FR-005). |
-| `params_source` | `In \| Callable[[Host], In]` | A validated static input, or the per-host callable. |
+| `params_source` | `In \| Callable[[Host], In \| Awaitable[In]]` | A validated static input, or the per-host callable; the asynchronous entry points await an `async def` callable. |
 | `per_host` | `bool` | Whether `params_source` is the per-host callable. |
 
 The synchronous or asynchronous path is passed to `_resolve_call` by the method that
 calls it (`_start_steps` or `_acall`), so it is not stored.
 
-Per host, in `_resolve_call` (all inside the existing `try`, so any error fails only that host):
+Per host, in `_resolve_call` (or `_aresolve_call`), before `task_instance_started`. An error
+is kept and raised inside the existing `try`, so it fails only that host:
 
 ```text
 host started
+  └─ platform of the connection  → connection_options.<connection>.platform, or host.platform
   └─ platform is None?           → OperationNotRegisteredError ("host has no platform")
   └─ registration found?         → no: OperationNotRegisteredError (lists registered keys)
   └─ kind matches path?          → no: AsyncTaskOnSyncRunError / SyncTaskOnAsyncRunError
-  └─ params callable?            → yes: call it, validate → error: OperationInputError
+  └─ params callable?            → yes: call it (await it on the asynchronous path),
+                                   validate → error: OperationInputError
   └─ set task.task, task.params  → implementation called by the existing Task line
 host finished
   └─ _check_result               → not failed and wrong type: OperationOutputError
