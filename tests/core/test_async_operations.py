@@ -12,7 +12,7 @@ from nornir.core.exceptions import (
 )
 from nornir.core.operations import OperationRegistry
 from nornir.core.task import PartialResult, Result
-from nornir.plugins.runners import AsyncioRunner, SerialRunner
+from nornir.plugins.runners import AsyncioRunner, SerialRunner, ThreadedRunner
 from tests.core.operations_helpers import (
     GetConfig,
     GetConfigInput,
@@ -26,6 +26,7 @@ from tests.core.operations_helpers import (
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Coroutine
 
+    from nornir.core.inventory import Host
     from nornir.core.task import Task
 
 pytestmark = pytest.mark.usefixtures("operation_registry")
@@ -154,3 +155,45 @@ def test_arun_operation_on_a_synchronous_runner_raises() -> None:
 def test_capability_error_names_the_operation_method() -> None:
     error = RunnerCapabilityError("MyRunner", "arun_operation")
     assert "Implement AsyncStreamingRunner" in str(error)
+
+
+def test_arun_operation_awaits_an_async_params_function() -> None:
+    register_async()
+
+    async def startup_config(host: Host) -> GetConfigInput:
+        await asyncio.sleep(0)
+        return GetConfigInput(retrieve="startup")
+
+    async def scenario() -> None:
+        nr = make_nornir(AsyncioRunner(), {"r1": "ios"})
+        result = await nr.arun_operation(GetConfig, startup_config, connection="napalm").result()
+        assert not result.failed
+        assert result["r1"][0].result == GetConfigOutput(config="ios startup r1")
+
+    run(scenario())
+
+
+def test_an_async_params_function_that_raises_fails_the_host() -> None:
+    register_async()
+
+    async def no_config(host: Host) -> GetConfigInput:
+        await asyncio.sleep(0)
+        msg = "the API is down"
+        raise RuntimeError(msg)
+
+    async def scenario() -> None:
+        nr = make_nornir(AsyncioRunner(), {"r1": "ios"})
+        result = await nr.arun_operation(GetConfig, no_config, connection="napalm").result()
+        assert str(result["r1"].exception) == (
+            "invalid input for operation 'get_config' on host 'r1': the params callable "
+            "raised RuntimeError('the API is down')"
+        )
+
+    run(scenario())
+
+
+def test_arun_operation_on_threaded_runner_suggests_run_operation() -> None:
+    nr = make_nornir(ThreadedRunner(num_workers=1), {"r1": "ios"})
+
+    with pytest.raises(RunnerNotAsyncError, match="run_operation"):
+        nr.arun_operation(GetConfig, connection="napalm")

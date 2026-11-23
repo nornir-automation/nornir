@@ -39,6 +39,17 @@ logger = logging.getLogger(__name__)
 DEFAULT_SEVERITY_LEVEL = logging.INFO
 
 
+def _raise_unresolved(error: BaseException | None) -> None:
+    """Raise the error kept while the task was selected, if any.
+
+    Raises:
+        BaseException: the kept error
+
+    """
+    if error is not None:
+        raise error
+
+
 def _cancellation_requested() -> bool:
     """Return whether the running asyncio task is being cancelled.
 
@@ -221,16 +232,59 @@ class Task:
         return Result(self.host, exception=interruption, result=str(interruption), failed=True)
 
     def _resolve_call(self, host: Host, asynchronous: bool) -> None:
-        """Prepare ``self.task`` and ``self.params`` for the call that follows.
+        """Prepare ``self.task`` and ``self.params`` before the host's task begins.
 
-        Called just before the task is called, inside the same ``try``, so an exception
-        raised here becomes the host's failed result. A plain task needs nothing.
+        Called before ``task_instance_started``, so processors receive the task that runs.
+        An exception raised here is kept and raised inside the ``try`` that calls the
+        task, so it becomes the host's failed result. A plain task needs nothing.
 
         Arguments:
             host: The host the task runs for
             asynchronous: Whether the task is about to run on the asynchronous path
 
         """
+
+    async def _aresolve_call(self, host: Host) -> None:
+        """Prepare ``self.task`` and ``self.params`` on the asynchronous path.
+
+        As :meth:`_resolve_call`, which it calls by default; it may await.
+        """
+        self._resolve_call(host, asynchronous=True)
+
+    def _resolve(self, host: Host) -> Exception | None:
+        """Run :meth:`_resolve_call` for ``host``.
+
+        Returns:
+            The exception it raised, to raise when the task begins, or ``None``.
+
+        """
+        self.host = host
+        try:
+            self._resolve_call(host, asynchronous=False)
+        except Exception as e:
+            return e
+        return None
+
+    async def _aresolve(self, host: Host) -> BaseException | None:
+        """Run :meth:`_aresolve_call` for ``host``.
+
+        Returns:
+            The exception it raised, to raise when the task begins, or ``None``.
+
+        Raises:
+            asyncio.CancelledError: the host was cancelled while its input was built
+
+        """
+        self.host = host
+        try:
+            await self._aresolve_call(host)
+        except asyncio.CancelledError as e:
+            if _cancellation_requested():
+                raise
+            return e
+        except Exception as e:
+            return e
+        return None
 
     def _check_result(self, result: Result) -> Result:
         """Return the top-level result of the host, checked; a plain task keeps it as is.
@@ -309,12 +363,13 @@ class Task:
             TaskInterruptedError: a subtask was interrupted; the parent receives it
 
         """
+        unresolved = self._resolve(host)
         if (recorded := self._recorded_before_begin()) is not None:
             return recorded
         self._begin(host)
         try:
             logger.debug("Host %r: running task %r", self.host.name, self.name)
-            self._resolve_call(host, asynchronous=False)
+            _raise_unresolved(unresolved)
             r = self.task(self, **self.params)
             if inspect.isgenerator(r):
                 r = yield from self._drive(cast("Generator[Any, None, Any]", r))
@@ -409,10 +464,12 @@ class Task:
             TaskInterruptedError: a subtask was interrupted; the parent receives it
 
         """
+        unresolved = await self._aresolve(host)
         if (recorded := self._recorded_before_begin()) is not None:
             return recorded
         self._begin(host)
         try:
+            _raise_unresolved(unresolved)
             r = await self._acall()
         except TaskInterruptedError as e:
             r = self._result_from_interruption(e)
@@ -441,7 +498,6 @@ class Task:
 
     async def _acall(self) -> Any:
         logger.debug("Host %r: running task %r", self.host.name, self.name)
-        self._resolve_call(self.host, asynchronous=True)
         call = self.task(self, **self.params)
         if inspect.isasyncgen(call):
             return await self._adrive(cast("AsyncGenerator[Any, None]", call))

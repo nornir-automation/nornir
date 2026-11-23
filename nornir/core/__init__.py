@@ -48,7 +48,7 @@ from nornir.core.task import AggregatedResult, Task, _get_task_name, _is_async_t
 if TYPE_CHECKING:
     import builtins
     import types
-    from collections.abc import AsyncGenerator, Callable, Coroutine, Mapping
+    from collections.abc import AsyncGenerator, Awaitable, Callable, Coroutine, Mapping
 
     from nornir.core.inventory import Host
 
@@ -358,7 +358,7 @@ class Nornir:
         if _is_streaming_runner(runner):
             return runner
         if _is_async_runner(runner) or _is_async_streaming_runner(runner):
-            raise RunnerNotSyncError(type(runner).__name__)
+            raise RunnerNotSyncError(type(runner).__name__, capability)
         raise RunnerCapabilityError(type(runner).__name__, capability)
 
     def _async_streaming_runner(
@@ -371,7 +371,7 @@ class Nornir:
             return runner
         if _is_async_runner(runner):
             raise RunnerCapabilityError(type(runner).__name__, capability)
-        raise RunnerNotAsyncError(type(runner).__name__)
+        raise RunnerNotAsyncError(type(runner).__name__, capability)
 
     def _new_run(
         self,
@@ -575,6 +575,8 @@ class Nornir:
             The task to run; it selects the implementation when each host starts.
 
         Raises:
+            nornir.core.exceptions.OperationError: a problem is recorded for the
+                Operation, such as two classes with its name or a broken entry point
             nornir.core.exceptions.OperationContractNotFoundError: no Operation has the
                 given name
             nornir.core.exceptions.OperationConnectionNotSetError: no connection is given
@@ -582,10 +584,11 @@ class Nornir:
             nornir.core.exceptions.OperationInputError: the static input is invalid
 
         """
-        OperationRegistry.load()
-        contract = (
-            OperationRegistry.contract(operation) if isinstance(operation, str) else operation
-        )
+        if isinstance(operation, str):
+            contract = OperationRegistry.contract(operation)
+        else:
+            contract = operation
+            OperationRegistry._check(contract.name)
         connection = connection or self.config.core.operation_connection
         if not connection:
             raise OperationConnectionNotSetError(contract.name)
@@ -653,7 +656,8 @@ class Nornir:
             operation: The Operation class, which types the results, or its name
             params: The input, given to the task as its ``params`` argument: an instance
                 of the input model, a mapping of its fields, ``None`` for the model's
-                defaults, or a callable that receives the host and returns its input
+                defaults, or a callable that receives the host and returns its input. The
+                callable is called before ``task_instance_started`` for each host
             connection: Name of the connection, overriding ``core.operation_connection``
             raise_on_error: Override raise_on_error behavior. The error is raised by
                 :meth:`nornir.core.run.RunStream.result`
@@ -756,7 +760,11 @@ class Nornir:
     def arun_operation(
         self,
         operation: type[Operation[InT, OutT]],
-        params: InT | Mapping[str, Any] | Callable[[Host], InT] | None = None,
+        params: InT
+        | Mapping[str, Any]
+        | Callable[[Host], InT]
+        | Callable[[Host], Awaitable[InT]]
+        | None = None,
         *,
         connection: str | None = None,
         raise_on_error: bool | None = None,
@@ -795,7 +803,8 @@ class Nornir:
         The asynchronous counterpart of :meth:`run_operation`, used as :meth:`astream`
         is: with ``async for``, from inside a coroutine. Each host's task must be an
         ``async def``; a host whose task is synchronous fails with
-        :class:`~nornir.core.exceptions.SyncTaskOnAsyncRunError`.
+        :class:`~nornir.core.exceptions.SyncTaskOnAsyncRunError`. A ``params`` callable
+        may be an ``async def``; it is awaited for each host.
 
         Returns:
             :obj:`nornir.core.run.AsyncRunStream`: The stream of the run.
@@ -825,7 +834,11 @@ class Nornir:
     async def asubmit_operation(
         self,
         operation: type[Operation[InT, OutT]],
-        params: InT | Mapping[str, Any] | Callable[[Host], InT] | None = None,
+        params: InT
+        | Mapping[str, Any]
+        | Callable[[Host], InT]
+        | Callable[[Host], Awaitable[InT]]
+        | None = None,
         *,
         connection: str | None = None,
         raise_on_error: bool | None = None,
@@ -862,7 +875,8 @@ class Nornir:
         """Start running an Operation on the caller's event loop and return at once.
 
         The asynchronous counterpart of :meth:`submit_operation`, with the rules of
-        :meth:`asubmit`. Each host's task must be an ``async def``.
+        :meth:`asubmit`. Each host's task must be an ``async def``, and a ``params``
+        callable may be an ``async def``.
 
         Returns:
             :obj:`nornir.core.run.AsyncRunHandle`: The handle of the run.

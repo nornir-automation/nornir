@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import pickle  # noqa: S403 - round trips of the errors defined by nornir
 import time
 import traceback
@@ -22,6 +23,7 @@ from nornir.core.exceptions import (
     TaskCancelledError,
     TaskTimeoutError,
 )
+from nornir.core.inventory import ConnectionOptions
 from nornir.core.operations import Operation, OperationRegistry
 from nornir.core.run import RunOptions
 from nornir.core.task import PartialResult, Result, Task
@@ -35,6 +37,7 @@ from tests.core.operations_helpers import (
     GetConfigOutput,
     aios_get_config,
     backup_task,
+    ios_get_config,
     make_nornir,
     register_get_config,
 )
@@ -429,9 +432,9 @@ def test_per_host_timeout_applies_to_an_implementation() -> None:
 def test_implementation_is_a_plain_task() -> None:
     nr = make_nornir(SerialRunner(), {"r1": "ios"})
 
-    result = nr.run(task=backup_task, params=BackupInput(path="/tmp/r1"))  # noqa: S108
+    result = nr.run(task=backup_task, params=BackupInput(path="/tmp/r1"))  # noqa: S108 - a path string only; nothing is written
 
-    assert result["r1"][0].result == BackupOutput(written="/tmp/r1")  # noqa: S108
+    assert result["r1"][0].result == BackupOutput(written="/tmp/r1")  # noqa: S108 - a path string only; nothing is written
 
 
 def test_operation_errors_pickle() -> None:
@@ -580,3 +583,98 @@ def test_params_callable_that_returns_an_invalid_input_fails_only_that_host() ->
     assert isinstance(error, OperationInputError)
     assert "on host 'r2'" in str(error)
     assert "unexpected field 'paht' (did you mean 'path'?)" in str(error)
+
+
+# --- Selection of the task for each host ------------------------------------------------
+
+
+def test_the_platform_of_the_connection_selects_the_task() -> None:
+    OperationRegistry.register(
+        operation="get_config", platform="cisco_ios", connection="netmiko", task=ios_get_config
+    )
+    nr = make_nornir(SerialRunner(), {"r1": "ios"})
+    nr.inventory.hosts["r1"].connection_options["netmiko"] = ConnectionOptions(platform="cisco_ios")
+
+    result = nr.run_operation(GetConfig, connection="netmiko").result()
+
+    assert not result.failed
+    assert result["r1"][0].result == GetConfigOutput(config="ios running r1")
+
+
+def test_task_instance_started_receives_the_selected_task_and_its_input() -> None:
+    seen: list[tuple[str, dict[str, Any]]] = []
+
+    class Recorder(EventLog):
+        def task_instance_started(self, task: Task, host: Host) -> None:
+            seen.append((task.task.__name__, dict(task.params)))
+
+    register_get_config()
+    nr = make_nornir(SerialRunner(), {"r1": "ios"}, processors=[Recorder()])
+
+    nr.run_operation(GetConfig, connection="napalm").result()
+
+    assert seen == [("ios_get_config", {"params": GetConfigInput()})]
+
+
+def test_a_host_whose_task_cannot_be_selected_is_started_and_completed() -> None:
+    log = EventLog()
+    nr = make_nornir(SerialRunner(), {"r1": "ios"}, processors=[log])
+
+    result = nr.run_operation(GetConfig, connection="napalm").result()
+
+    assert isinstance(result["r1"].exception, OperationNotRegisteredError)
+    assert [event[:3] for event in log.events if event[0].startswith("task_instance")] == [
+        ("task_instance_started", "get_config", "r1"),
+        ("task_instance_completed", "get_config", "r1"),
+    ]
+
+
+def test_an_async_params_callable_on_a_sync_run_fails_the_host() -> None:
+    register_get_config()
+
+    async def startup_config(host: Host) -> GetConfigInput:
+        await asyncio.sleep(0)
+        return GetConfigInput(retrieve="startup")
+
+    nr = make_nornir(SerialRunner(), {"r1": "ios"})
+    # The signature of run_operation accepts only a synchronous callable.
+    params: Any = startup_config
+
+    result = nr.run_operation(GetConfig, params, connection="napalm").result()
+
+    assert str(result["r1"].exception) == (
+        "invalid input for operation 'get_config' on host 'r1': the params callable is "
+        "asynchronous; run the Operation with 'arun_operation' or 'asubmit_operation', or "
+        "give a synchronous callable"
+    )
+
+
+# --- Error messages name the Operation entry points -------------------------------------
+
+
+def test_submit_operation_on_serial_runner_suggests_run_operation() -> None:
+    nr = make_nornir(SerialRunner(), {"r1": "ios"})
+
+    with pytest.raises(RunnerCapabilityError) as info:
+        nr.submit_operation(GetConfig, connection="napalm")
+
+    assert "'stream'" not in str(info.value)
+    assert "Use 'run_operation' to consume the run live" in str(info.value)
+
+
+def test_run_operation_on_asyncio_runner_suggests_arun_operation() -> None:
+    nr = make_nornir(AsyncioRunner(), {"r1": "ios"})
+
+    with pytest.raises(RunnerNotSyncError, match="arun_operation"):
+        nr.run_operation(GetConfig, connection="napalm")
+
+
+def test_async_task_selected_on_a_sync_run_suggests_arun_operation() -> None:
+    OperationRegistry.register(
+        operation="get_config", platform="ios", connection="napalm", task=aios_get_config
+    )
+    nr = make_nornir(SerialRunner(), {"r1": "ios"})
+
+    result = nr.run_operation(GetConfig, connection="napalm").result()
+
+    assert "nr.arun_operation(...)" in str(result["r1"].exception)

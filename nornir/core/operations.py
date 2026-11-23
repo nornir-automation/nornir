@@ -10,6 +10,7 @@ platform and returns a result typed with the output model.
 
 from __future__ import annotations
 
+import copy
 import difflib
 import importlib.metadata
 import inspect
@@ -25,12 +26,19 @@ from nornir.core.exceptions import (
     OperationAlreadyRegisteredError,
     OperationContractNotFoundError,
     OperationEntryPointError,
+    OperationError,
     OperationInputError,
     OperationNotRegisteredError,
     OperationOutputError,
     SyncTaskOnAsyncRunError,
 )
-from nornir.core.task import DEFAULT_SEVERITY_LEVEL, Result, Task, _get_task_name, _is_async_task
+from nornir.core.task import (
+    DEFAULT_SEVERITY_LEVEL,
+    Result,
+    Task,
+    _get_task_name,
+    _is_async_task,
+)
 
 if TYPE_CHECKING:
     from nornir.core import Nornir
@@ -67,41 +75,77 @@ class Operation(Generic[InT, OutT]):
 
     ``input_model`` and ``output_model`` are set from the type arguments, and the class is
     registered under ``name`` when it is defined. A subclass without its own ``name`` is a
-    base for other Operations and is not registered.
+    base for other Operations and is not registered; it may keep type variables, which
+    its subclasses replace with the models::
+
+        class NapalmOperation(Operation[InT, OutT]):
+            pass
+
+        class GetNapalmConfig(NapalmOperation[GetConfigInput, GetConfigOutput]):
+            name = "get_napalm_config"
+
+    Two different classes with the same ``name`` can both be defined. The conflict is
+    raised when the name is looked up, for example when the Operation is run.
 
     Raises:
-        TypeError: a type argument is not a class
-        nornir.core.exceptions.OperationAlreadyRegisteredError: another class already
-            uses ``name``
+        TypeError: a type argument is neither a class nor a type variable, a model cannot
+            be checked with ``isinstance()``, or a class with a ``name`` has no models
 
     """
 
     name: ClassVar[str]
     input_model: ClassVar[type[Any]]
     output_model: ClassVar[type[Any]]
+    # The type arguments, after the type variables of the bases are replaced.
+    _type_args: ClassVar[tuple[Any, ...]] = ()
 
     def __init_subclass__(cls, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
         for base in cls.__dict__.get("__orig_bases__", ()):
             origin = get_origin(base)
             if isinstance(origin, type) and issubclass(origin, Operation):
-                models = get_args(base)
-                if not all(isinstance(model, type) for model in models):
-                    msg = (
-                        f"{cls.__qualname__}: the type arguments of Operation must be classes, "
-                        f"got {models!r}"
-                    )
-                    raise TypeError(msg)
-                cls.input_model, cls.output_model = models
+                parameters = getattr(origin, "__parameters__", ())
+                replace = dict(zip(parameters, get_args(base), strict=True))
+                inherited = origin._type_args or parameters
+                cls._type_args = tuple(replace.get(arg, arg) for arg in inherited)
+        models = cls._type_args or getattr(Operation, "__parameters__", ())
+        if all(isinstance(model, type) for model in models):
+            for model in models:
+                _check_model(cls, model)
+            cls.input_model, cls.output_model = models
+        elif not all(isinstance(model, type | TypeVar) for model in models):
+            msg = (
+                f"{cls.__qualname__}: the type arguments of Operation must be classes, "
+                f"got {models!r}"
+            )
+            raise TypeError(msg)
         if "name" not in cls.__dict__:
             return
-        if not hasattr(cls, "input_model"):
+        if not all(isinstance(model, type) for model in models):
             msg = (
                 f"{cls.__qualname__}: give the input and output models as type arguments, "
                 "for example Operation[MyInput, MyOutput]"
             )
             raise TypeError(msg)
         OperationRegistry._register_contract(cls)
+
+
+def _check_model(operation: type[Operation[Any, Any]], model: type[Any]) -> None:
+    """Reject a model that ``isinstance()`` cannot check, such as a ``TypedDict``.
+
+    Raises:
+        TypeError: ``isinstance()`` raises for the model
+
+    """
+    try:
+        isinstance(None, model)
+    except TypeError as e:
+        msg = (
+            f"{operation.__qualname__}: {model.__qualname__} cannot be a model of an "
+            f"Operation because isinstance() rejects it ({e}). Use a class such as a "
+            "dataclass or a pydantic model."
+        )
+        raise TypeError(msg) from e
 
 
 @dataclass(frozen=True)
@@ -136,7 +180,8 @@ class Registration:
 
     Arguments:
         operation: Name of the Operation
-        platform: Platform of the hosts the task runs for, as written in the inventory
+        platform: Platform of the hosts the task runs for: the ``platform`` of the
+            connection in the inventory, or the host's ``platform``
         connection: Name of the connection the task uses
         task: The task
         kind: ``sync`` or ``async``: the runners the task can run on
@@ -173,6 +218,18 @@ class OperationInfo:
     implementations: tuple[Registration, ...]
 
 
+def _copy_error(error: OperationError) -> OperationError:
+    """Return a new instance of a recorded error, so each caller raises its own.
+
+    Returns:
+        The copy, with the same cause.
+
+    """
+    duplicate = copy.copy(error)
+    duplicate.__cause__ = error.__cause__
+    return duplicate
+
+
 def _source_of(obj: Any) -> RegistrationSource:
     return RegistrationSource(
         kind="call",
@@ -185,15 +242,23 @@ class OperationRegistry:
     """The Operations and their implementations known to the process.
 
     Entry points of installed distributions are loaded the first time the registry is
-    read, not when Nornir is initialized, so a broken package affects only programs that
-    use Operations. Every method is safe to call from any thread.
+    read or changed, not when Nornir is initialized. A problem, such as an entry point that
+    cannot be imported or two classes with the same name, is recorded for the Operation
+    name it concerns and raised when that name is looked up. So a broken package affects
+    only the Operations it provides. Every method is safe to call from any thread.
     """
 
     _contracts: ClassVar[dict[str, type[Operation[Any, Any]]]] = {}
     _registrations: ClassVar[dict[tuple[str, str, str], Registration]] = {}
+    # The problems found for each Operation name, raised when the name is looked up.
+    _failures: ClassVar[dict[str, list[OperationError]]] = {}
     _loaded: ClassVar[bool] = False
-    # Reentrant: loading an entry point imports a module that defines an Operation class.
+    # Protects the dictionaries above. Never held while a module is imported: importing a
+    # module that defines an Operation class takes it, and another thread may hold the
+    # import lock of that module.
     _lock: ClassVar[threading.RLock] = threading.RLock()
+    # Held while the entry points are imported, so that they are imported once.
+    _load_lock: ClassVar[threading.RLock] = threading.RLock()
 
     @classmethod
     def register(
@@ -208,11 +273,13 @@ class OperationRegistry:
         """Register ``task`` as the implementation of ``operation`` for a platform.
 
         Registering the same task again for the same key does nothing. The Operation class
-        does not have to be defined yet.
+        does not have to be defined yet. The entry points are loaded first, so ``replace``
+        also overrides a task that an installed distribution registers for the key.
 
         Arguments:
             operation: Name of the Operation
-            platform: Platform of the hosts, as written in the inventory
+            platform: Platform of the hosts: the ``platform`` of the connection in the
+                inventory, or the host's ``platform``
             connection: Name of the connection the task uses
             task: The task: ``def task(task: Task, params: In) -> Out | Result[Out]``, or
                 its ``async def`` form
@@ -227,6 +294,7 @@ class OperationRegistry:
                 registered for the key and ``replace`` is false
 
         """
+        cls._load_entry_points()
         return cls._register(operation, platform, connection, task, _source_of(task), replace)
 
     @classmethod
@@ -258,18 +326,24 @@ class OperationRegistry:
         )
         with cls._lock:
             existing = cls._registrations.get(key)
-            if existing is not None and existing.task is not task and not replace:
+            # Equality, not identity: each access to a bound method creates a new object.
+            if existing is not None and existing.task == task:
+                return existing
+            if existing is not None and not replace:
                 raise OperationAlreadyRegisteredError(
                     operation, ".".join(key), str(existing.source), str(source)
                 )
-            if existing is not None and existing.task is task:
-                return existing
             cls._registrations[key] = registration
         return registration
 
     @classmethod
     def deregister(cls, *, operation: str, platform: str, connection: str) -> None:
-        """Remove the task registered for the key, if any."""
+        """Remove the task registered for the key, if any.
+
+        The entry points are loaded first, so this also removes a task that an installed
+        distribution registers for the key.
+        """
+        cls._load_entry_points()
         with cls._lock:
             cls._registrations.pop((operation, platform, connection), None)
 
@@ -281,11 +355,13 @@ class OperationRegistry:
             The registration.
 
         Raises:
+            nornir.core.exceptions.OperationError: a problem is recorded for the
+                Operation name, such as an entry point that cannot be loaded
             nornir.core.exceptions.OperationNotRegisteredError: no task is registered for
                 the key
 
         """
-        cls.load()
+        cls._check(operation)
         with cls._lock:
             registration = cls._registrations.get((operation, platform, connection))
             if registration is None:
@@ -302,11 +378,13 @@ class OperationRegistry:
             The Operation class.
 
         Raises:
+            nornir.core.exceptions.OperationError: a problem is recorded for ``name``,
+                such as two classes that define it
             nornir.core.exceptions.OperationContractNotFoundError: no class defines
                 ``name``
 
         """
-        cls.load()
+        cls._check(name)
         with cls._lock:
             operation = cls._contracts.get(name)
             if operation is None:
@@ -322,6 +400,10 @@ class OperationRegistry:
 
         Returns:
             One entry per Operation name, sorted by name.
+
+        Raises:
+            nornir.core.exceptions.OperationError: a problem is recorded for an Operation,
+                as :meth:`load` raises
 
         """
         cls.load()
@@ -351,22 +433,76 @@ class OperationRegistry:
         """Load the Operations and implementations declared by installed distributions.
 
         Reads the ``nornir.plugins.operations`` and ``nornir.plugins.operation_tasks``
-        entry-point groups once per process. If it raises, the next call tries again.
+        entry-point groups once per process. An entry point that cannot be loaded does not
+        stop the others: its error is recorded for its Operation name.
 
         Raises:
             nornir.core.exceptions.OperationEntryPointError: an entry point is malformed
+                or cannot be imported; the error names the distribution
             nornir.core.exceptions.OperationAlreadyRegisteredError: two registrations
                 conflict
 
         """
+        cls._load_entry_points()
         with cls._lock:
+            failures = [failure for found in cls._failures.values() for failure in found]
+        if failures:
+            failure = _copy_error(failures[0])
+            raise failure
+
+    @classmethod
+    def _check(cls, name: str) -> None:
+        """Load the entry points, then raise the first problem recorded for ``name``.
+
+        Raises:
+            nornir.core.exceptions.OperationError: a problem is recorded for ``name``
+
+        """
+        cls._load_entry_points()
+        with cls._lock:
+            failures = cls._failures.get(name)
+        if failures:
+            failure = _copy_error(failures[0])
+            raise failure
+
+    @classmethod
+    def _record_failure(cls, name: str, failure: OperationError) -> None:
+        with cls._lock:
+            cls._failures.setdefault(name, []).append(failure)
+
+    @classmethod
+    def _load_entry_points(cls) -> None:
+        if cls._loaded:
+            return
+        with cls._load_lock:
             if cls._loaded:
                 return
             for entry_point in importlib.metadata.entry_points(group=OPERATIONS_GROUP):
-                cls._load_contract(entry_point)
+                cls._try_load(entry_point, entry_point.name, cls._load_contract)
             for entry_point in importlib.metadata.entry_points(group=OPERATION_TASKS_GROUP):
-                cls._load_task(entry_point)
+                cls._try_load(entry_point, entry_point.name.split(".")[0], cls._load_task)
             cls._loaded = True
+
+    @classmethod
+    def _try_load(
+        cls,
+        entry_point: importlib.metadata.EntryPoint,
+        name: str,
+        load: Callable[[importlib.metadata.EntryPoint], None],
+    ) -> None:
+        try:
+            load(entry_point)
+        except OperationError as e:
+            cls._record_failure(name, e)
+        except Exception as e:  # noqa: BLE001 - any import error is recorded, not raised
+            error = OperationEntryPointError(
+                name,
+                cls._distribution(entry_point),
+                entry_point.name,
+                f"cannot load {entry_point.value!r}: {type(e).__name__}: {e}",
+            )
+            error.__cause__ = e
+            cls._record_failure(name, error)
 
     @staticmethod
     def _distribution(entry_point: importlib.metadata.EntryPoint) -> str:
@@ -413,6 +549,11 @@ class OperationRegistry:
 
     @classmethod
     def _register_contract(cls, operation: type[Operation[Any, Any]]) -> None:
+        """Register an Operation class; a conflict is recorded, not raised.
+
+        Raising here would make a program that imports two packages defining the same
+        name fail at import, even if it never runs an Operation.
+        """
         name = operation.name
         with cls._lock:
             existing = cls._contracts.get(name)
@@ -422,9 +563,13 @@ class OperationRegistry:
                 operation.__module__,
                 operation.__qualname__,
             ):
-                raise OperationAlreadyRegisteredError(
-                    name, None, str(_source_of(existing)), str(_source_of(operation))
+                cls._record_failure(
+                    name,
+                    OperationAlreadyRegisteredError(
+                        name, None, str(_source_of(existing)), str(_source_of(operation))
+                    ),
                 )
+                return
             cls._contracts[name] = operation
 
     @classmethod
@@ -439,6 +584,7 @@ class OperationRegistry:
         with cls._lock:
             cls._contracts.clear()
             cls._registrations.clear()
+            cls._failures.clear()
             cls._loaded = False
 
 
@@ -566,30 +712,79 @@ class _OperationTask(Task):
         )
 
     def _resolve_call(self, host: Host, asynchronous: bool) -> None:
+        self._select(host, asynchronous)
+        value = self.params_source
+        if self.per_host:
+            value = self._call_params(host)
+            if inspect.isawaitable(value):
+                if inspect.iscoroutine(value):
+                    value.close()
+                raise OperationInputError(
+                    self.operation.name,
+                    "the params callable is asynchronous; run the Operation with "
+                    "'arun_operation' or 'asubmit_operation', or give a synchronous callable",
+                    host.name,
+                )
+        self._set_input(host, value)
+
+    async def _aresolve_call(self, host: Host) -> None:
+        self._select(host, asynchronous=True)
+        value = self.params_source
+        if self.per_host:
+            value = self._call_params(host)
+            if inspect.isawaitable(value):
+                try:
+                    value = await value
+                except Exception as e:
+                    raise self._params_error(host, e) from e
+        self._set_input(host, value)
+
+    def _select(self, host: Host, asynchronous: bool) -> None:
+        """Set ``self.task`` to the task registered for the host's platform.
+
+        The platform is the one of the connection, ``connection_options.<connection>.
+        platform`` in the inventory, or the host's ``platform`` when the connection sets
+        none.
+
+        Raises:
+            nornir.core.exceptions.OperationNotRegisteredError: no task is registered
+            nornir.core.exceptions.SyncTaskOnAsyncRunError: the task is synchronous on an
+                asynchronous run
+            nornir.core.exceptions.AsyncTaskOnSyncRunError: the task is asynchronous on a
+                synchronous run
+
+        """
         operation = self.operation.name
-        if host.platform is None:
+        platform = host.get_connection_parameters(self.connection).platform
+        if platform is None:
             raise OperationNotRegisteredError(operation, None, self.connection, host_name=host.name)
         try:
-            registration = OperationRegistry.get(operation, host.platform, self.connection)
+            registration = OperationRegistry.get(operation, platform, self.connection)
         except OperationNotRegisteredError as e:
             raise OperationNotRegisteredError(
-                operation, host.platform, self.connection, e.registered, host.name
+                operation, platform, self.connection, e.registered, host.name
             ) from None
         task_name = _get_task_name(registration.task)
         if asynchronous and registration.kind == "sync":
             raise SyncTaskOnAsyncRunError(task_name, operation, host.name)
         if not asynchronous and registration.kind == "async":
             raise AsyncTaskOnSyncRunError(task_name, operation, host.name)
-        value = self.params_source
-        if self.per_host:
-            try:
-                value = self.params_source(host)
-            except Exception as e:
-                raise OperationInputError(
-                    operation, f"the params callable raised {e!r}", host.name
-                ) from e
-            value = _build_input(operation, self.operation.input_model, value, host.name)
         self.task = registration.task
+
+    def _call_params(self, host: Host) -> Any:
+        try:
+            return self.params_source(host)
+        except Exception as e:
+            raise self._params_error(host, e) from e
+
+    def _params_error(self, host: Host, error: Exception) -> OperationInputError:
+        return OperationInputError(
+            self.operation.name, f"the params callable raised {error!r}", host.name
+        )
+
+    def _set_input(self, host: Host, value: Any) -> None:
+        if self.per_host:
+            value = _build_input(self.operation.name, self.operation.input_model, value, host.name)
         self.params = {"params": value}
 
     def _check_result(self, result: Result) -> Result:

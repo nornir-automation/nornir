@@ -9,17 +9,23 @@ Unreleased
   ``Operation[In, Out]`` and setting ``name``; register implementations with
   ``OperationRegistry.register`` or through the ``nornir.plugins.operations`` and
   ``nornir.plugins.operation_tasks`` entry-point groups, which are loaded the first time
-  an Operation is run or listed. ``Nornir.run_operation``, ``submit_operation``,
-  ``arun_operation`` and ``asubmit_operation`` run an Operation across the inventory:
-  each host runs the task registered for its platform, its result holds an instance of
-  the output model, and a host with no registered task or an output of the wrong type
-  fails on its own. ``params`` accepts an input, a mapping of its fields, or a function
-  that builds the input of each host. The new ``core.operation_connection`` setting
-  gives the default connection. ``OperationRegistry.operations()`` lists the known
-  Operations, their implementations and where each was registered from (#1089)
+  an Operation is run or listed. A package whose entry points cannot be loaded, or two
+  classes with the same name, affect only that Operation, and the error is raised when it
+  is run. ``Nornir.run_operation``, ``submit_operation``, ``arun_operation`` and
+  ``asubmit_operation`` run an Operation across the inventory: each host runs the task
+  registered for the platform of the connection (the ``platform`` of the connection in
+  ``connection_options``, or the host's platform), its result holds an instance of the
+  output model, and a host with no registered task or an output of the wrong type fails
+  on its own. ``params`` accepts an input, a mapping of its fields, or a function that
+  builds the input of each host, which may be an ``async def`` on the asynchronous entry
+  points. The new ``core.operation_connection`` setting gives the default connection.
+  ``OperationRegistry.operations()`` lists the known Operations, their implementations and
+  where each was registered from (#1089)
 - ``Result``, ``RunStream``, ``RunHandle``, ``AsyncRunStream`` and ``AsyncRunHandle``
   are now generic in the type of ``result``, for type checkers only. A bare ``Result``
-  still means ``Result[Any]``, so existing annotations keep passing strict type checks.
+  still means ``Result[Any]``, so existing annotations keep passing strict type checks
+  with a type checker that supports type variable defaults (PEP 696). Older type checkers
+  in strict mode report a bare ``Result`` as missing its type parameter.
   ``RunStream`` and ``AsyncRunStream`` gained ``results()``, which yields only the final
   result of each host (#1089)
 

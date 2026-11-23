@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import importlib
 import sys
 import textwrap
-from typing import TYPE_CHECKING
+import threading
+import time
+from typing import TYPE_CHECKING, TypedDict, TypeVar
 
 import pytest
 
@@ -11,6 +14,7 @@ from nornir.core.exceptions import (
     OperationAlreadyRegisteredError,
     OperationContractNotFoundError,
     OperationEntryPointError,
+    OperationNotRegisteredError,
 )
 from nornir.core.operations import Operation, OperationRegistry, RegistrationSource
 from nornir.plugins.runners import SerialRunner
@@ -31,6 +35,9 @@ if TYPE_CHECKING:
     from nornir.core.task import Task
 
 pytestmark = pytest.mark.usefixtures("operation_registry")
+
+InT = TypeVar("InT")
+OutT = TypeVar("OutT")
 
 
 def other_ios_get_config(task: Task, params: GetConfigInput) -> GetConfigOutput:
@@ -114,18 +121,25 @@ def test_deregister_removes_the_task() -> None:
     assert OperationRegistry.operations()[0].implementations == ()
 
 
-def test_two_classes_with_one_name_raise() -> None:
-    with pytest.raises(OperationAlreadyRegisteredError) as info:
+def test_two_classes_with_one_name_raise_when_the_name_is_looked_up() -> None:
+    class OtherGetConfig(Operation[GetConfigInput, GetConfigOutput]):
+        name = "get_config"
 
-        class OtherGetConfig(Operation[GetConfigInput, GetConfigOutput]):
-            name = "get_config"
-
-    assert str(info.value) == (
-        "operation name 'get_config' is already defined by "
-        "tests.core.operations_helpers.GetConfig; cannot define "
-        "tests.core.test_operations_registry.test_two_classes_with_one_name_raise."
-        "<locals>.OtherGetConfig."
-    )
+    nr = make_nornir(SerialRunner(), {"r1": "ios"})
+    for lookup in (
+        lambda: OperationRegistry.contract("get_config"),
+        lambda: nr.run_operation(GetConfig, connection="napalm"),
+        lambda: nr.run_operation(OtherGetConfig, connection="napalm"),
+    ):
+        with pytest.raises(OperationAlreadyRegisteredError) as info:
+            lookup()
+        assert str(info.value) == (
+            "operation name 'get_config' is already defined by "
+            "tests.core.operations_helpers.GetConfig; cannot define "
+            "tests.core.test_operations_registry."
+            "test_two_classes_with_one_name_raise_when_the_name_is_looked_up."
+            "<locals>.OtherGetConfig."
+        )
 
 
 def test_the_same_definition_executed_again_replaces_the_class() -> None:
@@ -144,7 +158,7 @@ def test_the_same_definition_executed_again_replaces_the_class() -> None:
     exec(source, namespace)  # noqa: S102 - a notebook cell executed twice
     first = OperationRegistry.contract("again")
     namespace = {"__name__": "notebook_cell"}
-    exec(source, namespace)  # noqa: S102
+    exec(source, namespace)  # noqa: S102 - the same notebook cell executed again
 
     assert OperationRegistry.contract("again") is not first
     assert OperationRegistry.contract("again") is namespace["Again"]
@@ -344,7 +358,7 @@ def test_contract_entry_point_must_match_the_class_name(site: Path) -> None:
         OperationRegistry.operations()
 
 
-def test_malformed_implementation_name_raises_and_loading_is_retried(site: Path) -> None:
+def test_malformed_implementation_name_raises_each_time(site: Path) -> None:
     make_distribution(
         site,
         "ops_tasks_d",
@@ -362,9 +376,10 @@ def test_malformed_implementation_name_raises_and_loading_is_retried(site: Path)
         "'nornir.plugins.operation_tasks', the name must be "
         "'<operation>.<platform>.<connection>'."
     )
-    assert OperationRegistry._loaded is False
     with pytest.raises(OperationEntryPointError):
         OperationRegistry.load()
+    with pytest.raises(OperationEntryPointError):
+        OperationRegistry.contract("get_facts")
 
 
 def test_two_distributions_declaring_one_key_raise_with_both(site: Path) -> None:
@@ -407,4 +422,218 @@ def test_init_nornir_does_not_load_entry_points(site: Path) -> None:
     assert list(nr.inventory.hosts) == ["r1"]
     assert "ops_tasks_g" not in sys.modules
     with pytest.raises(OperationEntryPointError):
-        nr.run_operation(GetConfig, connection="napalm")
+        OperationRegistry.load()
+
+
+def test_replace_before_the_first_run_overrides_an_installed_task(site: Path) -> None:
+    make_distribution(
+        site,
+        "ops_tasks_h",
+        "ops_tasks_h",
+        "def ios_get_config(task, params):\n    return None\n",
+        {"nornir.plugins.operation_tasks": {"get_config.ios.napalm": "ops_tasks_h:ios_get_config"}},
+    )
+    start_loading()
+
+    OperationRegistry.register(
+        operation="get_config",
+        platform="ios",
+        connection="napalm",
+        task=ios_get_config,
+        replace=True,
+    )
+
+    assert OperationRegistry.get("get_config", "ios", "napalm").task is ios_get_config
+
+
+def test_deregister_before_the_first_run_removes_an_installed_task(site: Path) -> None:
+    make_distribution(
+        site,
+        "ops_tasks_i",
+        "ops_tasks_i",
+        "def ios_get_config(task, params):\n    return None\n",
+        {"nornir.plugins.operation_tasks": {"get_config.ios.napalm": "ops_tasks_i:ios_get_config"}},
+    )
+    start_loading()
+
+    OperationRegistry.deregister(operation="get_config", platform="ios", connection="napalm")
+
+    with pytest.raises(OperationNotRegisteredError):
+        OperationRegistry.get("get_config", "ios", "napalm")
+
+
+def broken_distribution(root: Path) -> None:
+    """Install a distribution whose module imports a dependency that is not installed."""
+    make_distribution(
+        root,
+        "ops_tasks_broken",
+        "ops_tasks_broken",
+        "import ops_dependency_not_installed\n",
+        {"nornir.plugins.operation_tasks": {"get_facts.ios.napalm": "ops_tasks_broken:facts"}},
+    )
+    start_loading()
+
+
+def test_a_broken_package_does_not_stop_operations_of_other_packages(site: Path) -> None:
+    broken_distribution(site)
+    OperationRegistry.register(
+        operation="get_config", platform="ios", connection="napalm", task=ios_get_config
+    )
+    nr = make_nornir(SerialRunner(), {"r1": "ios"})
+
+    result = nr.run_operation(GetConfig, connection="napalm").result()
+
+    assert not result.failed
+
+
+def test_a_broken_package_is_named_in_the_error(site: Path) -> None:
+    broken_distribution(site)
+
+    for lookup in (OperationRegistry.load, lambda: OperationRegistry.contract("get_facts")):
+        with pytest.raises(OperationEntryPointError) as info:
+            lookup()
+        assert str(info.value) == (
+            "distribution 'ops_tasks_broken' declares entry point 'get_facts.ios.napalm': "
+            "cannot load 'ops_tasks_broken:facts': ModuleNotFoundError: No module named "
+            "'ops_dependency_not_installed'"
+        )
+        assert isinstance(info.value.__cause__, ModuleNotFoundError)
+
+
+SHARED_NAME_CODE = """
+    from dataclasses import dataclass
+    from nornir.core.operations import Operation
+
+    @dataclass
+    class ConfigInput:
+        pass
+
+    @dataclass
+    class ConfigOutput:
+        config: str
+
+    class GetConfig(Operation[ConfigInput, ConfigOutput]):
+        name = "shared_name"
+
+    def plain_task(task):
+        return "a task that does not use Operations"
+"""
+
+
+def test_two_packages_defining_one_operation_name_can_both_be_imported(site: Path) -> None:
+    for module in ("ops_vendor_a", "ops_vendor_b"):
+        (site / f"{module}.py").write_text(textwrap.dedent(SHARED_NAME_CODE), encoding="utf-8")
+
+    importlib.import_module("ops_vendor_a")
+    importlib.import_module("ops_vendor_b")
+
+    with pytest.raises(OperationAlreadyRegisteredError, match=r"ops_vendor_b\.GetConfig"):
+        OperationRegistry.contract("shared_name")
+
+
+SLOW_CONTRACT_CODE = """
+    import time
+    from dataclasses import dataclass
+    from nornir.core.operations import Operation
+
+    time.sleep(0.5)
+
+    @dataclass
+    class SlowInput:
+        pass
+
+    @dataclass
+    class SlowOutput:
+        pass
+
+    class GetSlow(Operation[SlowInput, SlowOutput]):
+        name = "get_slow"
+"""
+
+
+def test_loading_while_another_thread_imports_an_operation_does_not_deadlock(
+    site: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A deadlock leaves both threads blocked for good. They hold locks created for this
+    # test, so the other tests can still use the registry.
+    monkeypatch.setattr(OperationRegistry, "_lock", threading.RLock())
+    monkeypatch.setattr(OperationRegistry, "_load_lock", threading.RLock())
+    make_distribution(
+        site,
+        "ops_slow",
+        "ops_slow",
+        SLOW_CONTRACT_CODE,
+        {"nornir.plugins.operations": {"get_slow": "ops_slow:GetSlow"}},
+    )
+    start_loading()
+
+    importer = threading.Thread(target=importlib.import_module, args=("ops_slow",), daemon=True)
+    loader = threading.Thread(target=OperationRegistry.load, daemon=True)
+    importer.start()
+    time.sleep(0.1)  # The importer now holds the import lock of ops_slow.
+    loader.start()
+    importer.join(5)
+    loader.join(5)
+
+    assert not importer.is_alive()
+    assert not loader.is_alive()
+
+
+# --- Definitions of Operation classes ---------------------------------------------------
+
+
+def test_a_model_that_isinstance_rejects_is_rejected_when_the_operation_is_defined() -> None:
+    class FactsDict(TypedDict):
+        vendor: str
+
+    with pytest.raises(TypeError, match=r"FactsDict cannot be a model .* isinstance\(\)"):
+
+        class GetFactsDict(Operation[GetConfigInput, FactsDict]):
+            name = "get_facts_dict"
+
+
+def test_a_generic_base_without_name_can_be_subclassed() -> None:
+    class NapalmOperation(Operation[InT, OutT]):
+        """A base for the Operations that use NAPALM."""
+
+    class GetNapalmConfig(NapalmOperation[GetConfigInput, GetConfigOutput]):
+        name = "get_napalm_config"
+
+    assert GetNapalmConfig.input_model is GetConfigInput
+    assert GetNapalmConfig.output_model is GetConfigOutput
+    assert OperationRegistry.contract("get_napalm_config") is GetNapalmConfig
+
+
+def test_a_base_with_one_model_receives_the_other_from_its_subclass() -> None:
+    class ConfigOperation(Operation[GetConfigInput, OutT]):
+        """A base for the Operations that read the configuration."""
+
+    class GetConfigText(ConfigOperation[GetConfigOutput]):
+        name = "get_config_text"
+
+    assert GetConfigText.input_model is GetConfigInput
+    assert GetConfigText.output_model is GetConfigOutput
+
+
+def test_a_named_operation_with_type_variables_raises() -> None:
+    with pytest.raises(TypeError, match="give the input and output models"):
+
+        class Unfinished(Operation[GetConfigInput, OutT]):
+            name = "unfinished"
+
+
+def test_registering_the_same_bound_method_twice_is_accepted() -> None:
+    class Driver:
+        def get_config(self, task: Task, params: GetConfigInput) -> GetConfigOutput:
+            return GetConfigOutput(config="driver")
+
+    driver = Driver()
+
+    first = OperationRegistry.register(
+        operation="get_config", platform="ios", connection="napalm", task=driver.get_config
+    )
+    second = OperationRegistry.register(
+        operation="get_config", platform="ios", connection="napalm", task=driver.get_config
+    )
+
+    assert second is first

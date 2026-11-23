@@ -54,6 +54,7 @@ def operation_registry() -> Iterator[type[OperationRegistry]]:
     with OperationRegistry._lock:
         contracts = dict(OperationRegistry._contracts)
         registrations = dict(OperationRegistry._registrations)
+        failures = {name: list(found) for name, found in OperationRegistry._failures.items()}
         loaded = OperationRegistry._loaded
         OperationRegistry._registrations.clear()
         OperationRegistry._loaded = True
@@ -63,6 +64,8 @@ def operation_registry() -> Iterator[type[OperationRegistry]]:
         OperationRegistry._contracts.update(contracts)
         OperationRegistry._registrations.clear()
         OperationRegistry._registrations.update(registrations)
+        OperationRegistry._failures.clear()
+        OperationRegistry._failures.update(failures)
         OperationRegistry._loaded = loaded
 
 

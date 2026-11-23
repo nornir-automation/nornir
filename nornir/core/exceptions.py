@@ -36,10 +36,16 @@ class SyncTaskOnAsyncRunError(SyncAsyncMismatchError):
         self.task_name = task_name
         self.operation = operation
         self.host_name = host_name
+        if operation is None:
+            hint = "Define it with 'async def' or use a synchronous runner."
+        else:
+            hint = (
+                "Register an 'async def' task for this platform and connection, or use "
+                "'nr.run_operation(...)' with a synchronous runner."
+            )
         super().__init__(
             f"Task {task_name!r}{_operation_context(operation, host_name)} is synchronous "
-            "and cannot run asynchronously. Define it with 'async def' or use a synchronous "
-            f"runner. See {SYNC_TASKS_IN_ASYNC_RUNS_ISSUE}."
+            f"and cannot run asynchronously. {hint} See {SYNC_TASKS_IN_ASYNC_RUNS_ISSUE}."
         )
 
 
@@ -56,34 +62,71 @@ class AsyncTaskOnSyncRunError(SyncAsyncMismatchError):
         self.task_name = task_name
         self.operation = operation
         self.host_name = host_name
+        if operation is None:
+            hint = (
+                "Use 'await nr.arun(...)' or 'await task.arun(...)', or define a synchronous task."
+            )
+        else:
+            hint = (
+                "Use 'nr.arun_operation(...)' with an asyncio runner, or register a "
+                "synchronous task for this platform and connection."
+            )
         super().__init__(
             f"Task {task_name!r}{_operation_context(operation, host_name)} is asynchronous "
-            "and cannot run synchronously. Use 'await nr.arun(...)' or 'await task.arun(...)', "
-            "or define a synchronous task."
+            f"and cannot run synchronously. {hint}"
         )
+
+
+_OPERATION_ENTRY_POINTS = {
+    "run_operation",
+    "submit_operation",
+    "arun_operation",
+    "asubmit_operation",
+}
 
 
 class RunnerNotSyncError(SyncAsyncMismatchError):
-    """Raised when a runner does not support synchronous operations."""
+    """Raised when a runner does not support synchronous operations.
 
-    def __init__(self, runner_name: str) -> None:
+    Arguments:
+        runner_name: Class name of the runner
+        entry_point: The method that was called, which selects the suggestion
+
+    """
+
+    def __init__(self, runner_name: str, entry_point: str | None = None) -> None:
         self.runner_name = runner_name
-        super().__init__(
-            f"Runner {runner_name!r} does not support synchronous operations. "
-            "Use 'await nr.arun(...)', 'await nr.aclose_connections()', or 'async with nr'."
-        )
+        self.entry_point = entry_point
+        if entry_point in _OPERATION_ENTRY_POINTS:
+            hint = "Use 'nr.arun_operation(...)' or 'await nr.asubmit_operation(...)'."
+        else:
+            hint = "Use 'await nr.arun(...)', 'await nr.aclose_connections()', or 'async with nr'."
+        super().__init__(f"Runner {runner_name!r} does not support synchronous operations. {hint}")
 
 
 class RunnerNotAsyncError(SyncAsyncMismatchError):
-    """Raised when a runner does not support asynchronous operations."""
+    """Raised when a runner does not support asynchronous operations.
 
-    def __init__(self, runner_name: str) -> None:
+    Arguments:
+        runner_name: Class name of the runner
+        entry_point: The method that was called, which selects the suggestion
+
+    """
+
+    def __init__(self, runner_name: str, entry_point: str | None = None) -> None:
         self.runner_name = runner_name
-        super().__init__(
-            f"Runner {runner_name!r} does not support asynchronous operations. "
-            "Use 'nr.run(...)', 'nr.close_connections()', or 'with nr', or select an "
-            "asyncio runner."
-        )
+        self.entry_point = entry_point
+        if entry_point in _OPERATION_ENTRY_POINTS:
+            hint = (
+                "Use 'nr.run_operation(...)' or 'nr.submit_operation(...)', or select an "
+                "asyncio runner."
+            )
+        else:
+            hint = (
+                "Use 'nr.run(...)', 'nr.close_connections()', or 'with nr', or select an "
+                "asyncio runner."
+            )
+        super().__init__(f"Runner {runner_name!r} does not support asynchronous operations. {hint}")
 
 
 class ConnectionException(Exception):
@@ -387,9 +430,10 @@ class RunnerCapabilityError(Exception):
         self.capability = capability
         self.background = background
         if background:
+            live = "run_operation" if capability == "submit_operation" else "stream"
             message = (
                 f"{runner_name} does not support background runs ({capability!r}) because it "
-                "runs every task on the caller's thread. Use 'stream' to consume the run "
+                f"runs every task on the caller's thread. Use {live!r} to consume the run "
                 "live, or use ThreadedRunner."
             )
         elif capability in {"asubmit", "astream", "arun_operation", "asubmit_operation"}:
