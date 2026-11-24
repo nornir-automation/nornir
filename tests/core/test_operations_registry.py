@@ -25,6 +25,7 @@ from tests.core.operations_helpers import (
     aios_get_config,
     eos_get_config,
     ios_get_config,
+    junos_get_config,
     make_nornir,
 )
 
@@ -577,6 +578,133 @@ def test_loading_while_another_thread_imports_an_operation_does_not_deadlock(
 
     assert not importer.is_alive()
     assert not loader.is_alive()
+
+
+# A module named by an entry point that also registers a task by call while it is imported.
+# The register() call comes before the function the entry point names.
+REGISTERING_TASKS_CODE = """
+    import time
+    from nornir.core.operations import OperationRegistry
+
+    def eos_get_config(task, params):
+        return None
+
+    time.sleep({delay})
+    OperationRegistry.register(
+        operation="get_config", platform="eos", connection="napalm", task=eos_get_config
+    )
+
+    def ios_get_config(task, params):
+        return None
+"""
+
+
+def test_a_package_that_registers_a_task_while_it_is_imported_loads(site: Path) -> None:
+    make_distribution(
+        site,
+        "ops_registering",
+        "ops_registering",
+        REGISTERING_TASKS_CODE.format(delay=0),
+        {
+            "nornir.plugins.operation_tasks": {
+                "get_config.ios.napalm": "ops_registering:ios_get_config"
+            }
+        },
+    )
+    start_loading()
+
+    registration = OperationRegistry.get("get_config", "ios", "napalm")
+
+    assert registration.task.__name__ == "ios_get_config"
+
+
+def test_registering_while_another_thread_loads_the_entry_points_does_not_deadlock(
+    site: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # A deadlock leaves both threads blocked for good. They hold locks created for this
+    # test, so the other tests can still use the registry.
+    monkeypatch.setattr(OperationRegistry, "_lock", threading.RLock())
+    monkeypatch.setattr(OperationRegistry, "_load_lock", threading.RLock())
+    make_distribution(
+        site,
+        "ops_registering_slow",
+        "ops_registering_slow",
+        REGISTERING_TASKS_CODE.format(delay=0.5),
+        {
+            "nornir.plugins.operation_tasks": {
+                "get_config.ios.napalm": "ops_registering_slow:ios_get_config"
+            }
+        },
+    )
+    start_loading()
+
+    importer = threading.Thread(
+        target=importlib.import_module, args=("ops_registering_slow",), daemon=True
+    )
+    loader = threading.Thread(target=OperationRegistry.load, daemon=True)
+    importer.start()
+    time.sleep(0.1)  # The importer now holds the import lock of ops_registering_slow.
+    loader.start()
+    importer.join(5)
+    loader.join(5)
+
+    assert not importer.is_alive()
+    assert not loader.is_alive()
+
+
+def working_and_broken_get_config(root: Path) -> None:
+    """Install two distributions that implement get_config with napalm.
+
+    ``ops_get_config_ios`` implements it for ios and loads. ``ops_get_config_junos``
+    implements it for junos, and its module imports a dependency that is not installed.
+    """
+    make_distribution(
+        root,
+        "ops_get_config_ios",
+        "ops_get_config_ios",
+        "from tests.core.operations_helpers import ios_get_config\n",
+        {
+            "nornir.plugins.operation_tasks": {
+                "get_config.ios.napalm": "ops_get_config_ios:ios_get_config"
+            }
+        },
+    )
+    make_distribution(
+        root,
+        "ops_get_config_junos",
+        "ops_get_config_junos",
+        "import ops_dependency_not_installed\n",
+        {
+            "nornir.plugins.operation_tasks": {
+                "get_config.junos.napalm": "ops_get_config_junos:junos_get_config"
+            }
+        },
+    )
+    start_loading()
+
+
+def test_a_broken_package_fails_only_the_hosts_of_its_platform(site: Path) -> None:
+    working_and_broken_get_config(site)
+    nr = make_nornir(SerialRunner(), {"r1": "ios", "r3": "junos"})
+
+    result = nr.run_operation(GetConfig, connection="napalm").result()
+
+    assert not result["r1"].failed
+    assert isinstance(result["r3"].exception, OperationEntryPointError)
+
+
+def test_replace_overrides_a_task_whose_package_failed_to_load(site: Path) -> None:
+    working_and_broken_get_config(site)
+
+    OperationRegistry.register(
+        operation="get_config",
+        platform="junos",
+        connection="napalm",
+        task=junos_get_config,
+        replace=True,
+    )
+
+    assert OperationRegistry.get("get_config", "junos", "napalm").task is junos_get_config
 
 
 # --- Definitions of Operation classes ---------------------------------------------------
