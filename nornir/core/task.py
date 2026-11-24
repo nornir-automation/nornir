@@ -6,7 +6,7 @@ import inspect
 import logging
 import sys
 import traceback
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any, Generic, cast
 
 from nornir.core.exceptions import (
     AsyncTaskOnSyncRunError,
@@ -19,14 +19,35 @@ from nornir.core.exceptions import (
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Callable, Coroutine, Generator
 
+    # The default lets a bare ``Result`` mean ``Result[Any]`` for the type checker. It is
+    # declared only here, so ``typing_extensions`` is never imported at runtime.
+    from typing_extensions import TypeVar
+
     from nornir.core import Nornir
     from nornir.core.inventory import Host
     from nornir.core.processor import Processors
     from nornir.core.run import _HostState
 
+    T = TypeVar("T", default=Any)
+else:
+    from typing import TypeVar
+
+    T = TypeVar("T")
+
 
 logger = logging.getLogger(__name__)
 DEFAULT_SEVERITY_LEVEL = logging.INFO
+
+
+def _raise_unresolved(error: BaseException | None) -> None:
+    """Raise the error kept while the task was selected, if any.
+
+    Raises:
+        BaseException: the kept error
+
+    """
+    if error is not None:
+        raise error
 
 
 def _cancellation_requested() -> bool:
@@ -210,9 +231,76 @@ class Task:
         logger.info("Host %r: task %r interrupted: %s", self.host.name, self.name, interruption)
         return Result(self.host, exception=interruption, result=str(interruption), failed=True)
 
+    def _resolve_call(self, host: Host, asynchronous: bool) -> None:
+        """Prepare ``self.task`` and ``self.params`` before the host's task begins.
+
+        Called before ``task_instance_started``, so processors receive the task that runs.
+        An exception raised here is kept and raised inside the ``try`` that calls the
+        task, so it becomes the host's failed result. A plain task needs nothing.
+
+        Arguments:
+            host: The host the task runs for
+            asynchronous: Whether the task is about to run on the asynchronous path
+
+        """
+
+    async def _aresolve_call(self, host: Host) -> None:
+        """Prepare ``self.task`` and ``self.params`` on the asynchronous path.
+
+        As :meth:`_resolve_call`, which it calls by default; it may await.
+        """
+        self._resolve_call(host, asynchronous=True)
+
+    def _resolve(self, host: Host) -> Exception | None:
+        """Run :meth:`_resolve_call` for ``host``.
+
+        Returns:
+            The exception it raised, to raise when the task begins, or ``None``.
+
+        """
+        self.host = host
+        try:
+            self._resolve_call(host, asynchronous=False)
+        except Exception as e:
+            return e
+        return None
+
+    async def _aresolve(self, host: Host) -> BaseException | None:
+        """Run :meth:`_aresolve_call` for ``host``.
+
+        Returns:
+            The exception it raised, to raise when the task begins, or ``None``.
+
+        Raises:
+            asyncio.CancelledError: the host was cancelled while its input was built
+
+        """
+        self.host = host
+        try:
+            await self._aresolve_call(host)
+        except asyncio.CancelledError as e:
+            if _cancellation_requested():
+                raise
+            return e
+        except Exception as e:
+            return e
+        return None
+
+    def _check_result(self, result: Result) -> Result:
+        """Return the top-level result of the host, checked; a plain task keeps it as is.
+
+        Returns:
+            The result to record.
+
+        """
+        return result
+
+    def _to_result(self, host: Host, value: Any) -> Result:
+        result = value if isinstance(value, Result) else Result(host=host, result=value)
+        return self._check_result(result) if self.parent_task is None else result
+
     def _finish(self, host: Host, result: Any) -> MultiResult:
-        if not isinstance(result, Result):
-            result = Result(host=host, result=result)
+        result = self._to_result(host, result)
         state = self._host_state if self.parent_task is None else None
         if state is not None:
             claimed, interruption = state.claim()
@@ -275,11 +363,13 @@ class Task:
             TaskInterruptedError: a subtask was interrupted; the parent receives it
 
         """
+        unresolved = self._resolve(host)
         if (recorded := self._recorded_before_begin()) is not None:
             return recorded
         self._begin(host)
         try:
             logger.debug("Host %r: running task %r", self.host.name, self.name)
+            _raise_unresolved(unresolved)
             r = self.task(self, **self.params)
             if inspect.isgenerator(r):
                 r = yield from self._drive(cast("Generator[Any, None, Any]", r))
@@ -374,10 +464,12 @@ class Task:
             TaskInterruptedError: a subtask was interrupted; the parent receives it
 
         """
+        unresolved = await self._aresolve(host)
         if (recorded := self._recorded_before_begin()) is not None:
             return recorded
         self._begin(host)
         try:
+            _raise_unresolved(unresolved)
             r = await self._acall()
         except TaskInterruptedError as e:
             r = self._result_from_interruption(e)
@@ -577,8 +669,11 @@ class PartialResult:
         return f'{self.__class__.__name__}: "{self.name}" {self.result!r}'
 
 
-class Result:
+class Result(Generic[T]):
     """Result of running individual tasks.
+
+    ``Result[T]`` types ``result`` as ``T`` for the type checker; a bare ``Result`` means
+    ``Result[Any]``. The type parameter has no effect at runtime.
 
     Arguments:
         changed (bool): ``True`` if the task is changing the system
@@ -611,7 +706,7 @@ class Result:
         severity_level: int = DEFAULT_SEVERITY_LEVEL,
         **kwargs: Any,
     ) -> None:
-        self.result = result
+        self.result: T = result
         self.host = host
         self.changed = changed
         self.diff = diff
