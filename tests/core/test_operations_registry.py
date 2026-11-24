@@ -490,7 +490,10 @@ def test_a_broken_package_does_not_stop_operations_of_other_packages(site: Path)
 def test_a_broken_package_is_named_in_the_error(site: Path) -> None:
     broken_distribution(site)
 
-    for lookup in (OperationRegistry.load, lambda: OperationRegistry.contract("get_facts")):
+    for lookup in (
+        OperationRegistry.load,
+        lambda: OperationRegistry.get("get_facts", "ios", "napalm"),
+    ):
         with pytest.raises(OperationEntryPointError) as info:
             lookup()
         assert str(info.value) == (
@@ -705,6 +708,53 @@ def test_replace_overrides_a_task_whose_package_failed_to_load(site: Path) -> No
     )
 
     assert OperationRegistry.get("get_config", "junos", "napalm").task is junos_get_config
+
+
+def test_a_registration_that_conflicts_with_a_package_fails_only_its_key(site: Path) -> None:
+    working_and_broken_get_config(site)
+    OperationRegistry.register(
+        operation="get_config", platform="ios", connection="napalm", task=eos_get_config
+    )
+
+    with pytest.raises(OperationAlreadyRegisteredError, match="ops_get_config_ios"):
+        OperationRegistry.get("get_config", "ios", "napalm")
+    with pytest.raises(OperationEntryPointError):
+        OperationRegistry.get("get_config", "junos", "napalm")
+    OperationRegistry.register(
+        operation="get_config", platform="eos", connection="napalm", task=eos_get_config
+    )
+    assert OperationRegistry.get("get_config", "eos", "napalm").task is eos_get_config
+
+
+# A module named by an entry point that looks up an Operation while it is imported, before
+# it defines the function the entry point names.
+LOOKING_UP_CODE = """
+    from nornir.core.operations import OperationRegistry
+
+    OperationRegistry.contract("get_config")
+
+    def ios_get_config(task, params):
+        return None
+"""
+
+
+def test_a_package_that_looks_up_an_operation_while_it_is_imported_loads(site: Path) -> None:
+    make_distribution(
+        site,
+        "ops_looking_up",
+        "ops_looking_up",
+        LOOKING_UP_CODE,
+        {
+            "nornir.plugins.operation_tasks": {
+                "get_config.ios.napalm": "ops_looking_up:ios_get_config"
+            }
+        },
+    )
+    start_loading()
+
+    registration = OperationRegistry.get("get_config", "ios", "napalm")
+
+    assert registration.task.__name__ == "ios_get_config"
 
 
 # --- Definitions of Operation classes ---------------------------------------------------

@@ -242,17 +242,31 @@ class OperationRegistry:
     """The Operations and their implementations known to the process.
 
     Entry points of installed distributions are loaded the first time the registry is
-    read or changed, not when Nornir is initialized. A problem, such as an entry point that
-    cannot be imported or two classes with the same name, is recorded for the Operation
-    name it concerns and raised when that name is looked up. So a broken package affects
-    only the Operations it provides. Every method is safe to call from any thread.
+    read, not when Nornir is initialized. A problem is recorded and raised when it is
+    looked up, so a broken package affects only what it provides:
+
+    - an implementation that cannot be loaded is recorded for its key, and fails only the
+      hosts of its platform;
+    - a contract that cannot be loaded, an implementation with a malformed name, or two
+      classes with the same name is recorded for the Operation name.
+
+    ``register(replace=True)`` and ``deregister()`` do not load the entry points. They mark
+    the key, and the entry points skip a marked key when they are loaded. Every method is
+    safe to call from any thread.
     """
 
     _contracts: ClassVar[dict[str, type[Operation[Any, Any]]]] = {}
     _registrations: ClassVar[dict[tuple[str, str, str], Registration]] = {}
     # The problems found for each Operation name, raised when the name is looked up.
     _failures: ClassVar[dict[str, list[OperationError]]] = {}
+    # The problems found for each implementation key, raised when the key is looked up.
+    _task_failures: ClassVar[dict[tuple[str, str, str], list[OperationError]]] = {}
+    # Keys set by register(replace=True) or deregister(): the entry points skip them.
+    _overridden: ClassVar[set[tuple[str, str, str]]] = set()
     _loaded: ClassVar[bool] = False
+    # The thread that imports the entry points, so a lookup made by an imported module
+    # does not import them a second time.
+    _loading_thread: ClassVar[int | None] = None
     # Protects the dictionaries above. Never held while a module is imported: importing a
     # module that defines an Operation class takes it, and another thread may hold the
     # import lock of that module.
@@ -273,8 +287,9 @@ class OperationRegistry:
         """Register ``task`` as the implementation of ``operation`` for a platform.
 
         Registering the same task again for the same key does nothing. The Operation class
-        does not have to be defined yet. The entry points are loaded first, so ``replace``
-        also overrides a task that an installed distribution registers for the key.
+        does not have to be defined yet. The entry points are not loaded, so a module can
+        call this while it is imported. With ``replace``, the task is used even when an
+        installed distribution declares the key, or failed to load it.
 
         Arguments:
             operation: Name of the Operation
@@ -291,10 +306,10 @@ class OperationRegistry:
         Raises:
             ValueError: ``operation``, ``platform`` or ``connection`` is empty or ``None``
             nornir.core.exceptions.OperationAlreadyRegisteredError: a different task is
-                registered for the key and ``replace`` is false
+                registered for the key and ``replace`` is false. A conflict with an entry
+                point that is loaded later is raised when the key is looked up.
 
         """
-        cls._load_entry_points()
         return cls._register(operation, platform, connection, task, _source_of(task), replace)
 
     @classmethod
@@ -334,18 +349,23 @@ class OperationRegistry:
                     operation, ".".join(key), str(existing.source), str(source)
                 )
             cls._registrations[key] = registration
+            if replace:
+                cls._overridden.add(key)
+                cls._task_failures.pop(key, None)
         return registration
 
     @classmethod
     def deregister(cls, *, operation: str, platform: str, connection: str) -> None:
         """Remove the task registered for the key, if any.
 
-        The entry points are loaded first, so this also removes a task that an installed
-        distribution registers for the key.
+        This also removes a task that an installed distribution declares for the key, or
+        failed to load, even when the entry points are loaded later.
         """
-        cls._load_entry_points()
+        key = (operation, platform, connection)
         with cls._lock:
-            cls._registrations.pop((operation, platform, connection), None)
+            cls._registrations.pop(key, None)
+            cls._task_failures.pop(key, None)
+            cls._overridden.add(key)
 
     @classmethod
     def get(cls, operation: str, platform: str, connection: str) -> Registration:
@@ -356,14 +376,21 @@ class OperationRegistry:
 
         Raises:
             nornir.core.exceptions.OperationError: a problem is recorded for the
-                Operation name, such as an entry point that cannot be loaded
+                Operation name or for the key, such as an entry point that cannot be
+                loaded
             nornir.core.exceptions.OperationNotRegisteredError: no task is registered for
                 the key
 
         """
+        key = (operation, platform, connection)
         cls._check(operation)
         with cls._lock:
-            registration = cls._registrations.get((operation, platform, connection))
+            failures = cls._task_failures.get(key)
+        if failures:
+            failure = _copy_error(failures[0])
+            raise failure
+        with cls._lock:
+            registration = cls._registrations.get(key)
             if registration is None:
                 raise OperationNotRegisteredError(
                     operation, platform, connection, cls._keys_of(operation)
@@ -434,7 +461,7 @@ class OperationRegistry:
 
         Reads the ``nornir.plugins.operations`` and ``nornir.plugins.operation_tasks``
         entry-point groups once per process. An entry point that cannot be loaded does not
-        stop the others: its error is recorded for its Operation name.
+        stop the others: its error is recorded for its key or its Operation name.
 
         Raises:
             nornir.core.exceptions.OperationEntryPointError: an entry point is malformed
@@ -445,7 +472,12 @@ class OperationRegistry:
         """
         cls._load_entry_points()
         with cls._lock:
-            failures = [failure for found in cls._failures.values() for failure in found]
+            failures = [
+                failure
+                for recorded in (cls._failures, cls._task_failures)
+                for found in recorded.values()
+                for failure in found
+            ]
         if failures:
             failure = _copy_error(failures[0])
             raise failure
@@ -466,43 +498,74 @@ class OperationRegistry:
             raise failure
 
     @classmethod
-    def _record_failure(cls, name: str, failure: OperationError) -> None:
+    def _record_failure(cls, scope: str | tuple[str, str, str], failure: OperationError) -> None:
+        """Record ``failure`` for an Operation name, or for an implementation key."""
         with cls._lock:
-            cls._failures.setdefault(name, []).append(failure)
+            if isinstance(scope, tuple):
+                cls._task_failures.setdefault(scope, []).append(failure)
+            else:
+                cls._failures.setdefault(scope, []).append(failure)
 
     @classmethod
     def _load_entry_points(cls) -> None:
-        if cls._loaded:
+        if cls._loaded or cls._loading_thread == threading.get_ident():
             return
         with cls._load_lock:
             if cls._loaded:
                 return
-            for entry_point in importlib.metadata.entry_points(group=OPERATIONS_GROUP):
-                cls._try_load(entry_point, entry_point.name, cls._load_contract)
-            for entry_point in importlib.metadata.entry_points(group=OPERATION_TASKS_GROUP):
-                cls._try_load(entry_point, entry_point.name.split(".")[0], cls._load_task)
-            cls._loaded = True
+            cls._loading_thread = threading.get_ident()
+            try:
+                for entry_point in importlib.metadata.entry_points(group=OPERATIONS_GROUP):
+                    cls._try_load(entry_point, entry_point.name, cls._load_contract)
+                for entry_point in importlib.metadata.entry_points(group=OPERATION_TASKS_GROUP):
+                    cls._load_task_entry_point(entry_point)
+                cls._loaded = True
+            finally:
+                cls._loading_thread = None
+
+    @classmethod
+    def _load_task_entry_point(cls, entry_point: importlib.metadata.EntryPoint) -> None:
+        parts = entry_point.name.split(".")
+        if len(parts) != 3 or not all(parts):  # noqa: PLR2004 - operation, platform, connection
+            cls._record_failure(
+                parts[0],
+                OperationEntryPointError(
+                    parts[0],
+                    cls._distribution(entry_point),
+                    entry_point.name,
+                    f"in {OPERATION_TASKS_GROUP!r}, the name must be "
+                    "'<operation>.<platform>.<connection>'.",
+                ),
+            )
+            return
+        key = (parts[0], parts[1], parts[2])
+        with cls._lock:
+            overridden = key in cls._overridden
+        # register(replace=True) or deregister() decided the key: the module is not
+        # imported, so it cannot fail.
+        if not overridden:
+            cls._try_load(entry_point, key, cls._load_task)
 
     @classmethod
     def _try_load(
         cls,
         entry_point: importlib.metadata.EntryPoint,
-        name: str,
+        scope: str | tuple[str, str, str],
         load: Callable[[importlib.metadata.EntryPoint], None],
     ) -> None:
         try:
             load(entry_point)
         except OperationError as e:
-            cls._record_failure(name, e)
+            cls._record_failure(scope, e)
         except Exception as e:  # noqa: BLE001 - any import error is recorded, not raised
             error = OperationEntryPointError(
-                name,
+                scope[0] if isinstance(scope, tuple) else scope,
                 cls._distribution(entry_point),
                 entry_point.name,
                 f"cannot load {entry_point.value!r}: {type(e).__name__}: {e}",
             )
             error.__cause__ = e
-            cls._record_failure(name, error)
+            cls._record_failure(scope, error)
 
     @staticmethod
     def _distribution(entry_point: importlib.metadata.EntryPoint) -> str:
@@ -527,15 +590,7 @@ class OperationRegistry:
     @classmethod
     def _load_task(cls, entry_point: importlib.metadata.EntryPoint) -> None:
         distribution = cls._distribution(entry_point)
-        parts = entry_point.name.split(".")
-        if len(parts) != 3 or not all(parts):  # noqa: PLR2004 - operation, platform, connection
-            raise OperationEntryPointError(
-                parts[0],
-                distribution,
-                entry_point.name,
-                f"in {OPERATION_TASKS_GROUP!r}, the name must be "
-                "'<operation>.<platform>.<connection>'.",
-            )
+        operation, platform, connection = entry_point.name.split(".")
         task = entry_point.load()
         source = RegistrationSource(
             kind="entry_point",
@@ -544,7 +599,6 @@ class OperationRegistry:
             distribution=distribution,
             entry_point=entry_point.name,
         )
-        operation, platform, connection = parts
         cls._register(operation, platform, connection, task, source, replace=False)
 
     @classmethod
@@ -585,6 +639,8 @@ class OperationRegistry:
             cls._contracts.clear()
             cls._registrations.clear()
             cls._failures.clear()
+            cls._task_failures.clear()
+            cls._overridden.clear()
             cls._loaded = False
 
 

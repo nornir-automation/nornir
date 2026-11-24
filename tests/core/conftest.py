@@ -55,6 +55,10 @@ def operation_registry() -> Iterator[type[OperationRegistry]]:
         contracts = dict(OperationRegistry._contracts)
         registrations = dict(OperationRegistry._registrations)
         failures = {name: list(found) for name, found in OperationRegistry._failures.items()}
+        task_failures = {
+            key: list(found) for key, found in OperationRegistry._task_failures.items()
+        }
+        overridden = set(OperationRegistry._overridden)
         loaded = OperationRegistry._loaded
         OperationRegistry._registrations.clear()
         OperationRegistry._loaded = True
@@ -66,6 +70,10 @@ def operation_registry() -> Iterator[type[OperationRegistry]]:
         OperationRegistry._registrations.update(registrations)
         OperationRegistry._failures.clear()
         OperationRegistry._failures.update(failures)
+        OperationRegistry._task_failures.clear()
+        OperationRegistry._task_failures.update(task_failures)
+        OperationRegistry._overridden.clear()
+        OperationRegistry._overridden.update(overridden)
         OperationRegistry._loaded = loaded
 
 
