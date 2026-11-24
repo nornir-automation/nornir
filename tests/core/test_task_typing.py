@@ -5,6 +5,8 @@ from __future__ import annotations
 import pickle  # noqa: S403 - round-trips results built by the test
 from typing import TYPE_CHECKING
 
+import nornir.core
+import nornir.core.task
 from nornir.core.task import AggregatedResult, MultiResult, Result
 from tests.core.test_operations_typing import check
 
@@ -90,13 +92,34 @@ def test_an_untyped_task_reports_nothing(tmp_path: Path) -> None:
     assert "Success: no issues found" in report
 
 
+def test_assigning_the_result_of_a_multi_result_is_rejected(tmp_path: Path) -> None:
+    # The assignment would not change multi[0].result, which print_result and processors read.
+    report = check(
+        tmp_path,
+        PRELUDE
+        + """
+    from nornir.core.task import MultiResult
+
+    def fix(multi: MultiResult) -> None:
+        multi.result = 5
+    """,
+    )
+
+    assert 'Property "result" defined in "MultiResult" is read-only' in report
+
+
+def test_the_result_type_variable_is_not_public() -> None:
+    assert not hasattr(nornir.core, "ResultT")
+    assert not hasattr(nornir.core.task, "ResultT")
+
+
 def test_the_type_parameters_do_not_change_the_runtime() -> None:
     multi = MultiResult[int]("task")
     multi.append(Result(None, result=1))
     assert type(multi) is MultiResult
     assert multi.result == 1
     assert "result" not in vars(MultiResult)
-    multi.result = 2
+    multi[0].result = 2
     assert multi.result == 2
     result = AggregatedResult[int]("task", r1=multi)
     assert type(result) is AggregatedResult

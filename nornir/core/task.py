@@ -17,7 +17,14 @@ from nornir.core.exceptions import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator, Callable, Coroutine, Generator
+    from collections.abc import (
+        AsyncGenerator,
+        AsyncIterator,
+        Callable,
+        Coroutine,
+        Generator,
+        Iterator,
+    )
 
     # The default lets a bare ``Result`` mean ``Result[Any]`` for the type checker. It is
     # declared only here, so ``typing_extensions`` is never imported at runtime.
@@ -34,7 +41,7 @@ else:
 
     T = TypeVar("T")
 
-ResultT = TypeVar("ResultT")
+_ResultT = TypeVar("_ResultT")
 
 logger = logging.getLogger(__name__)
 DEFAULT_SEVERITY_LEVEL = logging.INFO
@@ -548,13 +555,17 @@ class Task:
         return result
 
     @overload
+    def run(self, task: Callable[..., Iterator[Any]], **kwargs: Any) -> MultiResult[Any]: ...
+    @overload
     def run(
-        self, task: Callable[..., Generator[Any, Any, Any]], **kwargs: Any
-    ) -> MultiResult[Any]: ...
+        self, task: Callable[..., Result[_ResultT]], **kwargs: Any
+    ) -> MultiResult[_ResultT]: ...
     @overload
-    def run(self, task: Callable[..., Result[ResultT]], **kwargs: Any) -> MultiResult[ResultT]: ...
+    def run(
+        self, task: Callable[..., Result[_ResultT] | None], **kwargs: Any
+    ) -> MultiResult[_ResultT | None]: ...
     @overload
-    def run(self, task: Callable[..., ResultT], **kwargs: Any) -> MultiResult[ResultT]: ...
+    def run(self, task: Callable[..., _ResultT], **kwargs: Any) -> MultiResult[_ResultT]: ...
     def run(self, task: Callable[..., Any], **kwargs: Any) -> MultiResult:
         """Call a task from within a task.
 
@@ -600,19 +611,23 @@ class Task:
 
     @overload
     async def arun(
-        self, task: Callable[..., AsyncGenerator[Any, None]], **kwargs: Any
+        self, task: Callable[..., AsyncIterator[Any]], **kwargs: Any
     ) -> MultiResult[Any]: ...
     @overload
     async def arun(
-        self, task: Callable[..., Coroutine[Any, Any, Result[ResultT]]], **kwargs: Any
-    ) -> MultiResult[ResultT]: ...
+        self, task: Callable[..., Coroutine[Any, Any, Result[_ResultT]]], **kwargs: Any
+    ) -> MultiResult[_ResultT]: ...
     @overload
     async def arun(
-        self, task: Callable[..., Coroutine[Any, Any, ResultT]], **kwargs: Any
-    ) -> MultiResult[ResultT]: ...
+        self, task: Callable[..., Coroutine[Any, Any, Result[_ResultT] | None]], **kwargs: Any
+    ) -> MultiResult[_ResultT | None]: ...
+    @overload
+    async def arun(
+        self, task: Callable[..., Coroutine[Any, Any, _ResultT]], **kwargs: Any
+    ) -> MultiResult[_ResultT]: ...
     async def arun(
         self,
-        task: Callable[..., Coroutine[Any, Any, Any] | AsyncGenerator[Any, None]],
+        task: Callable[..., Coroutine[Any, Any, Any] | AsyncIterator[Any]],
         **kwargs: Any,
     ) -> MultiResult:
         """Call an asynchronous task from within an asynchronous task.
@@ -766,8 +781,12 @@ class MultiResult(list[Result], Generic[T]):
     """
 
     if TYPE_CHECKING:
-        # Read through __getattr__ at runtime; declared here so that it has a type.
-        result: T
+        # Read through __getattr__ at runtime; declared here so that it has a type. Read-only,
+        # because assigning it would not change the first element, which the processors read.
+        @property
+        def result(self) -> T:
+            """Result of the task itself, read from the first element."""
+            ...
 
     def __init__(self, name: str) -> None:
         self.name = name

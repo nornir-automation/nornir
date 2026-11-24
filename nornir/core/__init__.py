@@ -43,12 +43,18 @@ from nornir.core.run import (
     _merge_options,
 )
 from nornir.core.state import GlobalState
-from nornir.core.task import AggregatedResult, Task, _get_task_name, _is_async_task
+from nornir.core.task import (
+    AggregatedResult,
+    Task,
+    _get_task_name,
+    _is_async_task,
+    _ResultT,
+)
 
 if TYPE_CHECKING:
     import builtins
     import types
-    from collections.abc import AsyncGenerator, Awaitable, Callable, Coroutine, Generator, Mapping
+    from collections.abc import AsyncIterator, Awaitable, Callable, Coroutine, Iterator, Mapping
 
     from nornir.core.inventory import Host
     from nornir.core.task import Result
@@ -57,7 +63,6 @@ logger = logging.getLogger(__name__)
 
 InT = TypeVar("InT")
 OutT = TypeVar("OutT")
-ResultT = TypeVar("ResultT")
 
 
 def _is_async_runner(runner: RunnerPlugin) -> TypeGuard[AsyncRunnerPlugin]:
@@ -197,7 +202,7 @@ class Nornir:
     @overload
     def run(
         self,
-        task: Callable[..., Generator[Any, Any, Any]],
+        task: Callable[..., Iterator[Any]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
@@ -207,23 +212,33 @@ class Nornir:
     @overload
     def run(
         self,
-        task: Callable[..., Result[ResultT]],
+        task: Callable[..., Result[_ResultT]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
         name: str | None = None,
         **kwargs: Any,
-    ) -> AggregatedResult[ResultT]: ...
+    ) -> AggregatedResult[_ResultT]: ...
     @overload
     def run(
         self,
-        task: Callable[..., ResultT],
+        task: Callable[..., Result[_ResultT] | None],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
         name: str | None = None,
         **kwargs: Any,
-    ) -> AggregatedResult[ResultT]: ...
+    ) -> AggregatedResult[_ResultT | None]: ...
+    @overload
+    def run(
+        self,
+        task: Callable[..., _ResultT],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        **kwargs: Any,
+    ) -> AggregatedResult[_ResultT]: ...
     def run(
         self,
         task: Callable[..., Any],
@@ -262,7 +277,7 @@ class Nornir:
     @overload
     async def arun(
         self,
-        task: Callable[..., AsyncGenerator[Any, None]],
+        task: Callable[..., AsyncIterator[Any]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
@@ -272,26 +287,36 @@ class Nornir:
     @overload
     async def arun(
         self,
-        task: Callable[..., Coroutine[Any, Any, Result[ResultT]]],
+        task: Callable[..., Coroutine[Any, Any, Result[_ResultT]]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
         name: str | None = None,
         **kwargs: Any,
-    ) -> AggregatedResult[ResultT]: ...
+    ) -> AggregatedResult[_ResultT]: ...
     @overload
     async def arun(
         self,
-        task: Callable[..., Coroutine[Any, Any, ResultT]],
+        task: Callable[..., Coroutine[Any, Any, Result[_ResultT] | None]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
         name: str | None = None,
         **kwargs: Any,
-    ) -> AggregatedResult[ResultT]: ...
+    ) -> AggregatedResult[_ResultT | None]: ...
+    @overload
     async def arun(
         self,
-        task: Callable[..., Coroutine[Any, Any, Any] | AsyncGenerator[Any, None]],
+        task: Callable[..., Coroutine[Any, Any, _ResultT]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        **kwargs: Any,
+    ) -> AggregatedResult[_ResultT]: ...
+    async def arun(
+        self,
+        task: Callable[..., Coroutine[Any, Any, Any] | AsyncIterator[Any]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
@@ -460,7 +485,7 @@ class Nornir:
     @overload
     def submit(
         self,
-        task: Callable[..., Generator[Any, Any, Any]],
+        task: Callable[..., Iterator[Any]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
@@ -471,25 +496,36 @@ class Nornir:
     @overload
     def submit(
         self,
-        task: Callable[..., Result[ResultT]],
+        task: Callable[..., Result[_ResultT]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
         name: str | None = None,
         run_options: RunOptions | None = None,
         **kwargs: Any,
-    ) -> RunHandle[ResultT]: ...
+    ) -> RunHandle[_ResultT]: ...
     @overload
     def submit(
         self,
-        task: Callable[..., ResultT],
+        task: Callable[..., Result[_ResultT] | None],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
         name: str | None = None,
         run_options: RunOptions | None = None,
         **kwargs: Any,
-    ) -> RunHandle[ResultT]: ...
+    ) -> RunHandle[_ResultT | None]: ...
+    @overload
+    def submit(
+        self,
+        task: Callable[..., _ResultT],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> RunHandle[_ResultT]: ...
     def submit(
         self,
         task: Callable[..., Any],
@@ -536,7 +572,7 @@ class Nornir:
     @overload
     def stream(
         self,
-        task: Callable[..., Generator[Any, Any, Any]],
+        task: Callable[..., Iterator[Any]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
@@ -547,25 +583,36 @@ class Nornir:
     @overload
     def stream(
         self,
-        task: Callable[..., Result[ResultT]],
+        task: Callable[..., Result[_ResultT]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
         name: str | None = None,
         run_options: RunOptions | None = None,
         **kwargs: Any,
-    ) -> RunStream[ResultT]: ...
+    ) -> RunStream[_ResultT]: ...
     @overload
     def stream(
         self,
-        task: Callable[..., ResultT],
+        task: Callable[..., Result[_ResultT] | None],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
         name: str | None = None,
         run_options: RunOptions | None = None,
         **kwargs: Any,
-    ) -> RunStream[ResultT]: ...
+    ) -> RunStream[_ResultT | None]: ...
+    @overload
+    def stream(
+        self,
+        task: Callable[..., _ResultT],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> RunStream[_ResultT]: ...
     def stream(
         self,
         task: Callable[..., Any],
@@ -611,7 +658,7 @@ class Nornir:
     @overload
     async def asubmit(
         self,
-        task: Callable[..., AsyncGenerator[Any, None]],
+        task: Callable[..., AsyncIterator[Any]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
@@ -622,28 +669,39 @@ class Nornir:
     @overload
     async def asubmit(
         self,
-        task: Callable[..., Coroutine[Any, Any, Result[ResultT]]],
+        task: Callable[..., Coroutine[Any, Any, Result[_ResultT]]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
         name: str | None = None,
         run_options: RunOptions | None = None,
         **kwargs: Any,
-    ) -> AsyncRunHandle[ResultT]: ...
+    ) -> AsyncRunHandle[_ResultT]: ...
     @overload
     async def asubmit(
         self,
-        task: Callable[..., Coroutine[Any, Any, ResultT]],
+        task: Callable[..., Coroutine[Any, Any, Result[_ResultT] | None]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
         name: str | None = None,
         run_options: RunOptions | None = None,
         **kwargs: Any,
-    ) -> AsyncRunHandle[ResultT]: ...
+    ) -> AsyncRunHandle[_ResultT | None]: ...
+    @overload
     async def asubmit(
         self,
-        task: Callable[..., Coroutine[Any, Any, Any] | AsyncGenerator[Any, None]],
+        task: Callable[..., Coroutine[Any, Any, _ResultT]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> AsyncRunHandle[_ResultT]: ...
+    async def asubmit(
+        self,
+        task: Callable[..., Coroutine[Any, Any, Any] | AsyncIterator[Any]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
@@ -686,7 +744,7 @@ class Nornir:
     @overload
     def astream(
         self,
-        task: Callable[..., AsyncGenerator[Any, None]],
+        task: Callable[..., AsyncIterator[Any]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
@@ -697,28 +755,39 @@ class Nornir:
     @overload
     def astream(
         self,
-        task: Callable[..., Coroutine[Any, Any, Result[ResultT]]],
+        task: Callable[..., Coroutine[Any, Any, Result[_ResultT]]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
         name: str | None = None,
         run_options: RunOptions | None = None,
         **kwargs: Any,
-    ) -> AsyncRunStream[ResultT]: ...
+    ) -> AsyncRunStream[_ResultT]: ...
     @overload
     def astream(
         self,
-        task: Callable[..., Coroutine[Any, Any, ResultT]],
+        task: Callable[..., Coroutine[Any, Any, Result[_ResultT] | None]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
         name: str | None = None,
         run_options: RunOptions | None = None,
         **kwargs: Any,
-    ) -> AsyncRunStream[ResultT]: ...
+    ) -> AsyncRunStream[_ResultT | None]: ...
+    @overload
     def astream(
         self,
-        task: Callable[..., Coroutine[Any, Any, Any] | AsyncGenerator[Any, None]],
+        task: Callable[..., Coroutine[Any, Any, _ResultT]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> AsyncRunStream[_ResultT]: ...
+    def astream(
+        self,
+        task: Callable[..., Coroutine[Any, Any, Any] | AsyncIterator[Any]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
         on_failed: bool = False,
