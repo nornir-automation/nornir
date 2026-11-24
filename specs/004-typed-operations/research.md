@@ -180,22 +180,37 @@ records the decision, the reason, and the alternatives that were rejected.
 ## R9. When entry points are loaded (FR-015, FR-016, SC-004)
 
 - **Decision:** The registry reads both entry-point groups once per process, on the first
-  call to any method that reads or changes the registry (`get`, `contract`, `operations`,
-  `register`, `deregister`, and through them `run_operation`). It is not called from
-  `InitNornir`. An entry point that cannot be loaded (a malformed name, an import error,
-  a conflict) does not stop the others: its error is recorded for the Operation name in
-  the entry point, wrapped in `OperationEntryPointError` with the distribution when it is
-  not already an Operation error. Looking up that name raises the error; the Operations of
-  other packages still run. `load()` raises the first recorded error each time it is
-  called. Modules are imported without holding the registry lock, because defining an
-  Operation class takes that lock while the import lock of its module is held.
+  call to a method that reads the registry (`get`, `contract`, `operations`, `load`, and
+  through them `run_operation`). It is not called from `InitNornir`, `register` or
+  `deregister`. An entry point that cannot be loaded does not stop the others. Its error,
+  wrapped in `OperationEntryPointError` with the distribution when it is not already an
+  Operation error, is recorded:
+  - for the key `(operation, platform, connection)` of an implementation entry point that
+    cannot be imported or conflicts with another registration. Looking up that key raises
+    the error, so only the hosts of that platform fail; other packages that implement the
+    same Operation still run.
+  - for the Operation name of a contract entry point, or of an implementation entry point
+    whose name is malformed, because the key is not known. Looking up the name raises.
+
+  `load()` raises the first recorded error each time it is called. Modules are imported
+  while no registry lock that an imported module could need is held: defining an Operation
+  class or calling `register` takes only the registry lock, which loading does not hold
+  during an import. A lookup made by a module while the same thread imports the entry
+  points returns without loading them a second time.
 - **Rationale:** Loading imports every installed implementation module. Doing that in
   `InitNornir` would make a broken or conflicting Operations package break programs that
   never use Operations, contrary to SC-004 and to the reason plugins were unbundled
   (Principle II). Recording each error for its Operation name extends the same reasoning
-  to programs that use other Operations. Looking up the name still raises the conflict
-  before any device is contacted. `register` and `deregister` load first so that a change
-  made before the first run is not undone when the entry points are loaded.
+  to programs that use other Operations, and recording an implementation error for its key
+  extends it to the other platforms of the same Operation. `register(replace=True)` and
+  `deregister` mark the key, and loading skips a marked key without importing its module,
+  so a change made before the first run is not undone when the entry points are loaded, and
+  `replace=True` also overrides a package that cannot be loaded. They do not load the
+  entry points themselves: a package module that calls `register` while it is imported
+  would otherwise import the entry points a second time, and a thread that imports such a
+  module would wait for the thread that loads the entry points, which waits for the import
+  of that module. A `register` call without `replace` that conflicts with an entry point
+  loaded later is recorded for the key.
 - **Alternatives rejected:** loading in `InitNornir`, as connection plugins are: see above.
 
 ## R10. Entry-point groups and names (FR-015, FR-015a)

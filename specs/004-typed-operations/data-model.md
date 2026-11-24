@@ -76,10 +76,13 @@ Returned by `OperationRegistry.operations()`, one per known Operation name, sort
 |---|---|---|
 | contracts | `dict[str, type[Operation[Any, Any]]]` | Filled when classes are defined and when contract entry points load. |
 | registrations | `dict[tuple[str, str, str], Registration]` | Filled by `register()` and implementation entry points. |
-| failures | `dict[str, list[OperationError]]` | The errors recorded for each Operation name: an entry point that cannot be loaded, or a conflicting class. Raised when the name is looked up (R9, R11). |
+| failures | `dict[str, list[OperationError]]` | The errors recorded for each Operation name: a contract entry point that cannot be loaded, an implementation entry point with a malformed name, or a conflicting class. Raised when the name is looked up (R9, R11). |
+| task failures | `dict[tuple[str, str, str], list[OperationError]]` | The errors recorded for each implementation key: an entry point that cannot be imported, or that conflicts with another registration. Raised when the key is looked up (R9). |
+| overridden | `set[tuple[str, str, str]]` | Keys set by `register(replace=True)` or `deregister()`. Loading skips their entry points (R9). |
 | loaded | `bool` | Set once both entry-point groups were read (R9). |
 | lock | `threading.RLock` | Guards the state above. Never held while a module is imported. |
-| load lock | `threading.RLock` | Held while the entry points are imported, so that they are imported once. |
+| load lock | `threading.RLock` | Held while the entry points are imported, so that they are imported once. `register()` and `deregister()` do not take it. |
+| loading thread | `int \| None` | The thread that imports the entry points; a lookup from that thread does not load them again. |
 
 ## Per-run objects
 

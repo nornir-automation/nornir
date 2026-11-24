@@ -192,17 +192,21 @@ error.
   Looking up the name, for example running the Operation, raises
   `OperationAlreadyRegisteredError`, which names both classes.
 - **An entry point that cannot be loaded** (for example, its module imports a dependency
-  that is not installed): the error is recorded for the Operation name in the entry point.
-  Only that Operation raises `OperationEntryPointError`, which names the distribution.
-  The Operations of other packages still run.
+  that is not installed): the error is recorded for the key of the entry point. Only the
+  hosts of that platform fail, with `OperationEntryPointError`, which names the
+  distribution. Other packages, including packages that implement the same Operation for
+  other platforms, still run.
 - **A model that `isinstance()` cannot check**, such as a `TypedDict`: defining the
   Operation raises `TypeError`, because the output of each host could not be checked.
 - **A base class without `name`** that keeps type variables
   (`class NapalmOperation(Operation[InT, OutT])`): accepted and not registered. Its
   subclasses give the models.
 - **A registration changed before the first run**: `register(..., replace=True)` and
-  `deregister()` load the entry points first, so they also apply to a task that an installed
-  distribution registers for the key.
+  `deregister()` also apply to a task that an installed distribution declares for the key,
+  or fails to load, because the entry point for that key is skipped when the entry points
+  are loaded.
+- **A package that calls `register()` while it is imported**: it loads, and a thread that
+  imports it while another thread loads the entry points does not wait forever.
 - **An implementation entry point with a malformed name** (for example `get_config.ios`, or
   a platform name that contains a dot): loading the package's registrations raises an error
   that names the distribution.

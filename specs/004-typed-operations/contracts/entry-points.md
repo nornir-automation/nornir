@@ -23,14 +23,21 @@ get_config = "nornir_ops_core.config:GetConfig"
 ## Loading
 
 - Both groups are read on the first call to `OperationRegistry.get`, `contract`,
-  `operations`, `register`, `deregister` or `load`, and therefore on the first
+  `operations` or `load`, and therefore on the first
   `run_operation`, `submit_operation`, `arun_operation` or `asubmit_operation` of the
   process. `InitNornir` does not load them (research R9).
-- Each group is read once per process. An entry point that cannot be loaded (a malformed
-  name, a module that cannot be imported, a conflict) does not stop the others: its error
-  is recorded for the Operation name in the entry point. Looking up that name raises the
-  error, which names the distribution. `OperationRegistry.load()` raises the first recorded
-  error each time it is called.
+- Each group is read once per process. An entry point that cannot be loaded does not stop
+  the others. The error names the distribution and is recorded:
+  - for the key `<operation>.<platform>.<connection>` of an implementation that cannot be
+    imported or conflicts with another registration: looking up that key raises it, so
+    only the hosts of that platform fail;
+  - for the Operation name of a contract, or of an implementation whose name is malformed:
+    looking up the name raises it.
+
+  `OperationRegistry.load()` raises the first recorded error each time it is called.
+- `register(..., replace=True)` and `deregister()` do not load the entry points. An entry
+  point for a key that one of them set is skipped, and its module is not imported. A
+  package module can call `register()` while it is imported.
 - The source recorded for an entry point is `entry_point.dist.name`, the entry point's name,
   and the module and qualified name of the task.
 
