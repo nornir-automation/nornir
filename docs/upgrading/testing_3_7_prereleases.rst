@@ -1,16 +1,21 @@
 Testing the 3.7 pre-releases
 ############################
 
-Nornir 3.7 adds three features. All three are optional:
+Nornir 3.7 adds five features. All five are optional:
 
+* Read typed results. Your type checker and your editor know the type of the result of a
+  task from the return annotation of the task.
+* Run one action on hosts of different vendors with an Operation. Each host runs the task
+  registered for its platform, and the result of each host has the same type.
 * Follow the progress of a run, cancel it, and set time limits. This works with
   ``ThreadedRunner`` (the default runner), ``SerialRunner`` and ``AsyncioRunner``. You do
   not need any ``async`` code.
 * Run ``async def`` tasks on the event loop of your application with ``AsyncioRunner``.
 * Load the inventory from an async application with ``AInitNornir``.
 
-The pre-releases, starting with 3.7.0a1, let you test these features and your existing
-scripts before 3.7.0 is final. The new APIs can still change, so do not use a pre-release
+The pre-releases let you test these features and your existing scripts before 3.7.0 is
+final. Typed results and Operations are new in 3.7.0b1. The other three features were
+already in 3.7.0a1. The new APIs can still change, so do not use a pre-release
 in production.
 
 Install a pre-release
@@ -24,11 +29,11 @@ use. The 3.7 pre-releases support Python 3.10 to 3.15.
 
     python -m venv .venv-nornir-3.7
     source .venv-nornir-3.7/bin/activate
-    pip install "nornir==3.7.0a1"
+    pip install "nornir==3.7.0b1"
     pip install nornir_utils nornir_netmiko   # replace with the plugins your scripts use
     python -c "import nornir; print(nornir.__version__)"
 
-With uv, run ``uv pip install "nornir==3.7.0a1"``. The latest pre-release is listed on
+With uv, run ``uv pip install "nornir==3.7.0b1"``. The latest pre-release is listed on
 `PyPI <https://pypi.org/project/nornir/#history>`_.
 
 Plugins that use the new APIs
@@ -77,10 +82,147 @@ Four behaviours changed. Check if your code depends on one of them:
 * ``Host.close_connections`` now tries to close every connection, then raises the first
   error. Before, it stopped at the first connection that it could not close.
 
+Run your type checker
+---------------------
+
+If you check your scripts or your plugins with mypy, Pyright or ty, run the type checker
+again with the pre-release. Nothing changes when the code runs, but the type checker now
+knows the type of the results, so it can report errors in code that passed with 3.6.1.
+mypy 2.x is recommended.
+
+Three cases need a change in your code:
+
+* A variable that holds the runs of tasks with different return types. Annotate it with
+  ``AggregatedResult``, for example ``result: AggregatedResult = nr.run(task=backup)``.
+* Code that reads a field that the result type does not have. The type checker reports
+  it. Before, the result was ``Any``, so every field was accepted.
+* A ``Result`` annotation without a type, such as ``-> Result``, with an older type
+  checker in strict mode. The type checker reports a missing type parameter. Use a type
+  checker that supports type variable defaults (PEP 696), or write ``Result[Any]``.
+
 2. Try the new features
 =======================
 
 The examples below use your own ``config.yaml`` and inventory.
+
+Read typed results
+------------------
+
+* Give your task a return annotation: ``Result[T]``, or a plain type such as ``str``.
+* ``nr.run()`` then returns ``AggregatedResult[T]``, and ``multi.result`` has the type
+  ``T``. ``Task.run()``, ``stream()``, ``submit()`` and the async methods work the same
+  way.
+* A task annotated with ``Result`` without a type, a task without a return annotation,
+  and a task that contains ``yield`` keep the type ``Any``.
+
+.. code-block:: python
+
+    from dataclasses import dataclass
+
+    from nornir import InitNornir
+    from nornir.core.task import Result, Task
+
+    nr = InitNornir(config_file="config.yaml")
+
+
+    @dataclass
+    class Facts:
+        hostname: str
+        platform: str
+
+
+    def get_facts(task: Task) -> Result[Facts]:
+        facts = Facts(hostname=task.host.hostname or "", platform=task.host.platform or "")
+        return Result(host=task.host, result=facts)
+
+
+    results = nr.run(task=get_facts)
+    for name, multi in results.items():
+        if not multi.failed:
+            print(name, multi.result.platform)
+
+What to check:
+
+* Your editor completes the fields of ``multi.result``, here ``hostname`` and
+  ``platform``.
+* Change ``multi.result.platform`` to ``multi.result.platfrom`` and run your type
+  checker. It reports the error.
+* The type is correct only for a host that succeeded. For a failed host, ``multi.result``
+  contains the error text, so check ``multi.failed`` first.
+* The type checker results of your existing tasks. Tell us when a type is wrong, or when
+  code that is correct is reported as an error.
+
+Read more: the "Typing the results" section of :doc:`../tutorial/task_results`.
+
+Run one action across vendors with Operations
+---------------------------------------------
+
+* An Operation is a class with a ``name``, an input model and an output model. A
+  dataclass or a Pydantic model works as a model.
+* An implementation is a normal task for one platform and one connection. It receives
+  the input as ``params`` and returns the output model.
+* ``nr.run_operation()`` runs, on each host, the task registered for the platform of the
+  host. ``results()`` gives the final result of each host.
+* ``nr.submit_operation()``, ``nr.arun_operation()`` and ``nr.asubmit_operation()``
+  follow the rules of ``submit``, ``astream`` and ``asubmit``.
+
+In this example, replace ``ios`` with a platform of your inventory, and ``netmiko`` with
+the connection that your task uses:
+
+.. code-block:: python
+
+    from dataclasses import dataclass
+
+    from nornir import InitNornir
+    from nornir.core.operations import Operation, OperationRegistry
+    from nornir.core.task import Task
+
+    nr = InitNornir(config_file="config.yaml")
+
+
+    @dataclass
+    class GetVersionInput:
+        detail: bool = False
+
+
+    @dataclass
+    class GetVersionOutput:
+        version: str
+
+
+    class GetVersion(Operation[GetVersionInput, GetVersionOutput]):
+        name = "get_version"
+
+
+    def ios_get_version(task: Task, params: GetVersionInput) -> GetVersionOutput:
+        return GetVersionOutput(version="17.9.4")  # replace with a call to the device
+
+
+    OperationRegistry.register(
+        operation="get_version", platform="ios", connection="netmiko", task=ios_get_version
+    )
+
+    stream = nr.run_operation(GetVersion, GetVersionInput(), connection="netmiko")
+    for res in stream.results():
+        if res.failed:
+            print(res.host, "FAILED:", res.exception)
+        else:
+            print(res.host, res.result.version)
+
+What to check:
+
+* The hosts of the platform that you registered return a ``GetVersionOutput``. The type
+  checker types ``res.result.version`` as ``str``.
+* A host of a platform without a registered task fails with
+  ``OperationNotRegisteredError``. The other hosts are not affected.
+* A wrong field name in the input, such as ``nr.run_operation(GetVersion, {"detial":
+  True}, connection="netmiko")``, raises ``OperationInputError`` before any host starts.
+* If you set ``core.operation_connection`` in the configuration file, you do not need
+  ``connection=`` in each call.
+* If you write plugins, declare your tasks in the ``nornir.plugins.operation_tasks``
+  entry-point group, and check that ``OperationRegistry.operations()`` lists them.
+
+Read more: :doc:`../howto/operations`.
 
 Follow, stop and time-limit runs with your current runner
 ---------------------------------------------------------
@@ -224,8 +366,12 @@ Read more: :doc:`../howto/async_inventory`, :doc:`../howto/asyncio_runner` and
 3. Test your plugins
 ====================
 
-If you maintain a plugin, first run its tests with the pre-release. If your plugin uses
-an asynchronous client, you can also add async support with the new plugin contracts:
+If you maintain a plugin, first run its tests and its type checker with the pre-release.
+Add a return annotation to your tasks, such as ``Result[str]``, so that your users get
+typed results. To implement an Operation, see :doc:`../howto/operations`.
+
+If your plugin uses an asynchronous client, you can also add async support with the new
+plugin contracts:
 
 * Connection plugins: :doc:`../howto/writing_capability_connection_plugins`
 * Inventory plugins: :doc:`../howto/writing_capability_inventory_plugins`
@@ -240,8 +386,11 @@ Tell us what works and what does not:
 
 * Comment on the issue of the feature:
   `#1085 Async Runner <https://github.com/nornir-automation/nornir/issues/1085>`_,
-  `#1086 Runner Enhancements <https://github.com/nornir-automation/nornir/issues/1086>`_ or
-  `#1087 Async Inventory <https://github.com/nornir-automation/nornir/issues/1087>`_.
+  `#1086 Runner Enhancements <https://github.com/nornir-automation/nornir/issues/1086>`_,
+  `#1087 Async Inventory <https://github.com/nornir-automation/nornir/issues/1087>`_ or
+  `#1089 Operations <https://github.com/nornir-automation/nornir/issues/1089>`_.
+  For typed results, comment on
+  `pull request #1129 <https://github.com/nornir-automation/nornir/pull/1129>`_.
 * Open a `new issue <https://github.com/nornir-automation/nornir/issues/new>`_ for a bug.
   Include the steps to reproduce it, and your Nornir and Python versions.
 * Write in the ``#nornir`` channel of the

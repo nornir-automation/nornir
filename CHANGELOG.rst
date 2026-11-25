@@ -1,8 +1,8 @@
 Changelog
 ==========
 
-Unreleased
-----------
+3.7.0b1 - November 25, 2026
+---------------------------
 
 - Added Operations: an action defined once with a typed input and a typed output, and
   implemented by plain tasks for each platform and connection. Define one by subclassing

@@ -2053,7 +2053,7 @@ wheels = [
 
 [[package]]
 name = "nornir"
-version = "3.7.0a1"
+version = "3.7.0b1"
 source = { editable = "." }
 default-groups = ["dev", "docs"]
 dependencies = [
