@@ -6,7 +6,7 @@ import inspect
 import logging
 import sys
 import traceback
-from typing import TYPE_CHECKING, Any, Generic, cast
+from typing import TYPE_CHECKING, Any, Generic, cast, overload
 
 from nornir.core.exceptions import (
     AsyncTaskOnSyncRunError,
@@ -17,7 +17,14 @@ from nornir.core.exceptions import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncGenerator, Callable, Coroutine, Generator
+    from collections.abc import (
+        AsyncGenerator,
+        AsyncIterator,
+        Callable,
+        Coroutine,
+        Generator,
+        Iterator,
+    )
 
     # The default lets a bare ``Result`` mean ``Result[Any]`` for the type checker. It is
     # declared only here, so ``typing_extensions`` is never imported at runtime.
@@ -34,6 +41,7 @@ else:
 
     T = TypeVar("T")
 
+_ResultT = TypeVar("_ResultT")
 
 logger = logging.getLogger(__name__)
 DEFAULT_SEVERITY_LEVEL = logging.INFO
@@ -546,6 +554,18 @@ class Task:
             raise NornirSubTaskError(task=task, result=result)
         return result
 
+    @overload
+    def run(self, task: Callable[..., Iterator[Any]], **kwargs: Any) -> MultiResult[Any]: ...
+    @overload
+    def run(
+        self, task: Callable[..., Result[_ResultT]], **kwargs: Any
+    ) -> MultiResult[_ResultT]: ...
+    @overload
+    def run(
+        self, task: Callable[..., Result[_ResultT] | None], **kwargs: Any
+    ) -> MultiResult[_ResultT | None]: ...
+    @overload
+    def run(self, task: Callable[..., _ResultT], **kwargs: Any) -> MultiResult[_ResultT]: ...
     def run(self, task: Callable[..., Any], **kwargs: Any) -> MultiResult:
         """Call a task from within a task.
 
@@ -589,9 +609,25 @@ class Task:
             raise
         return self._record_subtask_result(run_task, r)
 
+    @overload
+    async def arun(
+        self, task: Callable[..., AsyncIterator[Any]], **kwargs: Any
+    ) -> MultiResult[Any]: ...
+    @overload
+    async def arun(
+        self, task: Callable[..., Coroutine[Any, Any, Result[_ResultT]]], **kwargs: Any
+    ) -> MultiResult[_ResultT]: ...
+    @overload
+    async def arun(
+        self, task: Callable[..., Coroutine[Any, Any, Result[_ResultT] | None]], **kwargs: Any
+    ) -> MultiResult[_ResultT | None]: ...
+    @overload
+    async def arun(
+        self, task: Callable[..., Coroutine[Any, Any, _ResultT]], **kwargs: Any
+    ) -> MultiResult[_ResultT]: ...
     async def arun(
         self,
-        task: Callable[..., Coroutine[Any, Any, Any] | AsyncGenerator[Any, None]],
+        task: Callable[..., Coroutine[Any, Any, Any] | AsyncIterator[Any]],
         **kwargs: Any,
     ) -> MultiResult:
         """Call an asynchronous task from within an asynchronous task.
@@ -731,8 +767,26 @@ class Result(Generic[T]):
         return str(self.result)
 
 
-class MultiResult(list[Result]):
-    """List-like object with the results of all the subtasks for a particular device/task."""
+class MultiResult(list[Result], Generic[T]):
+    """List-like object with the results of all the subtasks for a particular device/task.
+
+    The first element is the result of the task itself, the others the results of its
+    subtasks. ``MultiResult[T]`` types ``result``, read from the first element, as ``T``
+    for the type checker; the elements stay ``Result[Any]``, as subtasks return other
+    types. A bare ``MultiResult`` means ``MultiResult[Any]``. The type parameter has no
+    effect at runtime.
+
+    When the task failed, ``result`` holds the error text instead of a ``T``, so the type
+    is only right once ``failed`` is ``False``.
+    """
+
+    if TYPE_CHECKING:
+        # Read through __getattr__ at runtime; declared here so that it has a type. Read-only,
+        # because assigning it would not change the first element, which the processors read.
+        @property
+        def result(self) -> T:
+            """Result of the task itself, read from the first element."""
+            ...
 
     def __init__(self, name: str) -> None:
         self.name = name
@@ -769,13 +823,18 @@ class MultiResult(list[Result]):
             raise NornirExecutionError(self)
 
 
-class AggregatedResult(dict[str, MultiResult]):
+class AggregatedResult(dict[str, MultiResult[T]], Generic[T]):
     """Dict-like object that aggregates the results for all devices.
 
     You can access each individual result by doing ``my_aggr_result["hostname_of_device"]``.
+
+    ``AggregatedResult[T]`` holds ``MultiResult[T]`` values, so
+    ``my_aggr_result["hostname_of_device"].result`` is a ``T`` for the type checker. A
+    bare ``AggregatedResult`` means ``AggregatedResult[Any]``. The type parameter has no
+    effect at runtime.
     """
 
-    def __init__(self, name: str, **kwargs: MultiResult) -> None:
+    def __init__(self, name: str, **kwargs: MultiResult[T]) -> None:
         self.name = name
         super().__init__(**kwargs)
 
@@ -789,7 +848,11 @@ class AggregatedResult(dict[str, MultiResult]):
 
     @property
     def failed_hosts(self) -> dict[str, MultiResult]:
-        """Hosts that failed during the execution of the task."""
+        """Hosts that failed during the execution of the task.
+
+        The values are bare ``MultiResult`` objects, because the ``result`` of a failed
+        task holds the error text, not the type of the task's result.
+        """
         return {h: r for h, r in self.items() if r.failed}
 
     def raise_on_error(self) -> None:

@@ -28,6 +28,20 @@ Unreleased
   in strict mode report a bare ``Result`` as missing its type parameter.
   ``RunStream`` and ``AsyncRunStream`` gained ``results()``, which yields only the final
   result of each host (#1089)
+- The result of a plain task is now typed from the task's return annotation, for type
+  checkers only. ``Nornir.run``, ``arun``, ``stream``, ``submit``, ``astream``,
+  ``asubmit``, ``Task.run`` and ``Task.arun`` return ``AggregatedResult[T]``,
+  ``MultiResult[T]`` or a run object typed with ``T``, where ``T`` is the type in
+  ``Result[T]`` or the plain type the task returns. ``AggregatedResult`` and
+  ``MultiResult`` are now generic, and ``MultiResult.result`` is typed. A task annotated
+  ``Result[T] | None`` gives ``T | None``. Tasks annotated with a bare ``Result`` and
+  generator tasks, annotated with ``Generator`` or ``Iterator`` or their asynchronous
+  versions, keep ``Any``. mypy and ty also keep ``Any`` for a task without a return
+  annotation, while Pyright types its result from the return type it works out from the
+  body of the task. Nothing changes at runtime, but type checkers can report errors in code
+  that passed before: a variable that holds runs of tasks with different return types
+  needs the annotation ``AggregatedResult``, and the result of a failed host, which holds
+  the error text, is typed as if the task succeeded. mypy 2.x is recommended (#1129)
 
 3.7.0a1 - November 15, 2026
 ---------------------------
