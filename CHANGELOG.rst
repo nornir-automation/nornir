@@ -1,8 +1,8 @@
 Changelog
 ==========
 
-Unreleased
-----------
+3.7.0b1 - November 25, 2026
+---------------------------
 
 - Added Operations: an action defined once with a typed input and a typed output, and
   implemented by plain tasks for each platform and connection. Define one by subclassing
@@ -42,10 +42,6 @@ Unreleased
   that passed before: a variable that holds runs of tasks with different return types
   needs the annotation ``AggregatedResult``, and the result of a failed host, which holds
   the error text, is typed as if the task succeeded. mypy 2.x is recommended (#1129)
-
-3.7.0a1 - November 15, 2026
----------------------------
-
 - Added opt-in entry points for long-running work: ``Nornir.submit`` and
   ``Nornir.asubmit`` start a run in the background and return a handle that yields each
   host's final result as it finishes, reports progress, cancels the run and returns the
