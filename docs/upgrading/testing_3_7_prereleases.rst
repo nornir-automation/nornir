@@ -112,8 +112,10 @@ Read typed results
 * ``nr.run()`` then returns ``AggregatedResult[T]``, and ``multi.result`` has the type
   ``T``. ``Task.run()``, ``stream()``, ``submit()`` and the async methods work the same
   way.
-* A task annotated with ``Result`` without a type, a task without a return annotation,
-  and a task that contains ``yield`` keep the type ``Any``.
+* A task annotated with ``Result`` without a type and a task without a return annotation
+  keep the type ``Any``.
+* A task that contains ``yield`` keeps the type ``Any``, unless it is annotated with
+  ``ResultWithProgress[T]``, or ``AsyncResultWithProgress[T]`` for an ``async def`` task.
 
 .. code-block:: python
 
@@ -231,7 +233,9 @@ These features work with normal synchronous tasks. You do not need ``async def``
 a different runner.
 
 * **Progress:** a task reports progress with ``yield PartialResult(...)``. Its ``return``
-  value is still the final result.
+  value is still the final result. Annotate the task with ``ResultWithProgress[T]``, where
+  ``T`` is the type of the final result, so that your type checker knows the type of the
+  results.
 * **Follow a run:** ``nr.stream()`` gives you each event when it happens.
 * **Run in the background:** ``nr.submit()`` returns a handle. Use the handle to read the
   result of each host when the host finishes, and to cancel the run.
@@ -271,12 +275,12 @@ This example uses synchronous tasks. The second part uses ``submit``, so it need
     import time
 
     from nornir import InitNornir
-    from nornir.core.task import PartialResult, Result, Task
+    from nornir.core.task import PartialResult, Result, ResultWithProgress, Task
 
     nr = InitNornir(config_file="config.yaml")
 
 
-    def upgrade(task: Task):
+    def upgrade(task: Task) -> ResultWithProgress[str]:
         yield PartialResult(host=task.host, result="copying image", progress=0.5)
         time.sleep(0.1)  # replace with the real work
         return Result(host=task.host, result="done")

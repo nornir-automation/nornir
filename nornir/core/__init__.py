@@ -54,10 +54,19 @@ from nornir.core.task import (
 if TYPE_CHECKING:
     import builtins
     import types
-    from collections.abc import AsyncIterator, Awaitable, Callable, Coroutine, Iterator, Mapping
+    from collections.abc import (
+        AsyncGenerator,
+        AsyncIterator,
+        Awaitable,
+        Callable,
+        Coroutine,
+        Generator,
+        Iterator,
+        Mapping,
+    )
 
     from nornir.core.inventory import Host
-    from nornir.core.task import Result
+    from nornir.core.task import PartialResult, Result
 
 logger = logging.getLogger(__name__)
 
@@ -202,6 +211,16 @@ class Nornir:
     @overload
     def run(
         self,
+        task: Callable[..., Generator[PartialResult, Any, Result[_ResultT]]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        **kwargs: Any,
+    ) -> AggregatedResult[_ResultT]: ...
+    @overload
+    def run(
+        self,
         task: Callable[..., Iterator[Any]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
@@ -274,6 +293,16 @@ class Nornir:
         result = self.runner.run(run_task, run_on)
         return self._finalize_run(run_task, result, raise_on_error)
 
+    @overload
+    async def arun(
+        self,
+        task: Callable[..., AsyncGenerator[PartialResult | Result[_ResultT], Any]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        **kwargs: Any,
+    ) -> AggregatedResult[_ResultT]: ...
     @overload
     async def arun(
         self,
@@ -485,6 +514,17 @@ class Nornir:
     @overload
     def submit(
         self,
+        task: Callable[..., Generator[PartialResult, Any, Result[_ResultT]]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> RunHandle[_ResultT]: ...
+    @overload
+    def submit(
+        self,
         task: Callable[..., Iterator[Any]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
@@ -569,6 +609,17 @@ class Nornir:
         run = self._new_run(runner, task, name, kwargs, (on_good, on_failed), run_options)
         return RunHandle._start(runner, run, self._finalizer(run, raise_on_error))
 
+    @overload
+    def stream(
+        self,
+        task: Callable[..., Generator[PartialResult, Any, Result[_ResultT]]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> RunStream[_ResultT]: ...
     @overload
     def stream(
         self,
@@ -658,6 +709,17 @@ class Nornir:
     @overload
     async def asubmit(
         self,
+        task: Callable[..., AsyncGenerator[PartialResult | Result[_ResultT], Any]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> AsyncRunHandle[_ResultT]: ...
+    @overload
+    async def asubmit(
+        self,
         task: Callable[..., AsyncIterator[Any]],
         raise_on_error: bool | None = None,
         on_good: bool = True,
@@ -741,6 +803,17 @@ class Nornir:
         handle, _ = AsyncRunHandle._start(runner, run, self._finalizer(run, raise_on_error))
         return handle
 
+    @overload
+    def astream(
+        self,
+        task: Callable[..., AsyncGenerator[PartialResult | Result[_ResultT], Any]],
+        raise_on_error: bool | None = None,
+        on_good: bool = True,
+        on_failed: bool = False,
+        name: str | None = None,
+        run_options: RunOptions | None = None,
+        **kwargs: Any,
+    ) -> AsyncRunStream[_ResultT]: ...
     @overload
     def astream(
         self,

@@ -1,6 +1,21 @@
 Changelog
 ==========
 
+Unreleased
+----------
+
+- Added ``ResultWithProgress[T]`` and ``AsyncResultWithProgress[T]`` to
+  ``nornir.core.task``: return annotations for tasks that report progress. They stand for
+  ``Generator[PartialResult, None, Result[T]]`` and
+  ``AsyncGenerator[PartialResult | Result[T], None]``. ``Nornir.run``, ``arun``,
+  ``stream``, ``submit``, ``astream``, ``asubmit``, ``Task.run`` and ``Task.arun`` type
+  the result of such a task as ``T``, for type checkers only. This also applies to a task
+  annotated with the ``Generator`` type that ``ResultWithProgress[T]`` stands for, which
+  was typed as ``Any`` in 3.7.0b1, so type checkers can report errors in code that passed
+  before. Other generator tasks keep ``Any``, because they can end by yielding a
+  ``Result`` of any type. Type checkers do not check that an ``async def`` task yields its
+  final ``Result``: a task that ends without one records ``None`` as its result
+
 3.7.0b1 - November 25, 2026
 ---------------------------
 

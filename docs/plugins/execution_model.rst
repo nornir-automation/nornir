@@ -83,7 +83,10 @@ live, cancelled, and given deadlines. See the executed
   that guarantee on every Python implementation.
 * A task reports progress by yielding :obj:`nornir.core.task.PartialResult` objects. Its
   ``return`` value is its final result. An async generator cannot return a value, so an
-  ``async def`` progress task ends by yielding its final ``Result``.
+  ``async def`` progress task ends by yielding its final ``Result``. Annotate the task
+  with :obj:`~nornir.core.task.ResultWithProgress` ``[T]``, or
+  :obj:`~nornir.core.task.AsyncResultWithProgress` ``[T]`` for an ``async def`` task, so
+  that type checkers type its results as ``T``.
 * Deadlines are set on the runner, with ``per_host_timeout`` and ``timeout`` (also under
   ``runner.options`` in the configuration file), or for one run with the ``run_options``
   argument of ``submit``, ``stream``, ``asubmit`` and ``astream``. ``run()`` and
