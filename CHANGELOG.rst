@@ -14,7 +14,7 @@ Unreleased
   was typed as ``Any`` in 3.7.0b1, so type checkers can report errors in code that passed
   before. Other generator tasks keep ``Any``, because they can end by yielding a
   ``Result`` of any type. Type checkers do not check that an ``async def`` task yields its
-  final ``Result``: a task that ends without one records ``None`` as its result
+  final ``Result``: a task that ends without one records ``None`` as its result (#1135)
 
 3.7.0b1 - November 25, 2026
 ---------------------------
