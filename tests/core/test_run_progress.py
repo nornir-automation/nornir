@@ -2,19 +2,24 @@ from __future__ import annotations
 
 import asyncio
 import threading
+from collections.abc import AsyncGenerator, Generator
 from typing import TYPE_CHECKING, Any
 
 import pytest
 
 from nornir.core.exceptions import AsyncTaskOnSyncRunError, TaskCancelledError
-from nornir.core.task import PartialResult, Result, Task
+from nornir.core.task import (
+    AsyncResultWithProgress,
+    PartialResult,
+    Result,
+    ResultWithProgress,
+    Task,
+)
 from nornir.plugins.runners import SerialRunner, ThreadedRunner
 from tests.core.run_helpers import EventLog, make_nornir
 from tests.core.test_run_contract import LegacyProcessor
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
-
     from nornir.core.plugins.runners import RunnerPlugin
 
 
@@ -203,3 +208,18 @@ def test_generator_task_body_runs_and_is_not_stored_as_a_result() -> None:
     result = nr.run(task=task)
     assert sorted(ran) == ["h000", "h001"]
     assert [r[0].result for r in result.values()] == ["value", "value"]
+
+
+def test_progress_aliases_are_the_generator_types_they_stand_for() -> None:
+    assert ResultWithProgress[str] == Generator[PartialResult, None, Result[str]]
+    assert AsyncResultWithProgress[str] == AsyncGenerator[PartialResult | Result[str], None]
+
+
+def test_a_task_annotated_with_the_alias_runs() -> None:
+    def task(task: Task) -> ResultWithProgress[str]:
+        yield PartialResult(task.host, "copying", 0.5)
+        return Result(host=task.host, result="done")
+
+    nr = make_nornir(SerialRunner(), 1)
+    events = list(nr.stream(task=task))
+    assert [e.result for e in events] == ["copying", "done"]

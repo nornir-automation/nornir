@@ -6,7 +6,8 @@ import inspect
 import logging
 import sys
 import traceback
-from typing import TYPE_CHECKING, Any, Generic, cast, overload
+from collections.abc import AsyncGenerator, Generator
+from typing import TYPE_CHECKING, Any, Generic, TypeAlias, cast, overload
 
 from nornir.core.exceptions import (
     AsyncTaskOnSyncRunError,
@@ -17,14 +18,7 @@ from nornir.core.exceptions import (
 )
 
 if TYPE_CHECKING:
-    from collections.abc import (
-        AsyncGenerator,
-        AsyncIterator,
-        Callable,
-        Coroutine,
-        Generator,
-        Iterator,
-    )
+    from collections.abc import AsyncIterator, Callable, Coroutine, Iterator
 
     # The default lets a bare ``Result`` mean ``Result[Any]`` for the type checker. It is
     # declared only here, so ``typing_extensions`` is never imported at runtime.
@@ -555,6 +549,10 @@ class Task:
         return result
 
     @overload
+    def run(
+        self, task: Callable[..., Generator[PartialResult, Any, Result[_ResultT]]], **kwargs: Any
+    ) -> MultiResult[_ResultT]: ...
+    @overload
     def run(self, task: Callable[..., Iterator[Any]], **kwargs: Any) -> MultiResult[Any]: ...
     @overload
     def run(
@@ -609,6 +607,12 @@ class Task:
             raise
         return self._record_subtask_result(run_task, r)
 
+    @overload
+    async def arun(
+        self,
+        task: Callable[..., AsyncGenerator[PartialResult | Result[_ResultT], Any]],
+        **kwargs: Any,
+    ) -> MultiResult[_ResultT]: ...
     @overload
     async def arun(
         self, task: Callable[..., AsyncIterator[Any]], **kwargs: Any
@@ -765,6 +769,39 @@ class Result(Generic[T]):
             return str(self.exception)
 
         return str(self.result)
+
+
+ResultWithProgress: TypeAlias = Generator[PartialResult, None, Result[T]]
+"""Return annotation of a task that reports progress and returns a ``Result[T]``.
+
+The task yields :class:`PartialResult` objects while it runs and returns its final
+:class:`Result`, which gives the type of the run's results::
+
+    def upgrade(task: Task, image: str) -> ResultWithProgress[str]:
+        yield PartialResult(host=task.host, result="copying", progress=0.5)
+        return Result(host=task.host, result=f"running {image}")
+
+``nr.run(task=upgrade)`` is then an ``AggregatedResult[str]``. A bare
+``ResultWithProgress`` means ``ResultWithProgress[Any]``. It is a type alias of
+:class:`collections.abc.Generator`, for return annotations only.
+"""
+
+AsyncResultWithProgress: TypeAlias = AsyncGenerator[PartialResult | Result[T], None]
+"""Return annotation of an ``async def`` task that reports progress, ending with a ``Result[T]``.
+
+An async generator cannot return a value, so the task yields its final :class:`Result`
+after its :class:`PartialResult` objects::
+
+    async def upgrade(task: Task, image: str) -> AsyncResultWithProgress[str]:
+        yield PartialResult(host=task.host, result="copying", progress=0.5)
+        yield Result(host=task.host, result=f"running {image}")
+
+``await nr.arun(task=upgrade)`` is then an ``AggregatedResult[str]``. Type checkers do
+not check that the task yields a :class:`Result`: a task that ends without one records
+``None`` as its result. A bare ``AsyncResultWithProgress`` means
+``AsyncResultWithProgress[Any]``. It is a type alias of
+:class:`collections.abc.AsyncGenerator`, for return annotations only.
+"""
 
 
 class MultiResult(list[Result], Generic[T]):

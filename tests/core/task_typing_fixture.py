@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, AsyncIterator, Callable, Generator, Iterator
 
     from nornir.core import Nornir
-    from nornir.core.task import Task
+    from nornir.core.task import AsyncResultWithProgress, ResultWithProgress, Task
 
 
 @dataclass
@@ -49,6 +49,23 @@ def progress(task: Task) -> Generator[PartialResult, None, Result[Facts]]:
     return get_facts(task)  # noqa: B901 - a generator task may return its final result
 
 
+def progress_alias(task: Task) -> ResultWithProgress[Facts]:
+    yield PartialResult(task.host, "fetching")
+    return get_facts(task)  # noqa: B901 - a generator task may return its final result
+
+
+def progress_bare_alias(task: Task) -> ResultWithProgress:
+    yield PartialResult(task.host, "fetching")
+    return Result(task.host)  # noqa: B901 - a generator task may return its final result
+
+
+def progress_may_yield_its_result(
+    task: Task,
+) -> Generator[PartialResult | Result[Facts], None, Result[Facts]]:
+    yield get_facts(task)
+    return get_facts(task)  # noqa: B901 - a generator task may return its final result
+
+
 def iter_progress(task: Task) -> Iterator[str]:
     yield "fetching"
 
@@ -73,6 +90,12 @@ async def aget_version(task: Task) -> str:
 
 async def aprogress(task: Task) -> AsyncGenerator[Any, None]:
     await asyncio.sleep(0)
+    yield get_facts(task)
+
+
+async def aprogress_alias(task: Task) -> AsyncResultWithProgress[Facts]:
+    await asyncio.sleep(0)
+    yield PartialResult(task.host, "fetching")
     yield get_facts(task)
 
 
@@ -109,8 +132,8 @@ def run_wraps_a_plain_return_value(nr: Nornir) -> None:
 def untyped_tasks_stay_any(nr: Nornir, untyped: Callable[..., Any]) -> None:
     assert_type(nr.run(untyped), AggregatedResult[Any])
     assert_type(nr.run(bare_result), AggregatedResult[Any])
-    # A generator task may end by returning a value or by yielding a Result.
-    assert_type(nr.run(progress), AggregatedResult[Any])
+    # A generator task that may yield a Result can end with it, whatever it returns.
+    assert_type(nr.run(progress_may_yield_its_result), AggregatedResult[Any])
     # Nornir drives a generator annotated as an Iterator too; .result is not the iterator.
     assert_type(nr.run(iter_progress), AggregatedResult[Any])
     assert_type(nr.stream(iter_progress), RunStream[Any])
@@ -134,7 +157,26 @@ def streams_and_handles_are_typed(nr: Nornir) -> None:
     handle = nr.submit(get_version)
     assert_type(handle, RunHandle[tuple[int, int]])
     assert_type(handle.result(), AggregatedResult[tuple[int, int]])
-    assert_type(nr.stream(progress), RunStream[Any])
+
+
+def progress_tasks_are_typed_from_their_final_result(nr: Nornir) -> None:
+    assert_type(nr.run(progress_alias), AggregatedResult[Facts])
+    assert_type(nr.run(progress_alias)["r1"].result, Facts)
+    assert_type(nr.stream(progress_alias), RunStream[Facts])
+    assert_type(nr.submit(progress_alias), RunHandle[Facts])
+    # The alias and the Generator it stands for are the same type.
+    assert_type(nr.run(progress), AggregatedResult[Facts])
+    assert_type(nr.stream(progress), RunStream[Facts])
+    assert_type(nr.run(progress_bare_alias), AggregatedResult[Any])
+    for event in nr.stream(progress_alias):
+        if isinstance(event, Result):
+            assert_type(event.result, Facts)
+
+
+async def async_progress_tasks_are_typed_from_their_final_result(nr: Nornir) -> None:
+    assert_type(await nr.arun(aprogress_alias), AggregatedResult[Facts])
+    assert_type(nr.astream(aprogress_alias), AsyncRunStream[Facts])
+    assert_type(await nr.asubmit(aprogress_alias), AsyncRunHandle[Facts])
 
 
 async def async_entry_points_are_typed(nr: Nornir) -> None:
@@ -159,7 +201,8 @@ def subtasks_are_typed(task: Task) -> None:
     assert_type(task.run(get_version), MultiResult[tuple[int, int]])
     assert_type(task.run(get_version).result, tuple[int, int])
     assert_type(task.run(get_facts).result, Facts)
-    assert_type(task.run(progress), MultiResult[Any])
+    assert_type(task.run(progress), MultiResult[Facts])
+    assert_type(task.run(progress_alias).result, Facts)
     assert_type(task.run(iter_progress), MultiResult[Any])
     assert_type(task.run(maybe_facts).result, Facts | None)
 
@@ -168,6 +211,7 @@ async def async_subtasks_are_typed(task: Task) -> None:
     assert_type((await task.arun(aget_version)).result, str)
     assert_type((await task.arun(aget_facts)).result, Facts)
     assert_type(await task.arun(aprogress), MultiResult[Any])
+    assert_type((await task.arun(aprogress_alias)).result, Facts)
     assert_type(await task.arun(aiter_progress), MultiResult[Any])
     assert_type((await task.arun(amaybe_facts)).result, Facts | None)
 
